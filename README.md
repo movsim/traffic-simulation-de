@@ -25,7 +25,7 @@ In future versions, an additional control file _canvasresize.js_ will implement 
 
 The javascript code uses pseudo objects in appropriately named files, particularly
 
-### <scenario\>.js (ring.js, onramp.js etc)
+### <scenario>.js (ring.js, onramp.js etc)
 
 the top-level simulation code for the corresponding scenario called in ring.html, onramp.html etc. Initializes the road network elements needed for the corresponding scenario (e.g. mainroad and onramp for the onramp scenario), starts/stops the simulation, controls the simulation updates in each time step depending on the scenario, draws everything, and implements the user controls defined in ring_gui.js, onramp_gui.js etc.
 
