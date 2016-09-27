@@ -29,15 +29,15 @@ The javascript code uses pseudo objects in appropriately named files, particular
 
 the top-level simulation code for the corresponding scenario called in ring.html, onramp.html etc. Initializes the road network elements needed for the corresponding scenario (e.g. mainroad and onramp for the onramp scenario), starts/stops the simulation, controls the simulation updates in each time step depending on the scenario, draws everything, and implements the user controls defined in ring_gui.js, onramp_gui.js etc.
 
-### <scenario_gui\>.js (ring_gui.js, etc.)
+### \<scenario_gui\>.js (ring_gui.js, etc.)
 
-Defines the user control. Each simulation scenario (such as ring, onramp, roadworks) has both a top-level simulation javascript file <scenario\>.js, and an associated gui <scenario\>_gui.js (and of course an html file <scenario\>.html).
+Defines the user control. Each simulation scenario (such as ring, onramp, roadworks) has both a top-level simulation javascript file \<scenario\>.js, and an associated gui \<scenario\>_gui.js (and of course an html file \<scenario\>.html).
 
 ### road.js
 
 represents a road network element (road link) and organizes the vehicles on it. Contains an array of vehicles and methods to get the neighboring vehicles for a given vehicle, to update all vehicles for one time step, to interact with/get information of neighboring road network  elements.
 
-It also provides methods to draw this network element and the vehicles on it. These drawing methods depend on the road geometry functions ```traj_x``` and ```traj_y``` to be provided by the calling pseudoclasses <scenario\>.js
+It also provides methods to draw this network element and the vehicles on it. These drawing methods depend on the road geometry functions ```traj_x``` and ```traj_y``` to be provided by the calling pseudoclasses \<scenario\>.js
 
 ### vehicle.js
 
@@ -57,7 +57,7 @@ external open library to implement sliders. Has some drawbacks (no docu of how t
 
 ### redirect.js
 
-callback (implementation) of the buttons for the different scenarios on the <scenario\>.html simulation pages
+callback (implementation) of the buttons for the different scenarios on the \<scenario\>.html simulation pages
 
 ## Graphics
 
