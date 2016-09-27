@@ -1,0 +1,231 @@
+
+/*###########################################*/
+/* sliders */
+/*###########################################*/
+
+
+/* text size:
+(1) px = pixels
+(2) vh = percentage of viewport heigh (0-100)
+(2) vw = percentage of viewport width (0-100)
+*/
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac, 
+ div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL{
+    width: 161px; /*fixed because of slider interface; best sliderWidth=151*/
+    height: 1.5vh;
+    background-color: #336;
+    border: 1px solid #336;
+    position: relative;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac, 
+ div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL{
+    background-color: #ddd;
+    height: 1.5vh;
+    width: 1.0vh;
+    position: absolute;
+}
+
+/* model parameters */
+
+div#track_IDM_v0, div#track_IDM_T, div#track_IDM_s0, 
+ div#track_IDM_a, div#track_IDM_b {
+    width: 161px; /*fixed because of slider interface; best sliderWidth=151*/
+    height: 1.5vh;
+    background-color: #336;
+    border: 1px solid #336;
+    position: relative;
+}
+
+div#slider_IDM_v0, div#slider_IDM_T, div#slider_IDM_s0, 
+div#slider_IDM_a, div#slider_IDM_b {
+    background-color: #ddd;
+    height: 1.5vh;
+    width: 1.0vh;
+    position: absolute;
+}
+
+/*
+div#track_IDM_v0, div#track_IDM_T, div#track_IDM_s0, 
+ div#track_IDM_a, div#track_IDM_b {
+    width: 160px;
+    height: 14px;
+    background-color: #336;
+    border: 1px solid #336;
+    position: relative;
+}
+
+div#slider_IDM_v0, div#slider_IDM_T, div#slider_IDM_s0, 
+div#slider_IDM_a, div#slider_IDM_b {
+    background-color: #ddd;
+    height: 14px;
+    width: 10px;
+    position: absolute;
+}
+*/
+
+/*###########################################*/
+/* overall specification */
+/*###########################################*/
+
+body { 
+    background-color:#FFFFFF;
+
+    /* get rid of default spacing on the edges */
+    margin: 0;
+    padding: 0;
+
+    /* get rid of that 2px window border in Internet Explorer 6 */
+    border: 0;
+
+    /* no more scroll bar */
+    /*overflow: hidden;*/
+
+    /* fill the height of the browser (DOS) */ 
+    /*height: 100%;*/
+
+/* general font size NOT within tables! */
+  /*font-size:12px;*/ 
+  /*font-size:1.2vw;*/
+  font-size:1.5vh;
+
+  font-family: sans-serif; /* DOS innerhalb table elementen, 
+                                     auch wenn nicht ueberschrieben*/
+  border: thin #FF0000;  /* DOS */
+  padding-left: 0px;
+  margin: 7px;
+}
+
+
+/*bug: innerhalb tables wird 
+NICHT die allgemeine Vorgabe von body verwendet !!!
+*/
+TR{
+  /*font-size:12px;*/
+  font-size:1.5vh; /* percentage of viewport heigh (0-100) */
+  /*font-size: 1.5vw;*/ /* percentage of viewport width (0-100)*/
+}
+
+
+/* works except bug no min-max restriction (no min/max fkt in css), no frames*/
+button{
+/*  font-size: 1.4vh;*/
+font-size: calc( 6px + (18 - 6) * ( (100vmin - 300px) / ( 900 - 300) ));
+}
+
+
+/* does not work
+@media all and (max-width: 800px) and (min-width: 400px) {
+  button{font-size: calc( 8px + max(0,(16 - 8) * ( (100vmin - 400px) / ( 800 - 400) )));
+  }
+}
+@media all and (min-width: 801px){
+  button{font-size: 16px;}
+}
+@media all and (max-width: 399px){
+  button{font-size: 8px;}
+}
+*/
+
+.redTextColor {  color: #F03;
+  font-weight:bold;
+  font-style: italic;
+                }
+
+
+/* Absatzeinrueckung zwischen <p> ... </p>
+Aufruf: <p class="noMargin" ... </p>
+*/
+
+p{margin-left: 0mm}
+p.noMargin {margin-left: 0mm}
+p.margin {margin-left: 10mm}
+
+
+
+h1 {
+           text-align: center;
+	font-family: sans-serif;
+	font-size: 1.8vh;
+	font-weight: bold;
+	color: #000;
+
+        padding-top:0px;
+        padding-bottom:0px;
+ }
+ 
+ h2 {
+	font-family: courier, sans-serif;
+	font-size: 2vh;
+	font-weight: bold;
+	color: #556;
+        padding-top:0px;
+
+ }
+
+ h3 {
+	font-family: sans-serif;
+	font-size: 1.9vh;
+	font-weight: bold;
+	font-style: italic;
+	color: #556;
+        padding-top:0px;
+ }
+
+h1.hinterlegt { background-color:#FFFF00 }
+*.hinterlegt { background-color:#00FFFF }
+.extra { background-color:#FF99FF }
+.extra.hinterlegt { background-color:#FF0000 }
+
+
+/*###########################################*/
+/* Link specification */
+/*###########################################*/
+
+
+
+/* general link */
+
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+a:visited {
+	color: #957;
+	text-decoration: none;
+
+}
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+	/*background-color: #EEF;*/  /* side effects on img links */
+
+}
+
+/* suppresses borders on images used as links */
+
+img {
+        border-width: 0;
+}
+
+
+/* Menu link specification */
+
+.menu a{
+
+ font-weight: bold;
+ text-decoration: none;
+}
+
+
+

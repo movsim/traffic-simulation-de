@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8"/>
+
+<title> traffic-simulation.de: Auffahrt</title>
+
+<!-- specifications/appearance of  main webpage and sliders 
+(slider implementations DYN_WEB.* von sliders/js/dw_slider.js)-->
+
+<link href="css/simulation_html5.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+
+<body>
+<h1> Traffic-Simulation.de: Auffahrt </h1>
+
+<!-- outer nested table, first row spans both subtables -->
+
+<table width="100%" id="mainTable"> <!-- id for responsive design-->
+<tr>
+<td colspan="2">
+<button onclick="myStartFunction()">Weiter</button>
+<button onclick="myStopFunction()">Stop</button>
+<button onclick="myRedirectRing()">Ringstrasse</button>
+<button onclick="myRedirectOnramp()">Auffahrt</button>
+<button onclick="myRedirectOfframp()">Abfahrt</button>
+<button onclick="myRedirectRoadworks()">Baustelle</button>
+<button onclick="myRedirectRouting()">Routing</button>
+<!--<button onclick="myRedirectUphill()">Uphill</button>
+<button onclick="myRedirectTrafficlight()">Traffic Light</button>
+-->
+</td>
+</tr>
+
+<!-- redirects to other scenarios, defines myRedirectX -->
+<script src="js/redirect_ger.js" type="text/javascript"></script>
+
+<!-- nested tables: Table 1: global sliders -->
+
+<!-- !!! ATTANTION Both div#track_x and div#slider_x must be updated
+in sliders.css if new slider defined !!!  -->
+
+<tr>
+<td><table>
+
+ <tr>
+  <td>Zeitraffer</td>
+  <td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
+  <td> <div id="valueField_timewarp"></div>
+ </tr>
+
+<!--
+ <tr>
+  <td>Skala</td>
+  <td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
+  <td> <div id="valueField_scale"></div>
+ </tr>
+-->
+
+ <tr>
+  <td> LKW-Anteil</td>
+  <td> <div id="track_truckFrac"> <div id="slider_truckFrac"></div></div></td>
+  <td> <div id="valueField_truckFrac"></div>
+ </tr>
+
+ <tr>
+  <td> Hauptzufluss</td>
+  <td> <div id="track_qIn"> <div id="slider_qIn"></div></div></td>
+  <td> <div id="valueField_qIn"></div>
+ </tr>
+
+ <tr>
+  <td> Rampenzufluss</td>
+  <td> <div id="track_qOn"> <div id="slider_qOn"></div></div></td>
+  <td> <div id="valueField_qOn"></div>
+ </tr>
+
+</table></td>
+
+<!-- Table 2: sliders for model parameters -->
+
+<td><table>
+
+ <tr>
+  <td> Wunschgeschw. v</sub>0</sub> </td>
+  <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+  <td> <div id="valueField_IDM_v0"></div>
+ </tr>
+
+ <tr>
+  <td> Zeitl&uuml;cke T</td>
+  <td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
+  <td> <div id="valueField_IDM_T"></div>
+ </tr>
+
+ <tr>
+  <td> Mindestl&uuml;cke s</sub>0</sub> </td>
+  <td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
+  <td> <div id="valueField_IDM_s0"></div>
+ </tr>
+
+ <tr>
+  <td> Max Beschleun a</td>
+  <td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
+  <td> <div id="valueField_IDM_a"></div>
+ </tr>
+
+ <tr>
+  <td> Komfort Verz&ouml;g b</td>
+  <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
+  <td> <div id="valueField_IDM_b"></div>
+ </tr>
+
+</table> </td>  <!-- nested Table 2 -->
+
+</tr></table> <!-- outer table -->
+
+
+<canvas id="canvas_onramp" width="800" height="600">You are probably
+  using a very ancient web browser (or an Internet Explorer) 
+ not supporting html5 canvas. Please switch to another browser for
+  running this simulation.
+</canvas>
+
+<!-- specific scripts; position after def of canvas! -->
+
+<script src="js/dw_slider.js" type="text/javascript"></script>
+<script src="js/canvasresize.js" type="text/javascript"></script>
+
+<script src="js/onramp_gui_ger.js"></script> 
+<script src="js/colormanip.js"></script>
+<script src="js/models.js"></script> 
+<script src="js/vehicle.js"></script>
+<!--<script src="myMath.js"></script> -->
+<script src="js/paths.js"></script>
+<script src="js/road.js"></script>
+<script src="js/onramp_ger.js"></script> 
+
+</body>
+</html>
