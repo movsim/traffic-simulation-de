@@ -60,15 +60,25 @@ var truck_length=15; // trucks
 var truck_width=7; 
 
 // initial parameter settings (!! transfer def to GUI if variable in sliders!)
+//!!! clarify mandatory changes:
+// (i) here: var MOBIL_mandat_bSafe=42 ...
+// (ia) here: var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe,...)
+// (1b) here: onramp.LCModelMandatoryLeft=LCModelMandatoryLeft
+// (ii) road.js: road.mandat_bSafe=17
+// (iia) road.js: this.LCModelMandatoryLeft=new MOBIL(17,0,-17/2) for diverges
+//       (formulated with road.mandat_bSafe)
+// (iii) function road.prototype.mergeDiverge: local variable merge_bSafe=road.mandat_bSafe
+// (iv) longitudinal deceleration IDM.bmax=16
 
-var MOBIL_bSafe=4;
+var MOBIL_bSafe=4;     // bSafe if v to v0
+var MOBIL_bSafeMax=17; // bSafe if v to 0 //!!! use it
 var MOBIL_bThr=0.4;
 var MOBIL_bBiasRight_car=-0.4; // four times for trucks (onramp_gui.js)
 var MOBIL_bBiasRight_truck=0.1; // four times for trucks (onramp_gui.js)
 
-var MOBIL_mandat_bSafe=25;
+var MOBIL_mandat_bSafe=42;
 var MOBIL_mandat_bThr=0;
-var MOBIL_mandat_bias=25;
+var MOBIL_mandat_bias=42;
 
 var dt_LC=4; // duration of a lane change
 
@@ -129,9 +139,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 
 updateModels(); 
@@ -153,7 +163,7 @@ onramp.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
 
 var virtualStandingVeh=new vehicle(2, laneWidth, rampLen-0.6*taperLen, 0, 0, "obstacle");
 var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=new MOBIL(MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
+var LCModelObstacle=new MOBIL(MOBIL_bSafe, MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;
 onramp.veh.unshift(virtualStandingVeh);
