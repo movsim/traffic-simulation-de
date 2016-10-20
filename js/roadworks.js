@@ -59,12 +59,14 @@ var truck_width=7;
 
 // initial parameter settings (!! transfer def to GUI if variable in sliders!)
 
-var MOBIL_bSafe=12;
+var MOBIL_bSafe=8; // was 12
+var MOBIL_bSafeMax=16;
 var MOBIL_bThr=0.1;
 var MOBIL_bBiasRight_car=0.2; // four times for trucks (roadworks_gui.js)
 var MOBIL_bBiasRight_truck=0.5; // four times for trucks (roadworks_gui.js)
 
-var MOBIL_mandat_bSafe=25;
+var MOBIL_mandat_bSafe=6;
+var MOBIL_mandat_bSafeMax=20;
 var MOBIL_mandat_bThr=0;
 var MOBIL_mandat_bias=2;
 
@@ -128,10 +130,10 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
 				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, 
-				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
+var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+				   MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 
 updateModels(); 
 				      // LCModelCar,LCModelTruck);
@@ -153,7 +155,7 @@ mainroad.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
 // number of virtual "roadwork" vehicles
 
 var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=new MOBIL(MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
+var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
 for (var ir=0; ir<nr; ir++){

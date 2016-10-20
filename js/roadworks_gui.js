@@ -87,8 +87,10 @@ function updateModels(){
     longModelCar.speedlimit=speedL;
     longModelTruck=new IDM(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
     longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
-    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bThr, MOBIL_bBiasRight_car);
-    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bThr, MOBIL_bBiasRight_truck);
+    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
+			 MOBIL_bThr, MOBIL_bBiasRight_car);
+    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+			   MOBIL_bThr, MOBIL_bBiasRight_truck);
 }
 
 

@@ -83,8 +83,10 @@ function updateModels(){
     // var MOBIL_bBiasRight and other MOBIL params defined in onramp.js 
     longModelCar=new IDM(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelTruck=new IDM(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
-    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bThr, MOBIL_bBiasRight_car);
-    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bThr, MOBIL_bBiasRight_truck);
+    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+			 MOBIL_bThr, MOBIL_bBiasRight_car);
+    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+			   MOBIL_bThr, MOBIL_bBiasRight_truck);
 }
 
 

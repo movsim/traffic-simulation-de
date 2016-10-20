@@ -53,6 +53,7 @@ var truck_width=7;
 // initial parameter settings (!! transfer def to GUI if variable in sliders!)
 
 var MOBIL_bSafe=4;
+var MOBIL_bSafeMax=17;
 var MOBIL_bThr=0.2;
 var MOBIL_bBiasRight_car=-0.01; 
 var MOBIL_bBiasRight_truck=0.1; 
@@ -112,9 +113,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 updateModels(); 
 

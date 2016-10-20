@@ -27,11 +27,21 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes for mandat. LC
 
+    // model parameters
+
+    this.MOBIL_bSafeMandat=6; // mandat LC and merging for v=v0
+    this.MOBIL_bSafeMax=17; //!!! mandat LC and merging for v=0
+
     // default LC models for mandatory lane changes 
     // MOBIL(bSafe,bThr,bias)
+    //!! only for preparing diverges! Actual merging with separate function!!
 
-    this.LCModelMandatoryRight=new MOBIL(15,0,15);
-    this.LCModelMandatoryLeft=new MOBIL(15,0,-15);
+    this.LCModelMandatoryRight=new MOBIL(this.MOBIL_bSafeMandat,
+					 this.MOBIL_bSafeMax,
+					 0,0.5*this.MOBIL_bSafeMax); 
+    this.LCModelMandatoryLeft=new MOBIL(this.MOBIL_bSafeMandat,
+					 this.MOBIL_bSafeMandat,
+					0,-0.5*this.MOBIL_bSafeMax);
 
 
     // drawing-related vatiables
@@ -467,18 +477,22 @@ road.prototype.doChangesInDirection=function(toRight){
 
          // calculate MOBIL input
 
+	 var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
 	 var accNew=this.veh[i].longModel.calcAcc(sNew,speed,speedLeadNew);
 	 var sLagNew=this.veh[i].u - this.veh[i].length - this.veh[iLagNew].u;
 	 var speedLagNew=this.veh[iLagNew].speed;
 	 var accLagNew =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed);
 
          // final MOBIL incentive/safety test before actual lane change
-      
-	 var MOBILOK=( (this.veh[i].type != "obstacle") && this.veh[i].LCModel.realizeLaneChange(acc,accNew,accLagNew, toRight,false));
-	 changeSuccessful=(sNew>0)&&(sLagNew>0)&&MOBILOK;
+         // (regular lane changes; for merges, see below)
+
+	 var MOBILOK=this.veh[i].LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,false);
+
+	 changeSuccessful=(this.veh[i].type != "obstacle")&&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 	 if(changeSuccessful){
 	 
-           // do lane change in the direction toRight (left if toRight=0)
+             // do lane change in the direction toRight (left if toRight=0)
+	     //!! only regular lane changes within road; merging/diverging separately!
 
            this.veh[i].dt_lastLC=0;                // active LC
 	   this.veh[iLagNew].dt_lastPassiveLC=0;   // passive LC
@@ -603,19 +617,35 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 	      var speedLagNew=followerNew.speed;
 	      var speed=originVehicles[i].speed;
 
-	      var merge_bSafe=9; // strong urge to leave onramp to the left
-	      var merge_biasRight=(toRight) ? 9 : -9; // strong urge to change
+	      var bSafeMergeMin=this.MOBIL_bSafeMandat; 
+	      var bSafeMergeMax=this.MOBIL_bSafeMax; 
+	      var bBiasMerge=(toRight) ? 0.5*bSafeMergeMax 
+		  : -0.5*bSafeMergeMax; // strong urge to change
 	      var longModel=originVehicles[i].longModel;
-	      var LCModel=new MOBIL(merge_bSafe,0,merge_biasRight);
+
+              //!!! this alt: LCModel with locally defined bSafe params 6 and 17
+	      var LCModel=new MOBIL(bSafeMergeMin,bSafeMergeMax,0,bBiasMerge);
+
+              //!!! this alt: LCModel* overwritten from top-level routines! bSafe=42
+	      //var LCModel=(toRight) ? this.LCModelMandatoryRight 
+		 // : this.LCModelMandatoryLeft; 
+
+	      var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
 	      var acc=originVehicles[i].acc;
 	      var accNew=longModel.calcAcc(sNew,speed,speedLeadNew);
 	      var accLagNew =longModel.calcAcc(sLagNew,speedLagNew,speed);
-      
-	      var MOBILOK=LCModel.realizeLaneChange(acc,accNew,accLagNew,toRight,false);
+
+              // lane changing to merge on new road (regular LC above)
+	      var MOBILOK=LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,false);
 
 	      success=MOBILOK &&(originVehicles[i].type != "obstacle")
 		  &&(sNew>0)&&(sLagNew>0)
 		  &&(originVehicles[i].mandatoryLCahead);
+
+	      if(log&&(this.roadID==2)){
+		  console.log("in road.mergeDiverge: roadID="+this.roadID
+			      +" LCModel.bSafeMax="+LCModel.bSafeMax);
+	      }
 	      if(success){iMerge=i;}
 
 

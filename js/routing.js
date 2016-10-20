@@ -91,6 +91,7 @@ var truck_width=7;
 // initial parameter settings (!! transfer def to GUI if variable in sliders!)
 
 var MOBIL_bSafe=4;
+var MOBIL_bSafeMax=17;
 var MOBIL_bThr=0.2;
 var MOBIL_bBiasRight_car=-0.01; 
 var MOBIL_bBiasRight_truck=0.1; 
@@ -152,9 +153,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe,MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, 
+var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe,MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 
 // behavior during bottlenecks (car and trucks)
@@ -191,7 +192,7 @@ deviation.LCModelMandatoryLeft=LCModelMandatoryLeft;
 
 var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*lTaper, 0, 0, "obstacle");
 var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=new MOBIL(MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
+var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;
 deviation.veh.unshift(virtualStandingVeh); // prepending=unshift (strange name)

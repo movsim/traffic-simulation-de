@@ -13,7 +13,7 @@ function IDM(v0,T,s0,a,b){
     // possible restrictions (value 1000 => initially no restriction)
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-
+    this.bmax=16;
     this.calcAcc=function(s,v,vl){
     //IDM.prototype.calcAcc=function(s,v,vl){ // this works as well but less intuitive
 
@@ -38,40 +38,68 @@ function IDM(v0,T,s0,a,b){
 	    +" speedlimit="+this.speedlimit
 	    +" speed="+v
 	    +" accFree="+accFree
-	    +" acc="+Math.max(-20, accFree + accInt + accRnd));
+	    +" acc="+Math.max(-this.bmax, accFree + accInt + accRnd));
 	}
-	return (v0eff<0.00001) ? 0 : Math.max(-20, accFree + accInt + accRnd);//IDM
-	//return Math.max(-20, Math.min(accFree, accInt_IDMplus));//IDMplus
+	return (v0eff<0.00001) ? 0 : Math.max(-this.bmax, accFree + accInt + accRnd);//IDM
+	//return Math.max(-this.bmax, Math.min(accFree, accInt_IDMplus));//IDMplus
     }
 }
 
 //#################################
-// lane-changing model
+// lane-changing models
 //#################################
 
-function MOBIL(bSafe, bThr, bBiasRight){
+/**
+generalized lane-changing model MOBIL:
+at present no politeness but speed dependent safe deceleration 
+
+@param bSafe:      safe deceleration [m/s^2] at maximum speed v=v0
+@param bSafeMax:   safe deceleration [m/s^2]  at speed zero (gen. higher)
+@param bThr:       lane-changing threshold [m/s^2] 
+@param bBiasRight: bias [m/s^2] to the right
+@return:           MOBIL instance (constructor)
+*/
+
+function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
     this.bSafe=bSafe;
     this.bThr=bThr;
     this.bBiasRight=bBiasRight;
+    this.bSafeMax=bSafeMax; //!!! transfer into arg list of cstr later on
     //this.p=p; 
 
-    // lane chaning decision w/o politeness
 
-    MOBIL.prototype.realizeLaneChange=function(acc,accNew,accLagTargetNew,toRight,log){
-    //this.realizeLaneChange=function(acc,accNew,accLagTargetNew,toRight,log){
-	if(log){
+
+    /**
+    generalized MOBIL lane chaning decision
+    with bSafe increasing with decrease vrel=v/v0
+    but at present w/o poliuteness
+
+    @param vrel:            v/v0; increase bSave with decreasing vrel
+    @param acc:             own acceleration at old lane
+    @param accNew:          prospective own acceleration at new lane
+    @param accLagTargetNew: prospective accel of new leader
+    @param toRight:         1 if true, 0 if not
+    @return: whether an immediate lane change is safe and desired
+    */
+
+    MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagTargetNew,toRight,log){
+
+ 	if(log|| (this.bSafe>24)){
           console.log("\nIn MOBIL.realizeLaneChange");
-	  console.log("  acc="+acc+" accNew="+accNew
+	  console.log("  vrel="+vrel
+	              +" acc="+acc+" accNew="+accNew
 		      +" accLagTargetNew="+accLagTargetNew);
 	  console.log("  toRight="+toRight);
 	  console.log("  this.bSafe="+this.bSafe+" this.bThr="+this.bThr
 		      +" this.bBiasRight="+this.bBiasRight);
 	}
 
-	if(accLagTargetNew<-this.bSafe){return false;}
+	var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
+
+	if(accLagTargetNew<-bSafeActual){return false;}
 	var dacc=accNew-acc + this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
 
-	if(log){
+	if(log || (this.bSafe>24)){
 	  console.log("...dacc="+dacc);
 	  if(dacc>0){console.log("  positive MOBIL LC decision!");}
 	}	
