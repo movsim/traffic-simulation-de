@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+    <title>On-Ramp</title>
+     <link href="../css/info.css" rel="stylesheet" type="text/css" />
+   </head>
+
+  <BODY BGCOLOR    ="#FFFFFF" 
+        TEXT       ="#000000"  
+        LINK       ="#0000AA" VLINK="#0000AA" ALINK="#FF0000"
+  >
+
+<table width="100%">
+<tr><td><h1>Simulation of an On-Ramp</h1></td>
+<td align="right" valign="bottom">&nbsp;
+<a href="javascript:close()"><img src="./closeWindow.gif"
+	      width="85"  hspace="0"
+	      border="0"></a></td>
+</tr></table>
+
+
+This szenario demonstrates, how an on-ramp acts as a stationary
+    bottleneck provoquing a traffic breakdown on the main road
+    UPSTREAM of the on-ramp and
+    FREE traffic downstream.
+<br>
+<ul>
+<li>
+With the initial settings, upstream
+    propagating stop-and-go waves on the main road are triggered 
+at the on-ramp region!
+The on-ramp acts as generator of the waves, but any other type of
+    flow-restricting inhomogeneity ("bottleneck") could do the same.
+Now vary the traffic flows of the main road and the on-ramp.
+
+<li>
+ At
+    an reduced inflow of 2000 veh./h, free traffic can be sustained
+    for up to 20 min but sooner or later breaks down.
+<li> At 1600
+    veh./h, no breakdown occurs, but an existing jam will not
+    dissolve! This so-called hysteresis is the basis why
+	traffic-control
+measures to
+	prevent the breakdown have a huge application potential.
+<li>
+On increasing the ramp flow to 800 veh./h, and decreasing the
+ main flow to 1600
+    veh./h, observe a stationary localized traffic breakdown "pinned" at the
+    ramp region. Only for higher inflows, the upstream front
+ will propagate further upstream giving rise to an extended congested region!
+ <li>
+ Play with the politeness factor and switching threshold
+    to change the aggressivity of the ramp vehicles.
+
+</ul>
+
+    <hr>
+
+
+  </body>
+</html>
