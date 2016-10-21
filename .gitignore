@@ -1,0 +1,15 @@
+# user-defined ignores (avoid committing large files)
+
+*.swp
+
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+
+## generated files 
+*_ger.*
