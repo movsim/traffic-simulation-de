@@ -1,0 +1,162 @@
+
+/*###########################################*/
+/* overall specification */
+/*###########################################*/
+
+body { 
+    background-color:#FFFFFF;
+
+    /* get rid of default spacing on the edges */
+    margin: 0;
+    padding: 0;
+
+    /* get rid of that 2px window border in Internet Explorer 6 */
+    border: 0;
+
+    /* no more scroll bar */
+    /*overflow: hidden;*/
+
+    /* fill the height of the browser (DOS) */ 
+    /*height: 100%;*/
+
+/* general font size NOT within tables! */
+  /*font-size:12px;*/ 
+  /*font-size:1.2vw;*/
+  font-size:1.9vw;
+
+  font-family: sans-serif; /* DOS innerhalb table elementen, 
+                                     auch wenn nicht ueberschrieben*/
+  border: thin #FF0000;  /* DOS */
+  padding-left: 0px;
+  margin: 7px;
+}
+
+
+/* innerhalb tables wird 
+NICHT die allgemeine Vorgabe von body verwendet !!!
+*/
+TH{
+  font-size:2.0vw; /* percentage of viewport width (0-100) */
+  /*font-size: 1.5vh;*/ /* percentage of viewport height (0-100)*/
+}
+
+TR{
+  font-size:1.7vw; /* percentage of viewport width (0-100) */
+  /*font-size: 1.5vh;*/ /* percentage of viewport height (0-100)*/
+}
+
+
+
+.redTextColor {  color: #F03;
+  font-weight:bold;
+  font-style: italic;
+                }
+
+
+/* Absatzeinrueckung zwischen <p> ... </p>
+Aufruf: <p class="noMargin" ... </p>
+*/
+
+p{margin-left: 0mm}
+p.noMargin {margin-left: 0mm}
+p.margin {margin-left: 10mm}
+
+
+
+h1 {
+           text-align: center;
+	font-family: sans-serif;
+	font-size: 3vw;
+	font-weight: bold;
+	color: #000;
+
+        padding-top:0px;
+        padding-bottom:0px;
+ }
+ 
+ h2 {
+	font-family: courier, sans-serif;
+	font-size: 2.5vw;
+	font-weight: bold;
+	color: #556;
+        padding-top:0px;
+
+ }
+
+ h3 {
+	font-family: sans-serif;
+	font-size: 2.3vw;
+	font-weight: bold;
+	font-style: italic;
+	color: #556;
+        padding-top:0px;
+ }
+
+h1.hinterlegt { background-color:#FFFF00 }
+*.hinterlegt { background-color:#00FFFF }
+.extra { background-color:#FF99FF }
+.extra.hinterlegt { background-color:#FF0000 }
+
+
+/*###########################################*/
+/* Link specification */
+/*###########################################*/
+
+
+
+/* general link */
+
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+a:visited {
+	color: #957;
+	text-decoration: none;
+
+}
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+	/*background-color: #EEF;*/  /* side effects on img links */
+
+}
+
+/* suppresses borders on images used as links */
+
+img {
+        border-width: 0;
+}
+
+
+/* Menu link specification */
+
+.menu a{
+
+ font-weight: bold;
+ text-decoration: none;
+}
+
+
+/* custom <ul> specification */
+
+ul.red{
+  list-style-image: url('http://www.mtreiber.de/figsGeneric/ballsArrows/red-bullet-transp.png')
+}
+
+ul.blue{
+  list-style-image: url('http://www.mtreiber.de/figsGeneric/ballsArrows/blue-bullet-transp.png')
+}
+
+ul.greenArrow{
+  list-style-image: url('http://www.mtreiber.de/figsGeneric/ballsArrows/arr_green.gif')
+}
