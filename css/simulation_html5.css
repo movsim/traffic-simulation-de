@@ -72,15 +72,13 @@ div#slider_IDM_a, div#slider_IDM_b {
 body { 
     background-color:#FFFFFF;
 
-    /* get rid of default spacing on the edges */
-    margin: 0;
-    padding: 0;
-
-    /* get rid of that 2px window border in Internet Explorer 6 */
-    border: 0;
-
-    /* no more scroll bar */
-    /*overflow: hidden;*/
+    /* get rid of default spacing on the edges */ 
+    border:  0px;  /* DOS */
+    margin:  0px; /* only left-top */
+    padding: 0px; /*symmetric */
+    /*padding-left: 0px;*/
+    /*height: 100%;*/ /* fill the height of the browser (DOS) */ 
+    /*overflow: hidden;*/ /* no more scrollbars BUG: padding asymmetric*/ 
 
     /* fill the height of the browser (DOS) */ 
     /*height: 100%;*/
@@ -92,9 +90,6 @@ body {
 
   font-family: sans-serif; /* DOS innerhalb table elementen, 
                                      auch wenn nicht ueberschrieben*/
-  border: thin #FF0000;  /* DOS */
-  padding-left: 0px;
-  margin: 7px;
 }
 
 

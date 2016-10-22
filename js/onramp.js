@@ -334,7 +334,7 @@ function drawU() {
 
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
-
+    //!! canvas dimensions kein DOS
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(hasChanged||(itime<=2) || false || (!drawRoad)){ 
@@ -456,10 +456,10 @@ function init() {
 
     //console.log("image size of background:"+background.naturalWidth); 
 
-    width = canvas.width;   // pixel coordinates
-    height = canvas.height;
+    width = 0.97*canvas.width;   // pixel coordinates (DOS)
+    height = 0.7*canvas.height;  // DOS
 
-    center_x=0.50*width*scaleFactorImg; // pixel coordinates
+    center_x=0.50*width*scaleFactorImg; // pixel coordinates (DOS)
     center_y=0.48*height*scaleFactorImg;
 
     // init vehicle image(s)
