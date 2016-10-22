@@ -29,7 +29,7 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 
     // model parameters
 
-    this.MOBIL_bSafeMandat=6; // mandat LC and merging for v=v0
+    this.MOBIL_bSafeMandat=4; // mandat LC and merging for v=v0
     this.MOBIL_bSafeMax=17; //!!! mandat LC and merging for v=0
 
     // default LC models for mandatory lane changes 
@@ -233,7 +233,7 @@ road.prototype.sortVehicles=function(){
 road.prototype.update_iLead=function(i){
     var n=this.nveh;
     this.veh[i].iLeadOld=this.veh[i].iLead;
-    var iLead=(i==0) ? n-1 : i-1;  // also for non periodic BC
+    var iLead=(i==0) ? n-1 : i-1;  //!! also for non periodic BC
     success=(this.veh[iLead].lane==this.veh[i].lane);
     while(!success){
 	iLead=(iLead==0) ? n-1 : iLead-1;
@@ -371,18 +371,28 @@ road.prototype.calcAccelerations=function(){
     for(var i=0; i<this.nveh; i++){
 	var iLead= this.veh[i].iLead;
 	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
-	if(iLead>=i){ // vehicle is leader
-	    if(this.isRing){s+=this.roadLen;} // periodic BC
-	    else{s=10000;} // free outflow BC: virtual vehicle 10km away
+	var speed=this.veh[i].speed;
+	var speedLead=this.veh[iLead].speed;
+	var accLead=this.veh[iLead].acc;
+	if(iLead>=i){ // vehicle i is leader, for any BC iLead defined
+	    if(this.isRing){s+=this.roadLen;} // periodic BC; accLead OK
+	    else{s=10000;accLead=0;} // free outflow BC: virt veh 10km away
 	}
-	this.veh[i].acc=this.veh[i].longModel.calcAcc(s,this.veh[i].speed,
-						      this.veh[iLead].speed);
-	if(false){
+	this.veh[i].acc
+	    =this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead);
+	//if(false){
 	//if(this.veh[i].mandatoryLCahead){
-	    console.log("calcAccelerations: i="+i
-			+" u="+this.veh[i].u
-			+" mandatoryLCahead="+this.veh[i].mandatoryLCahead
-			+" alpha_v0="+this.veh[i].longModel.alpha_v0
+	if(speed>this.veh[i].longModel.v0){
+	    console.log("after calcAccelerations: i="+i
+			+" pos="+this.veh[i].u
+			+" lane="+this.veh[i].v
+			+" s="+s
+			+" speed="+speed
+			+" v0="+this.veh[i].longModel.v0
+			+" speedLead="+speedLead
+			+" acc="+this.veh[i].acc
+			//+" mandatoryLCahead="+this.veh[i].mandatoryLCahead
+			//+" alpha_v0="+this.veh[i].longModel.alpha_v0
 		       );
 	}
 
@@ -456,6 +466,8 @@ road.prototype.doChangesInDirection=function(toRight){
 	 &&(this.veh[iLagNew].dt_lastLC>waitTime)){
 
          var acc=this.veh[i].acc;
+         var accLead=this.veh[iLead].acc;
+         var accLeadNew=this.veh[iLeadNew].acc; // leaders: exogen. for MOBIL
 	 var speed=this.veh[i].speed;
 	 var speedLeadNew=this.veh[iLeadNew].speed;
 	 var sNew=this.veh[iLeadNew].u - this.veh[iLeadNew].length - this.veh[i].u;
@@ -478,10 +490,11 @@ road.prototype.doChangesInDirection=function(toRight){
          // calculate MOBIL input
 
 	 var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
-	 var accNew=this.veh[i].longModel.calcAcc(sNew,speed,speedLeadNew);
+	 var accNew=this.veh[i].longModel.calcAcc(sNew,speed,speedLeadNew,accLeadNew);
 	 var sLagNew=this.veh[i].u - this.veh[i].length - this.veh[iLagNew].u;
 	 var speedLagNew=this.veh[iLagNew].speed;
-	 var accLagNew =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed);
+         // !!new follower assumes new acceleration of  changing veh
+	 var accLagNew =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed,accNew); 
 
          // final MOBIL incentive/safety test before actual lane change
          // (regular lane changes; for merges, see below)
@@ -614,6 +627,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 	      var sNew=duLeader-leaderNew.length;
 	      var sLagNew=-duFollower-originVehicles[i].length;
 	      var speedLeadNew=leaderNew.speed;
+	      var accLeadNew=leaderNew.acc; // leaders=exogen. to MOBIL
 	      var speedLagNew=followerNew.speed;
 	      var speed=originVehicles[i].speed;
 
@@ -632,8 +646,9 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
 	      var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
 	      var acc=originVehicles[i].acc;
-	      var accNew=longModel.calcAcc(sNew,speed,speedLeadNew);
-	      var accLagNew =longModel.calcAcc(sLagNew,speedLagNew,speed);
+	      var accNew=longModel.calcAcc(sNew,speed,speedLeadNew,accLeadNew);
+              //!! assuming changing with accNew
+	      var accLagNew =longModel.calcAcc(sLagNew,speedLagNew,speed,accNew);
 
               // lane changing to merge on new road (regular LC above)
 	      var MOBILOK=LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,false);

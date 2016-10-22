@@ -83,9 +83,9 @@ function updateModels(){
 
     //var longModelCar etc defined (w/o value) in roadworks.js 
     // var MOBIL_bBiasRight and other MOBIL params defined in roadworks.js 
-    longModelCar=new IDM(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+    longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelCar.speedlimit=speedL;
-    longModelTruck=new IDM(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
+    longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
     longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
     LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
 			 MOBIL_bThr, MOBIL_bBiasRight_car);

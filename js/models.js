@@ -14,25 +14,32 @@ function IDM(v0,T,s0,a,b){
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
     this.bmax=16;
-    this.calcAcc=function(s,v,vl){
-    //IDM.prototype.calcAcc=function(s,v,vl){ // this works as well but less intuitive
 
-	//if(s<0.1){console.log("IDM.calcAcc: s="+s+" < approx 0!<br>");}
+    // last arg optional if called with 3 args ignored
+    //this.calcAcc=function(s,v,vl,al){ // this works as well
 
-        //MT 2016: noise 
+    IDM.prototype.calcAcc=function(s,v,vl,al){ // this works as well
+
+        //MT 2016: noise to avoid some artifacts
+
 	var noiseAcc=0.3; // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
         var accRnd=noiseAcc*(Math.random()-0.5); //if acceleration noise
 
+        // determine valid local v0
+
 	var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
 	v0eff*=this.alpha_v0;
+
+        // actual acceleration model
+
        	var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
 	    : this.a*(1-v/v0eff);
 	var sstar=this.s0+v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b);
-	//var sstar=this.s0+v*this.T+0.7*Math.pow(v,0.5)*(v-vl)*Math.pow(Math.abs(v-vl),0.3)/Math.sqrt(this.a*this.b);
 	var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
 	var accInt_IDMplus=accInt+this.a;
-	//if(false){
-	//if(this.speedlimit<23){
+
+        // log and return
+
 	if(this.alpha_v0<0.6){
           console.log("IDM.calcAcc:"
 	    +" speedlimit="+this.speedlimit
@@ -41,9 +48,85 @@ function IDM(v0,T,s0,a,b){
 	    +" acc="+Math.max(-this.bmax, accFree + accInt + accRnd));
 	}
 	return (v0eff<0.00001) ? 0 : Math.max(-this.bmax, accFree + accInt + accRnd);//IDM
-	//return Math.max(-this.bmax, Math.min(accFree, accInt_IDMplus));//IDMplus
-    }
+	//return (v0eff<0.00001) ? 0 : Math.max(-this.bmax, accFree + accInt_IDMplus + accRnd);//IDMplus
+
+    }//IDM.prototype.calcAcc
 }
+
+
+// MT 2016: ACC model
+
+function ACC(v0,T,s0,a,b){
+    this.v0=v0; 
+    this.T=T;
+    this.s0=s0;
+    this.a=a;
+    this.b=b;
+    this.cool=0.99;
+    this.alpha_v0=1; // multiplicator for temporary reduction
+
+    this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+    this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
+    this.bmax=18;
+
+    ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
+
+	if(s<0.0001){return -this.bmax;}
+
+        // noise to avoid some artifacts
+
+	var noiseAcc=0.3; // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
+        var accRnd=noiseAcc*(Math.random()-0.5); //if acceleration noise
+
+        // determine valid local v0
+
+	var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
+	v0eff*=this.alpha_v0;
+
+        // actual acceleration model
+
+       	var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
+	    : this.a*(1-v/v0eff);
+	var sstar=this.s0+v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b);
+	var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
+	var accIDM=accFree+accInt;
+
+	var accCAH=(vl*(v-vl) < -2*s*al)
+	    ? v*v*al/(vl*vl -2*s*al) 
+	    : al - Math.pow(v-vl,2)/(2*Math.max(s,0.01)) * ((v>vl) ? 1 : 0);
+	accCAH=Math.min(accCAH,this.a);
+
+	var accMix=(accIDM>accCAH) 
+	    ? accIDM
+	    : accCAH+this.b*Math.tanh((accIDM-accCAH)/this.b);
+
+	var accACC=this.cool*accMix +(1-this.cool)*accIDM;
+
+	var accReturn=(v0eff<0.00001) 
+	    ? 0 : Math.max(-this.bmax, accACC + accRnd);
+
+        // log and return
+
+	//if(this.alpha_v0<0.6){ // alpha not yet used
+	//if(v>this.v0){
+	if(false){
+          console.log("ACC.calcAcc:"
+		      +" speedlimit="+this.speedlimit // no u,v!
+		      +" s="+s
+		      +" v="+v
+		      +" vl="+vl
+		      +" al="+al
+		      +" accFree="+accFree
+		      +" accIDM="+accIDM
+		      +" accCAH="+accCAH
+		      +" accACC="+accACC
+		      +" accReturn="+accReturn)
+	}
+	return accReturn;
+
+    }//ACC.prototype.calcAcc
+}
+
 
 //#################################
 // lane-changing models

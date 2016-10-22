@@ -106,7 +106,7 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
-// IDM_v0 etc and updateModels() with actions  "longModelCar=new IDM(..)" etc
+// IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
 var longModelCar;

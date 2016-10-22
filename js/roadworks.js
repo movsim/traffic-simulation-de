@@ -123,7 +123,7 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
-// IDM_v0 etc and updateModels() with actions  "longModelCar=new IDM(..)" etc
+// IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
 var longModelCar;
@@ -154,7 +154,7 @@ mainroad.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
 
 // number of virtual "roadwork" vehicles
 
-var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
+var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 

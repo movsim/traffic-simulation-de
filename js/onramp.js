@@ -73,8 +73,8 @@ var truck_width=7;
 var MOBIL_bSafe=4;     // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0 //!!! use it
 var MOBIL_bThr=0.4;
-var MOBIL_bBiasRight_car=-0.4; // four times for trucks (onramp_gui.js)
-var MOBIL_bBiasRight_truck=0.1; // four times for trucks (onramp_gui.js)
+var MOBIL_bBiasRight_car=-0.2; 
+var MOBIL_bBiasRight_truck=0.1; 
 
 var MOBIL_mandat_bSafe=42;
 var MOBIL_mandat_bThr=0;
@@ -132,7 +132,7 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
-// IDM_v0 etc and updateModels() with actions  "longModelCar=new IDM(..)" etc
+// IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
 var longModelCar;
@@ -162,7 +162,7 @@ onramp.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
 // prepending=unshift (strange name)
 
 var virtualStandingVeh=new vehicle(2, laneWidth, rampLen-0.6*taperLen, 0, 0, "obstacle");
-var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
+var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=new MOBIL(MOBIL_bSafe, MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;

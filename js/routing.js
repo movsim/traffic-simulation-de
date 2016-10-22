@@ -146,7 +146,7 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
-// IDM_v0 etc and updateModels() with actions  "longModelCar=new IDM(..)" etc
+// IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
 var longModelCar;
@@ -160,7 +160,7 @@ var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe,MOBIL_mandat_bSafe,
 
 // behavior during bottlenecks (car and trucks)
 
-var longModelBottl=new IDM(0.4*IDM_v0,8*IDM_T,1*IDM_s0,2*IDM_a,0.5*IDM_b); 
+var longModelBottl=new ACC(0.4*IDM_v0,8*IDM_T,1*IDM_s0,2*IDM_a,0.5*IDM_b); 
 updateModels(); 
 
 // construct network
@@ -191,7 +191,7 @@ deviation.LCModelMandatoryLeft=LCModelMandatoryLeft;
 //#########################################################
 
 var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*lTaper, 0, 0, "obstacle");
-var longModelObstacle=new IDM(0,IDM_T,IDM_s0,0,IDM_b);
+var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;
