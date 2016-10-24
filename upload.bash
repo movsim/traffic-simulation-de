@@ -1,29 +1,16 @@
 #!/bin/bash
 
 
-# define files
+# prepares package for upload to webserver or local use
 
-projects="ring onramp offramp roadworks routing";
+#############################################
+# (1) select projects and prepare targetdir
+#############################################
 
-htmlfiles=""
-for proj in $projects; do
-  htmlfiles="${htmlfiles} ${proj}.html ${proj}_ger.html";
-done
-
-js_files="dw_slider.js canvasresize.js colormanip.js models.js vehicle.js paths.js road.js redirect.js redirect_ger.js"
-
-for proj in $projects; do
-  js_files="${js_files} ${proj}.js ${proj}_gui.js ${proj}_ger.js ${proj}_gui_ger.js";
-done
-
-css_files="simulation_html5.css"
-
-fig_files="figs/blackCarCropped.gif figs/carSmall2.png figs/truck1Small.png figs/backgroundParis.gif figs/backgroundGrass.jpg figs/obstacleImg.png figs/oneLaneRoadRealisticCropped.png figs/twoLanesRoadRealisticCropped.png figs/threeLanesRoadRealisticCropped.png"
-
-
-# prepare target Directory
-
-targetDir="./trafficSimulationLocalVersion"
+startDir=$PWD
+projects="ring onramp offramp roadworks routing"
+# targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
+targetDir="$startDir/trafficSimulationLocalVersion"
 echo "preparingtarget Directory $targetDir"
 
 if test -d $targetDir; 
@@ -33,53 +20,61 @@ if test -d $targetDir;
        mkdir $targetDir
 fi
 mkdir $targetDir/figs
+mkdir $targetDir/js
+# info, css and icons subdirs creeated by cp -r
+
+#############################################
+# (2) select files
+#############################################
 
 
-# make German version
+html_files="index.html index_ger.html navigation.html navigation_ger.html indexResponsive.html"
+for proj in $projects; do
+  html_files="${html_files} ${proj}.html ${proj}_ger.html";
+done
 
-echo "creating German versions of relevant .js files"
-echo "projects=$projects"
-
-cp redirect.js redirect_ger.js
+js_files="dw_slider.js canvasresize.js colormanip.js models.js paths.js road.js redirect.js redirect_ger.js vehicle.js "
 
 for proj in $projects; do
-  cp ${proj}.html ${proj}_ger.html
-  cp ${proj}.js ${proj}_ger.js
-  cp ${proj}_gui.js ${proj}_gui_ger.js
+  js_files="${js_files} ${proj}.js ${proj}_gui.js ${proj}_ger.js ${proj}_gui_ger.js";
 done
-echo $PWD
-engl2ger.bash *_ger.*
 
-#exit 0
-
-# copy everything relevant into target directory
-
-echo "copying html, css and js files to upload directory $targetDir ..."
-cp    $htmlfiles $css_files $js_files $targetDir
-echo "copying fig files to $targetDir/figs ..."
-cp   $fig_files $targetDir/figs
+fig_files="blackCarCropped.gif carSmall2.png truck1Small.png backgroundParis.gif backgroundGrass.jpg obstacleImg.png oneLaneRoadRealisticCropped.png twoLanesRoadRealisticCropped.png threeLanesRoadRealisticCropped.png"
 
 
+#############################################
+# (3) copy everything relevant into target directory
+#############################################
 
-# test uploaded package locally in browser
+echo "copying all relevant files into $targetDir ..."
+cp README.md $targetDir
+cp $html_files $targetDir
+cd $startDir/js
+cp $js_files $targetDir/js
+cd $startDir/figs
+cp $fig_files $targetDir/figs
+cd $startDir
+cp -rp icons $targetDir
+cp -rp info $targetDir
+cp -rp css $targetDir
 
-echo "Testing uploaded package:"
-firefox $targetDir/onramp_ger.html
-
-
-#exit 0
-
-# prepare for upload
-
-echo "packing all in a zip file ..."
-
+echo "packing target in a zip file for allowing the users local runs ..."
 zip -r $targetDir.zip $targetDir
 echo "created $targetDir.zip"
 
-echo "packing addtl. README info and scripts in a separate zip file ..."
 
-zip -r ${targetDir}_addl.zip README* *.bash
-echo "created ${targetDir}_addl.zip"
+#############################################
+# (4) test uploaded package locally in browser
+#############################################
+
+echo "Testing uploaded package:"
+echo "notice: zip download of sources only works in upload target"
+firefox $targetDir/index.html
+
+
+#############################################
+# (5) prepare for upload
+#############################################
 
 targetForUpload="$HOME/public_html/professional/trafficSimulationDe_html5"
 
