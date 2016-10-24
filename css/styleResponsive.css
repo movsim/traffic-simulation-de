@@ -1,0 +1,308 @@
+/* top-level style file for traffic-simulation.de
+   with responsive design
+   if contents exceeds height of a container as specified below, 
+   it just overflows  but all is displayed  
+*/
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+/* within tables general specification NOT used!!! */
+
+TH{
+  font-size: 2.3vmin;
+  font-weight: bold; 
+}
+
+TR{
+  font-size:1.7vmin; 
+}
+
+
+
+#container{
+  margin: 0em auto;
+  /*width: 650px;*/
+  width: 100vw;
+  text-align: left;
+  background-color: #FFFFFF;
+  border: 1px solid black;
+}
+
+/* example of relative positioning (no position: absolute specification):
+   rendering from top to bottom in calling order in html file */
+
+#header{
+  height: 5vmin;
+  margin-left: 0vw;
+  margin-right: 0vw;
+  font-size: 4vmin;
+  font-weight:bold;
+  background-color: #EE44FF;
+}
+
+#scenarios{
+  height: 4vmin;
+  margin-left: 0vw;
+  margin-right: 0vw;
+  background-color: #FF8800;
+}
+
+
+#sliders1{
+  float: left;  
+  width: 50vw;
+  height: 14vmin;
+  margin-left: 0vw;
+  margin-right: 0vw;
+  font-size: 1.5vmin;  /* DOS for tale elements; then #TH{ and #TR{ !! */
+
+  background-color: #FFCC00;
+}
+
+#sliders2{
+  float: right;  
+  width: 50vw;
+  height: 14vmin;
+  margin-left: 0vw;
+  margin-right: 0vw;
+  font-size: 1.5vmin;  /* DOS for tale elements; then #TH{ and #TR{ !! */
+  background-color: #FFFF00;
+}
+
+
+
+
+/* relative positioning with "float" position */
+
+/*
+#menu{
+  float: right;  
+  width: 20vw;
+  height: 80vmin;
+  background-color: #FFFF99;
+}
+
+#contents{
+  float: left;  
+  width: 80vw;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  height: 85vmin;
+  background-color: aqua;
+}
+*/
+
+
+
+/* absolute positioning */
+
+#contents{
+  position: absolute;
+  top:   23vmin;
+  left:   0vw;
+  height: 75vmin;
+  width:  80vw;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  background-color: aqua;
+}
+
+
+#infoFlags{
+  position: absolute;
+  top:   23vmin;
+  left:   80vw;
+  height: 7vmin;
+  width:  20vw;
+}
+
+#infoModels{
+  position: absolute;
+  top:   30vmin;
+  left:   80vw;
+  height: 35vmin;
+  width:  20vw;
+  background-color: #FFFF99;
+}
+
+#infoSources{
+  position: absolute;
+  top:   60vmin;
+  left:   80vw;
+  height: 35vmin;
+  width:  20vw;
+  background-color: #AAFFAA;
+}
+
+#infoScenarios{
+  position: absolute;
+  top:   96vmin;
+  left:   0vw;
+  height: 65vmin;
+  width:  50vw;
+  background-color: #00FF99;
+}
+
+
+#infoLinks{
+  position: absolute;
+  top:   96vmin;
+  left:   50vw;
+  height: 65vmin;
+  width:  50vw;
+  background-color: #FFFF99;
+}
+
+
+/* leave buttons as is; 
+   css background options offer only very simplistic customization
+*/
+
+button{
+  font-size: calc( 6px + (18 - 6) * ( (100vmin - 300px) / ( 900 - 300) ));
+}
+
+h1{
+     text-align: center;
+     font-family: sans-serif;
+     font-size: 1.8vmin;
+     font-weight: bold;
+     color: #000;
+     padding-top:0px;
+     padding-bottom:0px;
+ }
+ 
+ h2{
+     font-family: courier, sans-serif;
+     font-size: 2vmin;
+     font-weight: bold;
+     color: #556;
+     padding-top:0px;
+ }
+
+ h3{
+     font-family: sans-serif;
+     font-size: 1.9vmin;
+     font-weight: bold;
+     font-style: italic;
+     color: #556;
+     padding-top:0px;
+ }
+
+
+
+/* general links */
+
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+        border-width: 0;
+}
+
+
+
+
+/* ###################################################
+   overrides above specifications 
+   for viewport widths as specified below 
+   attributesnot specified again are remembered
+   particularly:
+   get for narrow screens get the menu below instead of to the right
+   filter options: http://www.w3schools.com/cssref/css3_pr_mediaquery.asp
+ ################################################### */
+
+
+/*@media all and (min-width: 300px) and (max-width: 480px) {*/
+@media all and (max-width: 600px), 
+ all and (max-aspect-ratio: 6/5) {
+
+ body{
+    font-size: 3vmin;
+ } 
+
+ #contents{
+   position: absolute;
+   width: 100vw;
+   height: 100vmin;
+ }
+
+
+#infoFlags{
+  position: absolute;
+  top:   30vmin;
+  left:   90vw;
+  width: 10vw;
+}
+
+#infoModels{
+  position: absolute;
+  top:   120vmin;
+  left:   0vw;
+  height: 25vmin;
+  width:  20vw;
+}
+
+#infoSources{
+  position: absolute;
+  top:   120vmin;
+  left:   25vw;
+  height: 25vmin;
+  width:  20vw;
+}
+
+#infoScenarios{
+  position: absolute;
+  top:   120vmin;
+  left:   50vw;
+  height: 25vmin;
+  width:  20vw;
+}
+
+
+#infoLinks{
+  position: absolute;
+  top:   120vmin;
+  left:   75vw;
+  height: 25vmin;
+  width:  20vw;
+}
+
+
+
+} /* @media filter*/
+
