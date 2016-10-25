@@ -246,7 +246,7 @@ DYN_WEB.Event.domReady( function() {
     slider_density.on_move = function(x,y) {
         change_density(x);
         document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*get_density(),10).toFixed(1)+" veh/km/lane";
+           =parseFloat(1000*get_density(),10).toFixed(0)+" /km/lane";
         };
     }
 );
@@ -263,7 +263,7 @@ function change_densitySliderPos(density){
     var x=sliderWidth
 	*(density-density_min)/(density_max-density_min);
     document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*density,10).toFixed(1)+" veh/km/lane";
+           =parseFloat(1000*density,10).toFixed(0)+" /km/lane";
 }
 
 

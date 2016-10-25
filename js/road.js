@@ -1150,10 +1150,12 @@ road.prototype.get_phi=function(traj_x,traj_y,u){
 /**
 @param traj_x(u), traj_y(u)=phys. road geometry as parametrized function of the arc length
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
+@param changed geometry is true if a resize event took place in parent
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth){
+road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
+ changedGeometry){
 
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*laneWidth;
@@ -1161,9 +1163,11 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth){
     var factor=1+this.nLanes*laneWidth*this.draw_curvMax; // "stitch factor"
     var lSegm=this.roadLen/this.draw_nSegm;
 
-    // only at beginning or after rescaling
+    // lookup table only at beginning or after rescaling => 
+    // now condition in calling program !!! check onramp.js etc!
 
-    if(Math.abs(scale-this.draw_scaleOld)>smallVal){
+    if(changedGeometry){
+    //if(Math.abs(scale-this.draw_scaleOld)>smallVal){
 	this.draw_scaleOld=scale;
         for (var iSegm=0; iSegm<this.draw_nSegm; iSegm++){
 	  var u=this.roadLen*(iSegm+0.5)/this.draw_nSegm;

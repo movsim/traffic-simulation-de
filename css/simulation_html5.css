@@ -13,9 +13,9 @@
 
 div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac, 
  div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL{
-    width: 161px; /*fixed because of slider interface; best sliderWidth=151*/
+    width: 15vw; /*fixed because of slider interface; best sliderWidth=151*/
     height: 1.5vh;
-    background-color: #336;
+    background-color: #336; 
     border: 1px solid #336;
     position: relative;
 }
@@ -32,7 +32,7 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 
 div#track_IDM_v0, div#track_IDM_T, div#track_IDM_s0, 
  div#track_IDM_a, div#track_IDM_b {
-    width: 161px; /*fixed because of slider interface; best sliderWidth=151*/
+    width: 15vw; /*fixed because of slider interface; best sliderWidth=151*/
     height: 1.5vh;
     background-color: #336;
     border: 1px solid #336;

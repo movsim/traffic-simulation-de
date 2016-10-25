@@ -18,12 +18,12 @@ body{
 /* within tables general specification NOT used!!! */
 
 TH{
-  font-size: 2.3vmin;
+  font-size: 2.5vmin;
   font-weight: bold; 
 }
 
 TR{
-  font-size:1.7vmin; 
+  font-size:1.9vmin; 
 }
 
 
@@ -31,75 +31,79 @@ TR{
 #container{
   margin: 0em auto;
   /*width: 650px;*/
-  width: 100vw;
+  width: 98vw;
   text-align: left;
   background-color: #FFFFFF;
-  border: 1px solid black;
 }
 
-/* example of relative positioning (no position: absolute specification):
-   rendering from top to bottom in calling order in html file */
+/* hack with background image is the ONLY way to get oth width and height fit
+into contaier!! */
 
 #header{
-  height: 5vmin;
-  margin-left: 0vw;
-  margin-right: 0vw;
+  position: absolute;
+  left: 20vw;
+  top: 0vmin;
+  height: 6.5vmin;  /* so was wie calc( 39vw - 23vmin) bei slider1 machen!*/
+  width: 40vw;
   font-size: 4vmin;
   font-weight:bold;
-  background-color: #EE44FF;
+  background: url("../figs/title.png");
+  /*background-size: cover;*/
+  background-size: contain;
+  background-repeat:no-repeat;
 }
 
 #scenarios{
-  height: 4vmin;
-  margin-left: 0vw;
-  margin-right: 0vw;
-  background-color: #FF8800;
+  position: absolute;
+  left: 5vw;
+  top: 7vmin;
+  height: 5vmin;
+  width: 70vw;
+  z-index: 1;
+ /* margin-left: 0vw;
+  margin-right: 0vw;*/
+/*  background-color: #FF8800;*/
 }
 
+/* demand variables such as Qin percTruck */
+/* ! DOS for font-size for table elements; #TH{ and #TR{ !!apply! */
 
-#sliders1{
-  float: left;  
-  width: 50vw;
+#sliders1{ 
+  position: absolute;
+  top: 55vmin;
+  left: calc( 39vw - 23vmin);
+  width: 46vmin;
   height: 14vmin;
-  margin-left: 0vw;
-  margin-right: 0vw;
-  font-size: 1.5vmin;  /* DOS for tale elements; then #TH{ and #TR{ !! */
-
-  background-color: #FFCC00;
+  background-color: #FFFFFF;
+  z-index: 1; /* the higher the integer, the more on top */
 }
 
-#sliders2{
-  float: right;  
-  width: 50vw;
-  height: 14vmin;
-  margin-left: 0vw;
-  margin-right: 0vw;
-  font-size: 1.5vmin;  /* DOS for tale elements; then #TH{ and #TR{ !! */
-  background-color: #FFFF00;
+/* important IDM and MOBIL model parameters */
+
+#sliders2{ 
+  position: absolute;
+  bottom: 26vmin;
+  left: 23vmin;
+  width: 40vmin;
+  height: 8vmin;
+  position: absolute;
+  background-color: #FFFFFF;
+  z-index: 2;
+
 }
 
+/* less important model parameters: dropped down or below for small screens */
 
+#sliders3{ 
+  position: absolute;
+  top: 17vmin;
+  left: 50vw;
+  width: 33vw;
+  height: 7.5vmin;
+  background-color: #FFFFFF;
+  z-index: 0;
 
-
-/* relative positioning with "float" position */
-
-/*
-#menu{
-  float: right;  
-  width: 20vw;
-  height: 80vmin;
-  background-color: #FFFF99;
 }
-
-#contents{
-  float: left;  
-  width: 80vw;
-  margin-right: 0vw;
-  margin-left: 0vw;
-  height: 85vmin;
-  background-color: aqua;
-}
-*/
 
 
 
@@ -107,48 +111,51 @@ TR{
 
 #contents{
   position: absolute;
-  top:   23vmin;
+  top:   11vmin;
   left:   0vw;
-  height: 75vmin;
+  bottom: 0vmin;
   width:  80vw;
   margin-right: 0vw;
   margin-left: 0vw;
-  background-color: aqua;
+  z-index: 1;
+
 }
 
+/* former navigation frame */
 
 #infoFlags{
   position: absolute;
-  top:   23vmin;
-  left:   80vw;
-  height: 7vmin;
-  width:  20vw;
+  top:   12vmin;
+  left:   60vw;
+/*  height: 7vmin;*/
+  width:  20vmin;
+  z-index: 2;
 }
 
 #infoModels{
   position: absolute;
-  top:   30vmin;
+  top:   11vmin;
   left:   80vw;
-  height: 35vmin;
-  width:  20vw;
-  background-color: #FFFF99;
-}
-
-#infoSources{
-  position: absolute;
-  top:   60vmin;
-  left:   80vw;
-  height: 35vmin;
-  width:  20vw;
-  background-color: #AAFFAA;
+  height: 20vmin;
+  width:  18vw;
+ /* background-color: #FFFF99;*/
 }
 
 #infoScenarios{
   position: absolute;
+  top:   35vmin;
+  left:   80vw;
+  height: 35vmin;
+  width:  18vw;
+  /*background-color: #AAFFAA;*/
+}
+
+#infoSources{
+  position: absolute;
   top:   96vmin;
   left:   0vw;
   height: 65vmin;
-  width:  50vw;
+  width:  48vw;
   background-color: #00FF99;
 }
 
@@ -158,7 +165,7 @@ TR{
   top:   96vmin;
   left:   50vw;
   height: 65vmin;
-  width:  50vw;
+  width:  48vw;
   background-color: #FFFF99;
 }
 
@@ -232,6 +239,8 @@ a:hover {
 
 img {
         border-width: 0;
+        max-width:  50%;
+        max-height: 20%;
 }
 
 
@@ -274,7 +283,7 @@ img {
   top:   120vmin;
   left:   0vw;
   height: 25vmin;
-  width:  20vw;
+  width:  16vw;
 }
 
 #infoSources{
@@ -282,7 +291,7 @@ img {
   top:   120vmin;
   left:   25vw;
   height: 25vmin;
-  width:  20vw;
+  width:  18vw;
 }
 
 #infoScenarios{
@@ -290,7 +299,7 @@ img {
   top:   120vmin;
   left:   50vw;
   height: 25vmin;
-  width:  20vw;
+  width:  18vw;
 }
 
 
@@ -299,7 +308,7 @@ img {
   top:   120vmin;
   left:   75vw;
   height: 25vmin;
-  width:  20vw;
+  width:  18vw;
 }
 
 
