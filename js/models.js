@@ -56,6 +56,11 @@ function IDM(v0,T,s0,a,b){
 
 // MT 2016: ACC model
 
+//!! Chromium does not know Math.tanh(!!)
+function myTanh(x){
+    return (x>50) ? 1 : (x<-50) ? 0 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
+}
+
 function ACC(v0,T,s0,a,b){
     this.v0=v0; 
     this.T=T;
@@ -98,7 +103,8 @@ function ACC(v0,T,s0,a,b){
 
 	var accMix=(accIDM>accCAH) 
 	    ? accIDM
-	    : accCAH+this.b*Math.tanh((accIDM-accCAH)/this.b);
+	    : accCAH+this.b*myTanh((accIDM-accCAH)/this.b);
+	var arg=(accIDM-accCAH)/this.b;
 
 	var accACC=this.cool*accMix +(1-this.cool)*accIDM;
 

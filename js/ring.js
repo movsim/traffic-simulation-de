@@ -153,6 +153,8 @@ function updateRing(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    //console.log("does Math.tanh exist?");
+    //console.log("Math.tanh(5)=",Math.tanh(5));
 
     // transfer effects from slider interaction to the vehicles and models: 
     // modelparam sliders (updateModelsOfAllVehicles), density, truckFrac sliders

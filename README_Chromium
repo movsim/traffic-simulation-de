@@ -1,0 +1,8 @@
+(1) Chromium does not have a Math.tanh(x) function!!!
+    (in the net people say that ony Math.tanh(1000) etc undefined)
+    => I wrote one locally myself in models.js
+
+(2) Chromium does not allow local html inclusion in default state:
+start with an option, e.g. for loading index.html:
+
+chromium-browser --allow-file-access-from-files index.html
