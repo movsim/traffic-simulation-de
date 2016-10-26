@@ -186,10 +186,17 @@ function drawRing() {
 
     // resize drawing region if browser's dim has changed (responsive design)
     // canvas_resize(canvas,aspectRatio)
+
     hasChanged=canvas_resize(canvas,0.96); 
     if(hasChanged){
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
     }
+
+    // (0) reposition physical x center coordinate as response
+    // to viewport size (changes)
+
+    var aspectRatio=canvas.width/canvas.height;
+    center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
 
 
     // (1) define road geometry as parametric functions of arclength u
@@ -223,8 +230,11 @@ function drawRing() {
     }
 
     // (3) draw ring road
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth);
+    var changedGeometry=hasChanged||(itime<=1);
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+
 
     // (4) draw vehicles
 
@@ -249,9 +259,19 @@ function drawRing() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
 
+    var scaleStr="Skala="+Math.round(10*scale)/10;
+    var scaleStr_xlb=8*textsize;
+    var scaleStr_ylb=2*textsize;
+    var scaleStr_width=7*textsize;
+    var scaleStr_height=1.2*textsize;
+    ctx.fillStyle="rgb(255,255,255)";
+    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,scaleStr_width,scaleStr_height);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, scaleStr_ylb-0.2*textsize);
     
+/*    
     var timewStr="Zeitraffer="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=8*textsize;
+    var timewStr_xlb=16*textsize;
     var timewStr_ylb=2*textsize;
     var timewStr_width=7*textsize;
     var timewStr_height=1.2*textsize;
@@ -261,7 +281,7 @@ function drawRing() {
     ctx.fillText(timewStr, timewStr_xlb+0.2*textsize, timewStr_ylb-0.2*textsize);
     
     var densStr="Dichte="+Math.round(10000*density)/10;
-    var densStr_xlb=16*textsize;
+    var densStr_xlb=24*textsize;
     var densStr_ylb=2*textsize;
     var densStr_width=7*textsize;
     var densStr_height=1.2*textsize;
@@ -269,16 +289,6 @@ function drawRing() {
     ctx.fillRect(densStr_xlb,densStr_ylb-densStr_height,densStr_width,densStr_height);
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(densStr, densStr_xlb+0.2*textsize, densStr_ylb-0.2*textsize);
-    
-    var scaleStr="Skala="+Math.round(10*scale)/10;
-    var scaleStr_xlb=24*textsize;
-    var scaleStr_ylb=2*textsize;
-    var scaleStr_width=7*textsize;
-    var scaleStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,scaleStr_width,scaleStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, scaleStr_ylb-0.2*textsize);
     
 
     var genVarStr="LKW-Anteil="+Math.round(100*truckFrac)+"\%";
@@ -292,10 +302,13 @@ function drawRing() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
 		 genVarStr_ylb-0.2*textsize);
-    
+    */
+
     // (6) draw the speed colormap
 
-    drawColormap(scale*center_xPhys, -scale*center_yPhys, scale*50, scale*50,
+    drawColormap(scale*(center_xPhys-0.03*roadRadius), 
+                -scale*(center_yPhys+0.40*roadRadius), 
+		 scale*50, scale*50,
 		 vmin,vmax,0,100/3.6);
 
 

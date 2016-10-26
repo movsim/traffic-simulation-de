@@ -7,12 +7,15 @@
 
 
 #############################################
-# (0) select projects
+# (0) set path and select projects
 #############################################
 
+wd=$PWD
+startDir=$HOME/versionedProjects/traffic-simulation-de
 projects="ring onramp offramp roadworks routing"
 #projects="ring"
 
+cd $startDir
 
 #############################################
 # (1) copy the English files to German targets
@@ -27,35 +30,50 @@ htmlfiles=""
 jsfiles="js/redirect_ger.js"
 
 cp js/redirect_ger.js $backupdir/js
-cp  js/redirect.js js/redirect_ger.js
+cp js/redirect.js js/redirect_ger.js
+perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
 
 for proj in $projects; do
+    
+  htmlfile="${proj}.html"
+  htmlfile_ger="${proj}_ger.html"
+
+  # because ring szenario is starting point,
+  # the html file is index.html instead of ring.html
+
+  if [ "$proj" == "ring" ]; then
+      htmlfile="index.html";
+      htmlfile_ger="index_ger.html";
+  fi
+  echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
 
   # backup
 
-  cp ${proj}_ger.html $backupdir
-  htmlfiles="$htmlfiles ${proj}_ger.html"
-
-  cp js/${proj}_ger.js $backupdir/js
-  cp js/${proj}_gui_ger.js $backupdir/js
+  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
+  htmlfiles="$htmlfiles $htmlfile_ger"
+  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
+  if test -f js/${proj}_gui_ger.js; then cp js/${proj}_gui_ger.js $backupdir/js; fi
   jsfiles="$jsfiles js/${proj}_ger.js js/${proj}_gui_ger.js"
+
+
 
   # copy engl->ger files and do project-specific replacements
 
-  cp ${proj}.html ${proj}_ger.html 
+  cp $htmlfile $htmlfile_ger
   cp js/${proj}.js js/${proj}_ger.js
   cp js/${proj}_gui.js  js/${proj}_gui_ger.js
 
-  perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" ${proj}_ger.html
-  perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" ${proj}_ger.html
-  perl -i -p -e "s/${proj}_gui\.js/${proj}_gui_ger.js/g" ${proj}_ger.html
-  perl -i -p -e "s/${proj}\.html/${proj}_ger.html/g" js/redirect_ger.js
+  perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $htmlfile_ger
+  perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
+  perl -i -p -e "s/${proj}_gui\.js/${proj}_gui_ger.js/g" $htmlfile_ger
 
 done
 
 #############################################
 # change html files
 #############################################
+
+echo "changing engl->german strings in some files ..."
 
 for file in $htmlfiles; do
 
@@ -104,5 +122,8 @@ for file in "$jsfiles"; do
   perl -i -p -e 's/\"scale=/\"Skala=/g' $file
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
+
+cd $wd
+
 
 

@@ -1,43 +1,195 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html>
-  <head>
 
-    <meta charset="utf-8"/>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
     <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
-    <title>Microsimulation of Traffic Flow: html5 Version</title>
-    <meta name="organon" content="index">
-    <meta NAME="language" CONTENT="en, english">
-    <meta name="robots" content="all,follow" />
-
-    <meta NAME="author" CONTENT="Dr. Martin Treiber">
-    <meta NAME="publisher" CONTENT="Dr. Martin Treiber">
-    <meta NAME="copyright" CONTENT="Martin Treiber">
-    <meta NAME="keywords" CONTENT="Physics, Traffic, Simulation,
-             Mathematical model">
-    <meta NAME="page-topic" CONTENT="java applet, Physics, traffic, simulation">
-    <link rel="SHORTCUT ICON" href="http:/www.mtreiber.de/figsGeneric/icons/Logo_3Dsep05_small.png" />
+    <title>Microsimulation of Traffic Flow</title> 
+</head>
 
 
-  </head>
+<body>
 
- 
-   <FRAMESET COLS="*,20%" BORDER="0">
-     <FRAME SRC="./ring.html" NAME="sim">
-     <FRAME SRC="./navigation.html" NAME="navigation">
+<div id="container">
 
-     <NOFRAME>
-	<DIV ALIGN=CENTER><B>Your browser  seems not
-            to support frames. 
-            <a href = "http:/www.mtreiber.de/trafficSimulationDe_html5/ring.html"> Here is a no-frame version </a></B></DIV>
-     </NOFRAME>  
 
-  </FRAMESET>
+<!-- ############################################## -->
+<!-- header: title image loaded as background image via css -->
+<!-- ############################################## -->
 
- 
+<div id="header"> 
+  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
+</div> 
 
-    <hr>
-    <address><a href="mailto:&#109;&#097;&#114;&#116;&#105;&#110;&#064;&#109;&#116;&#114;&#101;&#105;&#098;&#101;&#114;&#046;&#100;&#101;">
-Martin Treiber</a></address>
+
+<!-- ############################################## -->
+<!-- Buttons                                        -->
+<!-- ############################################## -->
+
+<!-- redirects to other scenarios, defines myRedirectX -->
+<script src="js/redirect.js" type="text/javascript"></script>
+
+<div id="scenarios">
+<center>
+  <button id="startStop" onclick="myStartStopFunction()">Stop</button>
+  <button onclick="myRedirectRing()">Ringroad</button>
+  <button onclick="myRedirectOnramp()">Onramp</button>
+  <button onclick="myRedirectOfframp()">Offramp</button>
+  <button onclick="myRedirectRoadworks()">Road Works</button>
+  <button onclick="myRedirectRouting()">Routing</button>
+</center>
+</div> 
+
+
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
+
+<div id="contents">
+  <canvas id="canvas_ring" width="700" height="700">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 1: global simulation and demand variables -->
+<!-- ################################################# -->
+
+<div id="sliders1">
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<!-- !! >Timewarp<, not > Timewarp < etc because of engl2ger. bash-->
+
+<tr>
+<td>Timewarp</td>
+<td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
+<td> <div id="valueField_timewarp"></div>
+</tr>
+
+
+<tr>
+<td>Density</td>
+<td> <div id="track_density"> <div id="slider_density"></div></div></td>
+<td> <div id="valueField_density"></div>
+</tr>
+
+<!--
+<tr>
+<td>Scale</td>
+<td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
+<td> <div id="valueField_scale"></div>
+</tr>
+-->
+
+<tr>
+<td>Truck Fraction</td>
+<td> <div id="track_truckFrac"> <div id="slider_truckFrac"></div></div></td>
+<td> <div id="valueField_truckFrac"></div>
+</tr>
+
+<tr>
+<td> Desired Speed v</sub>0</sub> </td>
+<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+<td> <div id="valueField_IDM_v0"></div>
+</tr>
+
+<tr>
+<td> Max Acceleration a</td>
+<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
+<td> <div id="valueField_IDM_a"></div>
+</tr>
+
+</table>
+</div>
+
+
+<!-- ################################################# -->
+<!-- Sliders 2: in ring-road not used-->
+<!-- ################################################# -->
+
+<!--
+<div id="sliders2">
+<table border="0" cellspacing="1" cellpadding="0">
+
+
+</table>
+</div>
+-->
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
+
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+<tr>
+<td> Time Gap T</td>
+<td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
+<td> <div id="valueField_IDM_T"></div>
+</tr>
+
+<tr>
+<td> Minimum Gap s</sub>0</sub> </td>
+<td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
+<td> <div id="valueField_IDM_s0"></div>
+</tr>
+
+<tr>
+<td> Comfort  Decel b</td>
+<td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
+<td> <div id="valueField_IDM_b"></div>
+</tr>
+
+
+</table>
+</div>
+
+
+<!-- ############################################## -->
+<!-- here comes the former navigation*.html frame   -->
+<!-- ############################################## -->
+
+<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
+<div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
+<div id="infoSources"> <link data-wi-src="infoSources.html" /></div>
+<div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
+<div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
+
+<!-- ############################################## -->
+<!-- end former navigation*.html frame   -->
+<!-- ############################################## -->
+
+
+</div> <!-- end outer container -->
+
+
+<!-- ########################################################## -->
+<!-- specific scripts; position below any simulation elements ! -->
+<!-- ########################################################## -->
+
+<script src="js/dw_slider.js" type="text/javascript"></script>
+<script src="js/canvasresize.js" type="text/javascript"></script>
+
+<script src="js/ring_gui.js"></script>  
+<script src="js/colormanip.js"></script> 
+
+<script src="js/models.js"></script> 
+<script src="js/vehicle.js"></script> 
+
+<script src="js/paths.js"></script>
+<script src="js/road.js"></script>
+<script src="js/ring.js"></script>
+
+<script src="wm-html-include/wm-html-include.js"> </script>
+
+</body>
 </html>
- 

@@ -81,8 +81,8 @@ function updateModels(){
 
     //var longModelCar etc defined (w/o value) in onramp.js 
     // var MOBIL_bBiasRight and other MOBIL params defined in onramp.js 
-    longModelCar=new IDM(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
-    longModelTruck=new IDM(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
+    longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+    longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
 			 MOBIL_bThr, MOBIL_bBiasRight_car);
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
@@ -97,31 +97,38 @@ function updateModels(){
 // thread stops with "clearInterval(myRun);" 
 
 
-//#############################################
-// Start button (name "myStartFunction()" defined in onramp.html)
-//#############################################
+//##################################################################################
+// Start/Stop button (onclick callback "myStartStopFunction()" defined in html file)
+//##################################################################################
 
 // called when start button is pressed
 
 
-// need first to stop; otherwise multiple processes after clicking 2 times start
+// in any case need first to stop;
+// otherwise multiple processes after clicking 2 times start
+// define no "var myRun "; otherwise new local instance started
+// whenever myRun is inited
 
-function myStartFunction(){ // myStartFunction(szenario) geht irgendwie nicht
-    clearInterval(myRun);  
-    myRun=init(); // no "var myRun "; otherwise new local instance started
-                    // whenever "start" is pressed!
+var myRun;
+var isStopped=false;
+
+function myStartStopFunction(){ 
+
+    clearInterval(myRun);
+    console.log("in myStartStopFunction: isStopped=",isStopped);
+
+    if(isStopped){
+	isStopped=false;
+	document.getElementById('startStop').innerHTML="Stop";
+	myRun=init();
+    }
+    else{
+	document.getElementById('startStop').innerHTML="Resume";
+	isStopped=true;
+    }
+    
 }
 
-
-//#############################################
-// Stop button
-//#############################################
-
-// called when stop button is pressed; 
-
-function myStopFunction(){
-  clearInterval(myRun);
-}
 
 
 //#############################################
@@ -246,7 +253,7 @@ DYN_WEB.Event.domReady( function() {
     slider_density.on_move = function(x,y) {
         change_density(x);
         document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*get_density(),10).toFixed(1)+" Fz/km/Spur";
+           =parseFloat(1000*get_density(),10).toFixed(0)+" /km/Spur";
         };
     }
 );
@@ -263,7 +270,7 @@ function change_densitySliderPos(density){
     var x=sliderWidth
 	*(density-density_min)/(density_max-density_min);
     document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*density,10).toFixed(1)+" Fz/km/Spur";
+           =parseFloat(1000*density,10).toFixed(0)+" /km/Spur";
 }
 
 
