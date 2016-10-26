@@ -20,10 +20,13 @@ body{
 TH{
   font-size: 2.5vmin;
   font-weight: bold; 
+  color: #404060;   /* text color */
+
 }
 
 TR{
   font-size:1.9vmin; 
+  color: #000000;
 }
 
 
@@ -66,7 +69,7 @@ into contaier!! */
 }
 
 /* demand variables such as Qin percTruck */
-/* ! DOS for font-size for table elements; #TH{ and #TR{ !!apply! */
+/* ! DOS for font-size: for table elements; #TH{ and #TR{ !!apply! */
 
 #sliders1{ 
   position: absolute;
@@ -74,7 +77,7 @@ into contaier!! */
   left: calc( 39vw - 23vmin);
   width: 46vmin;
   height: 16vmin;
-  background-color: #FFFFFF;
+  background-color: rgba(255,255,255,0.4);
   z-index: 1; /* the higher the integer, the more on top */
 }
 
@@ -87,7 +90,7 @@ into contaier!! */
   width: 40vmin;
   height: 8vmin;
   position: absolute;
-  background-color: #FFFFFF;
+  background-color: rgba(255,255,255,0.4);
   z-index: 2;
 
 }
@@ -100,7 +103,7 @@ into contaier!! */
   left: 50vw;
   width: 33vw;
   height: 7.5vmin;
-  background-color: #FFFFFF;
+  background-color: rgba(255,255,255,0.4);
   z-index: 0;
 
 }
@@ -113,12 +116,22 @@ into contaier!! */
   position: absolute;
   top:   11vmin;
   left:   0vw;
-  bottom: 0vmin;
+  bottom: 10vmin;
   width:  80vw;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 
+}
+
+#impressum{ 
+  position: absolute;
+  bottom: 10vmin;
+  left: 66vw;
+  height: 3vmin;
+  width: 14vw;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 1; /* the higher the integer, the more on top */
 }
 
 /* former navigation frame */
@@ -150,24 +163,57 @@ into contaier!! */
   /*background-color: #AAFFAA;*/
 }
 
-#infoSources{
-  position: absolute;
-  top:   96vmin;
-  left:   0vw;
-  height: 65vmin;
-  width:  48vw;
-  background-color: #00FF99;
-}
-
 
 #infoLinks{
   position: absolute;
-  top:   96vmin;
-  left:   50vw;
-  height: 65vmin;
-  width:  48vw;
-  background-color: #FFFF99;
+  top:   90vmin;
+  left:   0vw;
+  width:  98vw;
+  /*background-color: #AAFFAA;*/
+
 }
+
+/* demand variables such as Qin percTruck */
+/* ! DOS for font-size: for table elements; #TH{ and #TR{ !!apply! */
+
+#sliders1{ 
+  position: absolute;
+  top: 50vmin;
+  left: calc( 39vw - 23vmin);
+  width: 46vmin;
+  height: 16vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+/* important IDM and MOBIL model parameters */
+
+#sliders2{ 
+  position: absolute;
+  bottom: 26vmin;
+  left: 23vmin;
+  width: 40vmin;
+  height: 8vmin;
+  position: absolute;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2;
+
+}
+
+/* less important model parameters: dropped down or below for small screens */
+
+#sliders3{ 
+  position: absolute;
+  top: 17vmin;
+  left: 50vw;
+  width: 33vw;
+  height: 7.5vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 0;
+
+}
+
+
 
 
 /* leave buttons as is; 
@@ -181,7 +227,7 @@ button{
 h1{
      text-align: center;
      font-family: sans-serif;
-     font-size: 1.8vmin;
+     font-size: 2.7vmin;
      font-weight: bold;
      color: #000;
      padding-top:0px;
@@ -190,7 +236,7 @@ h1{
  
  h2{
      font-family: courier, sans-serif;
-     font-size: 2vmin;
+     font-size: 2.5vmin;
      font-weight: bold;
      color: #556;
      padding-top:0px;
