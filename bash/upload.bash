@@ -7,10 +7,13 @@
 # (1) select projects and prepare targetdir
 #############################################
 
-startDir=$PWD
+wd=$PWD
+startDir=$HOME/versionedProjects/traffic-simulation-de
 projects="ring onramp offramp roadworks routing"
 # targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 targetDir="$startDir/trafficSimulationLocalVersion"
+cd $startDir
+
 echo "preparingtarget Directory $targetDir"
 
 if test -d $targetDir; 
@@ -19,27 +22,31 @@ if test -d $targetDir;
   else echo "creating $targetDir ...";
        mkdir $targetDir
 fi
-mkdir $targetDir/figs
 mkdir $targetDir/js
-# info, css and icons subdirs creeated by cp -r
+# fig, info, css and icons subdirs creeated by cp -r
 
 #############################################
 # (2) select files
 #############################################
 
 
-html_files="index.html index_ger.html navigation.html navigation_ger.html indexResponsive.html"
+html_files="impressum.html infoLinks.html infoModels.html infoScenarios.html infoFlags.html"
 for proj in $projects; do
-  html_files="${html_files} ${proj}.html ${proj}_ger.html";
+  htmlfile="${proj}.html"
+  htmlfile_ger="${proj}_ger.html"
+  if [ "$proj" == "ring" ]; then
+      htmlfile="index.html";
+      htmlfile_ger="index_ger.html";
+  fi
+  echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
+  html_files="${html_files} $htmlfile $htmlfile_ger";
 done
 
-js_files="dw_slider.js canvasresize.js colormanip.js models.js paths.js road.js redirect.js redirect_ger.js vehicle.js "
+js_files="canvasresize.js colormanip.js dw_slider.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js "
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_gui.js ${proj}_ger.js ${proj}_gui_ger.js";
 done
-
-fig_files="blackCarCropped.gif carSmall2.png truck1Small.png backgroundParis.gif backgroundGrass.jpg obstacleImg.png oneLaneRoadRealisticCropped.png twoLanesRoadRealisticCropped.png threeLanesRoadRealisticCropped.png"
 
 
 #############################################
@@ -47,16 +54,17 @@ fig_files="blackCarCropped.gif carSmall2.png truck1Small.png backgroundParis.gif
 #############################################
 
 echo "copying all relevant files into $targetDir ..."
+echo "html_files=$html_files"
 cp README.md $targetDir
 cp $html_files $targetDir
 cd $startDir/js
 cp $js_files $targetDir/js
-cd $startDir/figs
-cp $fig_files $targetDir/figs
 cd $startDir
+cp -rp css $targetDir
+cp -rp figs $targetDir
 cp -rp icons $targetDir
 cp -rp info $targetDir
-cp -rp css $targetDir
+cp -rp wm-html-include $targetDir
 
 echo "packing target in a zip file for allowing the users local runs ..."
 zip -r $targetDir.zip $targetDir
