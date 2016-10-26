@@ -243,6 +243,13 @@ function drawU() {
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
     }
 
+    // (0) reposition physical x center coordinate as response
+    // to viewport size (changes)
+    // in contrast to ring no actual need, maybe later; then do something 
+    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
+
+    var aspectRatio=canvas.width/canvas.height;
+ 
 
    // (1) define geometry of "U" (road center) as parameterized function of 
    // the arc length u
@@ -305,9 +312,11 @@ function drawU() {
 
     // (3) draw mainroad and ramps (offramp "bridge" => draw last)
     // and vehicles (directly after frawing resp road or separately, depends)
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    offramp.draw(rampImg,scale,trajOff_x,trajOff_y,laneWidthRamp);
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth);
+    var changedGeometry=hasChanged||(itime<=1); 
+    offramp.draw(rampImg,scale,trajOff_x,trajOff_y,laneWidthRamp,changedGeometry);
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
 
     offramp.drawVehicles(carImg,truckImg,obstacleImg,scale,
 			 trajOff_x,trajOff_y,laneWidth,vmin,vmax);

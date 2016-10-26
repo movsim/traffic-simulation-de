@@ -101,31 +101,38 @@ function updateModels(){
 // thread stops with "clearInterval(myRun);" 
 
 
-//#############################################
-// Start button (name "myStartFunction()" defined in onramp.html)
-//#############################################
+//##################################################################################
+// Start/Stop button (onclick callback "myStartStopFunction()" defined in html file)
+//##################################################################################
 
 // called when start button is pressed
 
 
-// need first to stop; otherwise multiple processes after clicking 2 times start
+// in any case need first to stop;
+// otherwise multiple processes after clicking 2 times start
+// define no "var myRun "; otherwise new local instance started
+// whenever myRun is inited
 
-function myStartFunction(){ // myStartFunction(szenario) geht irgendwie nicht
-    clearInterval(myRun);  
-    myRun=init(); // no "var myRun "; otherwise new local instance started
-                    // whenever "start" is pressed!
+var myRun;
+var isStopped=false;
+
+function myStartStopFunction(){ 
+
+    clearInterval(myRun);
+    console.log("in myStartStopFunction: isStopped=",isStopped);
+
+    if(isStopped){
+	isStopped=false;
+	document.getElementById('startStop').innerHTML="Stop";
+	myRun=init();
+    }
+    else{
+	document.getElementById('startStop').innerHTML="Resume";
+	isStopped=true;
+    }
+    
 }
 
-
-//#############################################
-// Stop button
-//#############################################
-
-// called when stop button is pressed; 
-
-function myStopFunction(){
-  clearInterval(myRun);
-}
 
 
 //#############################################

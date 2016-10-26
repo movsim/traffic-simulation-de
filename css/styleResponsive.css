@@ -73,7 +73,7 @@ into contaier!! */
   top: 55vmin;
   left: calc( 39vw - 23vmin);
   width: 46vmin;
-  height: 14vmin;
+  height: 16vmin;
   background-color: #FFFFFF;
   z-index: 1; /* the higher the integer, the more on top */
 }

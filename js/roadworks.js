@@ -203,13 +203,6 @@ var dt=timewarp/fps;
 function updateU(){
 //#################################################################
 
-    // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,aspectRatio)
-    hasChanged=canvas_resize(canvas,1.8); 
-    if(hasChanged){
-        console.log(" new canvas size ",canvas.width,"x",canvas.height);
-    }
-
 
     // update times
 
@@ -282,6 +275,21 @@ function updateU(){
 function drawU() {
 //##################################################
 
+    // resize drawing region if browser's dim has changed (responsive design)
+    // canvas_resize(canvas,aspectRatio)
+    hasChanged=canvas_resize(canvas,1.65); 
+    if(hasChanged){
+        console.log(" new canvas size ",canvas.width,"x",canvas.height);
+    }
+
+    // (0) reposition physical x center coordinate as response
+    // to viewport size (changes)
+    // in contrast to ring no actual need, maybe later; then do something 
+    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
+
+    var aspectRatio=canvas.width/canvas.height;
+ 
+    
 
    // (1) define geometry of "U" (road center) as parameterized function of 
    // the arc length u
@@ -322,9 +330,12 @@ function drawU() {
     }
 
 
-    // (3) draw mainroad and ramp
+    // (3) draw mainroad
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth);
+    
+     var changedGeometry=hasChanged||(itime<=1); 
+     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
 
 
  

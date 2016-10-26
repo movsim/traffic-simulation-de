@@ -3,47 +3,46 @@
 <html>
 
 <head>
-<meta charset="utf-8"/>
-<link href="simulation_html5.css" rel="stylesheet" type="text/css" />
-<title> traffic-simulation.de: Road Works</title>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
-<!-- specifications/appearance of main webpage and sliders 
-(slider implementations DYN_WEB.* von sliders/js/dw_slider.js)-->
-
-<link href="css/simulation_html5.css" rel="stylesheet" type="text/css" />
-
+    <title> Microsimulation of Traffic Flow: Road Works</title>
 </head>
 
 
 <body>
-<h1> Traffic-Simulation.de: Road Works </h1>
+  
+<div id="container">
 
 
-<!-- outer nested table, first row spans both subtables -->
+<!-- ############################################## -->
+<!-- header: title image loaded as background image via css -->
+<!-- ############################################## -->
 
-<table width="100%" id="mainTable"> <!-- id for responsive design-->
-<tr>
-<td colspan="2">
-<button onclick="myStartFunction()">Resume</button>
-<button onclick="myStopFunction()">Stop</button>
-<button onclick="myRedirectRing()">Ringroad</button>
-<button onclick="myRedirectOnramp()">Onramp</button>
-<button onclick="myRedirectOfframp()">Offramp</button>
-<button onclick="myRedirectRoadworks()">Road Works</button>
-<button onclick="myRedirectRouting()">Routing</button>
-<!--<button onclick="myRedirectUphill()">Uphill</button>
-<button onclick="myRedirectTrafficlight()">Traffic Light</button>
--->
-</td>
-</tr>
+<div id="header"> 
+  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
+</div> 
+
+
+<!-- ############################################## -->
+<!-- Buttons                                        -->
+<!-- ############################################## -->
 
 <!-- redirects to other scenarios, defines myRedirectX -->
 <script src="js/redirect.js" type="text/javascript"></script>
 
-<!-- nested tables: Table 1: global sliders -->
+<div id="scenarios">
+<center>
+  <button id="startStop" onclick="myStartStopFunction()">Stop</button>
+  <button onclick="myRedirectRing()">Ringroad</button>
+  <button onclick="myRedirectOnramp()">Onramp</button>
+  <button onclick="myRedirectOfframp()">Offramp</button>
+  <button onclick="myRedirectRoadworks()">Road Works</button>
+  <button onclick="myRedirectRouting()">Routing</button>
+</center>
+</div> 
 
-<!-- !!! ATTANTION Both div#track_x and div#slider_x must be updated
-in sliders.css if new slider defined !!!  -->
 
 <tr>
 <td><table>
@@ -54,8 +53,6 @@ in sliders.css if new slider defined !!!  -->
 <td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
 <td> <div id="valueField_timewarp"></div>
 </tr>
-
-<!-- responsive design: deactivated for direct manipulation -->
 
 <!--<tr>
 <td>Scale</td>
@@ -125,11 +122,18 @@ in sliders.css if new slider defined !!!  -->
 </tr>
 </table>
 
-<canvas id="canvas_roadworks" width="800" height="600">You are probably
-  using a very ancient web browser (or an Internet Explorer) 
- not supporting html5 canvas. Please switch to another browser for
-  running this simulation.
-</canvas>
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
+
+<div id="contents">
+  <canvas id="canvas_roadworks" width="800" height="600">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
+
 
 <!-- specific scripts; position after def of canvas! -->
 
@@ -140,7 +144,7 @@ in sliders.css if new slider defined !!!  -->
 <script src="js/colormanip.js"></script>
 <script src="js/models.js"></script> 
 <script src="js/vehicle.js"></script>
-<!--<script src="myMath.js"></script> -->
+<!--<script src="js/myMath.js"></script> -->
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
 <script src="js/roadworks.js"></script> 

@@ -284,7 +284,14 @@ function drawU() {
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
     }
 
+    // (0) reposition physical x center coordinate as response
+    // to viewport size (changes)
+    // in contrast to ring no actual need, maybe later; then do something 
+    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
 
+    var aspectRatio=canvas.width/canvas.height;
+ 
+    
     // (1) define road geometry as parametric functions of arclength u
     // (physical coordinates!)
 
@@ -344,9 +351,11 @@ function drawU() {
 
 
     // (3) draw mainroad and ramp
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    onramp.draw(rampImg,scale,trajRamp_x,trajRamp_y,laneWidthRamp);
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth);
+    var changedGeometry=hasChanged||(itime<=1); 
+    onramp.draw(rampImg,scale,trajRamp_x,trajRamp_y,laneWidthRamp,changedGeometry);
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
 
 
  
@@ -447,7 +456,7 @@ function drawU() {
 
 
 function init() {
-    // "canvas_onramp" defined in onramp.html
+    // "contents" defined in onramp.html
     canvas = document.getElementById("canvas_onramp"); 
     ctx = canvas.getContext("2d");
  

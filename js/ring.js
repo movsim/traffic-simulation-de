@@ -192,7 +192,6 @@ function drawRing() {
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
     }
 
-
     // (0) reposition physical x center coordinate as response
     // to viewport size (changes)
 
@@ -231,6 +230,7 @@ function drawRing() {
     }
 
     // (3) draw ring road
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1);
     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);

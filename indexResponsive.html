@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
@@ -8,7 +9,7 @@
     <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
-    <title>Microsimulation of Traffic Flow: html5 Version</title> 
+    <title>Microsimulation of Traffic Flow</title> 
 </head>
 
 
@@ -27,19 +28,6 @@
 
 
 <!-- ############################################## -->
-<!-- the actual simulation canvas -->
-<!-- ############################################## -->
-
-<div id="contents">
-<canvas id="canvas_ring" width="700" height="700">Alternative
-  text if browser don't support canvas.
-</canvas>
-
-
-</div>
-
-
-<!-- ############################################## -->
 <!-- Buttons                                        -->
 <!-- ############################################## -->
 
@@ -48,8 +36,7 @@
 
 <div id="scenarios">
 <center>
-  <button onclick="myStartFunction()">Resume</button>
-  <button onclick="myStopFunction()">Stop</button>
+  <button id="startStop" onclick="myStartStopFunction()">Stop</button>
   <button onclick="myRedirectRing()">Ringroad</button>
   <button onclick="myRedirectOnramp()">Onramp</button>
   <button onclick="myRedirectOfframp()">Offramp</button>
@@ -60,8 +47,22 @@
 
 
 <!-- ############################################## -->
-<!-- Sliders                                        -->
+<!-- the actual simulation canvas -->
 <!-- ############################################## -->
+
+<div id="contents">
+  <canvas id="canvas_ring" width="700" height="700">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 1: global simulation and demand variables -->
+<!-- ################################################# -->
 
 <div id="sliders1">
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
@@ -109,6 +110,11 @@
 </table>
 </div>
 
+
+<!-- ################################################# -->
+<!-- Sliders 2: in ring-road not used-->
+<!-- ################################################# -->
+
 <!--
 <div id="sliders2">
 <table border="0" cellspacing="1" cellpadding="0">
@@ -117,6 +123,11 @@
 </table>
 </div>
 -->
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
 
 <div id="sliders3">
 <table border="0" cellspacing="1" cellpadding="0">
@@ -158,11 +169,12 @@
 <!-- ############################################## -->
 
 
-
-
 </div> <!-- end outer container -->
 
+
+<!-- ########################################################## -->
 <!-- specific scripts; position below any simulation elements ! -->
+<!-- ########################################################## -->
 
 <script src="js/dw_slider.js" type="text/javascript"></script>
 <script src="js/canvasresize.js" type="text/javascript"></script>
@@ -176,7 +188,6 @@
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
 <script src="js/ring.js"></script>
-
 
 <script src="wm-html-include/wm-html-include.js"> </script>
 

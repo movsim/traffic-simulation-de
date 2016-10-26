@@ -487,14 +487,20 @@ function drawU() {
 
     // (3) draw mainroad and ramps (deviation "bridge" => draw last)
     // and vehicles (directly after frawing resp road or separately, depends)
+    // (always drawn; changedGeometry only triggers building a new lookup table)
+    //!!! sometimes road elements are moved as though they were vehicles
+    // check/debug with omitting drawing of the road (changedGeometry=false)!
+    
+    var changedGeometry=hasChanged||(itime<=1); 
+    //var changedGeometry=false; 
 
-    deviation.draw(rampImg,scale,trajDeviation_x,trajDeviation_y,laneWidthRamp);
+    deviation.draw(rampImg,scale,trajDeviation_x,trajDeviation_y,laneWidthRamp,changedGeometry);
 
     deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,
 			 trajDeviation_x,trajDeviation_y,laneWidth,vmin,vmax);
 
 
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth);
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
 			  traj_x,traj_y,laneWidth,vmin,vmax);
@@ -607,7 +613,7 @@ function drawU() {
 //############################################
 
 function init() {
-    canvas = document.getElementById("canvas_simulation"); // defined in deviation.html
+    canvas = document.getElementById("canvas_routing"); // defined in deviation.html
     ctx = canvas.getContext("2d");
  
 
