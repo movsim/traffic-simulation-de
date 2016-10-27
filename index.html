@@ -43,6 +43,7 @@
   <button onclick="myRedirectRoadworks()">Road Works</button>
   <button onclick="myRedirectRouting()">Routing</button>
 </center>
+
 </div> 
 
 
@@ -56,6 +57,7 @@
     not supporting html5 canvas. Please switch to another browser for
     running this simulation.
   </canvas>
+
 </div>
 
 
@@ -68,12 +70,6 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 <!-- !! >Timewarp<, not > Timewarp < etc because of engl2ger. bash-->
 
-<tr>
-<td>Timewarp</td>
-<td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
-<td> <div id="valueField_timewarp"></div>
-</tr>
-
 
 <tr>
 <td>Density</td>
@@ -81,13 +77,6 @@
 <td> <div id="valueField_density"></div>
 </tr>
 
-<!--
-<tr>
-<td>Scale</td>
-<td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
-<td> <div id="valueField_scale"></div>
-</tr>
--->
 
 <tr>
 <td>Truck Fraction</td>
@@ -95,16 +84,19 @@
 <td> <div id="valueField_truckFrac"></div>
 </tr>
 
-<tr>
-<td> Desired Speed v</sub>0</sub> </td>
-<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
-<td> <div id="valueField_IDM_v0"></div>
-</tr>
 
 <tr>
 <td> Max Acceleration a</td>
 <td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
 <td> <div id="valueField_IDM_a"></div>
+</tr>
+
+<tr>
+<td> Lane Changing rate</td>
+<td> to be implemented </td>
+<td> -  </td>
+<!--<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
+<td> <div id="valueField_IDM_a"></div>-->
 </tr>
 
 </table>
@@ -115,22 +107,21 @@
 <!-- Sliders 2: in ring-road not used-->
 <!-- ################################################# -->
 
-<!--
+
 <div id="sliders2">
 <table border="0" cellspacing="1" cellpadding="0">
+<tr>
+<td>Timewarp</td>
+<td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
+<td> <div id="valueField_timewarp"></div>
+</tr>
 
+<tr>
+<td> Desired Speed v</sub>0</sub> </td>
+<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+<td> <div id="valueField_IDM_v0"></div>
+</tr>
 
-</table>
-</div>
--->
-
-
-<!-- ################################################# -->
-<!-- Sliders 3: less important controls                -->
-<!-- ################################################# -->
-
-<div id="sliders3">
-<table border="0" cellspacing="1" cellpadding="0">
 <tr>
 <td> Time Gap T</td>
 <td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
@@ -150,20 +141,43 @@
 </tr>
 
 
+<!--
+<tr>
+<td>Scale</td>
+<td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
+<td> <div id="valueField_scale"></div>
+</tr>
+-->
+
 </table>
 </div>
 
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
+
+<!--
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+
+</table>
+</div>
+-->
 
 <!-- ############################################## -->
 <!-- here comes the former navigation*.html frame   -->
 <!-- ############################################## -->
 
-<div id="impressum"> <a href="impressum.html">
-  &copy; Martin Treiber</a></div>
+
 <div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
-<div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
+<div id="infoModels"> 
+<link data-wi-src="infoModels.html" /></div>
 <div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
 <div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
+<div id="impressum"> <a href="impressum.html">
+  &copy; Martin Treiber</a></div>
 
 <!-- ############################################## -->
 <!-- end former navigation*.html frame   -->

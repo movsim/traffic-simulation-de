@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 
 # http://www.imagemagick.org/script/convert.php
 # Siehe auch ./convert_funnyText
@@ -6,8 +6,6 @@
 # An folgenden Block kann gefrickelt werden 
 
 #============================================
-textheight=100
-outname=out2.png
 color2="#002c48"
 color1="#6699aa"
 
@@ -34,18 +32,30 @@ font="Bookman-DemiItalic"
 
 #============================================
 
-if (($#<2)); then
- echo "Usage: generateSpiffyTrafficSim.sh lengthMultiplicator \"titleText\""
- echo "lengthMultiplicator=100 for normal avg. letterwidth"
+if (($#<3)); then
+ echo "Usage: generateSpiffyTrafficSim2.sh textheight lengthMultiplicator \"titleText\""
+ echo "textheight in pixels; lengthMultiplicator=100 for normal avg. letterwidth"
  echo "lengthMultiplicator longer if text such as ''mmm'', shorter for ''ttt''"
+echo "Example: generateSpiffyTrafficSim2.sh 55 100 \"Traffic Flow\""
  exit
 fi
 
+
+textheight=$1
+multiplicator=$2
+shift 2
+titleText=$@
+outnameBase="$titleText"
+echo "outnameBase=$outnameBase"
+
+# string search replace ${string/pattern/replacement}
+
+filename="bash.string.txt"
+outnameBase=${titleText// /_}
+outname="${outnameBase}.png"
 echo "generating $outname ..."
 
-multiplicator=$1
-shift 1
-titleText=$@
+
 titleLength=`echo $titleText | wc -c`
 titleLength=$(($titleLength-1))
 width=$(($titleLength*$textheight*12/20*${multiplicator}/100))
@@ -98,4 +108,4 @@ convert -size ${width}x${height} xc:transparent -font $font -pointsize ${texthei
 # -fill "${color1}" -stroke "${color2}" -strokewidth ${lw}\
 # -draw "text ${xpos},${ypos} '${titleText}'" $outname
 
-echo "output file:  $outname ..."
+echo "generated  $outname"

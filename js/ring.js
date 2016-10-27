@@ -198,7 +198,7 @@ function drawRing() {
     // to viewport size (changes)
 
     var aspectRatio=canvas.width/canvas.height;
-    center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
+    //!!center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
 
 
     // (1) define road geometry as parametric functions of arclength u
@@ -247,14 +247,14 @@ function drawRing() {
     // draw some running-time vars
 
     ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=14;
-    //var textsize=scale*20;
+    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
+
     ctx.font=textsize+'px Arial';
 
     var timeStr="Time="+Math.round(10*time)/10;
     var timeStr_xlb=textsize;
     var timeStr_ylb=2*textsize;
-    var timeStr_width=5*textsize;
+    var timeStr_width=7*textsize;
     var timeStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(timeStr_xlb,timeStr_ylb-timeStr_height,timeStr_width,timeStr_height);
@@ -262,7 +262,7 @@ function drawRing() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
 
     var scaleStr="scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=8*textsize;
+    var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=2*textsize;
     var scaleStr_width=7*textsize;
     var scaleStr_height=1.2*textsize;

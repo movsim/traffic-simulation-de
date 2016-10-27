@@ -328,8 +328,8 @@ function drawU() {
     // (4) draw some running-time vars
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=0.02*canvas.height;
-    //var textsize=scale*20;
+    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
+
     ctx.font=textsize+'px Arial';
 
     var timeStr="Time="+Math.round(10*time)/10;
