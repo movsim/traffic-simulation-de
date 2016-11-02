@@ -27,7 +27,7 @@ ATTENTION!! no space before pixels!
 /* default (bigscreen in landscape) */
 /*#############################################################*/
 
-@media all and (min-width: 780px) and (min-aspect-ratio: 6/5){
+@media all and (min-width: 780px) and (min-aspect-ratio: 5/4){
 
 /* the title */
 
@@ -56,7 +56,7 @@ img.title{
   position: absolute;
   top:   6vmin;
   left:   0vw;
-  bottom: 10vmin;
+  bottom: 0vmin;
   width:  84vw;
   margin-right: 0vw;
   margin-left: 0vw;
@@ -69,9 +69,9 @@ img.title{
 
 #scenarios{
   position: absolute;
-  top:     20vmin;
+  top:     10vmin;
   height:  50vmin;
-  left: calc( 84vw - 20vmin);
+  left: calc(84vw - 20vmin);
   width: 20vmin;
   z-index: 2;
 }
@@ -87,8 +87,8 @@ button{
 
 #infoFlags{
   position: absolute;
-  top:   7vmin;
-  left:   calc( 84vw - 20vmin);
+  top:   1vmin;
+  right:   1vw;
   width:  20vmin; /* no height */
   z-index: 2;
 }
@@ -98,7 +98,7 @@ button{
 
 #impressum{ 
   position: absolute;
-  bottom: 10vmin;
+  bottom: 0vmin;
   height: 2vmin;
   left: 0vw;
   width: 10vw;
@@ -113,7 +113,7 @@ button{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
-  top: 48vmin;
+  top: 52vmin;
   height: 12.8vmin;
   left: 15vmin;  /* calc( 24vw - 23vmin);*/
   width: 50vmin;
@@ -125,7 +125,7 @@ button{
 
 #sliders2{ 
   position: absolute;
-  bottom: 11vmin;
+  bottom: 1vmin;
   height: 15vmin;
   right:  17vw;
   width:  42vmin;
@@ -162,16 +162,6 @@ TR{
 }
 
 
-/* (9) former model navigation frame  */
-
-#infoModels{
-  position: absolute;
-  top:   11vmin;
-  height:  30vmin;
-  left:   85vw;
-  width:  13vw;
-  z-index: 2;
-}
 
 /* (9)-(11): image layout for "text arts" title images */ 
 
@@ -181,14 +171,25 @@ img.infoBlock{
     max-height: 3vh;
 }
 
+
+/* (9) former model navigation frame  */
+
+#infoModels{
+  position: absolute;
+  top:   8vmin;
+  height:  20vmin;
+  left:   85vw;
+  width:  13vw;
+  z-index: 2;
+}
+
 /* (10) position of the block describing the scenarios */
 
 #infoScenarios{
   position: absolute;
-  top:   37vmin;
+  top:   35vmin;
   height:  30vmin;
   left:   85vw;
-  height: 55vmin;
   width:  13vw;
   /*background-color: #AAFFAA;*/
 }
@@ -198,8 +199,9 @@ img.infoBlock{
 #infoLinks{
   position: absolute;
   top:   90vmin;
-  left:   35vw;
-  width:  30vw;
+  height:  30vmin;
+  left:   85vw;
+  width:  13vw;
 }
 
 
