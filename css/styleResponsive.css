@@ -106,3 +106,15 @@ a:hover {
 }
 
 
+/* (9)-(11): layout of tables for info boxes */ 
+
+table.infoTable {
+   border: 3px ridge rgb(130,130,130);
+   border-spacing: 4px; 
+   border-collapse: collapse; 
+   padding: 1px;
+   background-color: rgba(255,255,255,0.4);
+}
+table.infoTable td {
+   border: 3px ridge rgb(130,130,130);
+}

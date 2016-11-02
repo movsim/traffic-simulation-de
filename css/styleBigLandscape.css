@@ -15,35 +15,30 @@ limits:
 */
 
 /*#############################################################
- big landscape:   (min-width: 780px)  and (min-aspect-ratio: 6/5) 
- small landscape: (max-width: 779px)  and (min-aspect-ratio: 6/5) 
- big portrait:    (min-height: 650px) and (max-aspect-ratio: 6/5) 
- small portrait:  (max-height: 649px) and (max-aspect-ratio: 6/5) 
+ big landscape:   (min-width: 720px)  and (min-aspect-ratio: 6/5) 
+ small landscape: (max-width: 719px)  and (min-aspect-ratio: 6/5) 
+ big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
+ small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
 ATTENTION!! no space before pixels! 
 #############################################################*/
 
 
-/*#############################################################*/
-/* default (bigscreen in landscape) */
-/*#############################################################*/
+@media all and  (min-aspect-ratio: 6/5){
 
-@media all and (min-width: 780px) and (min-aspect-ratio: 5/4){
-
-/* the title */
+/* (1) the title */
 
 #header{
   position: absolute;
   top: 0vmin;
-  /*height: calc( 3vw + 3vmin); */
   height: 7vh;
   left: calc( 15vw + 15vmin);
-  width: 40vw; /* needed for reference of width: "70%" etc attribute of image! */
+  width: 40vw; /* needed for reference of width: */
   font-size: 4vmin;
   font-weight:bold;
-  z-index: 2;  /* above simulation canvas in rare chances of overlapping*/
+  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
 }
 
-/* (1) title image */
+/* title image */
 
 img.title{
   max-height: 7vh;
@@ -55,8 +50,8 @@ img.title{
 #contents{
   position: absolute;
   top:   6vmin;
-  left:   0vw;
   bottom: 0vmin;
+  left:   0vw;
   width:  84vw;
   margin-right: 0vw;
   margin-left: 0vw;
@@ -108,6 +103,23 @@ button{
 }
 
 
+
+
+/* (6)-(8) text layout of sliders: tables override general text spec) */
+
+TH{
+  font-size: 2.6vmin;
+  font-weight: bold; 
+  color: #404060;   /* text color */
+
+}
+
+TR{
+  font-size:2.1vmin; 
+  color: #000000;
+}
+
+
 /* (6) most important sliders: demand variables such as Qin percTruck 
 /* and most important model parameters and action variables (speedlimit)*/
 
@@ -115,8 +127,8 @@ button{
   position: absolute;
   top: 52vmin;
   height: 12.8vmin;
-  left: 15vmin;  /* calc( 24vw - 23vmin);*/
-  width: 50vmin;
+  left: 17vmin;  /* calc( 24vw - 23vmin);*/
+  width: 53vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -127,8 +139,8 @@ button{
   position: absolute;
   bottom: 1vmin;
   height: 15vmin;
-  right:  17vw;
-  width:  42vmin;
+  right:  15.5vw;
+  width:  40vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2;
 
@@ -147,18 +159,19 @@ button{
 }
 
 
-/* (6)-(8) text layout of sliders: tables override general text spec) */
 
-TH{
-  font-size: 2.6vmin;
-  font-weight: bold; 
-  color: #404060;   /* text color */
+/* (9)-(11): define white space below sim in portrait mode */
+/* cover simulation "grass" if needed */
 
-}
 
-TR{
-  font-size:2.0vmin; 
-  color: #000000;
+#footWhiteSpace{
+  position: absolute;
+  top: 0vw;
+  height: 0vh;
+  left: 0vw;
+  width: 0vw;
+  background-color: white;
+  z-index: 1;
 }
 
 
@@ -187,7 +200,7 @@ img.infoBlock{
 
 #infoScenarios{
   position: absolute;
-  top:   35vmin;
+  top:   34vmin;
   height:  30vmin;
   left:   85vw;
   width:  13vw;
@@ -198,7 +211,7 @@ img.infoBlock{
  
 #infoLinks{
   position: absolute;
-  top:   90vmin;
+  top:   85vmin;
   height:  30vmin;
   left:   85vw;
   width:  13vw;
