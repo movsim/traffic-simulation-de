@@ -1,0 +1,223 @@
+
+/* medi queries: 
+https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
+
+example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
+operator "or" = ","
+boolean variables:
+(min-width: 700px)
+handheld
+(orientation: landscape)
+(monochrome)
+(color)
+(min-aspect-ratio: 1/1)  horiz/vertical
+limits: 
+*/
+
+/*#############################################################
+ big landscape:   (min-width: 720px)  and (min-aspect-ratio: 6/5) 
+ small landscape: (max-width: 719px)  and (min-aspect-ratio: 6/5) 
+ big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
+ small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
+ATTENTION!! no space before pixels! 
+#############################################################*/
+
+
+@media all and  (max-aspect-ratio: 6/5){
+
+/* (1) the title */
+
+#header{
+  position: absolute;
+  top: 0vmin;
+  height: 7vmin;
+  left: calc( 15vw + 15vmin);
+  width: 48vmin;
+  z-index: 2; 
+}
+
+/* title image */
+
+img.title{
+  max-height: 7vmin;
+}
+
+
+/* (2) the simulation canvas */
+
+#contents{
+  position: absolute;
+  top:    8vh;
+  bottom: 0vh;
+ /* height: calc(112vmin + 10vh - 8vh);*/
+  left:   0vw;
+  width:  98vw;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (3) the buttons field for selecting the scenarios (bigscreen in landscape)*/
+/* leave buttons layout as is; css offers only very simplistic customization */
+
+#scenarios{
+  position: absolute;
+  top:     5vmin;
+  height:  4vh;
+  left:    1vw;
+  width:  96vw;
+  z-index: 2;
+}
+
+button{
+  font-size: calc(1.2vw + 0.3vmax);
+  width:    calc( 6vw + 7vmax );
+  height:    calc(1vw + 2vmax);
+  vertical-align: middle; /* bug: DOS */
+}
+
+
+
+/* (4) position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   9vh;
+  left:   calc( 98vw - 20vmin);
+  width:  20vmin; /* no height */
+  z-index: 2;
+}
+
+
+/* (5) position of the copyright: left bottom of simCanvas */
+
+#impressum{ 
+  position: absolute;
+  bottom: 0vh;
+  height: 2vmin;
+  left: 0vw;
+  width: calc(5vw + 6vmax);
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+/* (6)-(8) text layout of sliders: tables override general text spec) */
+
+TH{
+  font-size: 3.0vmin;
+  font-weight: bold; 
+  color: #404060;   /* text color */
+
+}
+
+TR{
+  font-size:2.0vmin; 
+  color: #000000;
+}
+
+
+/* (6) most important sliders: demand variables such as Qin percTruck 
+/* and most important model parameters and action variables (speedlimit)*/
+
+#sliders1{ /* table elements relevant for font size */
+  position: absolute;
+ /* top: calc( 53vmin + 8vh);*/
+  top:   calc(52vmin + 5vh);
+  height: 12.8vmin;
+  left: calc(20vmin + 2vh); 
+  width: 49vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (7) less important sliders; potentially dropped */
+
+#sliders2{ 
+  position: absolute;
+  top: calc(95vmin + 10vh);
+  height: 15vmin;
+  left: 28vmin; 
+  width:  42vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2;
+
+}
+
+/* (8) even less important: generally outside of main screen  */
+
+#sliders3{ 
+  position: absolute;
+  top: 30vmin;
+  left: 50vw;
+  width: 33vw;
+  height: 7.5vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 0;
+}
+
+
+
+/* (9)-(11): define white space below sim in portrait mode */
+/* cover simulation "grass" if needed */
+
+
+#footWhiteSpace{
+  position: absolute;
+  top: calc(112vmin + 10vh);
+  bottom: 0vh;
+  left: 0vw;
+  width: 98vw;
+  background-color: white;
+  z-index: 1;
+}
+
+
+/* (9)-(11): image layout for "text arts" title images */ 
+
+img.infoBlock{
+    /*max-width: 90%;*/
+    max-width: 16vw;
+    max-height: 3vh;
+}
+
+/* (9) former model navigation frame  */
+
+#infoModels{
+  position: absolute;
+  top: calc(114vmin + 10vh);
+  height:  40vmin;
+  left:    5vw;
+  width:  25vw;
+  z-index: 2;
+}
+
+
+/* (10) position of the block describing the scenarios */
+
+#infoScenarios{
+  position: absolute;
+  top: calc(114vmin + 10vh);
+  height:  40vmin;
+  left:    35vw;
+  width:   25vw;
+  z-index: 2;
+}
+
+/* (11) position of the general link fields (often outside main area) */
+ 
+#infoLinks{
+  position: absolute;
+  top: calc(114vmin + 10vh);
+  left:   70vw;
+  width:  25vw;
+  z-index: 2;
+}
+
+
+
+
+} /* @media filter*/

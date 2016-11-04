@@ -11,8 +11,6 @@
 
 var width;  // taken from html canvas tag in init()
 var height; // taken from html canvas tag in init()
-var center_x; // defined in init() after value of width is known
-var center_y; // defined in init() after value of height is known
 
 var hasChanged=true; // window dimensions have changed (responsive design)
 
@@ -127,7 +125,6 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 // Notice: set drawBackground=false if no bg wanted
 //var background_srcFile='figs/backgroundGrass.jpg'; //800 x 800
 var background_srcFile='figs/backgroundGrass.jpg'; //1100 x 700
-var scaleFactorImg=lMain/1740; // [pixels/m]
 
 
 //#################################
@@ -623,8 +620,6 @@ function init() {
     width = canvas.width;
     height = canvas.height;
 
-    center_x=0.50*width*scaleFactorImg; // pixel coordinates
-    center_y=0.48*height*scaleFactorImg;
 
     // init vehicle image(s)
 

@@ -302,10 +302,7 @@ function drawU() {
     if(drawBackground){
 	if(hasChanged||(itime<=1) || false || (!drawRoad)){ 
 
-        //var scaleImg=scaleFactorImg;// responsive design: weg
-        // responsive design
-	//ctx.drawImage(background,0,0,scaleImg*canvas.width,scaleImg*canvas.height);	
-          ctx.drawImage(background,0,0,canvas.width,canvas.height);
+         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
 

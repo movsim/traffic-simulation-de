@@ -1,10 +1,12 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
     <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleULandscape.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleUPortrait.css" rel="stylesheet" type="text/css"/>
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
     <title> Microsimulation of Traffic Flow: Road Works</title>
@@ -13,7 +15,12 @@
 
 <body>
   
+<!-- ############################################## -->
+<!-- outer container                                -->
+<!-- ############################################## -->
+
 <div id="container">
+
 
 
 <!-- ############################################## -->
@@ -21,7 +28,7 @@
 <!-- ############################################## -->
 
 <div id="header"> 
-  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
+  <img class="title" src="figs/title.png"  width="100%"/>
 </div> 
 
 
@@ -44,9 +51,26 @@
 </div> 
 
 
-<tr>
-<td><table>
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
 
+<div id="contents">
+  <canvas id="canvas_roadworks" width="800" height="600">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
+
+
+<!-- ################################################# -->
+<!-- Sliders 1: global simulation and demand variables -->
+<!-- ################################################# -->
+
+<div id="sliders1">
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<!-- !! ">Timewarp<", not "> Timewarp <" etc because of engl2ger. bash-->
 
 <tr>
 <td>Timewarp</td>
@@ -80,16 +104,19 @@
 </tr>
 
 </table>
-</td>
+</div>
 
-<!-- sliders for model parameters -->
-<td>
-<table>
+<!-- ################################################# -->
+<!-- Sliders 2: Main model parameters and specific controls-->
+<!-- ################################################# -->
+
+<div id="sliders2">
+<table border="0" cellspacing="1" cellpadding="0">
 
 <tr>
-<td> Desired Speed v</sub>0</sub> </td>
-<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
-<td> <div id="valueField_IDM_v0"></div>
+ <td> Max Speed v</sub>0</sub> </td>
+ <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+ <td> <div id="valueField_IDM_v0"></div>
 </tr>
 
 <tr>
@@ -99,7 +126,7 @@
 </tr>
 
 <tr>
-<td> Minimum Gap s</sub>0</sub> </td>
+<td> Min Gap s</sub>0</sub> </td>
 <td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
 <td> <div id="valueField_IDM_s0"></div>
 </tr>
@@ -115,24 +142,42 @@
 <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
 <td> <div id="valueField_IDM_b"></div>
 </tr>
-
 </table>
-</td>
-
-</tr>
-</table>
-
-<!-- ############################################## -->
-<!-- the actual simulation canvas -->
-<!-- ############################################## -->
-
-<div id="contents">
-  <canvas id="canvas_roadworks" width="800" height="600">
-    You are probably using a very ancient web browser (or an Internet Explorer) 
-    not supporting html5 canvas. Please switch to another browser for
-    running this simulation.
-  </canvas>
 </div>
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
+
+<!--
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+
+</table>
+</div>
+-->
+
+<!-- ############################################## -->
+<!-- here comes the former navigation*.html frame   -->
+<!-- ############################################## -->
+
+<div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
+<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
+<div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
+<div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
+<div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
+<div id="impressum"> <a href="impressum.html">
+  &copy; Martin Treiber</a></div>
+
+<!-- ############################################## -->
+<!-- end former navigation*.html frame   -->
+<!-- ############################################## -->
+
+
+</div> <!-- end outer container -->
+
 
 
 <!-- specific scripts; position after def of canvas! -->

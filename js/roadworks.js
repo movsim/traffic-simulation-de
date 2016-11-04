@@ -12,8 +12,6 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var width;  // taken from html canvas tag in init()
 var height; // taken from html canvas tag in init()
-var center_x; // defined in init() after value of width is known
-var center_y; // defined in init() after value of height is known
 
 
 var drawBackground=true; // if false, default unicolor background
@@ -99,11 +97,6 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
-
-// positioning and scaling of background settings
-// background scaling [pixels/m]=scale[pixels/m]*scaleFactorImg
-
-var scaleFactorImg=mainroadLen/1500; // Paris background
 
 
 
@@ -465,7 +458,6 @@ function init() {
     // defined in *_gui.js 
 
     change_timewarpSliderPos(timewarp);
-    //change_scaleSliderPos(scale);
     change_truckFracSliderPos(truckFrac);
     change_qInSliderPos(qInInit);
     change_speedLSliderPos(speedLInit);

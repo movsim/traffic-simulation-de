@@ -177,45 +177,6 @@ function change_timewarpSliderPos(x){
 
 
 
-//#############################################
-// Scale slider  (also update sliders.css!)
-//#############################################
-
-/*
-DYN_WEB.Event.domReady( function() {
-    var slider_scale 
-        = new DYN_WEB.Slider('slider_scale', 'track_scale', 'h');
-    slider_scale.on_move = function(x,y) {
-        change_scale(x);
-        document.getElementById('valueField_scale').innerHTML
-           =parseFloat(get_scale(),10).toFixed(1)+" pixels/m";
-        };
-    }
-);
-*/
-
-
-function change_scale(x){
-    scale=scale_min
-	+(scale_max-scale_min)*x/sliderWidth;
-    scaleImg=scale*scaleFactorImg;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(0,0,width,height);
-    if(drawBackground){
-	ctx.drawImage(background,0,0,scaleImg*width,scaleImg*height);
-    }
-}
-
-function get_scale(){return scale;}
-
-function change_scaleSliderPos(scale){
-    var x=sliderWidth
-	*(scale-scale_min)/(scale_max-scale_min);
-    document.getElementById('valueField_scale').innerHTML
-           =parseFloat(scale,10).toFixed(1)+" pixels/m";
-}
-
-
 
 //#############################################
 // truck fraction slider (also update sliders.css!)

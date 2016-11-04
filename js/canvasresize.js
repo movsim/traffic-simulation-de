@@ -7,7 +7,7 @@
 // returns if canvas size has changed
 //############################################
 
-function canvas_resize(canvas,aspectRatio){
+function canvas_resize(canvas,limAspectRatio){
     var hasChanged=false;
 
     var simDivWindow=document.getElementById("contents");
@@ -45,14 +45,22 @@ function canvas_resize(canvas,aspectRatio){
     }	
 
 
+  /* refDim is relevant canvas dimension (pixels) for determining the scale
+     factor (pixels/m) by comparing refDim 
+     with reference physical size sizePhys: refDim is canvas height 
+     if actual aspect ratio is  greater than limit aspect ratio, 
+     otherwise width/limAspectRatio
+  */ 
+
     if(hasChanged){
         center_x=0.50*canvas.width; // pixel coordinates
         center_y=0.48*canvas.height;
-	var refDim=Math.min(canvas.width,canvas.height*aspectRatio);
-
-        // global scale pixel/m;
+	//var refDim=Math.min(canvas.width,canvas.height*limAspectRatio);
+	var refDim=Math.min(canvas.height,canvas.width/limAspectRatio);
 	scale=refDim/sizePhys;  
-	//console.log("scale=",scale," hasChanged=",hasChanged);
+	console.log(" canvasresize: width=",canvas.width,
+		    " height=",canvas.height," refDim=",
+		    refDim," sizePhys=",sizePhys," scale=",scale);
     }
     return hasChanged;
 }

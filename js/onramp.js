@@ -5,6 +5,7 @@
 // Initial settings
 //#############################################################
 
+
 // graphical settings
 
 var hasChanged=true; // window dimensions have changed (responsive design)
@@ -21,21 +22,23 @@ var drawRoad=true; // if false, only vehicles are drawn
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
-// sim settings
-
-var time=0;
-var itime=0;
-var fps=20; // frames per second (unchanged during runtime)
-var dt=0.5; // only initialization
-
 
 // physical geometry settings [m]
+// sizePhys=physical dimension; should be of the order of vertical extension
 
-var sizePhys=355;    //responsive design  
-var mainroadLen=770;
+// fixed at initialization; relevant for actual simulation
+
+var mainroadLen=800;
 var nLanes=3;
 var laneWidth=7;
 var laneWidthRamp=5;
+
+var rampLen=240;
+var mergeLen=120;
+var mainRampOffset=410; // =mainroadLen-straightLen+mergeLen-rampLen;
+var taperLen=60;
+
+// variable depending on aspect ratio: only relevant for graphics
 
 var straightLen=0.34*mainroadLen;      // straight segments of U
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
@@ -43,12 +46,9 @@ var arcRadius=arcLen/Math.PI;
 var center_xPhys=95;
 var center_yPhys=-105; // ypixel downwards=> physical center <0
 
-var rampLen=240;
-var mergeLen=120;
-var taperLen=60;
-var rampRadius=2*arcRadius;
+var rampRadius=4*arcRadius;
 
-var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+var sizePhys=200; 
 
 
 
@@ -92,13 +92,9 @@ var relPosPerturb=0.8;
 var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes
 
 
-//var qIn=1.0;
-//var qOn=0.15;
-
 //############################################################################
 // image file settings
 //############################################################################
-
 
 
 var car_srcFile='figs/blackCarCropped.gif';
@@ -111,8 +107,6 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
-
-var scaleFactorImg=mainroadLen/1700; //[pixels/m]
 
 
 
@@ -143,10 +137,7 @@ var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe,
 				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
 var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
-
-updateModels(); 
-    //mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				      // LCModelCar,LCModelTruck);
+updateModels(); //  from onramp_gui.js 
 
 var isRing=0;  // 0: false; 1: true
 var roadIDmain=1;
@@ -189,7 +180,7 @@ if(false){
 
 var time=0;
 var itime=0;
-var fps=30; // frames per second
+var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
@@ -278,20 +269,52 @@ function drawU() {
 //##################################################
 
     // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,aspectRatio)
-    hasChanged=canvas_resize(canvas,1.65); 
-    if(hasChanged){
-        console.log(" new canvas size ",canvas.width,"x",canvas.height);
+    // canvas_resize(canvas,limitAspectRatio)
+    // !!MT resized to height if actual aspectRatio>limitAspectRatio, 
+    // to width otherwise
+//!!! WARUM klappt scaling nicht?!!! Henne-Ei problem!! Scaling braucht sizePhys und sizePhys braucht scaling! 
+
+    // (0) redefine graphical aspects of road (arc radius etc) using
+    // responsive design
+
+    var critAspectRatio=1.15;
+
+    // directly from canvas_resize(canvas,critAspectRatio)
+
+    var hasChanged=false;
+    var simDivWindow=document.getElementById("contents");
+    if (canvas.width!=simDivWindow.clientWidth){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
     }
 
-    // (0) reposition physical x center coordinate as response
-    // to viewport size (changes)
-    // in contrast to ring no actual need, maybe later; then do something 
-    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
-
+    if (canvas.height != simDivWindow.clientHeight){
+	hasChanged=true;
+        canvas.height  = simDivWindow.clientHeight;
+    }
     var aspectRatio=canvas.width/canvas.height;
- 
-    
+
+    arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
+    sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+    arcLen=arcRadius*Math.PI;
+    straightLen=0.5*(mainroadLen-arcLen);  // obe straight segment
+    center_xPhys=1.2*arcRadius;
+    center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+
+    // directly from canvas_resize(canvas,critAspectRatio)
+
+    center_x=0.50*canvas.width; // pixel coordinates
+    center_y=0.48*canvas.height;
+	//var refDim=Math.min(canvas.width,canvas.height*critAspectRatio);
+    var refDim=Math.min(canvas.height,canvas.width/critAspectRatio);
+    scale=refDim/sizePhys;  
+/*
+    console.log("in drawU: canvas size=",
+		canvas.width,"x",canvas.height,
+		" sizePhys=",sizePhys," scale=",scale);
+    console.log("aspectRatio=",aspectRatio);
+*/
+
     // (1) define road geometry as parametric functions of arclength u
     // (physical coordinates!)
 
@@ -313,15 +336,19 @@ function drawU() {
 
 
     function trajRamp_x(u){ // physical coordinates
-	var xMergeBegin=traj_x(mainroadLen-straightLen);
+	//var xMergeBegin=traj_x(mainroadLen-straightLen);
+	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
 	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
 	return (u<rampLen-taperLen) 
 	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
     }
 
     function trajRamp_y(u){ // physical coordinates
-	var yMergeBegin=center_yPhys-arcRadius
+	//var yMergeBegin=center_yPhys-arcRadius
+	//    -0.5*laneWidth*(mainroad.nLanes+onramp.nLanes)-0.02*laneWidth;
+	var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
 	    -0.5*laneWidth*(mainroad.nLanes+onramp.nLanes)-0.02*laneWidth;
+
 	var yMergeEnd=yMergeBegin+laneWidth;
 	return (u<rampLen-mergeLen) 
 	    ? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
@@ -344,7 +371,7 @@ function drawU() {
     //!! canvas dimensions kein DOS
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=2) || false || (!drawRoad)){ 
+	if(hasChanged||(itime<=2) ||false || (!drawRoad)){ 
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -353,7 +380,7 @@ function drawU() {
     // (3) draw mainroad and ramp
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    var changedGeometry=hasChanged||(itime<=1); 
+    var changedGeometry=hasChanged||(itime<=1)||true; 
     onramp.draw(rampImg,scale,trajRamp_x,trajRamp_y,laneWidthRamp,changedGeometry);
     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
 
@@ -369,6 +396,7 @@ function drawU() {
 
 
     // (5) draw some running-time vars
+
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
@@ -389,21 +417,8 @@ function drawU() {
 		 timeStr_ylb-0.2*textsize);
 
     
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=8*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-    
-    
     var scaleStr="scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=16*textsize;
+    var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
     var scaleStr_height=1.2*textsize;
@@ -414,6 +429,19 @@ function drawU() {
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
     
+   /*
+    var timewStr="timewarp="+Math.round(10*timewarp)/10;
+    var timewStr_xlb=15*textsize;
+    var timewStr_ylb=timeStr_ylb;
+    var timewStr_width=7*textsize;
+    var timewStr_height=1.2*textsize;
+    ctx.fillStyle="rgb(255,255,255)";
+    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
+		 timewStr_width,timewStr_height);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
+		 timewStr_ylb-0.2*textsize);
+
 
     var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
     var genVarStr_xlb=24*textsize;
@@ -439,10 +467,14 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
 		 genVarStr_ylb-0.2*textsize);
+*/
+
 
     // (6) draw the speed colormap
 
-    drawColormap(scale*center_xPhys, -scale*center_yPhys, scale*50, scale*50,
+      drawColormap(scale*(center_xPhys-0.40*arcRadius), 
+                  -scale*center_yPhys, 
+                   scale*20, scale*50,
 		 vmin,vmax,0,100/3.6);
 
     // revert to neutral transformation at the end!
@@ -455,20 +487,21 @@ function drawU() {
 
 
 function init() {
-    // "contents" defined in onramp.html
+
+    // get overall dimensions from parent html page
+    // "canvas_onramp" defined in onramp.html
+
     canvas = document.getElementById("canvas_onramp"); 
     ctx = canvas.getContext("2d");
  
+    width  = canvas.width;   // pixel coordinates (DOS)
+    height = canvas.height;  // DOS
+
+
+    // init background image
+
     background = new Image();
     background.src =background_srcFile;
-
-    //console.log("image size of background:"+background.naturalWidth); 
-
-    width = 0.97*canvas.width;   // pixel coordinates (DOS)
-    height = 0.7*canvas.height;  // DOS
-
-    center_x=0.50*width*scaleFactorImg; // pixel coordinates (DOS)
-    center_y=0.48*height*scaleFactorImg;
 
     // init vehicle image(s)
 
@@ -479,7 +512,7 @@ function init() {
     obstacleImg = new Image();
     obstacleImg.src = obstacle_srcFile;
 
-	// init road image(s)
+    // init road image(s)
 
     roadImg = new Image();
     roadImg.src=(nLanes==1)

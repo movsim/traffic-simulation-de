@@ -96,9 +96,9 @@ for file in $htmlfiles; do
   perl -i -p -e 's/Onramp Flow/Rampenzufluss/g' $file
   perl -i -p -e 's/Offramp Use/Anteil abfahrend/g' $file
   perl -i -p -e 's/Deviation Use/Anteil Umleitung/g' $file
-  perl -i -p -e 's/Desired Speed/Wunschgeschw./g' $file
+  perl -i -p -e 's/Max Speed/Wunschgeschw./g' $file
   perl -i -p -e 's/Time Gap/Zeitluecke/g' $file
-  perl -i -p -e 's/Minimum Gap/Mindestluecke/g' $file
+  perl -i -p -e 's/Min Gap/Mindestluecke/g' $file
   perl -i -p -e 's/Max Acceleration/Max Beschleun/g' $file
   perl -i -p -e 's/Comf Deceleration/Komfort Verzoeg/g' $file
   perl -i -p -e 's/Comfort Decel/Komfort Verzoeg/g' $file

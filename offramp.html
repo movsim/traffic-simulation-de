@@ -1,10 +1,12 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
     <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleULandscape.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleUPortrait.css" rel="stylesheet" type="text/css"/>
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
     
     <title>Microsimulation of Traffic Flow: Offramp</title> 
@@ -13,7 +15,12 @@
 
 <body>
   
+<!-- ############################################## -->
+<!-- outer container                                -->
+<!-- ############################################## -->
+
 <div id="container">
+
 
 
 <!-- ############################################## -->
@@ -21,7 +28,7 @@
 <!-- ############################################## -->
 
 <div id="header"> 
-  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
+  <img class="title" src="figs/title.png"  width="100%"/>
 </div> 
 
 
@@ -43,13 +50,28 @@
 </center>
 </div> 
 
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
 
-<!-- nested tables: Table 1: global sliders -->
-<!-- (specified in sliders.css and dw_slider.js) -->
+<div id="contents">
+  <canvas id="canvas_offramp" width="800" height="600">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
 
-<tr>
-<td><table>
- 
+
+<!-- ################################################# -->
+<!-- Sliders 1: global simulation and demand variables -->
+<!-- ################################################# -->
+
+<div id="sliders1">
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<!-- !! ">Timewarp<", not "> Timewarp <" etc because of engl2ger. bash-->
+
+
 <tr>
 <td>Timewarp</td>
 <td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
@@ -83,16 +105,20 @@
 </tr>
 
 
-</table></td>
+</table>
+</div>
 
-<!-- Table 2: sliders for model parameters -->
+<!-- ################################################# -->
+<!-- Sliders 2: Main model parameters and specific controls-->
+<!-- ################################################# -->
 
-<td><table>
+<div id="sliders2">
+<table border="0" cellspacing="1" cellpadding="0">
 
 <tr>
-<td> Desired Speed v</sub>0</sub> </td>
-<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
-<td> <div id="valueField_IDM_v0"></div>
+ <td> Max Speed v</sub>0</sub> </td>
+ <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+ <td> <div id="valueField_IDM_v0"></div>
 </tr>
 
 <tr>
@@ -102,7 +128,7 @@
 </tr>
 
 <tr>
-<td> Minimum Gap s</sub>0</sub> </td>
+<td> Min Gap s</sub>0</sub> </td>
 <td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
 <td> <div id="valueField_IDM_s0"></div>
 </tr>
@@ -118,24 +144,43 @@
 <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
 <td> <div id="valueField_IDM_b"></div>
 </tr>
-
 </table>
-</td>
-
-</tr>
-</table>
-
-<!-- ############################################## -->
-<!-- the actual simulation canvas -->
-<!-- ############################################## -->
-
-<div id="contents">
-  <canvas id="canvas_offramp" width="800" height="600">
-    You are probably using a very ancient web browser (or an Internet Explorer) 
-    not supporting html5 canvas. Please switch to another browser for
-    running this simulation.
-  </canvas>
 </div>
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
+
+<!--
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+
+</table>
+</div>
+-->
+
+
+<!-- ############################################## -->
+<!-- here comes the former navigation*.html frame   -->
+<!-- ############################################## -->
+
+<div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
+<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
+<div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
+<div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
+<div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
+<div id="impressum"> <a href="impressum.html">
+  &copy; Martin Treiber</a></div>
+
+
+<!-- ############################################## -->
+<!-- end former navigation*.html frame   -->
+<!-- ############################################## -->
+
+
+</div> <!-- end outer container -->
 
 
 

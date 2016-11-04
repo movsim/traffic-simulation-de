@@ -100,12 +100,10 @@ function updateModels(){
 // in init() at end: setInterval(main_loop, 1000/fps);
 // thread stops with "clearInterval(myRun);" 
 
-
-//##################################################################################
-// Start/Stop button (onclick callback "myStartStopFunction()" defined in html file)
-//##################################################################################
-
-// called when start button is pressed
+//#########################################################
+// Start/Stop button 
+// (onclick callback "myStartStopFunction()" defined in html file)
+//#########################################################
 
 
 // in any case need first to stop;
@@ -175,44 +173,6 @@ function change_timewarpSliderPos(x){
            =parseFloat(x,10).toFixed(1)+" times";
 }
 
-
-
-//#############################################
-// Scale slider  (also update sliders.css!)
-//#############################################
-
-/*
-DYN_WEB.Event.domReady( function() {
-    var slider_scale 
-        = new DYN_WEB.Slider('slider_scale', 'track_scale', 'h');
-    slider_scale.on_move = function(x,y) {
-        change_scale(x);
-        document.getElementById('valueField_scale').innerHTML
-           =parseFloat(get_scale(),10).toFixed(1)+" pixels/m";
-        };
-    }
-);
-*/
-
-function change_scale(x){
-    scale=scale_min
-	+(scale_max-scale_min)*x/sliderWidth;
-    scaleImg=scale*scaleFactorImg;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(0,0,width,height);
-    if(drawBackground){
-	ctx.drawImage(background,0,0,scaleImg*width,scaleImg*height);
-    }
-}
-
-function get_scale(){return scale;}
-
-function change_scaleSliderPos(scale){
-    var x=sliderWidth
-	*(scale-scale_min)/(scale_max-scale_min);
-    document.getElementById('valueField_scale').innerHTML
-           =parseFloat(scale,10).toFixed(1)+" pixels/m";
-}
 
 
 
