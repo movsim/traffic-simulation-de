@@ -197,12 +197,12 @@ function updateU(){
     // and changed mandatory states to the vehicles and models 
 
 
+    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
-    onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
 
     // externally impose mandatory LC behaviour
     // all onramp vehicles must change lanes to the left (last arg=false)

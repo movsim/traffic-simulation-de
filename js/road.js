@@ -176,6 +176,25 @@ road.prototype.setCFModelsInRange
 
 
 //#####################################################
+// set vehicles in range to new lane change models
+// (useful for modeling local overtaking bans, 
+// local necessity/desire to drive right etc)
+//#####################################################
+
+road.prototype.setLCModelsInRange
+    =function(umin,umax,LCModelCar,LCModelTruck){
+
+    for(var i=0; i<this.veh.length; i++){
+	var u=this.veh[i].u;
+	if((u>umin)&&(u<umax)){
+	    if(this.veh[i].type=="car"){this.veh[i].LCModel=LCModelCar;}
+	    if(this.veh[i].type=="truck"){this.veh[i].LCModel=LCModelTruck;}
+	}
+    }
+}
+
+
+//#####################################################
 // set vehicles in range to mandatory LC 
 // (useful for non-routing related mandatory LC onramps (no offramps), e.g.
 // onramps or before lane closings
@@ -382,7 +401,8 @@ road.prototype.calcAccelerations=function(){
 	    =this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead);
 	//if(false){
 	//if(this.veh[i].mandatoryLCahead){
-	if(speed>1.05*this.veh[i].longModel.v0){
+	//if(speed>1.05*this.veh[i].longModel.v0){
+	if(false){
 	    console.log("after calcAccelerations: i="+i
 			+" pos="+this.veh[i].u
 			+" lane="+this.veh[i].v
@@ -1120,6 +1140,7 @@ road.prototype.updateLastLCtimes=function(dt){
       this.veh[i].dt_lastPassiveLC +=dt;
     }
 }
+
 //######################################################################
 // get direction of road at arclength u
 //######################################################################
@@ -1142,6 +1163,41 @@ road.prototype.get_phi=function(traj_x,traj_y,u){
     return phi;
 }
 
+//######################################################################
+// get x pixel coordinate of logical long coord u and transv v (pos if right)
+//######################################################################
+/**
+@param u=logical longitudinal coordinate (zero at beginning)
+@param v=logical transversal coordinate (zero at road center, towards right)
+@param traj_x(u), traj_y(u)=phys. road geometry as parametrized 
+       function of the arc length
+@param scale translates physical road coordinbates into pixel:[scale]=pixels/m
+@return x pixel coordinate
+*/
+
+road.prototype.get_xPix=function(traj_x,traj_y,u,v,scale){
+    var phi=this.get_phi(traj_x,traj_y,u);
+    return scale*(traj_x(u)+v*Math.sin(phi));
+}
+
+//######################################################################
+// get yPix coordinate from logical coordinates (yPix increasing downwards)
+//######################################################################
+/**
+@param u=logical longitudinal coordinate (zero at beginning)
+@param v=logical transversal coordinate (zero at road center, towards right)
+@param traj_x(u), traj_y(u)=phys. road geometry as parametrized 
+       function of the arc length
+@param scale translates physical road coordinbates into pixel:[scale]=pixels/m
+@return y pixel coordinate
+*/
+
+road.prototype.get_yPix=function(traj_x,traj_y,u,v,scale){
+    var phi=this.get_phi(traj_x,traj_y,u);
+    return -scale*(traj_y(u)-v*Math.cos(phi));
+}
+
+ 
 
 //######################################################################
 // draw road (w/o vehicles; for letter -> drawVehicles(...)

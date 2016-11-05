@@ -12,7 +12,7 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks routing"
+projects="ring onramp offramp roadworks uphill routing"
 #projects="ring"
 
 cd $startDir
@@ -85,6 +85,7 @@ for file in $htmlfiles; do
   perl -i -p -e 's/\>Offramp\</>Abfahrt</g' $file
   perl -i -p -e 's/de\: Offramp/de: Abfahrt/g' $file
   perl -i -p -e 's/\>Road Works\</>Baustelle</g' $file
+  perl -i -p -e 's/\>Uphill\</>Steigung</g' $file
   perl -i -p -e 's/de\: Road Works/de: Baustelle/g' $file
   perl -i -p -e 's/\>Resume\</>Weiter</g' $file
   perl -i -p -e 's/\>Timewarp\</>Zeitraffer</g' $file
@@ -97,11 +98,14 @@ for file in $htmlfiles; do
   perl -i -p -e 's/Offramp Use/Anteil abfahrend/g' $file
   perl -i -p -e 's/Deviation Use/Anteil Umleitung/g' $file
   perl -i -p -e 's/Max Speed/Wunschgeschw./g' $file
+  perl -i -p -e 's/Speed Limit/Tempolimit/g' $file
+  perl -i -p -e 's/Uphill Truck Speed/V(LKW) \@Steigung/g' $file
   perl -i -p -e 's/Time Gap/Zeitluecke/g' $file
   perl -i -p -e 's/Min Gap/Mindestluecke/g' $file
   perl -i -p -e 's/Max Acceleration/Max Beschleun/g' $file
   perl -i -p -e 's/Comf Deceleration/Komfort Verzoeg/g' $file
-  perl -i -p -e 's/Comfort Decel/Komfort Verzoeg/g' $file
+  perl -i -p -e 's/Comfort Decel/Komfort Verz\./g' $file
+  perl -i -p -e 's/Comf Decel/Komfort Verz\./g' $file
   perl -i -p -e 's/veh\/h/Fz\/h/g' $file
 done
 
@@ -116,12 +120,17 @@ for file in "$jsfiles"; do
   perl -i -p -e 's/\" veh/\" Fz/g' $file
   perl -i -p -e 's/pixels/Pixel/g' $file
 
+
+  perl -i -p -e 's/\"Resume\"/\"Weiter\"/g' $file
   perl -i -p -e 's/\"Time=/\"Zeit=/g' $file
   perl -i -p -e 's/\"timewarp=/\"Zeitraffer=/g' $file
   perl -i -p -e 's/\"density=/\"Dichte=/g' $file
   perl -i -p -e 's/\"scale=/\"Skala=/g' $file
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
+
+perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW Ueberholverbot/g' uphill_ger.html js/uphill_gui_ger.js
+perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW Ueberholverbot auf\"/g' js/uphill_gui_ger.js
 
 cd $wd
 

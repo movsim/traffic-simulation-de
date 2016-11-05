@@ -256,10 +256,10 @@ function updateU(){
     // to the vehicles and models: 
 
 
+    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
 
 
    // implement strong urge to change lanes before roadworks (umin,umax,toRight)
@@ -267,10 +267,10 @@ function updateU(){
 			    false);
 
 
+    deviation.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     deviation.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck);
 
-    deviation.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
 
     // implement flow-conserving bottleneck 
     // arg list: (umin,umax, CFModelCar,CFModelTruck)
@@ -604,21 +604,9 @@ function drawU() {
 		 timeStr_ylb-0.2*textsize);
 
     
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=8*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-    
     
     var scaleStr="scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=16*textsize;
+    var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
     var scaleStr_height=1.2*textsize;
@@ -628,6 +616,20 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
+    
+/*
+
+    var timewStr="timewarp="+Math.round(10*timewarp)/10;
+    var timewStr_xlb=16*textsize;
+    var timewStr_ylb=timeStr_ylb;
+    var timewStr_width=7*textsize;
+    var timewStr_height=1.2*textsize;
+    ctx.fillStyle="rgb(255,255,255)";
+    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
+		 timewStr_width,timewStr_height);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
+		 timewStr_ylb-0.2*textsize);
     
 
     var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
@@ -654,6 +656,8 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
 		 genVarStr_ylb-0.2*textsize);
+*/
+
 
     // (6) draw the speed colormap
 

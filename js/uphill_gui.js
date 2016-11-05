@@ -31,15 +31,15 @@ var timewarp_min=0.1;
 var timewarp_max=20;
 
 
-var truckFracInit=0.2;
+var truckFracInit=0.4;
 var truckFrac=truckFracInit;
 var truckFrac_min=0;
 var truckFrac_max=0.5;
 
-var qInInit=0.4; // total inflow [veh/s] 
+var qInInit=1900/3600; // total inflow [veh/s] 
 var qIn=qInInit;
 var qIn_min=0;
-var qIn_max=0.7;
+var qIn_max=3000/3600;
 
 // car speedlimit (the same in normal and uphill sections)
 
@@ -57,7 +57,7 @@ var IDM_v0_max=180/3.6;
 
 // truck maxSpeed uphill (formulate by v0, not speedlimit!)
 
-var IDM_v0UpInit=30/3.6 
+var IDM_v0UpInit=25/3.6 
 var IDM_v0Up=IDM_v0UpInit;
 var IDM_v0Up_min=10./3.6
 var IDM_v0Up_max=80./3.6
@@ -72,7 +72,7 @@ var IDM_T=IDM_TInit;
 var IDM_T_min=0.6;
 var IDM_T_max=3;
 
-var IDM_aInit=0.3; 
+var IDM_aInit=1.5; 
 var IDM_a=IDM_aInit;
 var IDM_a_min=0.3;
 var IDM_a_max=3;
@@ -86,8 +86,8 @@ var IDM_b=2;   // cars and trucks
 var IDM_v0_truck=110/3.6; // higher than speedlimit: faster approach maxSpeed
 var speedL_truck=80/3.6
 
-var factor_a_truck=1.0;
-var factor_T_truck=1.0;
+var factor_a_truck=1.0; // not used actually; a_truck fixed
+var factor_T_truck=1.2;
 
 var MOBIL_bSafe=8; // was 12
 var MOBIL_bSafeMax=16;
@@ -98,14 +98,16 @@ var MOBIL_bBiasRight_truck=0.5;
 var MOBIL_mandat_bSafe=6;
 var MOBIL_mandat_bSafeMax=20;
 var MOBIL_mandat_bThr=0;
-var MOBIL_mandat_biasRight=10;
+var MOBIL_mandat_biasRight=20;
 
 
 
 function updateModels(){
 
+    // a_truck>=0.8 because otherwise no complete decelerarion in uphill
+
     var T_truck=factor_T_truck*IDM_T;
-    var a_truck=factor_a_truck*IDM_a;
+    var a_truck=1.1; 
 
     // var longModelCar etc defined (w/o value) in uphill.js 
 
@@ -119,7 +121,7 @@ function updateModels(){
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
 
-    // uphill section
+    // uphill section (no overtaking ban by default)
 
     longModelCarUphill=longModelCar;
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
@@ -157,6 +159,30 @@ function myStartStopFunction(){
 	isStopped=true;
     }
 }
+
+//#############################################
+// callback of "enforce Overtaking Ban"button
+//#############################################
+
+var banIsActive=false; // only initialization
+var banButtonClicked=false; // only initialization
+
+function toggleTruckOvertakingBan(){
+    banButtonClicked=true; // everything needs to be redrawn
+    if(banIsActive){
+	banIsActive=false;
+	document.getElementById('overtakingBan').innerHTML
+	    ="Enforce Truck Overtaking Ban";
+	LCModelTruckUphill=LCModelTruck;
+    }
+    else{
+	banIsActive=true;
+	document.getElementById('overtakingBan').innerHTML
+	    ="Lift Truck Overtaking Ban";
+	LCModelTruckUphill=LCModelTruckLCban;
+    }
+}
+
 
 
 

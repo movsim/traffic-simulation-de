@@ -176,16 +176,16 @@ function updateU(){
     // to the vehicles and models: 
 
 
+    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
 				      // LCModelMandatoryRight,
 				      // LCModelMandatoryLeft);
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    offramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     offramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck);
 				      // LCModelMandatoryRight,
 				      // LCModelMandatoryLeft);
-    offramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
 
 
     // if applicable, impose

@@ -46,7 +46,7 @@
   <button onclick="myRedirectOnramp()">Auffahrt</button>
   <button onclick="myRedirectOfframp()">Abfahrt</button>
   <button onclick="myRedirectRoadworks()">Baustelle</button>
-  <button onclick="myRedirectUphill()">Uphill</button>
+  <button onclick="myRedirectUphill()">Steigung</button>
   <button onclick="myRedirectRouting()">Routing</button>
 </center>
 </div> 
@@ -150,7 +150,7 @@
 </tr>
 
 <tr>
-<td> Comfort  Decel b</td>
+<td> Komfort Verz. b</td>
 <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
 <td> <div id="valueField_IDM_b"></div>
 </tr>
@@ -173,13 +173,26 @@
 </div>
 -->
 
+<!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags">
+<a href = "onramp.html" target = "_top">
+ <img src="icons/flagUSA.png" width="45%" />
+</a>
+
+<a href = "onramp_ger.html" target = "_top">
+ <img src="icons/flagGerman.png" width="45%" />
+</a>
+</div>
+
 
 <!-- ############################################## -->
 <!-- here comes the former navigation*.html frame   -->
 <!-- ############################################## -->
 
 <div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
-<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
 <div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
 <div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
 <div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>

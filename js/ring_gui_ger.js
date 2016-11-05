@@ -121,7 +121,7 @@ function myStartStopFunction(){
 	myRun=init();
     }
     else{
-	document.getElementById('startStop').innerHTML="Resume";
+	document.getElementById('startStop').innerHTML="Weiter";
 	isStopped=true;
     }
     

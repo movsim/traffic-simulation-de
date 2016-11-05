@@ -19,7 +19,7 @@ function myRedirectRoadworks(){
     window.location.href = "./roadworks.html";
 }
 
-function myRedirectRoadworks(){
+function myRedirectUphill(){
     window.location.href = "./uphill.html";
 }
 

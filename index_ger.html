@@ -49,6 +49,7 @@
   <button onclick="myRedirectOnramp()">Auffahrt</button>
   <button onclick="myRedirectOfframp()">Abfahrt</button>
   <button onclick="myRedirectRoadworks()">Baustelle</button>
+  <button onclick="myRedirectUphill()">Steigung</button>
   <button onclick="myRedirectRouting()">Routing</button>
 </center>
 
@@ -100,9 +101,9 @@
 </tr>
 
 <tr>
-<td> Lane Changing rate</td>
-<td> to be implemented </td>
-<td> -  </td>
+<td> Lane Changing </td>
+<td> rate to be </td>
+<td> implemented  </td>
 <!--<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
 <td> <div id="valueField_IDM_a"></div>-->
 </tr>
@@ -143,7 +144,7 @@
 </tr>
 
 <tr>
-<td> Comf Decel b</td>
+<td> Komfort Verz. b</td>
 <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
 <td> <div id="valueField_IDM_b"></div>
 </tr>
@@ -175,11 +176,25 @@
 -->
 
 <!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags">
+<a href = "index.html" target = "_top">
+ <img src="icons/flagUSA.png" width="45%" />
+</a>
+
+<a href = "index_ger.html" target = "_top">
+ <img src="icons/flagGerman.png" width="45%" />
+</a>
+</div>
+
+
+<!-- ############################################## -->
 <!-- here comes the former navigation*.html frame   -->
 <!-- ############################################## -->
 
 <div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
-<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
 <div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
 <div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
 <div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>

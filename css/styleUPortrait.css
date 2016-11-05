@@ -94,7 +94,7 @@ button{
 
 #impressum{ 
   position: absolute;
-  bottom: 0vh;
+  top: 99.2vmin;
   height: 2vmin;
   left: 0vw;
   width: calc(5vw + 6vmax);

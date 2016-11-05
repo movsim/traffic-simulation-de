@@ -31,13 +31,11 @@ var dt=0.5; // only initialization
 // physical geometry settings [m]
 
 var mainroadLen=770;
+var uBeginBan=200; // truck overtaking ban if clicked active
+var uBeginUp=450;
+var uEndUp=600;
 var nLanes=2;
 var laneWidth=7;
-
-var uBeginUphill=450;
-var uEndUphill=550;
-var laneRoadwork=0;  // 0=left
-var lenRoadworkElement=10;
 
 var straightLen=0.34*mainroadLen;      // straight segments of U
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
@@ -82,6 +80,10 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
+var sign_uphill_srcFile='figs/sign_uphill10.png'; 
+var sign_uphill_srcFile='figs/uphill12_small.gif'; 
+var sign_free_srcFile='figs/sign_free_282_small.png'; 
+var sign_truckOvertakingBan_srcFile='figs/truckOvertakingBan_small.gif'; 
 
 
 
@@ -155,8 +157,8 @@ function updateU(){
     itime++;
 
     // transfer effects from slider interaction => updateModels() in *_gui.js 
-    // to the vehicles and their models (all cars and trucks share
-    // the same model) 
+    // to the vehicles and their models.
+    // All cars and trucks (in a certain region) share the same model) 
 
     if(false){
 	console.log("longModelCar.speedlimit="+longModelCar.speedlimit
@@ -164,18 +166,14 @@ function updateU(){
 		    +" longModelTruck.speedlimit="+longModelTruck.speedlimit
 		    +" longModelTruck.v0="+longModelTruck.v0);
     }
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-
-    // externally impose mandatory LC behaviour
-    // all left-lane vehicles must change lanes to the right
-    // starting at 0 up to the position uBeginUphill
-
-    mainroad.setLCMandatory(0, uBeginUphill, true);
+    mainroad.setCFModelsInRange(uBeginUp,uEndUp,
+				 longModelCarUphill,longModelTruckUphill);
+    mainroad.setLCModelsInRange(uBeginBan,uEndUp,
+				 LCModelCarUphill,LCModelTruckUphill);
 
 //!!! here new mainroad method: model update in restricted region
 
@@ -307,7 +305,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || false || (!drawRoad)){ 
+	if(hasChanged||banButtonClicked||(itime<=1) || false || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -327,6 +325,38 @@ function drawU() {
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
 			  laneWidth, vmin, vmax);
 
+    // (4a) draw traffic signs
+	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
+
+    if(hasChanged||banButtonClicked||(itime<=1)){
+
+	banButtonClicked=false;
+	var sizeSignPix=0.1*refSizePix;
+	var vOffset=1.4*nLanes*laneWidth; // in v direction, pos if right
+
+	var xPixUp=mainroad.get_xPix(traj_x,traj_y,uBeginUp,vOffset,scale);
+	var yPixUp=mainroad.get_yPix(traj_x,traj_y,uBeginUp,vOffset,scale);
+	var xPixEnd=mainroad.get_xPix(traj_x,traj_y,uEndUp,vOffset,scale);
+	var yPixEnd=mainroad.get_yPix(traj_x,traj_y,uEndUp,vOffset,scale);
+	var xPixBan=mainroad.get_xPix(traj_x,traj_y,uBeginBan,-0.5*vOffset,scale);
+	var yPixBan=mainroad.get_yPix(traj_x,traj_y,uBeginBan,-0.5*vOffset,scale);
+
+        // center sign (the drawing coords denote the left upper corner)
+
+	xPixUp -= 0.5*sizeSignPix;
+	yPixUp -= 0.5*sizeSignPix;
+	xPixEnd -= 0.5*sizeSignPix;
+	yPixEnd -= 0.5*sizeSignPix;
+
+	ctx.setTransform(1,0,0,1,0,0); 
+	ctx.drawImage(signUphillImg,xPixUp,yPixUp,sizeSignPix,sizeSignPix);
+	ctx.drawImage(signFreeImg,xPixEnd,yPixEnd,sizeSignPix,sizeSignPix);
+	if(banIsActive){// defined/changed in uphill_gui.js
+	  ctx.drawImage(signTruckOvertakingBan,xPixBan,yPixBan,
+			sizeSignPix,sizeSignPix);
+	}
+
+    }
 
 
     // (5) draw some running-time vars
@@ -350,21 +380,9 @@ function drawU() {
 		 timeStr_ylb-0.2*textsize);
 
     
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=8*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-    
     
     var scaleStr="scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=16*textsize;
+    var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
     var scaleStr_height=1.2*textsize;
@@ -374,6 +392,20 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
+    
+/*
+
+    var timewStr="timewarp="+Math.round(10*timewarp)/10;
+    var timewStr_xlb=16*textsize;
+    var timewStr_ylb=timeStr_ylb;
+    var timewStr_width=7*textsize;
+    var timewStr_height=1.2*textsize;
+    ctx.fillStyle="rgb(255,255,255)";
+    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
+		 timewStr_width,timewStr_height);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
+		 timewStr_ylb-0.2*textsize);
     
 
     var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
@@ -401,7 +433,7 @@ function drawU() {
     ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
 		 genVarStr_ylb-0.2*textsize);
 
-
+*/
 
     // (6) draw the speed colormap
 
@@ -435,6 +467,15 @@ function init() {
     truckImg.src = truck_srcFile;
     obstacleImg = new Image();
     //obstacleImg.src = obstacle_srcFile;
+
+    signUphillImg = new Image();
+    signUphillImg.src = sign_uphill_srcFile;
+
+    signFreeImg = new Image();
+    signFreeImg.src = sign_free_srcFile;
+
+    signTruckOvertakingBan = new Image();
+    signTruckOvertakingBan.src = sign_truckOvertakingBan_srcFile;
 
 	// init road image(s)
 

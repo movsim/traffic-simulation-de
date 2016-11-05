@@ -7,6 +7,7 @@
     <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
     <link href="css/styleULandscape.css" rel="stylesheet" type="text/css"/>
     <link href="css/styleUPortrait.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleUphill.css" rel="stylesheet" type="text/css"/>
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
     <title> Microsimulation of Traffic Flow: Uphill</title>
@@ -51,6 +52,15 @@
 </center>
 </div> 
 
+<div id="buttonsInsideSimulations">
+<center>
+  <button id="overtakingBan" class="action" 
+    onclick="toggleTruckOvertakingBan()">
+    Enforce Truck Overtaking Ban
+  </button>
+</center>
+</div> 
+
 
 <!-- ############################################## -->
 <!-- the actual simulation canvas -->
@@ -87,15 +97,15 @@
 </tr>
 
 <tr>
-<td> <font color="red"> Speed Limit </font></td>
+<td> Speed Limit</td>
 <td> <div id="track_speedL"> <div id="slider_speedL"></div></div></td>
-<td> <div id="valueField_speedL" style="color:red"></div>
+<td> <div id="valueField_speedL"></div>
 </tr>
 
 <tr>
- <td> <font color="red">Uphill Truck Speed</sub> </td>
+ <td> <font color="red"><b>Uphill Truck Speed</b> </td>
  <td> <div id="track_IDM_v0Up"> <div id="slider_IDM_v0Up"></div></div></td>
- <td> <div id="valueField_IDM_v0Up" style="color:red"></div>
+ <td> <div id="valueField_IDM_v0Up" style="color:red; font-weight:bold;"></div>
 </tr>
 
 
@@ -139,6 +149,20 @@
 </div>
 
 
+<!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags">
+<a href = "uphill.html" target = "_top">
+ <img src="icons/flagUSA.png" width="45%" />
+</a>
+
+<a href = "uphill_ger.html" target = "_top">
+ <img src="icons/flagGerman.png" width="45%" />
+</a>
+</div>
+
 
 
 <!-- ############################################## -->
@@ -146,7 +170,6 @@
 <!-- ############################################## -->
 
 <div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
-<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
 <div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
 <div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
 <div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>

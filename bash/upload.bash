@@ -9,7 +9,7 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks routing"
+projects="ring onramp offramp roadworks uphill routing"
 # targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 targetDir="$startDir/trafficSimulationLocalVersion"
 cd $startDir
@@ -30,7 +30,7 @@ mkdir $targetDir/js
 #############################################
 
 
-html_files="impressum.html infoLinks.html infoModels.html infoScenarios.html infoFlags.html"
+html_files="impressum.html infoLinks.html infoModels.html infoScenarios.html"
 for proj in $projects; do
   htmlfile="${proj}.html"
   htmlfile_ger="${proj}_ger.html"

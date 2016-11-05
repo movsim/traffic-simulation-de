@@ -141,9 +141,9 @@ function updateRing(){
     // transfer effects from slider interaction to the vehicles and models: 
     // modelparam sliders (updateModelsOfAllVehicles), density, truckFrac sliders
 
+    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateDensity(density);
 
 
