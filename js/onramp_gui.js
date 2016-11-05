@@ -10,12 +10,18 @@
 // nicht defiiert sind: Dann DOS bei allen im gui.js NACHFOLGENDEN Slidern
 // deshalb separate gui fuer jedes html noetig
 // das generelle "gui.js" bietet Sammlung fuer alles und ist Referenz
+
+// ACHTUNG weiterer BUG: die sliderWidth wird zwar optisch dem responsive
+// design angepasst, der Knopf laesst sich aber immer bis zur anfaengl. Weite 
+// bewegen, also nicht zum Ende bei Vergroesserung, 
+// darueber hinaus bei Verkleinerung 
 //#############################################
 
-// geometry of sliders
 
-var sliderWidth=151;
+// geometry of sliders; only nonzero initialization; 
+// will be overridden in update method of main js file if hasChanged=true
 
+var sliderWidth=100; // max value reached if slider at sliderWidth
 
 // controlled contents of sliders
 
@@ -46,12 +52,10 @@ var qOn_max=0.5;
 
 
 
-
 var IDM_v0Init=30; 
 var IDM_v0=IDM_v0Init;
 var IDM_v0_min=5;
 var IDM_v0_max=40;
-
 
 var IDM_TInit=1.5; 
 var IDM_T=IDM_TInit;
@@ -100,19 +104,17 @@ function updateModels(){
 // in init() at end: setInterval(main_loop, 1000/fps);
 // thread stops with "clearInterval(myRun);" 
 
-//#########################################################
-// Start/Stop button 
-// (onclick callback "myStartStopFunction()" defined in html file)
-//#########################################################
 
+//################################################################
+// Start/Stop button action (triggered by "onclick" callback in html file)
+//#################################################################
 
 // in any case need first to stop;
 // otherwise multiple processes after clicking 2 times start
 // define no "var myRun "; otherwise new local instance started
 // whenever myRun is inited
 
-var myRun;
-var isStopped=false;
+var isStopped=false; // only initialization
 
 function myStartStopFunction(){ 
 
@@ -128,19 +130,20 @@ function myStartStopFunction(){
 	document.getElementById('startStop').innerHTML="Resume";
 	isStopped=true;
     }
-    
 }
 
 
 
 //#############################################
 // Timewarp slider (names 'slider_timewarp' etc defined in html file)
-// (also update sliders.css!)
+// (also define formatting in sliders.css!)
 //#############################################
 
 DYN_WEB.Event.domReady( function() {
     var slider_timewarp 
         = new DYN_WEB.Slider('slider_timewarp', 'track_timewarp', 'h');
+
+    //callback
     slider_timewarp.on_move = function(x,y) {// function (x) OK
         change_timewarp(x);
         document.getElementById('valueField_timewarp').innerHTML
@@ -150,23 +153,22 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-// timewarp_sliderWidth as in html:div#track_timewarp: width-height
-
-
 // called when timewarp slider is moved
-// slider x variable goes from 0 to pixel length of slider
+// xSlider goes from 0 to pixel length of slider
 
 function change_timewarp(xSlider){
     timewarp=timewarp_min
 	+(timewarp_max-timewarp_min)*xSlider/sliderWidth; 
     dt=timewarp/fps;
+    //console.log("change_timewarp(xSlider): xSlider=",xSlider," scale=",scale," sliderWidth=",sliderWidth," canvas.width=",canvas.width);
 }
 function get_timewarp(){return timewarp;}
 
-// inverse function of change_timewarp; 
-// timewarp displayed on html at start of html page
+// inverse function of change_timewarp for initialization
+// called in onramp.js in init() method
 
 function change_timewarpSliderPos(x){
+    //console.log(" in change_timewarpSliderPos(x), x="+x);
     var xSlider=sliderWidth // how to use this var to externally set slider pos?
 	*(x-timewarp_min)/(timewarp_max-timewarp_min);
     document.getElementById('valueField_timewarp').innerHTML
@@ -214,7 +216,6 @@ DYN_WEB.Event.domReady( function() {
     var slider_qIn 
         = new DYN_WEB.Slider('slider_qIn', 'track_qIn', 'h');
     slider_qIn.on_move = function(x,y) {
-	//console.log("in slider_qIn.on_move(x,y), x="+x+" y="+y);
         change_qIn(x);
         document.getElementById('valueField_qIn').innerHTML
            =parseFloat(3600*get_qIn(),10).toFixed(0)+" veh/h";
@@ -223,20 +224,17 @@ DYN_WEB.Event.domReady( function() {
 );
 
 function change_qIn(x){
-    //console.log(" in change_qIn(x), x="+x);
     qIn=qIn_min
 	+(qIn_max-qIn_min)*x/sliderWidth;
 }
 
 function get_qIn(){
-  //console.log("in get_qIn()"); 
-  return qIn;}
+  return qIn;
+}
 
 function change_qInSliderPos(qIn){
     var x=sliderWidth
 	*(qIn-qIn_min)/(qIn_max-qIn_min);
-    //slider_qIn.on_move(x,0);
-    //console.log("in change_qInSliderPos: qIn="+qIn+" x="+x);
     document.getElementById('valueField_qIn').innerHTML
         =parseFloat(3600*get_qIn(),10).toFixed(0)+" veh/h";
 }

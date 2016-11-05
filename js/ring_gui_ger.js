@@ -10,11 +10,18 @@
 // nicht defiiert sind: Dann DOS bei allen im gui.js NACHFOLGENDEN Slidern
 // deshalb separate gui fuer jedes html noetig
 // das generelle "gui.js" bietet Sammlung fuer alles und ist Referenz
+
+// ACHTUNG weiterer BUG: die sliderWidth wird zwar optisch dem responsive
+// design angepasst, der Knopf laesst sich aber immer bis zur anfaengl. Weite 
+// bewegen, also nicht zum Ende bei Vergroesserung, 
+// darueber hinaus bei Verkleinerung 
 //#############################################
 
-// geometry of sliders
 
-var sliderWidth=151; // must be fixed ?!!
+// geometry of sliders; only nonzero initialization; 
+// will be overridden in update method of main js file if hasChanged=true
+
+var sliderWidth=100; // max value reached if slider at sliderWidth
 
 
 // controlled contents of sliders
@@ -90,18 +97,10 @@ function updateModels(){
 }
 
 
-// general info on threads:
 
-// thread starts with "var myRun=init();" or "myRun=init();"
-// in init() at end: setInterval(main_loop, 1000/fps);
-// thread stops with "clearInterval(myRun);" 
-
-
-//##################################################################################
-// Start/Stop button (onclick callback "myStartStopFunction()" defined in html file)
-//##################################################################################
-
-// called when start button is pressed
+//#########################################################
+// Start/Stop button (triggered by "onclick" callback in html file)
+//#########################################################
 
 
 // in any case need first to stop;
@@ -109,8 +108,7 @@ function updateModels(){
 // define no "var myRun "; otherwise new local instance started
 // whenever myRun is inited
 
-var myRun;
-var isStopped=false;
+var isStopped=false; // only initialization
 
 function myStartStopFunction(){ 
 
@@ -130,11 +128,12 @@ function myStartStopFunction(){
 }
 
 
+//#############################################
+// Timewarp slider 
+// names 'slider_timewarp' etc defined in html file 
+// and formatted in sliders.css
+//#############################################
 
-//#############################################
-// Timewarp slider (names 'slider_timewarp' etc defined in html file)
-// (also update sliders.css!)
-//#############################################
 
 DYN_WEB.Event.domReady( function() {
     var slider_timewarp 
@@ -148,10 +147,8 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-// timewarp_sliderWidth as in html:div#track_timewarp: width-height
 
-
-// called when timewarp slider is moved
+// callback when timewarp slider is moved
 // slider x variable goes from 0 to pixel length of slider
 
 function change_timewarp(xSlider){
@@ -164,52 +161,13 @@ function get_timewarp(){return timewarp;}
 // inverse function of change_timewarp; 
 // timewarp displayed on html at start of html page
 
-function change_timewarpSliderPos(x){
+function change_timewarpSliderPos(x){ // callback action of slider movement
     var xSlider=sliderWidth // how to use this var to externally set slider pos?
 	*(x-timewarp_min)/(timewarp_max-timewarp_min);
     document.getElementById('valueField_timewarp').innerHTML
            =parseFloat(x,10).toFixed(1)+" fach";
 }
 
-
-
-//#############################################
-// Scale slider  (also update sliders.css!)
-//#############################################
-
-/*
-DYN_WEB.Event.domReady( function() {
-    var slider_scale 
-        = new DYN_WEB.Slider('slider_scale', 'track_scale', 'h');
-    slider_scale.on_move = function(x,y) {
-        change_scale(x);
-        document.getElementById('valueField_scale').innerHTML
-           =parseFloat(get_scale(),10).toFixed(1)+" Pixel/m";
-        };
-    }
-);
-*/
-
-
-function change_scale(x){
-    scale=scale_min
-	+(scale_max-scale_min)*x/sliderWidth;
-    scaleImg=scale*scaleFactorImg;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(0,0,width,height);
-    if(drawBackground){
-	ctx.drawImage(background,0,0,scaleImg*width,scaleImg*height);
-    }
-}
-
-function get_scale(){return scale;}
-
-function change_scaleSliderPos(scale){
-    var x=sliderWidth
-	*(scale-scale_min)/(scale_max-scale_min);
-    document.getElementById('valueField_scale').innerHTML
-           =parseFloat(scale,10).toFixed(1)+" Pixel/m";
-}
 
 
 

@@ -22,7 +22,7 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 
 /* model parameters */
 
-div#track_IDM_v0, div#track_IDM_T, 
+div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T, 
  div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b {
     width: 15vmin;
     height: 1.98vmin;
@@ -31,7 +31,7 @@ div#track_IDM_v0, div#track_IDM_T,
     position: relative;
 }
 
-div#slider_IDM_v0, div#slider_IDM_T, 
+div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T, 
  div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b {
     background-color: #ddd;
     height: 1.98vmin; 

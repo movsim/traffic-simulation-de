@@ -19,6 +19,10 @@ function myRedirectRoadworks(){
     window.location.href = "./roadworks.html";
 }
 
+function myRedirectRoadworks(){
+    window.location.href = "./uphill.html";
+}
+
 function myRedirectRouting(){
     window.location.href = "./routing.html";
 }

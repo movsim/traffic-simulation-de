@@ -363,6 +363,14 @@ function drawU() {
     var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
     if(hasChanged){
+
+      // update sliderWidth in *_gui.js; 
+
+      var css_track_vmin=15; // take from sliders.css 
+      sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+
+      // update geometric properties
+
       arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
       sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
       arcLen=arcRadius*Math.PI;

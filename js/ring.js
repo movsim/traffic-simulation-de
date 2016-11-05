@@ -173,6 +173,12 @@ function drawRing() {
     hasChanged=canvas_resize(canvas,0.96); 
     if(hasChanged){
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
+
+        // update sliderWidth in *_gui.js; 
+
+        var css_track_vmin=15; // take from sliders.css 
+        sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+
     }
 
     // (0) reposition physical x center coordinate as response

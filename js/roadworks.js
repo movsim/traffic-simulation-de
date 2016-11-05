@@ -199,8 +199,9 @@ function updateU(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
 
-    // transfer effects from slider interaction to the vehicles and models: 
-    // modelparam sliders (updateModelsOfAllVehicles),timewarp, truckFrac sliders
+    // transfer effects from slider interaction => updateModels() in *_gui.js 
+    // to the vehicles and their models (all cars and trucks share
+    // the same model) 
 
     if(false){
 	console.log("longModelCar.speedlimit="+longModelCar.speedlimit
@@ -217,6 +218,8 @@ function updateU(){
 
     // externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
+    // starting at 0 up to the position uBeginRoadworks
+
     mainroad.setLCMandatory(0, uBeginRoadworks, true);
 
 
@@ -289,6 +292,14 @@ function drawU() {
     var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
     if(hasChanged){
+
+      // update sliderWidth in *_gui.js; 
+
+      var css_track_vmin=15; // take from sliders.css 
+      sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+
+      // update geometric properties
+
       arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
       sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
       arcLen=arcRadius*Math.PI;
@@ -482,8 +493,8 @@ function init() {
     rampImg.src=ramp_srcFile;
 
 
-    // apply externally functions of mouseMove events  to initialize sliders settings
-    // defined in *_gui.js 
+    // apply externally functions of mouseMove events  
+    // to initialize sliders settings defined in *_gui.js 
 
     change_timewarpSliderPos(timewarp);
     change_truckFracSliderPos(truckFrac);

@@ -10,11 +10,18 @@
 // nicht defiiert sind: Dann DOS bei allen im gui.js NACHFOLGENDEN Slidern
 // deshalb separate gui fuer jedes html noetig
 // das generelle "gui.js" bietet Sammlung fuer alles und ist Referenz
+
+// ACHTUNG weiterer BUG: die sliderWidth wird zwar optisch dem responsive
+// design angepasst, der Knopf laesst sich aber immer bis zur anfaengl. Weite 
+// bewegen, also nicht zum Ende bei Vergroesserung, 
+// darueber hinaus bei Verkleinerung 
 //#############################################
 
-// geometry of sliders
 
-var sliderWidth=151;
+// geometry of sliders; only nonzero initialization; 
+// will be overridden in update method of main js file if hasChanged=true
+
+var sliderWidth=100; // max value reached if slider at sliderWidth
 
 
 // controlled contents of sliders
@@ -94,27 +101,19 @@ function updateModels(){
 }
 
 
-// general info on threads:
 
-// thread starts with "var myRun=init();" or "myRun=init();"
-// in init() at end: setInterval(main_loop, 1000/fps);
-// thread stops with "clearInterval(myRun);" 
-
-
-//##################################################################################
-// Start/Stop button (onclick callback "myStartStopFunction()" defined in html file)
-//##################################################################################
+//#############################################################
+// Start/Stop button
+//#############################################################
 
 // called when start button is pressed
-
 
 // in any case need first to stop;
 // otherwise multiple processes after clicking 2 times start
 // define no "var myRun "; otherwise new local instance started
 // whenever myRun is inited
 
-var myRun;
-var isStopped=false;
+var isStopped=false; // only initialization
 
 function myStartStopFunction(){ 
 

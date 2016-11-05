@@ -6,16 +6,6 @@
 // Initial settings
 //#############################################################
 
-// global appearance settings
-
-// !!! HEINEOUS slowdown bug 
-// if size of background != size of background image (800x800)
-// everything slower by factor of 2-3 and jerky !!!
-// define canvas size in html file;
-// take everything from canvas at init*() time !!!
-
-// also see "slowdown" keyword(s) below 
-
 
 // graphical settings
 
@@ -33,8 +23,8 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings
 
 var sizePhys=290;    //responsive design  
-var center_xPhys=145;
-var center_yPhys=-155; // ypixel downwards=> physical center <0
+var center_xPhys=142;
+var center_yPhys=-150; // ypixel downwards=> physical center <0
 
 var roadRadius=120; // 90 change scaleInit in gui.js correspondingly
 var roadLen=roadRadius*2*Math.PI;
@@ -59,19 +49,15 @@ var dt_LC=4; // duration of a lane change
 
 // simulation initial conditions settings
 //(initial values and range of user-ctrl var in gui.js)
+// densityInit etc also in gui.js
 
 var speedInit=20; // m/s
 var speedInitPerturb=13;
 var relPosPerturb=0.8;
-// densityInit etc in gui.js
 
-
-var truckFracToleratedMismatch=0.02; // open system: need tolerance, otherwise sudden changes
-
-// simulation initial conditions settings
-//(initial values and range of user-ctrl var in gui.js)
-
-// densityInit in gui.js
+// needed here for road cstr interface:
+// need tolerance in open systems, otherwise sudden changes
+var truckFracToleratedMismatch=0.02;
 
 
 
@@ -80,8 +66,6 @@ var truckFracToleratedMismatch=0.02; // open system: need tolerance, otherwise s
 //####################################################################
 
 
-
-//var car_srcFile='figs/carSmall2.png'; // ringNewOrig.js
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
@@ -92,8 +76,6 @@ var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
 // Notice: set drawBackground=false if no bg wanted
  var background_srcFile='figs/backgroundGrass.jpg'; 
 
-
-var scaleFactorImg=roadRadius/280; // [Pixel/m]
 
 
 
@@ -117,7 +99,7 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck; 
-updateModels(); 
+updateModels(); //  from ring_gui.js 
 
 var isRing=1;  // 0: false; 1: true
 var roadID=1;
@@ -141,7 +123,7 @@ mainroad.veh[iveh].speed=speedInitPerturb;
 
 var time=0;
 var itime=0;
-var fps=30; // frames per second
+var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
@@ -153,6 +135,8 @@ function updateRing(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    //console.log("does Math.tanh exist?");
+    //console.log("Math.tanh(5)=",Math.tanh(5));
 
     // transfer effects from slider interaction to the vehicles and models: 
     // modelparam sliders (updateModelsOfAllVehicles), density, truckFrac sliders
@@ -161,7 +145,6 @@ function updateRing(){
 				       LCModelCar,LCModelTruck);
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateDensity(density);
-
 
 
     // do central simulation update of vehicles
@@ -190,13 +173,19 @@ function drawRing() {
     hasChanged=canvas_resize(canvas,0.96); 
     if(hasChanged){
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
+
+        // update sliderWidth in *_gui.js; 
+
+        var css_track_vmin=15; // take from sliders.css 
+        sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+
     }
 
     // (0) reposition physical x center coordinate as response
     // to viewport size (changes)
 
     var aspectRatio=canvas.width/canvas.height;
-    center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
+    //!!center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
 
 
     // (1) define road geometry as parametric functions of arclength u
@@ -245,14 +234,14 @@ function drawRing() {
     // draw some running-time vars
 
     ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=14;
-    //var textsize=scale*20;
+    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
+
     ctx.font=textsize+'px Arial';
 
     var timeStr="Zeit="+Math.round(10*time)/10;
     var timeStr_xlb=textsize;
     var timeStr_ylb=2*textsize;
-    var timeStr_width=5*textsize;
+    var timeStr_width=7*textsize;
     var timeStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(timeStr_xlb,timeStr_ylb-timeStr_height,timeStr_width,timeStr_height);
@@ -260,8 +249,8 @@ function drawRing() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
 
     var scaleStr="Skala="+Math.round(10*scale)/10;
-    var scaleStr_xlb=8*textsize;
-    var scaleStr_ylb=2*textsize;
+    var scaleStr_xlb=9*textsize;
+    var scaleStr_ylb=timeStr_ylb;;
     var scaleStr_width=7*textsize;
     var scaleStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
@@ -272,7 +261,7 @@ function drawRing() {
 /*    
     var timewStr="Zeitraffer="+Math.round(10*timewarp)/10;
     var timewStr_xlb=16*textsize;
-    var timewStr_ylb=2*textsize;
+    var timewStr_ylb=timeStr_ylb;;
     var timewStr_width=7*textsize;
     var timewStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
@@ -282,7 +271,7 @@ function drawRing() {
     
     var densStr="Dichte="+Math.round(10000*density)/10;
     var densStr_xlb=24*textsize;
-    var densStr_ylb=2*textsize;
+    var densStr_ylb=timeStr_ylb;
     var densStr_width=7*textsize;
     var densStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
@@ -293,7 +282,7 @@ function drawRing() {
 
     var genVarStr="LKW-Anteil="+Math.round(100*truckFrac)+"\%";
     var genVarStr_xlb=32*textsize;
-    var genVarStr_ylb=2*textsize;
+    var genVarStr_ylb=timeStr_ylb;
     var genVarStr_width=7.2*textsize;
     var genVarStr_height=1.2*textsize;
     ctx.fillStyle="rgb(255,255,255)";
@@ -334,45 +323,23 @@ function drawRing() {
 // Called at the end of this script and in *_gui.js (corresp. sim button)
 
 function init() {
-    canvas = document.getElementById("canvas_ring"); // "canvas_ring" defined in ring.html
+
+    // get overall dimensions from parent html page
+    // "canvas_ring" defined in ring.html
+
+    canvas = document.getElementById("canvas_ring"); 
     ctx = canvas.getContext("2d");
 
-
-    // init background image 
-    // and width and height of the sim window
-    // and centering of the road image
-
-    // !! although background.naturalWidth etc gives correct real width, 
-    // setting this dimension as width does NOT resolve slowdown bug.
-    // direct setting  (width=800 ...) does not resolve it as well.
-    // ONLY heritage from html (width = canvas.width ...) does it!!!
-
-
-    background = new Image();
-    background.src =background_srcFile;
-    //background.onload = function() {
-    //  console.log("image size of background:"+this.width +'x'+ this.height);
-    //}
-
-    //console.log("image size of background:"+background.naturalWidth); 
-
-    width = canvas.width;
+    width  = canvas.width;  // pixel coordinates
     height = canvas.height;
-    //width = background.naturalWidth
-    //height = background.naturalHeight
-    //width=800;
-    //height=800;
-
-    center_x=0.50*width*scaleFactorImg;
-    center_y=0.48*height*scaleFactorImg;
 
 
-	// init background image
+    // init background image
 
     background = new Image();
     background.src =background_srcFile;
  
-	// init vehicle image(s)
+    // init vehicle image(s)
 
     carImg = new Image();
     carImg.src = car_srcFile;
@@ -381,7 +348,7 @@ function init() {
     obstacleImg = new Image();  // only pro forma (no obstacles here)
     obstacleImg.src = obstacle_srcFile;
 
-	// init road image(s)
+    // init road image(s)
 
     roadImg = new Image();
     roadImg.src=(nLanes==1)
@@ -390,7 +357,8 @@ function init() {
 	: road3lanes_srcFile;
 
 
-    // apply externally functions of mouseMove events  to initialize sliders settings
+    // apply externally functions of mouseMove events  
+    // to initialize sliders settings
 
     change_timewarpSliderPos(timewarp);
     change_densitySliderPos(density);

@@ -1,5 +1,5 @@
 //#############################################
-// GUI: Only defines interface; actual start of sim thread in onramp.js
+// GUI: Only defines interface; actual start of sim thread in uphill.js
 //#############################################
 
 //#############################################
@@ -10,7 +10,6 @@
 // nicht defiiert sind: Dann DOS bei allen im gui.js NACHFOLGENDEN Slidern
 // deshalb separate gui fuer jedes html noetig
 // das generelle "gui.js" bietet Sammlung fuer alles und ist Referenz
-
 // ACHTUNG weiterer BUG: die sliderWidth wird zwar optisch dem responsive
 // design angepasst, der Knopf laesst sich aber immer bis zur anfaengl. Weite 
 // bewegen, also nicht zum Ende bei Vergroesserung, 
@@ -31,77 +30,110 @@ var timewarp=timewarpInit;
 var timewarp_min=0.1;
 var timewarp_max=20;
 
-var scaleInit=2.3;  // pixel/m
-var scale=scaleInit;
-var scale_min=0.6;
-var scale_max=5;
 
-
-var densityInit=0.038;  // vehicles/m/lane
-var density=densityInit;
-var density_min=0.001;
-var density_max=0.100;
-
-var truckFracInit=0.04;
+var truckFracInit=0.2;
 var truckFrac=truckFracInit;
 var truckFrac_min=0;
 var truckFrac_max=0.5;
 
+var qInInit=0.4; // total inflow [veh/s] 
+var qIn=qInInit;
+var qIn_min=0;
+var qIn_max=0.7;
 
+// car speedlimit (the same in normal and uphill sections)
 
+var speedLInit=120/3.6; // speed limit for all vehicles 
+var speedL=speedLInit;
+var speedL_min=80/3.6;
+var speedL_max=160/3.6;
 
-var IDM_v0Init=30; 
+// car desired speed (the same in normal and uphill sections)
+
+var IDM_v0Init=130/3.6;
 var IDM_v0=IDM_v0Init;
-var IDM_v0_min=5;
-var IDM_v0_max=40;
+var IDM_v0_min=60/3.6;
+var IDM_v0_max=180/3.6;
 
+// truck maxSpeed uphill (formulate by v0, not speedlimit!)
+
+var IDM_v0UpInit=30/3.6 
+var IDM_v0Up=IDM_v0UpInit;
+var IDM_v0Up_min=10./3.6
+var IDM_v0Up_max=80./3.6
+
+// whether truck overtaking ban active (button to be implemented) 
+
+var overtakingBanInit=false;
+var overtakingBan=overtakingBanInit;
 
 var IDM_TInit=1.5; 
 var IDM_T=IDM_TInit;
 var IDM_T_min=0.6;
 var IDM_T_max=3;
 
-var IDM_s0Init=2; 
-var IDM_s0=IDM_s0Init;
-var IDM_s0_min=0.5;
-var IDM_s0_max=5;
-
 var IDM_aInit=0.3; 
 var IDM_a=IDM_aInit;
 var IDM_a_min=0.3;
 var IDM_a_max=3;
 
-var IDM_bInit=3;
-var IDM_b=IDM_bInit;
-var IDM_b_min=0.5;
-var IDM_b_max=5;
+// fixed values
 
-var speedlimit_truck=80/3.6
-var factor_v0_truck=0.7;
-var factor_a_truck=0.8;
-var factor_T_truck=1.2;
+var scale=2.4; // only initialization; controlled by responsive design
+var IDM_s0=2;  // cars and trucks
+var IDM_b=2;   // cars and trucks
+
+var IDM_v0_truck=110/3.6; // higher than speedlimit: faster approach maxSpeed
+var speedL_truck=80/3.6
+
+var factor_a_truck=1.0;
+var factor_T_truck=1.0;
+
+var MOBIL_bSafe=8; // was 12
+var MOBIL_bSafeMax=16;
+var MOBIL_bThr=0.1;
+var MOBIL_bBiasRight_car=0.2; 
+var MOBIL_bBiasRight_truck=0.5; 
+
+var MOBIL_mandat_bSafe=6;
+var MOBIL_mandat_bSafeMax=20;
+var MOBIL_mandat_bThr=0;
+var MOBIL_mandat_biasRight=10;
+
+
 
 function updateModels(){
-    var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedlimit_truck);
+
     var T_truck=factor_T_truck*IDM_T;
     var a_truck=factor_a_truck*IDM_a;
 
-    //var longModelCar etc defined (w/o value) in onramp.js 
-    // var MOBIL_bBiasRight and other MOBIL params defined in onramp.js 
+    // var longModelCar etc defined (w/o value) in uphill.js 
+
     longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
-    longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
-    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+    longModelCar.speedlimit=speedL;
+    longModelTruck=new ACC(IDM_v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
+    longModelTruck.speedlimit=speedL_truck;
+
+    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
 			 MOBIL_bThr, MOBIL_bBiasRight_car);
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
+
+    // uphill section
+
+    longModelCarUphill=longModelCar;
+    longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
+    LCModelCarUphill=LCModelCar;
+    LCModelTruckUphill=LCModelTruck;
+    LCModelTruckLCban=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+				MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
+
 }
 
 
-
-//#########################################################
-// Start/Stop button (triggered by "onclick" callback in html file)
-//#########################################################
-
+//################################################################
+// Start/Stop button action (triggered by "onclick" callback in html file)
+//#################################################################
 
 // in any case need first to stop;
 // otherwise multiple processes after clicking 2 times start
@@ -124,8 +156,8 @@ function myStartStopFunction(){
 	document.getElementById('startStop').innerHTML="Resume";
 	isStopped=true;
     }
-    
 }
+
 
 
 //#############################################
@@ -134,10 +166,11 @@ function myStartStopFunction(){
 // and formatted in sliders.css
 //#############################################
 
-
 DYN_WEB.Event.domReady( function() {
     var slider_timewarp 
         = new DYN_WEB.Slider('slider_timewarp', 'track_timewarp', 'h');
+
+    // callback
     slider_timewarp.on_move = function(x,y) {// function (x) OK
         change_timewarp(x);
         document.getElementById('valueField_timewarp').innerHTML
@@ -147,9 +180,8 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-
-// callback when timewarp slider is moved
-// slider x variable goes from 0 to pixel length of slider
+// called when timewarp slider is moved
+// xSlider goes from 0 to pixel length of slider
 
 function change_timewarp(xSlider){
     timewarp=timewarp_min
@@ -162,7 +194,7 @@ function get_timewarp(){return timewarp;}
 // timewarp displayed on html at start of html page
 
 function change_timewarpSliderPos(x){ // callback action of slider movement
-    var xSlider=sliderWidth // how to use this var to externally set slider pos?
+    var xSlider=sliderWidth 
 	*(x-timewarp_min)/(timewarp_max-timewarp_min);
     document.getElementById('valueField_timewarp').innerHTML
            =parseFloat(x,10).toFixed(1)+" times";
@@ -172,7 +204,7 @@ function change_timewarpSliderPos(x){ // callback action of slider movement
 
 
 //#############################################
-// truck fraction slider (also update sliders.css!)
+// truck fraction slider
 //#############################################
 
 DYN_WEB.Event.domReady( function() {
@@ -186,7 +218,7 @@ DYN_WEB.Event.domReady( function() {
     }
 );
 
-function change_truckFrac(x){
+function change_truckFrac(x){ // callback action of slider movement
     truckFrac=truckFrac_min
 	+(truckFrac_max-truckFrac_min)*x/sliderWidth;
 }
@@ -200,37 +232,101 @@ function change_truckFracSliderPos(truckFrac){
         =parseFloat(100*get_truckFrac(),10).toFixed(0)+" %";
 }
 
-//#############################################
-// Density slider
-//#############################################
 
+//#############################################
+// inflow slider (also check/update sliders.css!)
+//#############################################
 
 DYN_WEB.Event.domReady( function() {
-    var slider_density 
-        = new DYN_WEB.Slider('slider_density', 'track_density', 'h');
-    slider_density.on_move = function(x,y) {
-        change_density(x);
-        document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*get_density(),10).toFixed(0)+" /km/lane";
+    var slider_qIn 
+        = new DYN_WEB.Slider('slider_qIn', 'track_qIn', 'h');
+    slider_qIn.on_move = function(x,y) {
+        change_qIn(x);
+        document.getElementById('valueField_qIn').innerHTML
+           =parseFloat(3600*get_qIn(),10).toFixed(0)+" veh/h";
         };
     }
 );
 
-
-function change_density(x){
-    density=density_min
-	+(density_max-density_min)*x/sliderWidth; 
+function change_qIn(x){ // callback action of slider movement
+    qIn=qIn_min +(qIn_max-qIn_min)*x/sliderWidth;
 }
 
-function get_density(){return density;}
+function get_qIn(){
+    return qIn;
+}
 
-function change_densitySliderPos(density){
+function change_qInSliderPos(qIn){
     var x=sliderWidth
-	*(density-density_min)/(density_max-density_min);
-    document.getElementById('valueField_density').innerHTML
-           =parseFloat(1000*density,10).toFixed(0)+" /km/lane";
+	*(qIn-qIn_min)/(qIn_max-qIn_min);
+    document.getElementById('valueField_qIn').innerHTML
+        =parseFloat(3600*get_qIn(),10).toFixed(0)+" veh/h";
 }
 
+
+//#############################################
+// speedlimit slider (also update sliders.css!)
+//#############################################
+
+DYN_WEB.Event.domReady( function() {
+    var slider_speedL 
+        = new DYN_WEB.Slider('slider_speedL', 'track_speedL', 'h');
+    slider_speedL.on_move = function(x,y) {
+        change_speedL(x);
+        document.getElementById('valueField_speedL').innerHTML
+           =parseFloat(3.6*get_speedL(),10).toFixed(0)+" km/h";
+        };
+    }
+);
+
+function change_speedL(x){ // callback action of slider movement
+    speedL=speedL_min
+	+(speedL_max-speedL_min)*x/sliderWidth;
+    updateModels();
+
+}
+
+function get_speedL(){return speedL;}
+
+function change_speedLSliderPos(speedL){
+    var x=sliderWidth
+	*(speedL-speedL_min)/(speedL_max-speedL_min);
+    document.getElementById('valueField_speedL').innerHTML
+        =parseFloat(3.6*get_speedL(),10).toFixed(0)+" km/h";
+}
+
+
+
+//#############################################
+// truck uphill maxSpeed slider  (also update sliders.css!)
+//#############################################
+
+DYN_WEB.Event.domReady( function() {
+    var slider_IDM_v0Up 
+        = new DYN_WEB.Slider('slider_IDM_v0Up', 'track_IDM_v0Up', 'h');
+    slider_IDM_v0Up.on_move = function(x,y) {
+        change_IDM_v0Up(x);
+        document.getElementById('valueField_IDM_v0Up').innerHTML
+           =parseFloat(3.6*get_IDM_v0Up(),10).toFixed(0)+" km/h";
+        };
+    }
+);
+
+function change_IDM_v0Up(x){ // callback action of slider movement
+    IDM_v0Up=IDM_v0Up_min
+	+(IDM_v0Up_max-IDM_v0Up_min)*x/sliderWidth;
+    updateModels();
+
+}
+
+function get_IDM_v0Up(){return IDM_v0Up;}
+
+function change_IDM_v0UpSliderPos(IDM_v0Up){
+    var x=sliderWidth
+	*(IDM_v0Up-IDM_v0Up_min)/(IDM_v0Up_max-IDM_v0Up_min);
+    document.getElementById('valueField_IDM_v0Up').innerHTML
+        =parseFloat(3.6*get_IDM_v0Up(),10).toFixed(0)+" km/h";
+}
 
 
 
@@ -251,7 +347,7 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-function change_IDM_v0(x){
+function change_IDM_v0(x){ // callback action of slider movement
     IDM_v0=IDM_v0_min +(IDM_v0_max-IDM_v0_min)*x/sliderWidth; 
     updateModels();
 
@@ -284,7 +380,7 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-function change_IDM_T(x){
+function change_IDM_T(x){ // callback action of slider movement
     IDM_T=IDM_T_min
 	+(IDM_T_max-IDM_T_min)*x/sliderWidth; 
     updateModels();
@@ -303,6 +399,7 @@ function change_IDM_TSliderPos(IDM_T){
 // Slider for IDM_s0 (also update sliders.css!)
 //#############################################
 
+/*
 DYN_WEB.Event.domReady( function() {
     var slider_IDM_s0 
         = new DYN_WEB.Slider('slider_IDM_s0', 'track_IDM_s0', 'h');
@@ -315,7 +412,7 @@ DYN_WEB.Event.domReady( function() {
 );
 
 
-function change_IDM_s0(x){
+function change_IDM_s0(x){ // callback action of slider movement
     IDM_s0=IDM_s0_min
 	+(IDM_s0_max-IDM_s0_min)*x/sliderWidth; 
     updateModels();
@@ -329,7 +426,7 @@ function change_IDM_s0SliderPos(IDM_s0){
     document.getElementById('valueField_IDM_s0').innerHTML
            =parseFloat(IDM_s0,10).toFixed(1)+" m";
 }
-
+*/
 
 //#############################################
 // Slider for IDM_a (also update sliders.css!)
@@ -347,7 +444,7 @@ DYN_WEB.Event.domReady( function() {
     }
 );
 
-function change_IDM_a(x){
+function change_IDM_a(x){ // callback action of slider movement
     IDM_a=IDM_a_min
 	+(IDM_a_max-IDM_a_min)*x/sliderWidth; 
     updateModels();
@@ -367,6 +464,7 @@ function change_IDM_aSliderPos(IDM_a){
 // Slider for IDM_b (also update sliders.css!)
 //#############################################
 
+/*
 DYN_WEB.Event.domReady( function() {
     var slider_IDM_b 
         = new DYN_WEB.Slider('slider_IDM_b', 'track_IDM_b', 'h');
@@ -378,7 +476,7 @@ DYN_WEB.Event.domReady( function() {
     }
 );
 
-function change_IDM_b(x){
+function change_IDM_b(x){ // callback action of slider movement
     IDM_b=IDM_b_min
 	+(IDM_b_max-IDM_b_min)*x/sliderWidth; 
     updateModels();
@@ -393,4 +491,5 @@ function change_IDM_bSliderPos(IDM_b){
            =parseFloat(IDM_b,10).toFixed(1)+" m/s<sup>2</sup>";
 }
 
+*/
 

@@ -1,51 +1,77 @@
 
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html public>
+<html lang="en">
 
 <head>
-<meta charset="utf-8"/>
-
-<title> traffic-simulation.de: Auffahrt</title>
-
-<!-- specifications/appearance of  main webpage and sliders 
-(slider implementations DYN_WEB.* von sliders/js/dw_slider.js)-->
-
-<link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
-
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleULandscape.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleUPortrait.css" rel="stylesheet" type="text/css"/>
+    <link href="css/sliders.css" rel="stylesheet" type="text/css" />
+    
+    <title>Microsimulation of Traffic Flow: Onramp</title> 
 </head>
 
 
 <body>
-<h1> Traffic-Simulation.de: Auffahrt </h1>
+  
 
-<!-- outer nested table, first row spans both subtables -->
+<!-- ############################################## -->
+<!-- outer container                                -->
+<!-- ############################################## -->
 
-<table width="100%" id="mainTable"> <!-- id for responsive design-->
-<tr>
-<td colspan="2">
-<button onclick="myStartFunction()">Weiter</button>
-<button onclick="myStopFunction()">Stop</button>
-<button onclick="myRedirectRing()">Ringstrasse</button>
-<button onclick="myRedirectOnramp()">Auffahrt</button>
-<button onclick="myRedirectOfframp()">Abfahrt</button>
-<button onclick="myRedirectRoadworks()">Baustelle</button>
-<button onclick="myRedirectRouting()">Routing</button>
-<!--<button onclick="myRedirectUphill()">Uphill</button>
-<button onclick="myRedirectTrafficlight()">Traffic Light</button>
--->
-</td>
-</tr>
+<div id="container">
+
+
+<!-- ############################################## -->
+<!-- header: title image loaded as background image via css -->
+<!-- ############################################## -->
+
+<div id="header"> 
+  <img class="title" src="figs/title.png"  width="100%"/>
+</div> 
+
+
+<!-- ############################################## -->
+<!-- Buttons                                        -->
+<!-- ############################################## -->
 
 <!-- redirects to other scenarios, defines myRedirectX -->
 <script src="js/redirect_ger.js" type="text/javascript"></script>
 
-<!-- nested tables: Table 1: global sliders -->
+<div id="scenarios">
+<center>
+  <button id="startStop" onclick="myStartStopFunction()">Stop</button>
+  <button onclick="myRedirectRing()">Ringstrasse</button>
+  <button onclick="myRedirectOnramp()">Auffahrt</button>
+  <button onclick="myRedirectOfframp()">Abfahrt</button>
+  <button onclick="myRedirectRoadworks()">Baustelle</button>
+  <button onclick="myRedirectUphill()">Uphill</button>
+  <button onclick="myRedirectRouting()">Routing</button>
+</center>
+</div> 
 
-<!-- !!! ATTANTION Both div#track_x and div#slider_x must be updated
-in sliders.css if new slider defined !!!  -->
 
-<tr>
-<td><table>
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
+
+<div id="contents">
+  <canvas id="canvas_onramp" width="800" height="600">
+    You are probably using a very ancient web browser (or an Internet Explorer) 
+    not supporting html5 canvas. Please switch to another browser for
+    running this simulation.
+  </canvas>
+</div>
+
+
+<!-- ################################################# -->
+<!-- Sliders 1: global simulation and demand variables -->
+<!-- ################################################# -->
+
+<div id="sliders1">
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<!-- !! ">Zeitraffer<", not "> Timewarp <" etc because of engl2ger. bash-->
 
  <tr>
   <td>Zeitraffer</td>
@@ -79,12 +105,15 @@ in sliders.css if new slider defined !!!  -->
   <td> <div id="valueField_qOn"></div>
  </tr>
 
-</table></td>
+</table>
+</div>
 
-<!-- Table 2: sliders for model parameters -->
+<!-- ################################################# -->
+<!-- Sliders 2: Main model parameters and specific controls-->
+<!-- ################################################# -->
 
-<td><table>
-
+<div id="sliders2">
+<table border="0" cellspacing="1" cellpadding="0">
  <tr>
   <td> Wunschgeschw. v</sub>0</sub> </td>
   <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
@@ -98,47 +127,91 @@ in sliders.css if new slider defined !!!  -->
  </tr>
 
  <tr>
-  <td> Mindestluecke s</sub>0</sub> </td>
-  <td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
-  <td> <div id="valueField_IDM_s0"></div>
- </tr>
-
- <tr>
   <td> Max Beschleun a</td>
   <td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
   <td> <div id="valueField_IDM_a"></div>
  </tr>
 
- <tr>
-  <td> Komfort Verzoeg b</td>
-  <td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
-  <td> <div id="valueField_IDM_b"></div>
- </tr>
-
-</table> </td>  <!-- nested Table 2 -->
-
-</tr></table> <!-- outer table -->
+</table>
+</div>
 
 
-<canvas id="canvas_onramp" width="800" height="600">You are probably
-  using a very ancient web browser (or an Internet Explorer) 
- not supporting html5 canvas. Please switch to another browser for
-  running this simulation.
-</canvas>
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
 
-<!-- specific scripts; position after def of canvas! -->
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+
+<tr>
+<td> Mindestluecke s</sub>0</sub> </td>
+<td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
+<td> <div id="valueField_IDM_s0"></div>
+</tr>
+
+<tr>
+<td> Comfort  Decel b</td>
+<td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
+<td> <div id="valueField_IDM_b"></div>
+</tr>
+
+
+</table>
+</div>
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 3: less important controls                -->
+<!-- ################################################# -->
+
+<!--
+<div id="sliders3">
+<table border="0" cellspacing="1" cellpadding="0">
+
+</table>
+</div>
+-->
+
+
+<!-- ############################################## -->
+<!-- here comes the former navigation*.html frame   -->
+<!-- ############################################## -->
+
+<div id="footWhiteSpace"> </div> <!--white space below sim if portrait-->
+<div id="infoFlags"> <link data-wi-src="infoFlags.html" /></div>
+<div id="infoModels"> <link data-wi-src="infoModels.html" /></div>
+<div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
+<div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
+<div id="impressum"> <a href="impressum.html">
+  &copy; Martin Treiber</a></div>
+
+<!-- ############################################## -->
+<!-- end former navigation*.html frame   -->
+<!-- ############################################## -->
+
+
+</div> <!-- end outer container -->
+
+
+<!-- ########################################################## -->
+<!-- specific scripts; position below any simulation elements ! -->
+<!-- ########################################################## -->
 
 <script src="js/dw_slider.js" type="text/javascript"></script>
-<script src="js/canvasresize.js" type="text/javascript"></script>
+<!-- <script src="js/canvasresize.js" type="text/javascript"></script>-->
 
 <script src="js/onramp_gui_ger.js"></script> 
 <script src="js/colormanip.js"></script>
+
 <script src="js/models.js"></script> 
 <script src="js/vehicle.js"></script>
-<!--<script src="js/myMath.js"></script> -->
+
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
 <script src="js/onramp_ger.js"></script> 
+
+<script src="wm-html-include/wm-html-include.js"> </script>
 
 </body>
 </html>

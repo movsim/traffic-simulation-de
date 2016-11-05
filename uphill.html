@@ -1,28 +1,26 @@
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html lang="en">
-
 
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
-    <link href="css/styleResponsive.css" rel="stylesheet" type="text/css"/>
-    <link href="css/styleBigLandscape.css" rel="stylesheet" type="text/css"/>
-    <link href="css/styleBigPortrait.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleResponsive.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleULandscape.css" rel="stylesheet" type="text/css"/>
+    <link href="css/styleUPortrait.css" rel="stylesheet" type="text/css"/>
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
 
-    <title>Microsimulation of Traffic Flow</title> 
+    <title> Microsimulation of Traffic Flow: Uphill</title>
 </head>
 
 
 <body>
-
-
+  
 <!-- ############################################## -->
 <!-- outer container                                -->
 <!-- ############################################## -->
 
 <div id="container">
+
 
 
 <!-- ############################################## -->
@@ -31,7 +29,6 @@
 
 <div id="header"> 
   <img class="title" src="figs/title.png"  width="100%"/>
-  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
 </div> 
 
 
@@ -40,18 +37,18 @@
 <!-- ############################################## -->
 
 <!-- redirects to other scenarios, defines myRedirectX -->
-<script src="js/redirect_ger.js" type="text/javascript"></script>
+<script src="js/redirect.js" type="text/javascript"></script>
 
 <div id="scenarios">
 <center>
   <button id="startStop" onclick="myStartStopFunction()">Stop</button>
-  <button onclick="myRedirectRing()">Ringstrasse</button>
-  <button onclick="myRedirectOnramp()">Auffahrt</button>
-  <button onclick="myRedirectOfframp()">Abfahrt</button>
-  <button onclick="myRedirectRoadworks()">Baustelle</button>
+  <button onclick="myRedirectRing()">Ringroad</button>
+  <button onclick="myRedirectOnramp()">Onramp</button>
+  <button onclick="myRedirectOfframp()">Offramp</button>
+  <button onclick="myRedirectRoadworks()">Road Works</button>
+  <button onclick="myRedirectUphill()">Uphill</button>
   <button onclick="myRedirectRouting()">Routing</button>
 </center>
-
 </div> 
 
 
@@ -60,14 +57,12 @@
 <!-- ############################################## -->
 
 <div id="contents">
-  <canvas id="canvas_ring" width="700" height="700">
+  <canvas id="canvas_uphill" width="800" height="600">
     You are probably using a very ancient web browser (or an Internet Explorer) 
     not supporting html5 canvas. Please switch to another browser for
     running this simulation.
   </canvas>
-
 </div>
-
 
 
 <!-- ################################################# -->
@@ -76,103 +71,75 @@
 
 <div id="sliders1">
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
-<!-- !! ">Dichte<", not "> Density <" etc because of engl2ger. bash-->
+<!-- !! ">Timewarp<", not "> Timewarp <" etc because of engl2ger. bash-->
 
 
 <tr>
-<td>Dichte</td>
-<td> <div id="track_density"> <div id="slider_density"></div></div></td>
-<td> <div id="valueField_density"></div>
-</tr>
-
-
-<tr>
-<td>LKW-Anteil</td>
+<td> Truck Fraction</td>
 <td> <div id="track_truckFrac"> <div id="slider_truckFrac"></div></div></td>
 <td> <div id="valueField_truckFrac"></div>
 </tr>
 
-
 <tr>
-<td> Max Beschleun a</td>
-<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
-<td> <div id="valueField_IDM_a"></div>
+<td> Inflow</td>
+<td> <div id="track_qIn"> <div id="slider_qIn"></div></div></td>
+<td> <div id="valueField_qIn"></div>
 </tr>
 
 <tr>
-<td> Lane Changing rate</td>
-<td> to be implemented </td>
-<td> -  </td>
-<!--<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
-<td> <div id="valueField_IDM_a"></div>-->
+<td> <font color="red"> Speed Limit </font></td>
+<td> <div id="track_speedL"> <div id="slider_speedL"></div></div></td>
+<td> <div id="valueField_speedL" style="color:red"></div>
 </tr>
+
+<tr>
+ <td> <font color="red">Uphill Truck Speed</sub> </td>
+ <td> <div id="track_IDM_v0Up"> <div id="slider_IDM_v0Up"></div></div></td>
+ <td> <div id="valueField_IDM_v0Up" style="color:red"></div>
+</tr>
+
 
 </table>
 </div>
 
-
 <!-- ################################################# -->
-<!-- Sliders 2: in ring-road not used-->
+<!-- Sliders 2: Main model parameters and specific controls-->
 <!-- ################################################# -->
-
 
 <div id="sliders2">
 <table border="0" cellspacing="1" cellpadding="0">
+
+
 <tr>
-<td>Zeitraffer</td>
-<td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
-<td> <div id="valueField_timewarp"></div>
+ <td>Timewarp</td>
+ <td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
+ <td> <div id="valueField_timewarp"></div>
 </tr>
 
 <tr>
-<td> Wunschgeschw. v</sub>0</sub> </td>
-<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
-<td> <div id="valueField_IDM_v0"></div>
+ <td> Max Speed v<sub>0</sub></td>
+ <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
+ <td> <div id="valueField_IDM_v0"></div>
 </tr>
 
 <tr>
-<td> Zeitluecke T</td>
-<td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
-<td> <div id="valueField_IDM_T"></div>
+ <td> Time Gap T</td>
+ <td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
+ <td> <div id="valueField_IDM_T"></div>
 </tr>
 
 <tr>
-<td> Mindestluecke s</sub>0</sub> </td>
-<td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
-<td> <div id="valueField_IDM_s0"></div>
+ <td> Max Acceleration a</td>
+ <td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
+ <td> <div id="valueField_IDM_a"></div>
 </tr>
 
-<tr>
-<td> Comf Decel b</td>
-<td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
-<td> <div id="valueField_IDM_b"></div>
-</tr>
-
-
-<!--
-<tr>
-<td>Skala</td>
-<td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
-<td> <div id="valueField_scale"></div>
-</tr>
--->
 
 </table>
 </div>
 
 
 
-<!-- ################################################# -->
-<!-- Sliders 3: less important controls                -->
-<!-- ################################################# -->
-
-<!--
-<div id="sliders3">
-<table border="0" cellspacing="1" cellpadding="0">
-
-</table>
-</div>
--->
 
 <!-- ############################################## -->
 <!-- here comes the former navigation*.html frame   -->
@@ -194,22 +161,20 @@
 </div> <!-- end outer container -->
 
 
-<!-- ########################################################## -->
-<!-- specific scripts; position below any simulation elements ! -->
-<!-- ########################################################## -->
+
+<!-- specific scripts; position after def of canvas! -->
 
 <script src="js/dw_slider.js" type="text/javascript"></script>
-<script src="js/canvasresize.js" type="text/javascript"></script>
+<!-- <script src="js/canvasresize.js" type="text/javascript"></script>-->
 
-<script src="js/ring_gui_ger.js"></script>  
-<script src="js/colormanip.js"></script> 
-
+<script src="js/uphill_gui.js"></script> 
+<script src="js/colormanip.js"></script>
 <script src="js/models.js"></script> 
-<script src="js/vehicle.js"></script> 
-
+<script src="js/vehicle.js"></script>
+<!--<script src="js/myMath.js"></script> -->
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
-<script src="js/ring_ger.js"></script>
+<script src="js/uphill.js"></script> 
 
 <script src="wm-html-include/wm-html-include.js"> </script>
 
