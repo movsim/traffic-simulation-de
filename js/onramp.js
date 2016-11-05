@@ -48,7 +48,7 @@ var center_yPhys=-105; // ypixel downwards=> physical center <0
 
 var rampRadius=4*arcRadius;
 
-var sizePhys=200; 
+var sizePhys=200;  // typical physical linear dimension for scaling 
 
 
 
@@ -268,52 +268,51 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,limitAspectRatio)
-    // !!MT resized to height if actual aspectRatio>limitAspectRatio, 
-    // to width otherwise
-//!!! WARUM klappt scaling nicht?!!! Henne-Ei problem!! Scaling braucht sizePhys und sizePhys braucht scaling! 
 
-    // (0) redefine graphical aspects of road (arc radius etc) using
-    // responsive design
+    /* (0) redefine graphical aspects of road (arc radius etc) using
+     responsive design if canvas has been resized 
+     (=actions of canvasresize.js for the ring-road scenario,
+     here not usable ecause of side effects with sizePhys)
+     NOTICE: resizing also brings some small traffic effects 
+     because mainRampOffset slightly influenced, but No visible effect 
+     */
 
     var critAspectRatio=1.15;
-
-    // directly from canvas_resize(canvas,critAspectRatio)
-
     var hasChanged=false;
     var simDivWindow=document.getElementById("contents");
+
     if (canvas.width!=simDivWindow.clientWidth){
 	hasChanged=true;
 	canvas.width  = simDivWindow.clientWidth;
     }
-
     if (canvas.height != simDivWindow.clientHeight){
 	hasChanged=true;
         canvas.height  = simDivWindow.clientHeight;
     }
     var aspectRatio=canvas.width/canvas.height;
+    var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
-    arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-    sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
-    arcLen=arcRadius*Math.PI;
-    straightLen=0.5*(mainroadLen-arcLen);  // obe straight segment
-    center_xPhys=1.2*arcRadius;
-    center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+    if(hasChanged){
+      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
+      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      arcLen=arcRadius*Math.PI;
+      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
+      mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 
-    // directly from canvas_resize(canvas,critAspectRatio)
+      center_xPhys=1.2*arcRadius;
+      center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+      center_x=0.50*canvas.width; // pixel coordinates
+      center_y=0.48*canvas.height;
 
-    center_x=0.50*canvas.width; // pixel coordinates
-    center_y=0.48*canvas.height;
-	//var refDim=Math.min(canvas.width,canvas.height*critAspectRatio);
-    var refDim=Math.min(canvas.height,canvas.width/critAspectRatio);
-    scale=refDim/sizePhys;  
-/*
-    console.log("in drawU: canvas size=",
-		canvas.width,"x",canvas.height,
-		" sizePhys=",sizePhys," scale=",scale);
-    console.log("aspectRatio=",aspectRatio);
-*/
+      scale=refSizePix/sizePhys; 
+      if(true){
+	console.log("canvas has been resized: new dim ",
+		    canvas.width,"X",canvas.height," refSizePix=",
+		    refSizePix," sizePhys=",sizePhys," scale=",scale,
+		    " mainRampOffset=",mainRampOffset);
+      }
+    }
+
 
     // (1) define road geometry as parametric functions of arclength u
     // (physical coordinates!)
@@ -472,10 +471,10 @@ function drawU() {
 
     // (6) draw the speed colormap
 
-      drawColormap(scale*(center_xPhys-0.40*arcRadius), 
-                  -scale*center_yPhys, 
-                   scale*20, scale*50,
-		 vmin,vmax,0,100/3.6);
+      drawColormap(0.22*refSizePix,
+                   0.43*refSizePix,
+                   0.1*refSizePix, 0.2*refSizePix,
+		   vmin,vmax,0,100/3.6);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 

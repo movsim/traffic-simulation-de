@@ -1,5 +1,5 @@
 
-/* medi queries: 
+/* media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
 
 example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
@@ -48,7 +48,7 @@ img.title{
 #contents{
   position: absolute;
   top:    8vh;
-  bottom: 0vh;
+  bottom: 1vh;
  /* height: calc(112vmin + 10vh - 8vh);*/
   left:   0vw;
   width:  98vw;
@@ -83,9 +83,9 @@ button{
 
 #infoFlags{
   position: absolute;
-  top:   9vh;
-  left:   calc( 98vw - 20vmin);
-  width:  20vmin; /* no height */
+  top:   0vh;
+  left:   calc( 98vw - 14vmin);
+  width:  14vmin; /* no height */
   z-index: 2;
 }
 
@@ -107,15 +107,9 @@ button{
 
 /* (6)-(8) text layout of sliders: tables override general text spec) */
 
-TH{
-  font-size: 3.0vmin;
-  font-weight: bold; 
-  color: #404060;   /* text color */
-
-}
 
 TR{
-  font-size:2.0vmin; 
+  font-size:2.2vmin; 
   color: #000000;
 }
 
@@ -125,10 +119,9 @@ TR{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
- /* top: calc( 53vmin + 8vh);*/
-  top:   calc(52vmin + 5vh);
-  height: 12.8vmin;
-  left: calc(20vmin + 2vh); 
+  top: 32vmin;
+  height: 13.5vmin;
+  left: 40vmin;  /* calc( 24vw - 23vmin);*/
   width: 49vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
@@ -138,10 +131,10 @@ TR{
 
 #sliders2{ 
   position: absolute;
-  top: calc(95vmin + 10vh);
-  height: 15vmin;
-  left: 28vmin; 
-  width:  42vmin;
+  top: 56vmin;
+  height: 10vmin;
+  left: 40vmin;
+  width:  49vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2;
 
@@ -151,12 +144,12 @@ TR{
 
 #sliders3{ 
   position: absolute;
-  top: 30vmin;
-  left: 50vw;
-  width: 33vw;
-  height: 7.5vmin;
+  top: 91vmin;
+  left: 40vmin;
+  width: 49vmin;
+  height: 8vmin;
   background-color: rgba(255,255,255,0.4);
-  z-index: 0;
+  z-index: 2;
 }
 
 
@@ -167,7 +160,7 @@ TR{
 
 #footWhiteSpace{
   position: absolute;
-  top: calc(112vmin + 10vh);
+  top: calc(100vmin + 1vh);
   bottom: 0vh;
   left: 0vw;
   width: 98vw;
@@ -188,7 +181,7 @@ img.infoBlock{
 
 #infoModels{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: 102vmin;
   height:  40vmin;
   left:    5vw;
   width:  25vw;
@@ -200,7 +193,7 @@ img.infoBlock{
 
 #infoScenarios{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: 102vmin;
   height:  40vmin;
   left:    35vw;
   width:   25vw;
@@ -211,7 +204,7 @@ img.infoBlock{
  
 #infoLinks{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: 102vmin;
   left:   70vw;
   width:  25vw;
   z-index: 2;

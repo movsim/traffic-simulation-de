@@ -6,7 +6,7 @@
 div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac, 
  div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL{
     width: 15vmin;
-    height: 1.75vmin;
+    height: 1.98vmin;
     background-color: #336;
     border: 1px solid #336;
     position: relative;
@@ -15,8 +15,8 @@ div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,
 div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac, 
  div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL{
     background-color: #ddd;
-    height: 1.75vmin;
-    width: 1.0vw;
+    height: 1.98vmin;
+    width: 1.0vmin;
     position: absolute;
 }
 
@@ -25,7 +25,7 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 div#track_IDM_v0, div#track_IDM_T, 
  div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b {
     width: 15vmin;
-    height: 1.75vmin;
+    height: 1.98vmin;
     background-color: #336;
     border: 1px solid #336;
     position: relative;
@@ -34,8 +34,8 @@ div#track_IDM_v0, div#track_IDM_T,
 div#slider_IDM_v0, div#slider_IDM_T, 
  div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b {
     background-color: #ddd;
-    height: 1.75vmin; 
-    width: 1.0vw;
+    height: 1.98vmin; 
+    width: 1.0vmin;
     position: absolute;
 }
 

@@ -21,25 +21,30 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 // physical geometry settings [m]
 
-var sizePhys=355;    //responsive design  
-var center_xPhys=95;
-var center_yPhys=-105; // ypixel downwards=> physical center <0 responsive
-
-var mainroadLen=770;
+var mainroadLen=700;
 var nLanes=3;
 var laneWidth=7;
 var laneWidthRamp=5;
 
+var offLen=250;
+var divergeLen=100;
+var mainOffOffset=410; // =mainroadLen-straightLen;
+var taperLen=40;
+
+
+
+// variable depending on aspect ratio: only relevant for graphics
+
 var straightLen=0.34*mainroadLen;      // straight segments of U
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
 var arcRadius=arcLen/Math.PI;
+var center_xPhys=95;
+var center_yPhys=-105; // ypixel downwards=> physical center <0 responsive
 
-var offLen=250;
-var divergeLen=100;
-var offRadius=1.6*arcRadius;
-var taperLen=40;
+var offRadius=2.6*arcRadius;
 
-var mainOffOffset=mainroadLen-straightLen;
+var sizePhys=200; // typical physical linear dimension for scaling 
+
 
 
 
@@ -236,20 +241,53 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,aspectRatio)
-    hasChanged=canvas_resize(canvas,1.55); 
+
+
+    /* (0) redefine graphical aspects of road (arc radius etc) using
+     responsive design if canvas has been resized 
+     (=actions of canvasresize.js for the ring-road scenario,
+     here not usable ecause of side effects with sizePhys)
+     NOTICE: resizing also brings some small traffic effects 
+     because mainOffOffset slightly influenced, but No visible effect 
+     */
+
+    var critAspectRatio=1.15;
+    var hasChanged=false;
+    var simDivWindow=document.getElementById("contents");
+
+    if (canvas.width!=simDivWindow.clientWidth){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
+    }
+    if (canvas.height != simDivWindow.clientHeight){
+	hasChanged=true;
+        canvas.height  = simDivWindow.clientHeight;
+    }
+    var aspectRatio=canvas.width/canvas.height;
+    var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+
     if(hasChanged){
-        console.log(" new canvas size ",canvas.width,"x",canvas.height);
+      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
+      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      arcLen=arcRadius*Math.PI;
+      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
+      mainOffOffset=mainroadLen-straightLen;
+      center_xPhys=1.2*arcRadius;
+      center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+      center_x=0.50*canvas.width; // pixel coordinates
+      center_y=0.48*canvas.height;
+
+      scale=refSizePix/sizePhys; 
+      if(true){
+	console.log("canvas has been resized: new dim ",
+		    canvas.width,"X",canvas.height," refSizePix=",
+		    refSizePix," sizePhys=",sizePhys," scale=",scale,
+		    " straightLen=",straightLen,
+		    " mainOffOffset=",mainOffOffset);
+      }
     }
 
-    // (0) reposition physical x center coordinate as response
-    // to viewport size (changes)
-    // in contrast to ring no actual need, maybe later; then do something 
-    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
 
-    var aspectRatio=canvas.width/canvas.height;
- 
 
    // (1) define geometry of "U" (road center) as parameterized function of 
    // the arc length u
@@ -288,6 +326,12 @@ function drawU() {
 	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
     }
 
+    if(hasChanged){
+	console.log("mainOffOffset=",mainOffOffset,
+		    " traj_x(mainOffOffset)=",traj_x(mainOffOffset),
+		    " traj_x(mainroadLen)=",traj_x(mainroadLen));
+    }
+
     mainroad.updateOrientation(); // update heading of all vehicles rel. to road axis
                                   // (for some reason, strange rotations at beginning)
 
@@ -323,6 +367,7 @@ function drawU() {
 
 
     // (4) draw some running-time vars
+
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
@@ -343,22 +388,8 @@ function drawU() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
 		 timeStr_ylb-0.2*textsize);
 
-    
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=8*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-    
-    
     var scaleStr="scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=16*textsize;
+    var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
     var scaleStr_height=1.2*textsize;
@@ -370,35 +401,14 @@ function drawU() {
 		 scaleStr_ylb-0.2*textsize);
     
 
-    var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
-    var genVarStr_xlb=24*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-    
-
-    var genVarStr="qIn="+Math.round(3600*qIn)+"veh/h";
-    var genVarStr_xlb=32*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
 
     // (6) draw the speed colormap
 
-    drawColormap(scale*center_xPhys, -scale*center_yPhys, scale*50, scale*50,
+    drawColormap(0.22*refSizePix,
+                 0.43*refSizePix,
+                 0.1*refSizePix, 0.2*refSizePix,
 		 vmin,vmax,0,100/3.6);
+
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
@@ -421,7 +431,7 @@ function drawU() {
 function init() {
     canvas = document.getElementById("canvas_offramp"); // "canvas_offramp" defined in offramp.html
     ctx = canvas.getContext("2d");
-    canvas_resize(canvas,1.65);
+
 
     background = new Image();
     background.src =background_srcFile;

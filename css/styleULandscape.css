@@ -1,5 +1,5 @@
 
-/* medi queries: 
+/* media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
 
 example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
@@ -64,7 +64,7 @@ img.title{
 
 #scenarios{
   position: absolute;
-  top:     20vmin;
+  top:     35vmin;
   height:  50vmin;
   left: calc(84vw - 20vmin);
   width: 20vmin;
@@ -84,7 +84,7 @@ button{
   position: absolute;
   top:   1vmin;
   right:   1vw;
-  width:  20vmin; /* no height */
+  width: 14vmin; /* no height */
   z-index: 2;
 }
 
@@ -107,15 +107,9 @@ button{
 
 /* (6)-(8) text layout of sliders: tables override general text spec) */
 
-TH{
-  font-size: 2.6vmin;
-  font-weight: bold; 
-  color: #404060;   /* text color */
-
-}
 
 TR{
-  font-size:2.1vmin; 
+  font-size:2.2vmin; 
   color: #000000;
 }
 
@@ -125,10 +119,10 @@ TR{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
-  top: 42vmin;
-  height: 12.8vmin;
-  left: 60vmin;  /* calc( 24vw - 23vmin);*/
-  width: 53vmin;
+  top: 25vmin;
+  height: 13.5vmin;
+  left: 40vmin;  /* calc( 24vw - 23vmin);*/
+  width: 49vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -137,10 +131,10 @@ TR{
 
 #sliders2{ 
   position: absolute;
-  bottom: 20vmin;
-  height: 15vmin;
-  right:  15.5vw;
-  width:  50vmin;
+  top: 50vmin;
+  height: 10vmin;
+  left: 40vmin;
+  width:  49vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2;
 
@@ -150,12 +144,12 @@ TR{
 
 #sliders3{ 
   position: absolute;
-  top: 17vmin;
-  left: 50vw;
-  width: 33vw;
-  height: 7.5vmin;
+  top: 90vmin;
+  left: 40vmin;
+  width: 49vmin;
+  height: 8vmin;
   background-color: rgba(255,255,255,0.4);
-  z-index: 0;
+  z-index: 2;
 }
 
 

@@ -30,7 +30,6 @@ var dt=0.5; // only initialization
 
 // physical geometry settings [m]
 
-var sizePhys=355;    //responsive design  
 var mainroadLen=770;
 var nLanes=2;
 var laneWidth=7;
@@ -46,6 +45,7 @@ var arcRadius=arcLen/Math.PI;
 var center_xPhys=95;
 var center_yPhys=-105; // ypixel downwards=> physical center <0
 
+var sizePhys=200;  // typical physical linear dimension for scaling 
 
 
 // specification of vehicle and traffic  properties
@@ -84,9 +84,6 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 // image file settings
 //############################################################################
 
-
-
-//var car_srcFile='figs/carSmall2.png'; // ringNewOrig.js
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
@@ -268,22 +265,50 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,aspectRatio)
-    hasChanged=canvas_resize(canvas,1.65); 
+    /* (0) redefine graphical aspects of road (arc radius etc) using
+     responsive design if canvas has been resized 
+     (=actions of canvasresize.js for the ring-road scenario,
+     here not usable ecause of side effects with sizePhys)
+     NOTICE: resizing also brings some small traffic effects 
+     because mainRampOffset slightly influenced, but No visible effect 
+     */
+
+    var critAspectRatio=1.15;
+    var hasChanged=false;
+    var simDivWindow=document.getElementById("contents");
+
+    if (canvas.width!=simDivWindow.clientWidth){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
+    }
+    if (canvas.height != simDivWindow.clientHeight){
+	hasChanged=true;
+        canvas.height  = simDivWindow.clientHeight;
+    }
+    var aspectRatio=canvas.width/canvas.height;
+    var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+
     if(hasChanged){
-        console.log(" new canvas size ",canvas.width,"x",canvas.height);
+      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
+      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      arcLen=arcRadius*Math.PI;
+      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
+
+      center_xPhys=1.2*arcRadius;
+      center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+      center_x=0.50*canvas.width; // pixel coordinates
+      center_y=0.48*canvas.height;
+
+      scale=refSizePix/sizePhys; 
+      if(true){
+	console.log("canvas has been resized: new dim ",
+		    canvas.width,"X",canvas.height," refSizePix=",
+		    refSizePix," sizePhys=",sizePhys," scale=",scale);
+      }
     }
 
-    // (0) reposition physical x center coordinate as response
-    // to viewport size (changes)
-    // in contrast to ring no actual need, maybe later; then do something 
-    // with center_xPhys like arcRadius*Math.max(aspectRatio,1.)
 
-    var aspectRatio=canvas.width/canvas.height;
  
-    
-
    // (1) define geometry of "U" (road center) as parameterized function of 
    // the arc length u
 
@@ -415,8 +440,11 @@ function drawU() {
 
     // (6) draw the speed colormap
 
-    drawColormap(scale*center_xPhys, -scale*center_yPhys, scale*50, scale*50,
+    drawColormap(0.22*refSizePix,
+                 0.43*refSizePix,
+                 0.1*refSizePix, 0.2*refSizePix,
 		 vmin,vmax,0,100/3.6);
+
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
@@ -429,7 +457,7 @@ function init() {
     // "canvas_roadworks" defined in roadworks.html
     canvas = document.getElementById("canvas_roadworks");
     ctx = canvas.getContext("2d");
-    canvas_resize(canvas,1.9);
+
     background = new Image();
     background.src =background_srcFile;
 

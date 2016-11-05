@@ -382,7 +382,7 @@ road.prototype.calcAccelerations=function(){
 	    =this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead);
 	//if(false){
 	//if(this.veh[i].mandatoryLCahead){
-	if(speed>this.veh[i].longModel.v0){
+	if(speed>1.05*this.veh[i].longModel.v0){
 	    console.log("after calcAccelerations: i="+i
 			+" pos="+this.veh[i].u
 			+" lane="+this.veh[i].v

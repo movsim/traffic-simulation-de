@@ -11,6 +11,8 @@
 
 var width;  // taken from html canvas tag in init()
 var height; // taken from html canvas tag in init()
+var center_x; // defined in init() after value of width is known
+var center_y; // defined in init() after value of height is known
 
 var hasChanged=true; // window dimensions have changed (responsive design)
 
@@ -24,25 +26,23 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 // physical geometry settings [m]
 
-var sizePhys=550;   
+var sizePhys=350;   
 var center_xPhys=135;
 var center_yPhys=-180; // ypixel downwards=> physical center <0
 
-var lMain=1200;
+var mainroadLen=1200;
 var nLanes=3;
 var laneWidth=7;
 var laneWidthRamp=5;
 
-var lStraightMain=0.35*lMain;      // straight segments of U
-var lArcMain=lMain-2*lStraightMain; // length of half-circe arc of U
-var rMain=lArcMain/Math.PI;
+var straightLen=0.35*mainroadLen;      // straight segments of U
+var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
+var arcRadius=arcLen/Math.PI;
 
 
 // geometry of deviation road
 
-
-
-var umainDiverge=0.4*lStraightMain; // main coord where diverge zone ends
+var umainDiverge=0.4*straightLen; // main coord where diverge zone ends
 var rDev=30;                       // radius of curves on deviation route
 var alpha=0.2*Math.PI;             // heading change of first right-curve
 var lrampDev=150;            // length of off/onramp section of deviation
@@ -50,12 +50,12 @@ var lTaper=15;                    // for both merge/diverge parts
 var lParallel=60;                // length parallel to mainroad before merg.
 
 // length of deviation
-var lDev=2*(lrampDev+rMain)+laneWidth*(nLanes+1)+lParallel
+var lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes+1)+lParallel
     +rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); 
 
 // difference between first diverge and first merge point in mainroad coords
-var dumainDivergeMerge=rMain*Math.PI-lrampDev
-    +lParallel+ 2*(lStraightMain-umainDiverge);
+var dumainDivergeMerge=arcLen-lrampDev
+    +lParallel+ 2*(straightLen-umainDiverge);
 
 // first merging point in mainroad coordinates
 var umainMerge=umainDiverge+dumainDivergeMerge;
@@ -73,8 +73,8 @@ console.log(" deviation properties: length lDev="+lDev
 
 // roadworks properties (mainroad coordinates)
 
-var uBeginRoadworks=lStraightMain+0.9*lArcMain;
-var uEndRoadworks=uBeginRoadworks+0.2*lArcMain;
+var uBeginRoadworks=straightLen+0.9*arcLen;
+var uEndRoadworks=uBeginRoadworks+0.2*arcLen;
 var laneRoadwork=nLanes-1;  // 0=left, nLanes-1=righyt
 var lenRoadworkElement=10;
 
@@ -125,6 +125,7 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 // Notice: set drawBackground=false if no bg wanted
 //var background_srcFile='figs/backgroundGrass.jpg'; //800 x 800
 var background_srcFile='figs/backgroundGrass.jpg'; //1100 x 700
+var scaleFactorImg=mainroadLen/1740; // [pixels/m]
 
 
 //#################################
@@ -165,7 +166,7 @@ updateModels();
 var isRing=0;  // 0: false; 1: true
 duTactical=150; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1, lMain, nLanes, densityInit, speedInit, 
+var mainroad=new road(1, mainroadLen, nLanes, densityInit, speedInit, 
 		      truckFracInit, isRing);
 var deviation=new road(2, lDev, 1, 0.1*densityInit, speedInit, truckFracInit, isRing);
 
@@ -262,7 +263,7 @@ function updateU(){
 
 
    // implement strong urge to change lanes before roadworks (umin,umax,toRight)
-    mainroad.setLCMandatory(uBeginRoadworks-0.5*lArcMain, uBeginRoadworks, 
+    mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
 			    false);
 
 
@@ -337,6 +338,68 @@ function updateU(){
 function drawU() {
 //##################################################
 
+
+    /* (0) redefine graphical aspects of road (arc radius etc) using
+     responsive design if canvas has been resized 
+     (=actions of canvasresize.js for the ring-road scenario,
+     here not usable ecause of side effects with sizePhys)
+     NOTICE: resizing also brings some small traffic effects 
+     because mainRampOffset slightly influenced, but No visible effect 
+     */
+
+    var critAspectRatio=1.15;
+    var hasChanged=false;
+    var simDivWindow=document.getElementById("contents");
+
+    if (canvas.width!=simDivWindow.clientWidth){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
+    }
+    if (canvas.height != simDivWindow.clientHeight){
+	hasChanged=true;
+        canvas.height  = simDivWindow.clientHeight;
+    }
+    var aspectRatio=canvas.width/canvas.height;
+    var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+
+    if(hasChanged){
+      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
+      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      arcLen=arcRadius*Math.PI;
+      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
+
+      // update geometric properties of deviation; 
+      // see "geometry of deviation road" for explanation 
+	umainDiverge=0.65*straightLen-0.15*arcLen;
+      //umainDiverge=0.55*straightLen+0.2*arcLen;// main coord where diverge zone ends
+      lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes+1)+lParallel
+        + rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); // length of deviation
+      dumainDivergeMerge=arcLen-lrampDev
+        + lParallel+ 2*(straightLen-umainDiverge);
+      umainMerge=umainDiverge+dumainDivergeMerge;
+      udevBottlBeg=lDev-lrampDev-2*rDev*alpha-lParallel;
+      udevBottlEnd=udevBottlBeg+1.0*lParallel;
+
+      // update position of roadworks
+ 
+      uBeginRoadworks=straightLen+0.9*arcLen;
+      uEndRoadworks=uBeginRoadworks+0.2*arcLen;
+
+
+      center_xPhys=1.2*arcRadius;
+      center_yPhys=-1.3*arcRadius; // ypixel downwards=> physical center <0
+      center_x=0.50*canvas.width; // pixel coordinates
+      center_y=0.48*canvas.height;
+
+      scale=refSizePix/sizePhys; 
+      if(true){
+	console.log("canvas has been resized: new dim ",
+		    canvas.width,"X",canvas.height," refSizePix=",
+		    refSizePix," sizePhys=",sizePhys," scale=",scale,
+		    " lDev=",lDev);
+      }
+    }
+/*
   // resize drawing region if browser's dim has changed (responsive design)
   // canvas_resize(canvas,aspectRatio)
   hasChanged=canvas_resize(canvas,1.65); 
@@ -344,23 +407,24 @@ function drawU() {
       console.log(" new canvas size ",canvas.width,"x",canvas.height,
 		  " hasChanged=",hasChanged);
   }
+*/
 
    // (1) define geometry of "U" (road center) as parameterized function of 
    // the arc length u
 
   function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<lStraightMain) ? lStraightMain-u
-	  : (u>lStraightMain+lArcMain) ? u-lMain+lStraightMain
-	  : -rMain*Math.sin((u-lStraightMain)/rMain);
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
 	return center_xPhys+dxPhysFromCenter;
   }
 
   function traj_y(u){ // physical coordinates
         var dyPhysFromCenter=
- 	    (u<lStraightMain) ? rMain
-	  : (u>lStraightMain+lArcMain) ? -rMain
-	  : rMain*Math.cos((u-lStraightMain)/rMain);
+ 	    (u<straightLen) ? arcRadius
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
 	return center_yPhys+dyPhysFromCenter;
   }
 
@@ -381,7 +445,7 @@ function drawU() {
     var y3=y2-rDev*calpha;
 
 
-    var u4=u3+2*(rMain+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
     var x4=x3;
 
     var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
@@ -423,7 +487,7 @@ function drawU() {
     var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
     var y3=y2-rDev*calpha;
 
-    var u4=u3+2*(rMain+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
     var y4=y3+u3-u4;
 
     var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
@@ -585,9 +649,10 @@ function drawU() {
 
     // (6) draw the speed colormap
 
-    drawColormap(scale*(center_xPhys+rMain), 
-		 -scale*center_yPhys, scale*80, scale*80,
-		 vmin,vmax,0,100/3.6);
+      drawColormap(0.22*refSizePix,
+                   0.50*refSizePix,
+                   0.1*refSizePix, 0.2*refSizePix,
+		   vmin,vmax,0,100/3.6);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
@@ -620,6 +685,8 @@ function init() {
     width = canvas.width;
     height = canvas.height;
 
+    center_x=0.50*width*scaleFactorImg; // pixel coordinates
+    center_y=0.48*height*scaleFactorImg;
 
     // init vehicle image(s)
 
@@ -651,9 +718,9 @@ function init() {
 
     change_IDM_v0SliderPos(IDM_v0);
     change_IDM_TSliderPos(IDM_T);
-    change_IDM_s0SliderPos(IDM_s0);
+   // change_IDM_s0SliderPos(IDM_s0);
     change_IDM_aSliderPos(IDM_a);
-    change_IDM_bSliderPos(IDM_b);
+    //change_IDM_bSliderPos(IDM_b);
 
 
     // starts simulation thread "main_loop" (defined below) 

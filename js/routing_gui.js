@@ -347,6 +347,7 @@ function change_IDM_TSliderPos(IDM_T){
 // Slider for IDM_s0 (also update sliders.css!)
 //#############################################
 
+/*
 DYN_WEB.Event.domReady( function() {
     var slider_IDM_s0 
         = new DYN_WEB.Slider('slider_IDM_s0', 'track_IDM_s0', 'h');
@@ -373,6 +374,7 @@ function change_IDM_s0SliderPos(IDM_s0){
     document.getElementById('valueField_IDM_s0').innerHTML
            =parseFloat(IDM_s0,10).toFixed(1)+" m";
 }
+*/
 
 
 //#############################################
@@ -411,6 +413,7 @@ function change_IDM_aSliderPos(IDM_a){
 // Slider for IDM_b (also update sliders.css!)
 //#############################################
 
+/*
 DYN_WEB.Event.domReady( function() {
     var slider_IDM_b 
         = new DYN_WEB.Slider('slider_IDM_b', 'track_IDM_b', 'h');
@@ -437,4 +440,4 @@ function change_IDM_bSliderPos(IDM_b){
            =parseFloat(IDM_b,10).toFixed(1)+" m/s<sup>2</sup>";
 }
 
-
+*/
