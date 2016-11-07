@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # creates German html and js files from all files containing 
 # language-specific words" all html files, 
 # the js/<proj>.js, js/<proj>_gui.js files, and the js/redirect.js file
