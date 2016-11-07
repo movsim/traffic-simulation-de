@@ -12,6 +12,7 @@
 *.toc
 
 ## generated files 
-*_ger.*
+*_ger.html
+*_ger.js
 *~
 int
