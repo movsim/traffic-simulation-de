@@ -305,7 +305,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||banButtonClicked||(itime<=1) || false || (!drawRoad)){ 
+	if(hasChanged||banButtonClicked||(itime<=1) || (itime==20) || false || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -328,7 +328,7 @@ function drawU() {
     // (4a) draw traffic signs
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
-    if(hasChanged||banButtonClicked||(itime<=1)){
+    if(hasChanged||banButtonClicked||(itime<=1) || (itime==20) ){
 
 	banButtonClicked=false;
 	var sizeSignPix=0.1*refSizePix;

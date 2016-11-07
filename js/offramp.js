@@ -352,7 +352,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || false || (!drawRoad)){ 
+	if(hasChanged||(itime<=1) || (itime==20) || false || (!drawRoad)){ 
 
          ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
