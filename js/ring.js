@@ -296,7 +296,7 @@ function drawRing() {
     // (6) draw the speed colormap
 
     drawColormap(scale*(center_xPhys-0.03*roadRadius), 
-                -scale*(center_yPhys+0.40*roadRadius), 
+                -scale*(center_yPhys+0.50*roadRadius), 
 		 scale*50, scale*50,
 		 vmin,vmax,0,100/3.6);
 

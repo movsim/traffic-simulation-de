@@ -126,7 +126,7 @@ TR{
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
  /* top: calc( 53vmin + 8vh);*/
-  top:   calc(52vmin + 5vh);
+  top:   calc(47vmin + 8vh);
   height: 12.8vmin;
   left: calc(20vmin + 2vh); 
   width: 49vmin;
@@ -221,3 +221,47 @@ img.infoBlock{
 
 
 } /* @media filter*/
+
+
+@media all and  (max-aspect-ratio: 6/5) and (max-height: 599px){
+
+button{
+  font-size: calc(1.5vw + 0.5vmax);
+  width:    calc( 10vw + 7vmax );
+  height:    calc(2vw + 1vmax);
+  vertical-align: middle; /* bug: DOS */
+}
+
+TR{
+  font-size:3.0vmin; 
+  color: #000000;
+}
+
+/* (6a) most important sliders: demand variables such as Qin percTruck 
+/* and most important model parameters and action variables (speedlimit)*/
+
+
+#sliders1{ /* table elements relevant for font size */
+  position: absolute;
+  top:   calc(44vmin + 8vh);
+  height: 20vmin;
+  left: calc(15vmin + 2vh); 
+  width: 59vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (7) less important sliders; potentially dropped */
+
+#sliders2{ 
+  position: absolute;
+  top: calc(95vmin + 10vh);
+  height: 15vmin;
+  left: 28vmin; 
+  width:  42vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2;
+
+}
+}
