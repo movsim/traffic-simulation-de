@@ -1,0 +1,40 @@
+
+#sliders1{ 
+   top: 30vmin;
+}
+
+#sliders2{ 
+   height: 13vmin;
+}
+
+button.action{
+  font-size: calc( 6px + (18 - 6) * ( (100vmin - 300px) / ( 900 - 300) ));
+  width: 20vmin;
+  height: 8vmin;
+}
+
+
+@media all and  (max-aspect-ratio: 6/5){
+
+ #buttonsInsideSimulations{
+  position: absolute;
+  top: 90vmin;
+  height:  10vmin;
+  left: 10vmin;
+  width: 30vmin;
+  z-index: 2;
+ }
+}
+
+@media all and  (min-aspect-ratio: 6/5){
+
+
+ #buttonsInsideSimulations{
+  position: absolute;
+  top: 90vmin;
+  height:  10vmin;
+  left: 10vmin;
+  width: 30vmin;
+  z-index: 2;
+ }
+}
