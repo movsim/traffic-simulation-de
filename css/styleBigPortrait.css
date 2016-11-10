@@ -125,8 +125,7 @@ TR{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
- /* top: calc( 53vmin + 8vh);*/
-  top:   calc(47vmin + 8vh);
+  top:   calc(47vmin + 8vh); /* vh value as top of contents */
   height: 12.8vmin;
   left: calc(20vmin + 2vh); 
   width: 49vmin;
@@ -220,48 +219,87 @@ img.infoBlock{
 
 
 
-} /* @media filter*/
+} /* end @media filter portrait normal*/
 
 
-@media all and  (max-aspect-ratio: 6/5) and (max-height: 599px){
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (max-aspect-ratio: 6/5) and (max-width: 599px){
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
+    width: 20vmin;
+    height: 2.8vmin;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
+    height: 2.8vmin; 
+    width: 1.5vmin;
+}
+
+
+
 
 button{
-  font-size: calc(1.5vw + 0.5vmax);
-  width:    calc( 10vw + 7vmax );
-  height:    calc(2vw + 1vmax);
-  vertical-align: middle; /* bug: DOS */
+  font-size: calc(2.7vmin + 0.0vh);
+  width:    calc(14vmin + 3.5vh );
+  height:    calc(2.5vmin + 1.5vh);
+  vertical-align: center; /* bug: DOS */
 }
 
 TR{
-  font-size:3.0vmin; 
+  font-size:2.8vmin; 
   color: #000000;
 }
+
+/*(2a)*/
+
+#contents{
+  top:    calc(8vmin + 4vh);
+  height: 130vmin;
+
+}
+
+/* (4a) */
+#infoFlags{
+  top:  calc(9vmin + 4vh);
+}
+
+/* (5a) */
+#impressum{ 
+  top: calc(136vmin + 4vh);
+  height: 2vmin;
+}
+
 
 /* (6a) most important sliders: demand variables such as Qin percTruck 
 /* and most important model parameters and action variables (speedlimit)*/
 
 
 #sliders1{ /* table elements relevant for font size */
-  position: absolute;
-  top:   calc(44vmin + 8vh);
+  top:   calc(52vmin + 4vh);  /* vh value as top of contents */
   height: 20vmin;
-  left: calc(15vmin + 2vh); 
-  width: 59vmin;
-  background-color: rgba(255,255,255,0.4);
-  z-index: 2; /* the higher the integer, the more on top */
+  left: calc(17vmin + 3vh); 
+  width: 57vmin;
 }
 
 
-/* (7) less important sliders; potentially dropped */
+/* (7a) less important sliders; potentially dropped */
 
 #sliders2{ 
-  position: absolute;
-  top: calc(95vmin + 10vh);
-  height: 15vmin;
-  left: 28vmin; 
-  width:  42vmin;
-  background-color: rgba(255,255,255,0.4);
-  z-index: 2;
-
+  top: calc(112vmin + 4vh);
+  height: 23vmin;
+  left: 18vmin; 
+  width:  60vmin;
 }
+
+/* (9)-(11) */
+
+#footWhiteSpace{
+  top: calc(140vmin + 4vh);
+}
+
+#infoModels,#infoScenarios,#infoLinks{
+  top: calc(140vmin + 4vh);
 }

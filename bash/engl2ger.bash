@@ -86,6 +86,7 @@ for file in $htmlfiles; do
   perl -i -p -e 's/\>Offramp\</>Abfahrt</g' $file
   perl -i -p -e 's/de\: Offramp/de: Abfahrt/g' $file
   perl -i -p -e 's/\>Road Works\</>Baustelle</g' $file
+  perl -i -p -e 's/\>RoadWorks\</>Baustelle</g' $file
   perl -i -p -e 's/\>Uphill\</>Steigung</g' $file
   perl -i -p -e 's/de\: Road Works/de: Baustelle/g' $file
   perl -i -p -e 's/\>Resume\</>Weiter</g' $file
@@ -104,6 +105,7 @@ for file in $htmlfiles; do
   perl -i -p -e 's/Time Gap/Zeitluecke/g' $file
   perl -i -p -e 's/Min Gap/Mindestluecke/g' $file
   perl -i -p -e 's/Max Acceleration/Max Beschleun/g' $file
+  perl -i -p -e 's/Max Accel/Max Beschl/g' $file
   perl -i -p -e 's/Comf Deceleration/Komfort Verzoeg/g' $file
   perl -i -p -e 's/Comfort Decel/Komfort Verz\./g' $file
   perl -i -p -e 's/Comf Decel/Komfort Verz\./g' $file
