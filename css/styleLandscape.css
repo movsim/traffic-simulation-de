@@ -125,10 +125,10 @@ TR{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
-  top: 52vmin;
-  height: 12.8vmin;
-  left: 17vmin;  /* calc( 24vw - 23vmin);*/
-  width: 53vmin;
+  top: 48vmin;
+  height: 17vmin;
+  left: 15vmin;  /* calc( 24vw - 23vmin);*/
+  width: 58vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -217,7 +217,68 @@ img.infoBlock{
   width:  13vw;
 }
 
+} /* end @media filter landscape normal */
+
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
+    width: 20vmin;
+    height: 2.8vmin;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
+    height: 2.8vmin; 
+    width: 1.5vmin;
+}
 
 
+button{
+  font-size: calc(2.7vmin + 0.0vh);
+  width:    calc(14vmin + 3.5vh );
+  height:    calc(2.5vmin + 1.5vh);
+  vertical-align: center; /* bug: DOS */
+}
 
-} /* @media filter*/
+TR{
+  font-size:2.8vmin; 
+  color: #000000;
+}
+
+/* (7a) */
+
+#sliders2{
+  height: 20vmin;
+  width: 60vmin;
+}
+
+/* (10a) */
+
+#infoScenarios{
+  top: 40vmin;
+}
+
+/* (11a) */
+
+#infoLinks{
+  top: 100vmin;
+}
+
+} /* end @media filter landscape handheld */
+
+
+/*#########################################################*/
+/* addl settings if handheld and nearly square */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-aspect-ratio: 3/2) and (max-height: 599px){
+
+/* (7b) */
+
+#sliders2{
+  top: calc(100vh + 1vmin);
+  left: 24vmin;
+}

@@ -23,7 +23,7 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings
 
 var sizePhys=290;    //responsive design  
-var center_xPhys=142;
+var center_xPhys=139;
 var center_yPhys=-150; // ypixel downwards=> physical center <0
 
 var roadRadius=120; // 90 change scaleInit in gui.js correspondingly

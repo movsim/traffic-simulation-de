@@ -80,7 +80,6 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
-var sign_uphill_srcFile='figs/sign_uphill10.png'; 
 var sign_uphill_srcFile='figs/uphill12_small.gif'; 
 var sign_free_srcFile='figs/sign_free_282_small.png'; 
 var sign_truckOvertakingBan_srcFile='figs/truckOvertakingBan_small.gif'; 

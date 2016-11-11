@@ -48,8 +48,8 @@ img.title{
 #contents{
   position: absolute;
   top:    8vh;
+  height: 120vmin;
   bottom: 0vh;
- /* height: calc(112vmin + 10vh - 8vh);*/
   left:   0vw;
   width:  98vw;
   margin-right: 0vw;
@@ -58,8 +58,7 @@ img.title{
 }
 
 
-/* (3) the buttons field for selecting the scenarios (bigscreen in landscape)*/
-/* leave buttons layout as is; css offers only very simplistic customization */
+/* (3) the buttons field for selecting the scenarios  */
 
 #scenarios{
   position: absolute;
@@ -92,9 +91,10 @@ button{
 
 /* (5) position of the copyright: left bottom of simCanvas */
 
+
 #impressum{ 
   position: absolute;
-  bottom: 0vh;
+  top: calc(118vmin + 8vh);
   height: 2vmin;
   left: 0vw;
   width: calc(5vw + 6vmax);
@@ -137,7 +137,7 @@ TR{
 
 #sliders2{ 
   position: absolute;
-  top: calc(95vmin + 10vh);
+  top: calc(104vmin + 8vh);
   height: 15vmin;
   left: 28vmin; 
   width:  42vmin;
@@ -164,15 +164,6 @@ TR{
 /* cover simulation "grass" if needed */
 
 
-#footWhiteSpace{
-  position: absolute;
-  top: calc(112vmin + 10vh);
-  bottom: 0vh;
-  left: 0vw;
-  width: 98vw;
-  background-color: white;
-  z-index: 1;
-}
 
 
 /* (9)-(11): image layout for "text arts" title images */ 
@@ -187,7 +178,7 @@ img.infoBlock{
 
 #infoModels{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: calc(122vmin + 8vh);
   height:  40vmin;
   left:    5vw;
   width:  25vw;
@@ -199,7 +190,7 @@ img.infoBlock{
 
 #infoScenarios{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: calc(122vmin + 8vh);
   height:  40vmin;
   left:    35vw;
   width:   25vw;
@@ -210,7 +201,7 @@ img.infoBlock{
  
 #infoLinks{
   position: absolute;
-  top: calc(114vmin + 10vh);
+  top: calc(122vmin + 8vh);
   left:   70vw;
   width:  25vw;
   z-index: 2;
@@ -220,6 +211,7 @@ img.infoBlock{
 
 
 } /* end @media filter portrait normal*/
+
 
 
 /*#########################################################*/
@@ -253,22 +245,36 @@ TR{
   color: #000000;
 }
 
+/*(1a)*/
+#header{
+  width: 60vmin;
+  left: calc( 10vw + 10vmin);
+}
+
 /*(2a)*/
 
 #contents{
-  top:    calc(8vmin + 4vh);
+  top:    calc(9vmin + 4vh);
+  width:  97vw;
   height: 130vmin;
+}
 
+/*(3a)*/
+
+#scenarios{
+  top:     6vmin;
 }
 
 /* (4a) */
+
 #infoFlags{
-  top:  calc(9vmin + 4vh);
+  left:   calc( 97vw - 20vmin);
+  top:  calc(9.5vmin + 4vh);
 }
 
 /* (5a) */
 #impressum{ 
-  top: calc(136vmin + 4vh);
+  top: calc(137vmin + 4vh);
   height: 2vmin;
 }
 
@@ -277,10 +283,10 @@ TR{
 /* and most important model parameters and action variables (speedlimit)*/
 
 
-#sliders1{ /* table elements relevant for font size */
+#sliders1{ 
   top:   calc(52vmin + 4vh);  /* vh value as top of contents */
   height: 20vmin;
-  left: calc(17vmin + 3vh); 
+  left: calc(15vmin + 3vh); 
   width: 57vmin;
 }
 
@@ -294,12 +300,45 @@ TR{
   width:  60vmin;
 }
 
-/* (9)-(11) */
-
-#footWhiteSpace{
-  top: calc(140vmin + 4vh);
-}
+/* (9a)-(11a) */
 
 #infoModels,#infoScenarios,#infoLinks{
   top: calc(140vmin + 4vh);
+}
+
+}
+
+/*#########################################################*/
+/* addl settings nearly square viewport
+/*#########################################################*/
+@media all and  (min-aspect-ratio: 3/4) and (max-aspect-ratio: 6/5){
+
+/*(2b)*/
+
+#contents{
+  top:    9vh;
+  height: 91vh;
+}
+
+/* (5b)*/
+
+#impressum{ 
+  top: 98vh;
+  height: 2h;
+}
+
+/* (7b)  */
+
+#sliders2{ 
+  top: calc(100vh + 1vmin);
+  height: 18vmin;
+}
+
+/* (9b)-(11b) */
+
+#infoModels,#infoScenarios,#infoLinks{
+  top: calc(100vh + 21vmin);
+}
+
+
 }
