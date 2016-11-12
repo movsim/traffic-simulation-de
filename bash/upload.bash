@@ -89,7 +89,7 @@ targetForUpload="$HOME/public_html/professional/trafficSimulationDe_html5"
 cp -r $targetDir/* $targetDir.zip $targetForUpload
 
 echo "upload via filezilla from $targetForUpload:"
-echo "Host: traffic-simulation.de"
+echo "Host: sftp://mtreiber.de"
 echo "Username: p537815"
 echo "Password: schwerster Onsight gross mit Frz Grad"
 

@@ -281,9 +281,7 @@ function drawU() {
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
       mainOffOffset=mainroadLen-straightLen;
       center_xPhys=1.2*arcRadius;
-      center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-      center_x=0.50*canvas.width; // pixel coordinates
-      center_y=0.48*canvas.height;
+      center_yPhys=-1.35*arcRadius; // ypixel downwards=> physical center <0
 
       scale=refSizePix/sizePhys; 
       if(true){

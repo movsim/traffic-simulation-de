@@ -53,8 +53,6 @@ function canvas_resize(canvas,limAspectRatio){
   */ 
 
     if(hasChanged){
-        center_x=0.50*canvas.width; // pixel coordinates
-        center_y=0.48*canvas.height;
 	//var refDim=Math.min(canvas.width,canvas.height*limAspectRatio);
 	var refDim=Math.min(canvas.height,canvas.width/limAspectRatio);
 	scale=refDim/sizePhys;  

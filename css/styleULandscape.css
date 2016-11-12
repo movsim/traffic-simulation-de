@@ -119,7 +119,7 @@ TR{
 
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
-  top: 25vmin;
+  top: 32vmin;
   height: 13vmin;
   left: 40vmin;  /* calc( 24vw - 23vmin);*/
   width: 49vmin;
@@ -257,18 +257,18 @@ TR{
 /* (7a-9a) */
 
 #sliders1{ 
-  top: calc(24vmin + 0vw);
+  top: calc(34vmin - 3vw);
   height: 18vmin;
   left: 35vmin;
-  width: 60vmin;
+  width: 64vmin;
 }
 
 
 #sliders2{
-  top: calc(68vmin - 7vw);
-  height: 18vmin;
+  top: calc(62vmin - 5vw);
+  height: 14vmin;
   left: 35vmin;
-  width: 60vmin;
+  width: 64vmin;
 }
 
 #sliders3{ /* hide */

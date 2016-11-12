@@ -72,7 +72,7 @@ img.title{
 }
 
 button{
-  font-size: calc( 6px + (18 - 6) * ( (100vmin - 300px) / ( 900 - 300) ));
+  font-size: calc(2.0vmin + 0.15vw);
   width: 17vmin;
 }
 
@@ -139,8 +139,8 @@ TR{
   position: absolute;
   bottom: 1vmin;
   height: 15vmin;
-  right:  15.5vw;
-  width:  40vmin;
+  right:  15.0vw;
+  width:  45vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2;
 
@@ -237,10 +237,9 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 
 
 button{
-  font-size: calc(2.7vmin + 0.0vh);
-  width:    calc(14vmin + 3.5vh );
-  height:    calc(2.5vmin + 1.5vh);
-  vertical-align: center; /* bug: DOS */
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(14vmin + 3vw );
+ /* height:    calc(3.5vmin + 1vw);*/
 }
 
 TR{
@@ -248,10 +247,19 @@ TR{
   color: #000000;
 }
 
+
+/* (3a) */
+
+#scenarios{
+  left: calc(80.5vw - 14vmin); /* left border: 84vw*/
+  width: calc(14vmin + 3vw );
+}
+
 /* (7a) */
 
 #sliders2{
-  height: 20vmin;
+  bottom: 1.5vmin;
+  height: 21vmin;
   width: 60vmin;
 }
 

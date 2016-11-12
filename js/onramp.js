@@ -10,12 +10,6 @@
 
 var hasChanged=true; // window dimensions have changed (responsive design)
 
-var width;  // taken from html canvas tag in init()
-var height; // taken from html canvas tag in init()
-var center_x; // defined in init() after value of width is known
-var center_y; // defined in init() after value of height is known
-
-
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 
@@ -309,8 +303,6 @@ function drawU() {
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-      center_x=0.50*canvas.width; // pixel coordinates
-      center_y=0.48*canvas.height;
 
       scale=refSizePix/sizePhys; 
       if(true){

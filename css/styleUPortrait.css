@@ -73,7 +73,7 @@ img.title{
 button{
   font-size: calc(1.2vw + 0.3vmax);
   width:    calc( 6vw + 7vmax );
-  height:    calc(1vw + 2vmax);
+  /*height:    calc(1vw + 2vmax);*/
   vertical-align: middle; /* bug: DOS */
 }
 
@@ -237,7 +237,7 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 button{
   font-size: calc( 2.2vmin + 0.3vh);
   width:     calc( 16vmin + 2vh);
-  height:    calc( 2.5vmin + 1.0vh);
+  height:    calc( 3.0vmin + 1.0vh);
   vertical-align: center; 
 }
 
@@ -270,23 +270,23 @@ TR{
 /* (6a-8a) */
 
 #sliders1{
-  top: calc(29vmin + 2vh);
+  top: calc(35vmin + 2vh);
   height: 18vmin;
-  left: 35vmin;
-  width: 60vmin;
+  left: 34vmin;
+  width: 62vmin;
 }
 
 #sliders2{
-  top: calc(57vmin + 2vh);
+  top: calc(62vmin + 2vh);
   height: 18vmin;
-  left: 35vmin;
-  width: 60vmin;
+  left: 34vmin;
+  width: 62vmin;
 }
 
 #sliders3{ /* hide */
   top: 50vmin;
-  left: 35vmin;
-  width: 60vmin;
+  left: 34vmin;
+  width: 62vmin;
   z-index: 0;
 }
 

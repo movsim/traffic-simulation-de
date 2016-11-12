@@ -6,6 +6,21 @@ button.action{
   height: 8vmin;
 }
 
+@media all and  (max-width: 599px){
+ button.action{
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(26vmin + 3vw );
+  height: 9vmin;
+ }
+}
+
+@media all and  (max-height: 599px){
+ button.action{
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(26vmin + 3vw );
+  height: 9vmin;
+ }
+}
 
 @media all and  (max-aspect-ratio: 6/5){
 
@@ -26,8 +41,15 @@ button.action{
   position: absolute;
   top: 90vmin;
   height:  10vmin;
-  left: 10vmin;
+  left: 30vmin;
   width: 30vmin;
   z-index: 2;
  }
+}
+
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+#sliders2{
+  height: 18vmin;
+}
 }
