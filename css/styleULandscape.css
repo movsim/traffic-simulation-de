@@ -120,7 +120,7 @@ TR{
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
   top: 25vmin;
-  height: 13.5vmin;
+  height: 13vmin;
   left: 40vmin;  /* calc( 24vw - 23vmin);*/
   width: 49vmin;
   background-color: rgba(255,255,255,0.4);
@@ -132,7 +132,7 @@ TR{
 #sliders2{ 
   position: absolute;
   top: 50vmin;
-  height: 10vmin;
+  height: 13vmin;
   left: 40vmin;
   width:  49vmin;
   background-color: rgba(255,255,255,0.4);
@@ -144,7 +144,7 @@ TR{
 
 #sliders3{ 
   position: absolute;
-  top: 90vmin;
+  top: 93vmin;
   left: 40vmin;
   width: 49vmin;
   height: 8vmin;
@@ -214,4 +214,79 @@ img.infoBlock{
 
 
 
-} /* @media filter*/
+} /* end @media filter landscape normal*/
+
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
+    width: 20vmin;
+    height: 2.8vmin;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
+    height: 2.8vmin; 
+    width: 1.5vmin;
+}
+
+
+
+button{
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(14vmin + 3vw );
+ /* height:    calc(3.5vmin + 1vw);*/
+}
+
+
+TR{
+  font-size:2.8vmin; 
+  color: #000000;
+}
+
+/* (3a) */
+
+#scenarios{
+  top:     25vmin;
+  left: calc(81vw - 14vmin); /* left border: 84vw*/
+  width: calc(14vmin + 3vw );
+}
+
+/* (7a-9a) */
+
+#sliders1{ 
+  top: calc(24vmin + 0vw);
+  height: 18vmin;
+  left: 35vmin;
+  width: 60vmin;
+}
+
+
+#sliders2{
+  top: calc(68vmin - 7vw);
+  height: 18vmin;
+  left: 35vmin;
+  width: 60vmin;
+}
+
+#sliders3{ /* hide */
+  top: 50vw;
+  width: 60vmin;
+  z-index: 0;
+}
+
+/* (10a) */
+
+#infoScenarios{
+  top: 45vmin;
+}
+
+/* (11a) */
+
+#infoLinks{
+  top: 110vmin;
+}
+
+} /* end @media filter landscape handheld */

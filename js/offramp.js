@@ -38,8 +38,8 @@ var taperLen=40;
 var straightLen=0.34*mainroadLen;      // straight segments of U
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
 var arcRadius=arcLen/Math.PI;
-var center_xPhys=95;
-var center_yPhys=-105; // ypixel downwards=> physical center <0 responsive
+var center_xPhys=95; // only IC!!
+var center_yPhys=-105; // only IC!! ypixel downwards
 
 var offRadius=2.6*arcRadius;
 
@@ -281,7 +281,7 @@ function drawU() {
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
       mainOffOffset=mainroadLen-straightLen;
       center_xPhys=1.2*arcRadius;
-      center_yPhys=-1.2*arcRadius; // ypixel downwards=> physical center <0
+      center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       center_x=0.50*canvas.width; // pixel coordinates
       center_y=0.48*canvas.height;
 

@@ -1,11 +1,4 @@
 
-#sliders1{ 
-   top: 30vmin;
-}
-
-#sliders2{ 
-   height: 13vmin;
-}
 
 button.action{
   font-size: calc( 6px + (18 - 6) * ( (100vmin - 300px) / ( 900 - 300) ));

@@ -27,8 +27,8 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings [m]
 
 var sizePhys=350;   
-var center_xPhys=135;
-var center_yPhys=-180; // ypixel downwards=> physical center <0
+var center_xPhys=135; // !! only IC!
+var center_yPhys=-180; // !! only IC! ypixel downwards=> physical center <0
 
 var mainroadLen=1200;
 var nLanes=3;
@@ -395,7 +395,7 @@ function drawU() {
 
 
       center_xPhys=1.2*arcRadius;
-      center_yPhys=-1.3*arcRadius; // ypixel downwards=> physical center <0
+      center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       center_x=0.50*canvas.width; // pixel coordinates
       center_y=0.48*canvas.height;
 
