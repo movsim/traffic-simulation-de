@@ -59,6 +59,72 @@ external open library to implement sliders. Has some drawbacks (no docu of how t
 
 callback (implementation) of the buttons for the different scenarios on the \<scenario\>.html simulation pages
 
+## Numerical Integration
+
+The underlying car-following model for the longitudinal dynamics
+providing the accelerations is time continuous, so a numerical update
+scheme is necessary to get the speeds and positions of the vehicles as
+approximate integrals over the accelerations. For our purposes, it
+turned out that following _ballistic scheme_ is most efficient in
+terms of computation load for a given precision. Its pseudo-code for
+an update of the speeds and positions pos over a fixed time interval _dt_ reads
+
+_speed(t+dt)=speed(t)+acc(t)*dt,_
+
+_pos(t+dt)=pos(t)+speed(t)*dt+1/2*acc(t)*dt^2_,
+
+where acc(t) is the acceleration calculated by the car-following model
+at the old time t.
+
+Lane-changing is modelled by the discrete model MOBIL, so no
+integration is needed there. In order to reuse the accelerations
+needed by MOBIL for calculating the lane-changing decisions, lane
+changing is performed after evaluating _all_
+accelerations. Furthermore, since MOBIL anticipates the future
+situation, the actual speed and positional update is performed after
+the lane changing. Hence the central update sequence performed for all
+```road ``` instances of the simulated network is given by
+
+```
+  roadInstance.calcAccelerations();
+  roadInstance.changeLanes();         
+  roadInstance.updateSpeedPositions();
+```
+in the main simulation file of the given scenario (```ring.js```,
+  ```onramp.js``` etc). The method is either ```updateRing()``` (ring
+  road), or ```updateU()``` (the other scenarios).
+
+* Notice that the update is in parallel, i.e., updating _all_
+ accelerations on a given road, then all lanes, all speeds, and all
+ positions sequentially (if there are interdependencies between
+ the road elements of the network, this sequentiality should also be
+ traversed over all road 
+ instances which, presently, is not done) 
+
+* The central update step is prepended by
+  updating the model parameters as a
+  response to user interaction, or if vehicles have reached special
+  zones such as the uphill region, or mandatory lane-changing regions before lane closing and offramps.
+
+* Depending on the road type, the central update step is prepended by
+  changing the vehicle population (overall density, truck
+  percentage) as a response to user interaction for the ring road, and
+  appended by applying the 
+  boundary conditions ```roadInstance.updateBCdown``` and
+  ```roadInstance.updateBCup``` for all non-closed network links. For
+  further information on boundary conditions, see the info link
+  _Boundary Conditions_ at ```traffic-simulation.de```.
+
+* The implementation of the actual models is given in
+  ```models.js```. Presently (as of November 2016), an extension of
+  the Intelligent-Driver Model
+  ("ACC model") is used as acceleration model, and MOBIL as the
+  lane-changing model. For further information, see the scientific
+  references below, or the info links below the heading _Traffic Flow
+  Models_ at ```traffic-simulation.de```
+
+
+ 
 ## Graphics
 
 The drawing is essentially based on images:

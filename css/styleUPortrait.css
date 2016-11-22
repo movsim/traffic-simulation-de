@@ -235,7 +235,7 @@ div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,
 
 
 button{
-  font-size: calc( 2.2vmin + 0.3vh);
+  font-size: calc( 2.3vmin + 0.3vh);
   width:     calc( 16vmin + 2vh);
   height:    calc( 3.0vmin + 1.0vh);
   vertical-align: center; 
