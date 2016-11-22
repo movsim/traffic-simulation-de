@@ -62,12 +62,12 @@ callback (implementation) of the buttons for the different scenarios on the \<sc
 ## Numerical Integration
 
 The underlying car-following model for the longitudinal dynamics
-providing the accelerations is time continuous, so a numerical update
+providing the accelerations is time-continuous, so a numerical update
 scheme is necessary to get the speeds and positions of the vehicles as
 approximate integrals over the accelerations. For our purposes, it
 turned out that following _ballistic scheme_ is most efficient in
 terms of computation load for a given precision. Its pseudo-code for
-an update of the speeds and positions pos over a fixed time interval _dt_ reads
+an update of the speeds _speed_ and positions _pos_ over a fixed time interval _dt_ reads
 
 _speed(t+dt)=speed(t)+acc(t)*dt,_
 
@@ -91,7 +91,7 @@ the lane changing. Hence the central update sequence performed for all
   roadInstance.updateSpeedPositions();
 ```
 in the main simulation file of the given scenario (```ring.js```,
-  ```onramp.js``` etc). The method is either ```updateRing()``` (ring
+  ```onramp.js``` etc). The main method is either ```updateRing()``` (ring
   road), or ```updateU()``` (the other scenarios).
 
 * Notice that the update is in parallel, i.e., updating _all_
@@ -99,17 +99,19 @@ in the main simulation file of the given scenario (```ring.js```,
  positions sequentially (if there are interdependencies between
  the road elements of the network, this sequentiality should also be
  traversed over all road 
- instances which, presently, is not done) 
+ instances which, presently, is not done).
 
 * The central update step is prepended by
   updating the model parameters as a
-  response to user interaction, or if vehicles have reached special
-  zones such as the uphill region, or mandatory lane-changing regions before lane closing and offramps.
+  response to user interaction, if vehicles reach special
+  zones such as the uphill region, or if they reach mandatory lane-changing regions before lane closing and offramps.
 
-* Depending on the road type, the central update step is prepended by
+* For closed links (ring road), the central update step is prepended by
   changing the vehicle population (overall density, truck
-  percentage) as a response to user interaction for the ring road, and
-  appended by applying the 
+  percentage) as a response to user interaction.
+
+* For open links, the central method is appended
+   by applying the 
   boundary conditions ```roadInstance.updateBCdown``` and
   ```roadInstance.updateBCup``` for all non-closed network links. For
   further information on boundary conditions, see the info link
@@ -119,7 +121,12 @@ in the main simulation file of the given scenario (```ring.js```,
   ```models.js```. Presently (as of November 2016), an extension of
   the Intelligent-Driver Model
   ("ACC model") is used as acceleration model, and MOBIL as the
-  lane-changing model. For further information, see the scientific
+  lane-changing model. We use the ACC model rather
+  than the "original" IDM since the former is less sensitive to too
+  low gaps which makes lane changing easier. For the same reason, we
+  have modified MOBIL somewhat by making its ```bSafe``` parameter
+  depending on the speed. Thus, we make lane changes more aggressive
+  in congested situations.  For further information, see the scientific
   references below, or the info links below the heading _Traffic Flow
   Models_ at ```traffic-simulation.de```
 
@@ -146,4 +153,12 @@ The drawing is essentially based on images:
     
 [4] A. Kesting, M. Treiber, and D. Helbing. _Enhanced intelligent driver model to access the impact of driving strategies on traffic capacity_. Philosophical Transactions of the Royal Society A, 4585-4605 (2010). [Preprint](http://arxiv.org/abs/0912.3613)
     
-[5] M. Treiber, and A. Kesting. An open-source microscopic traffic simulator.     IEEE Intelligent Transportation Systems Magazine, 6-13 (2010). [Preprint](http://arxiv.org/abs/1012.4913)
+[5] M. Treiber, and A. Kesting. An open-source microscopic traffic
+simulator.     IEEE Intelligent Transportation Systems Magazine, 6-13
+(2010). [Preprint](http://arxiv.org/abs/1012.4913)
+
+[6] M. Treiber and V. Kanagaraj.
+Comparing Numerical Integration Schemes for Time-Continuous Car-Following Models
+Physica A: Statistical Mechanics and its Applications 419C, 183-195 (2015)
+DOI 10.1016/j.physa.2014.09.061
+[Preprint](arxiv e-print 1403.4881)
