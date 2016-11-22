@@ -62,7 +62,8 @@ callback (implementation) of the buttons for the different scenarios on the \<sc
 ## Numerical Integration
 
 The underlying car-following model for the longitudinal dynamics
-providing the accelerations is time-continuous, so a numerical update
+providing the accelerations (Intelligent-Driver Model, IDM, or
+extensions thereof) is time-continuous, so a numerical update
 scheme is necessary to get the speeds and positions of the vehicles as
 approximate integrals over the accelerations. For our purposes, it
 turned out that following _ballistic scheme_ is most efficient in
@@ -73,12 +74,13 @@ _speed(t+dt)=speed(t)+acc(t)*dt,_
 
 _pos(t+dt)=pos(t)+speed(t)*dt+1/2*acc(t)*dt^2_,
 
-where acc(t) is the acceleration calculated by the car-following model
-at the old time t.
+where _acc(t)_ is the acceleration calculated by the car-following model
+at the (old) time t.
 
 Lane-changing is modelled by the discrete model MOBIL, so no
 integration is needed there. In order to reuse the accelerations
-needed by MOBIL for calculating the lane-changing decisions, lane
+needed by MOBIL (_Minimizing Obstructions By Intelligent
+Lane-changes_") for calculating the lane-changing decisions, lane
 changing is performed after evaluating _all_
 accelerations. Furthermore, since MOBIL anticipates the future
 situation, the actual speed and positional update is performed after
