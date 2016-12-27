@@ -1,3 +1,12 @@
+
+//#############################################################
+// color manipulation routines
+// same in traffic-simulatioun.de and mixedTraffic
+//#############################################################
+
+
+
+
 /**
  * Converts an HSL color value to RGB. Conversion formula
  * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
@@ -10,8 +19,7 @@
  * @return  Array           The RGB representation
  */
 
-
-function hslaToRgba(h, s, l, a) {
+function hslToRgb(h, s, l) {
   var r, g, b;
 
   var myVersion=true;
@@ -51,52 +59,56 @@ function hslaToRgba(h, s, l, a) {
         b = Math.round(255*hue2rgb(p, q, h - 1/3));
     }
   }
-  return [r, g, b, a];
+  return [r, g, b];
 
 }
 
 
 
 
-
-// changes speed in semi-transparent rainbow colors
-// if (isTruck) [arg optional], then everything is darker
+/**
+ * color-codes speed in semi-transparent rainbow colors 
+ * in form of an rgba string which can be used as an argument for 
+ * ctx.fillStyle etc
+ * if (isTruck) [arg optional], then the rgba color is darker
+ *
+ * @param   v: the actual speed
+ * @param   vmin,vmax: speed range for color coding
+ * @param   vehType: darker if vehType=="truck"
+ * @return  Array           The RGB representation
+ */
 
 function colormapSpeed(v, vmin, vmax, vehType){
     var hue_vmin=10/360; // color wheel: 0=360=red
-    var hue_vmax=270/360; // color wheel: 0=360=red
+    var hue_vmax=270/360; 
 
 
-    var vrel= Math.min( (v-vmin)/(vmax-vmin), 1.0);
-    // transform nonlinearly sshaped to shrink the unnaturally wide 
+
+    // rel speed with respect to [vmin,vmax]
+    // transform nonlinearly (use vrel_nl) to shrink the unnaturally wide 
     // central green regions
 
+    var vrel= Math.min( (v-vmin)/(vmax-vmin), 1.0);
     var vrel_nl=(vrel<=0.5) ? 2*Math.pow(vrel,2) : 1-2*Math.pow(vrel-1,2)
 
+    // determine hue-saturation-lightness
+
     var hue=hue_vmin+vrel_nl*(hue_vmax-hue_vmin);
+    var sat=1; // use max saturation
+    var lightness=(vehType=="truck") ? 0.2 : 0.5; //0: all black; 1: white
 
-     // use max. saturation
-    var sat=1;
+    // convert into rgb and add opacity (0: fully transp; 1: opaque=normal)
 
-     // brightness=1: all white; 0: all black; colors: in between
-    var brightness=0.5; 
-    //var rgbaArr=hslaToRgba(0.1,1,0.5,0.5);
-    var rgbaArr=hslaToRgba(hue,sat,brightness,0.5);
+    var rgbArr=hslToRgb(hue,sat,lightness);
 
-    r=rgbaArr[0];
-    g=rgbaArr[1];
-    b=rgbaArr[2];
-    a=rgbaArr[3];
-    if(vehType=="truck"){
-	r=Math.round(0.6*r);
-	g=Math.round(0.6*g);
-	b=Math.round(0.6*b);
-	a=0.45;
-    }
+    r=rgbArr[0];
+    g=rgbArr[1];
+    b=rgbArr[2];
+    a=(vehType=="truck") ? 0.4 : 0.5;
     var colStr="rgba("+r+","+g+","+b+","+a+")";
     return colStr;
-
 }
+
 
 /** draws colormap graphically on graphics "2d" context ctx
 
@@ -112,8 +124,6 @@ function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
 
     ctx.setTransform(1,0,0,1,xCenterPix-0.5*widthPix,
 		     yCenterPix-0.5*heightPix); 
-
-    //console.log("in drawColormap: xCenterPix="+xCenterPix+" yCenterPix="+yCenterPix);
 
 
     // draw the actual speed colormap
@@ -134,13 +144,15 @@ function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
     // draw the legend
 
     var textsize=0.11*heightPix;
-    //var textsize=scale*20;
     ctx.font=textsize+'px Arial';
     var textwidthPix=4*textsize;
     ctx.fillStyle="#FFFFFF";
 
     // white bg box
+
     ctx.fillRect(widthPix,-0.5*textsize,textwidthPix,heightPix+textsize); 
+
+    // speed labels
 
     for (var i=0; i<nlegend; i++){
 	var v=vminMap+i*(vmaxDisplay-vminDisplay)/(nlegend-1);
@@ -152,6 +164,7 @@ function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
     }
 
     // revert to neutral transformation at the end!
+
     ctx.setTransform(1,0,0,1,0,0); 
 
 }

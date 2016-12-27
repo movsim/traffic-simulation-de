@@ -1,6 +1,20 @@
 //#################################
-// longitudinal model
+// longitudinal models
 //#################################
+
+
+/**
+longitudinal model IDM
+
+@param v:     desired speed [m/s]
+@param T:     desired time gap [s]
+@param s0:    minimum gap [m]
+@param a:     maximum acceleration [m/s^2]
+@param b:     comfortable deceleration [m/s^2]
+
+@return:      IDM instance (constructor)
+*/
+
 
 function IDM(v0,T,s0,a,b){
     this.v0=v0; 
@@ -11,14 +25,25 @@ function IDM(v0,T,s0,a,b){
     this.alpha_v0=1; // multiplicator for temporary reduction
 
     // possible restrictions (value 1000 => initially no restriction)
+
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
     this.bmax=16;
+}
 
-    // last arg optional if called with 3 args ignored
-    //this.calcAcc=function(s,v,vl,al){ // this works as well
+/**
+IDM acceleration function
 
-    IDM.prototype.calcAcc=function(s,v,vl,al){ // this works as well
+@param s:     actual gap [m]
+@param v:     actual speed [m/s]
+@param vl:    leading speed [m/s]
+@param al:    leading accel [m/s^2] (only for common interface; ignored)
+
+@return:  acceleration [m/s^2]
+*/
+
+
+IDM.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
         //MT 2016: noise to avoid some artifacts
 
@@ -38,25 +63,41 @@ function IDM(v0,T,s0,a,b){
 	var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
 	var accInt_IDMplus=accInt+this.a;
 
-        // log and return
+        // return original IDM
 
-	if(this.alpha_v0<0.6){
-          console.log("IDM.calcAcc:"
-	    +" speedlimit="+this.speedlimit
-	    +" speed="+v
-	    +" accFree="+accFree
-	    +" acc="+Math.max(-this.bmax, accFree + accInt + accRnd));
-	}
-	return (v0eff<0.00001) ? 0 : Math.max(-this.bmax, accFree + accInt + accRnd);//IDM
-	//return (v0eff<0.00001) ? 0 : Math.max(-this.bmax, accFree + accInt_IDMplus + accRnd);//IDMplus
+	return (v0eff<0.00001) ? 0 
+	    : Math.max(-this.bmax, accFree + accInt + accRnd);
 
-    }//IDM.prototype.calcAcc
-}
+        // return IDM+
+
+	//return (v0eff<0.00001) ? 0
+        // : Math.max(-this.bmax, Math.min(accFree, accInt_IDMplus) + accRnd);
+
+}//IDM.prototype.calcAcc
 
 
-// MT 2016: ACC model
+
+
+
+
+
+/**
+MT 2016: longitudinal model ACC: Has same parameters as IDM 
+but exactly triangular steady state and "cooler" reactions if gap too small
+
+@param v:     desired speed [m/s]
+@param T:     desired time gap [s]
+@param s0:    minimum gap [m]
+@param a:     maximum acceleration [m/s^2]
+@param b:     comfortable deceleration [m/s^2]
+
+@return:      ACC instance (constructor)
+*/
+
+
 
 //!! Chromium does not know Math.tanh(!!)
+
 function myTanh(x){
     return (x>50) ? 1 : (x<-50) ? 0 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
 }
@@ -73,8 +114,23 @@ function ACC(v0,T,s0,a,b){
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
     this.bmax=18;
+}
 
-    ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
+
+
+/**
+ACC acceleration function
+
+@param s:     actual gap [m]
+@param v:     actual speed [m/s]
+@param vl:    leading speed [m/s]
+@param al:    leading acceleration [m/s^2] (optional; al=0 if 3 args)
+
+@return:  acceleration [m/s^2]
+*/
+
+
+ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 	if(s<0.0001){return -this.bmax;}
 
@@ -114,7 +170,7 @@ function ACC(v0,T,s0,a,b){
         // log and return
 
 	//if(this.alpha_v0<0.6){ // alpha not yet used
-	//if(v>this.v0){
+
 	if(false){
           console.log("ACC.calcAcc:"
 		      +" speedlimit="+this.speedlimit // no u,v!
@@ -130,8 +186,9 @@ function ACC(v0,T,s0,a,b){
 	}
 	return accReturn;
 
-    }//ACC.prototype.calcAcc
-}
+}//ACC.prototype.calcAcc
+
+
 
 
 //#################################

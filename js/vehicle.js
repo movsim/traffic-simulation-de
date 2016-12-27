@@ -2,9 +2,9 @@
 // type = "car" or "truck"
 
 function vehicle(length, width, u, lane, speed, type){
-    this.length=length; // car length in pixel units (!!later phys units)
-    this.width=width; // car width in pixel units (!!later phys units)
-    this.u=u;  // arc length in pixel units (!!later dynamic and in phys units)
+    this.length=length; // car length[m]
+    this.width=width;   // car width[m]
+    this.u=u;           // arc length [m]
     this.lane=lane;
     this.speed=speed;
     this.type=type;
