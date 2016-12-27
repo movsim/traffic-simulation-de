@@ -1,6 +1,7 @@
 # user-defined ignores (avoid committing large files)
 
 *.swp
+*.zip
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
@@ -16,3 +17,11 @@
 *_ger.js
 *~
 int
+
+## other files
+README_Responsinator
+README_privateContributions
+bash/generateSpiffyTrafficSim2.README
+bash/generateSpiffyTrafficSim2.sh.old
+css_old
+trafficSimulationLocalVersion
