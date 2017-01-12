@@ -15,7 +15,7 @@ longitudinal model IDM
 @return:      IDM instance (constructor)
 */
 
-
+ 
 function IDM(v0,T,s0,a,b){
     this.v0=v0; 
     this.T=T;
@@ -99,7 +99,7 @@ but exactly triangular steady state and "cooler" reactions if gap too small
 //!! Chromium does not know Math.tanh(!!)
 
 function myTanh(x){
-    return (x>50) ? 1 : (x<-50) ? 0 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
+    return (x>50) ? 1 : (x<-50) ? -1 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
 }
 
 function ACC(v0,T,s0,a,b){
