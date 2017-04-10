@@ -138,10 +138,21 @@ var roadIDmain=1;
 var roadIDramp=2;
 var mainroad=new road(roadIDmain, mainroadLen, nLanes, 0.1*densityInit, speedInit, 
 		      truckFracInit, isRing);
-var onramp=new road(roadIDramp, rampLen, 1, densityInit, speedInit, truckFracInit, isRing);
+var onramp=new road(roadIDramp, rampLen, 1, 0*densityInit, speedInit, truckFracInit, isRing);
 onramp.LCModelMandatoryRight=LCModelMandatoryRight; //unique mandat LC model
 onramp.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
 
+//!! test Micro-IC (!! trucks may change to cars due to init truck frac)
+
+if(false){
+    types  =[0,    0,    1,    0];
+    lengths=[8,    5,    14,   7];
+    widths =[4.5,  4,    6,  4.5];
+    longPos=[150,  160,  170,  180];
+    lanes  =[0,    1,    2,    0];
+    speeds =[25,   25,   0,   30];
+    mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
+}
 
 // add standing virtual vehicle at the end of onramp (1 lane)
 // prepending=unshift (strange name)

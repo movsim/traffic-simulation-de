@@ -11,6 +11,8 @@ road segment (link) object constructor: logic-geometrical properties (u,v),
 physical dynamics of the vehicles on a road section,
 drawing routines of road/vehicles 
 with road geometry functions (u,v)->(x,y) to be provided by the main program 
+u=long coordinate [m] (increasing in driving direction
+v=lateral coordinate [lanewidth units] (real-valued; left: 0; right: nLanes-1)
 ##########################################################
  
 @param roadID:          integer-valued road ID
@@ -105,8 +107,9 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 
     }
 
-    //!!! select "ego vehicle" and mark it
-    // by changing its id to 1 (they begin at 100, otherwise)
+    //!!! select "ego vehicle" or other "special vehicles" and mark it/them
+    // by changing its id to 1-99 
+    // (the normal id's begin at 100 as defined in the vehicle cstr)
 
     var iEgo=Math.floor(0.8*this.veh.length);
     if(this.veh.length>0){this.veh[iEgo].id=1;} 
@@ -126,6 +129,8 @@ road.prototype.writeVehicles= function() {
 		" roadLen="+this.roadLen);
     for(var i=0; i<this.veh.length; i++){
       console.log(" veh["+i+"].id="+this.veh[i].id
+		   +"  type="+this.veh[i].type
+		   +"  len="+this.veh[i].length
 		   +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		   +"  lane="+this.veh[i].lane
 		   +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
@@ -138,7 +143,7 @@ road.prototype.writeVehicles= function() {
 		   +"  iLagLeft="+this.veh[i].iLagLeft
 		   +"");
   }
-}
+} // road cstr
 
 
 //######################################################################
@@ -149,13 +154,76 @@ road.prototype.writeVehiclesSimple= function() {
     console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
 		" roadLen="+this.roadLen);
     for(var i=0; i<this.veh.length; i++){
-      console.log(" veh["+i+"].u="+parseFloat(this.veh[i].u,10).toFixed(1)
-		   +"  lane="+this.veh[i].lane
-		   +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
-		   +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
-		   +"");
+	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +"  lane="+this.veh[i].lane
+		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
+		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
+		    +"");
   }
 }
+
+/**
+#############################################################
+micro-IC 
+#############################################################
+
+initialize the road (segment) with explicitely given single vehicles 
+defined by arrays of the types, lengths etc that all need to have the
+same number of elements (otherwise, an error is given)
+
+@param types:   array of veh types (0="car", 1="truck", 2="obstacle")
+@param lengths: array of veh lengths [m]
+@param widths:  array of veh widths [m]
+@param longPos: array of the init longitudinal positions of the veh front [m]
+@param lanes:   array of the initial lanes (0=left, nLanes-1=right)
+@param speeds:  array of the initial speeds [m/s]
+@return:        void; (re-)defines the road's veh array
+*/
+
+road.prototype.initializeMicro=function(types,lengths,widths,longPos,lanes, 
+					speeds){
+
+    var nvehInit=types.length;
+    if( (lengths.length!=nvehInit) || (widths.length!=nvehInit)
+	|| (longPos.length!=nvehInit) || (lanes.length!=nvehInit)
+	|| (speeds.length!=nvehInit)){
+	console.log(
+	    "road.initializeMicro: bad input: not all arrays have length",
+	    nvehInit);
+	return 0;
+    }
+
+    //empty vehicles array if not empty
+
+    if(this.veh.length>0){this.veh.splice(0,this.veh.length);}
+
+    // add the new vehicles to the array
+
+    for(var i=0; i<types.length; i++){
+
+        // !! later on directly (if types internally = integer)
+	var type=(types[i]==0) ? "car" :
+	    (types[i]==1) ? "truck" : "obstacle";
+	
+        var vehNew=new vehicle(lengths[i],widths[i], 
+			       longPos[i],lanes[i], speeds[i], type);
+	this.veh.push(vehNew);
+    }
+
+    // set up all neighborhood relations
+
+    this.sortVehicles();
+    this.updateEnvironment();
+
+    // check
+
+    if(true){
+        console.log("road.initializeMicro: initialized with ", 
+		    this.veh.length," vehicles");
+	this.writeVehicles();
+    }
+}  //initializeMicro
 
 
 
@@ -431,10 +499,15 @@ road.prototype.calcAccelerations=function(){
 	    if(this.isRing){s+=this.roadLen;} // periodic BC; accLead OK
 	    else{s=10000;accLead=0;} // free outflow BC: virt veh 10km away
 	}
-	this.veh[i].acc
-	    =this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead);
 
-//!!!
+        // set acc=0 explicitely if obstacle 
+        // (it may have truck model by this.updateModelsOfAllVehicles)
+	this.veh[i].acc 
+	    =(this.veh[i].type != "obstacle") 
+	    ? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead) : 0;
+
+
+        //!!!
 	if(this.veh[i].id==1){// ego vehicle
 	    this.veh[i].acc+=0;
 	}

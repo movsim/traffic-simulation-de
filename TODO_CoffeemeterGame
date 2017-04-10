@@ -1,0 +1,74 @@
+TODO  (apr17)
+
+* DONE check traffic-simulation-de/js durch Vergleich mit mixed und
+  traffic-simulation-minimal und baue
+  Erkenntnisse von dort ein (Vereinfachung etc), 
+  v.A. road.js: Vgl. road.js in traffic-simulation-minimal,
+  traffic-simulation-de und mixed und optimiere die *voll funktionale*
+  traffic-simulation-de/js/road.js 
+
+* DONE definiere Mikro-ICs als Methode von road.js (demo: onramp.js)
+
+* Kombiniere Top-Level-Element aus roadworks.js und roadworks_gui.js in neues
+  Toplevel-File coffeemeterGame.js (und coffeemeterGame.html, .css)
+
+* GUI: keine Slider, der normale "Start/Stop/Resume" Resume wird
+  ersetzt durch einen Start-Button, welcher nach Klick verschwindet
+  (document.getElementById('togglee').style.visibility = 'hidden')
+  und html5-"Fadenkreuz" Platz macht (Bullet-Point: (0,0),
+  "beschleunigen" (oben), "bremsen" (unten) sowie "links" und "rechts"
+  seitlich => ../coffemeter/Coffeemeter_main.js
+
+* Systemablauf: feste  Parameter, Mikro-ICs
+  (einschl. Zusammensetzung), BC-Fluss/Fluesse=0, Baustelle bei
+  u=40m, Ziel bei u=500m. Die Spielidee lebt
+  von den Micro-ICs: Ego-Fz hinter langsame LKW, welche vor der
+  Engstelle (linke Spur schliesst) ueberholt werden muessen, evtl. Kurve
+
+* Grafik: Mit dem stark gekennzeichnetem Ego-Fz (farbig, alle anderen
+  Fz grau bzw. schwachfarbig) mitfahrende Ansicht (zunaechst 2d,
+  Vogelperspektive wie bisher). Mitfahrend => aendere in
+  ctx.setTransform die Translationsparameter durch Beitrag
+  scale*uCenterPhysRoad bzw. Umdefinition von traj_x und traj_y
+  (phys. Koordinaten, wirkt
+  auf Strasse und Fzge und ist unabhaengig von Fensterveraenderungen)
+  durch traj_x(u) => traj_x(u,uCenter), traj_y analog zB center_xPhys
+  + traj_x(u) - traj_x(uCenter), uCenter als f(Ego-Fz), implementiert
+  in draw-Routinen mit zus arg uCenter, nicht in traj_x(u), traj_y(u) 
+
+* Response auf GUI Mouse-X und Mouse-Y: 
+  - X: entweder Lenken = zweite Ableitung => Tricky, nicht zu
+  uebersteuern/Spur zu halten, oder Maus direkt laterale Position =>
+  tricky, Kaffee nicht ueberschwappen zu lassen. Y: in jedem Fall
+  Beschl/Bremsen (mit lin Abnahme bei vmax und v= Restriktion wie beim
+  Coffeemeter 
+
+* DONE Definition und Identifikation des Ego-Fahrzeuges (Fz-id=1)
+
+* Spezifikation der Reaktion des Umgebungsverkehrs: longit=>klar (normal),
+  lateral=>normal, aber keine Antizipation der anderen Fz: Die jeweils
+  aktuelle Pos des Fz-Zentrums gilt. Oder einfache Antizipation:
+  Logisch wird das Fz  der neuen Spur zugeordnet, wenn bei linearer
+  Extrapolation das Fz-Zentrum in weniger als 1 s die Spurmarkierungen
+  beruehren wird 
+
+* Game-Over Signale: 
+  1: Verlassen der Fahrbahn, |v|>0.5*roadWidth
+  2: Aktiver oder passiver Crash (das schliesst auch Crash an
+  Hindernisse mit ein) 
+  3: Ziel x=500m erreicht
+
+* Anzeige des Coffeemeters
+
+* Anzeige des Speedometers mit Kilometerzaehler als Kombiinstrument
+
+* Anzeige der Zeit
+
+* Berechnung und Anzeige der Penaltypunkte
+
+* Anzeige des Ziels und des Zielergebnisses (Zeit+Penaltypunkte)
+
+* Buchhaltung und Anzeige der High-Score-Listen
+
+ 
+

@@ -1,0 +1,94 @@
+Elemente von coffeemeterGame.js und damit des Spiels:
+
+  - onramp und mainroad mit Baustelle oder nur mainroad mit Baustelle
+  
+  - GUI-Elemente von Coffeemeter_main.js und neues Element "Start bei
+    Mausklick nahe des schwarzen Punktes" (Text wird oben angezeigt,
+    ergaenzt den normalen "Start/Stop/Resume" Button), evtl
+    mit dem Mauszeiger mitlaufende Anzeige, welche beim Start
+    verschwindet. Keine  Sliders, dafuer fester, als Variable definierte 
+    Verkehrsfluesse (kein Zufluss auf Onramp), -Zusammensetzungen und
+    Modellparameter 
+
+  - diverse neue Anzeigen, s.u. 
+
+  - neue Ablauflogik 1: IC: Mikro-IC auf Hauptstrecke und ein einziges Auto
+    (das "Ego-Auto" des Gamers am Beginn der Einfahrt), anfangs
+    stehend (die Simulation wird vom Gamer wie oben beschrieben
+    gestartet) 
+
+  - neue Ablauflogik 2: Eo-Fz vom Gamer gesteuert. Das
+    Abfangen von v<0 im updatePositionsSpeed-Block und weitere Bloecke
+    bleiben unveraendert, insbesondere merken die anderen Fz nicht,
+    dass das Ego-Fz extern gesteuert ist und reagieren normal.
+
+  - neue Ablauflogik 3: Spurwechsel: Das Ego-Fz wird kontinuierlich
+    (reellwertige Spurzahl!) seitlich versetzt
+
+  - GUI der Bremsungen: Wie beim Coffeemeter,
+    acc_u propto vertikaler Abstand Mauspointer-Bulletpoint mit
+    acc_u=-bmax am unterem Sim-Screen-Rand,
+    Nullsetzen, falls v_u<=0 und acc_u<0 nach Input:
+
+    accLong=acc_u=-bmax*dyPix/dyPixMax if dyPix>0, v_u>0
+    accLong=acc_u=0                    if dyPix>0, v_u<=0
+
+    mit 
+
+    dyPix=yPixMouse-yPixBullet           (Pixel wachsen nach unten!)
+    dyPixMax=yPixBottom-yPixBullet
+
+  - GUI der Beschleunigungen: Aehnlichh wie beim Coffeemeter, aber mit
+    mit der Geschwindigkeit abnehmende Besch-Faehigkeiten: 
+
+    accLong=acc_u=amax*(1-v_u/vmax)*dyPix/dyPixMin  if dyPix<=0
+
+    mit 
+
+    dyPixMin=yPixTop-yPixBullet     (dyPixMin<0)
+    
+
+  - GUI der Spurwechsel: Simuliert Lenkradbewegungen, also
+    lat. Beschleunigungen propto dxPix * v_u:
+
+    accLat=acc_v-v_u^2/r = bmax*v_u/vc * dxPix/dxPixMax
+
+    mit 
+
+    accLat = tatsaechliche Seitbeschleunigung (=>Sliden, Quietschen usw),
+    acc_v  = logische Seitbeschleunigung bzgl. der Fahrbahn
+    r      = vorzeichenbehafteter Kurvenradius (<0 bei Rechtskurve)
+    vc     = Geschwindigkeit, bei der man bei vollem Lenkradausschlag
+             (dxPix=+/- dxPixMax) ins Schleudern kommen wuerde 
+             (accLat=+/- bmax) 
+
+    Logisch wird das Fz gemaess 
+    acc_v=v_u^2/r + bmax*v_u/vc * dxPix/dxPixMax versetzt.
+
+  - Begrenzung des Betrages der Gesamtbeschleunigung: 
+
+    accAbs=sqrt(accLong^2+accLat^2) reduziert auf <=bmax
+
+    falls accAbs>bmax:
+      (1) optische und akustische Warnsignale (Quitschen+rote Anzeige)
+      (2) Reduktion accLong *=bmax/accAbs, accLat*=bmax/accAbs
+          (dies entspricht in etwa dem, was das ESP machen wuerde)
+
+
+  - Game-Over-Signal 3a: Verlassen der Fahrbahn, wenn logische
+    Koordinate |v|>0.5*roadWidth (Sonderbehandliung in der Merge-Zone)
+
+  - Game-Over-Signal 3b: Unfall: die eigene Luecke s_ego=s_{ego,j} oder Luecken
+    anderer Fahrzeuge mit Ego-Fz, s_{j,ego}, sind < 0 (eigener
+    Auffahrunfall bzw. Auffahrunfall anderer aufgrund von eigenen
+    Spurwechseln)
+
+  - Penalty-Zaehler durch eigenes Coffeemeter: einfach kumulierter
+    Excess=kumulierte Winkel, mit denen die Kaffeeoberflaeche ueber
+    den Rand stieg 
+
+  - Penalty-Zaehler wird auch durch andere Fz inkrementiert, wenn
+    diese staerker als b bremsen muessen: integral_dt
+    (min(0,1/g*(-acc_u(t)-b)) ) => inkrement (b-acc_u)/g*dt, wenn -acc_u>b 
+    [Hinweis: (b-acc_u)/g entspricht dem statischen Excess-Winkel, wenn der
+    kritische Winkel gleich b/g gewaehlt wird, ggf auch eigene Coffeemeter] 

@@ -35,17 +35,17 @@ var scale=scaleInit;
 var scale_min=0.6;
 var scale_max=5;
 
-var truckFracInit=0.04;
+var truckFracInit=0.04; // 0.04
 var truckFrac=truckFracInit;
 var truckFrac_min=0;
 var truckFrac_max=0.5;
 
-var qInInit=1.0; // total mainroad inflow [veh/s] 
+var qInInit=1.0; // 1.0 total mainroad inflow [veh/s] 
 var qIn=qInInit;
 var qIn_min=0;
 var qIn_max=1.5;
 
-var qOnInit=0.2; // total onramp inflow [veh/s] 
+var qOnInit=0.2; //  0.2total onramp inflow [veh/s] 
 var qOn=qOnInit;
 var qOn_min=0;
 var qOn_max=0.5;
