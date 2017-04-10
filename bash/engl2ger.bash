@@ -90,6 +90,7 @@ for file in $htmlfiles; do
   perl -i -p -e 's/\>Uphill\</>Steigung</g' $file
   perl -i -p -e 's/de\: Road Works/de: Baustelle/g' $file
   perl -i -p -e 's/\>Resume\</>Weiter</g' $file
+  perl -i -p -e 's/\>Disturb Traffic\</>St&ouml;re Verkehr</g' $file
   perl -i -p -e 's/\>Timewarp\</>Zeitraffer</g' $file
   perl -i -p -e 's/\>Density\</>Dichte</g' $file
   perl -i -p -e 's/\>Scale\</>Skala</g' $file
