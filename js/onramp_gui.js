@@ -25,7 +25,7 @@ var sliderWidth=100; // max value reached if slider at sliderWidth
 
 // controlled contents of sliders
 
-var timewarpInit=8;
+var timewarpInit=5;
 var timewarp=timewarpInit;
 var timewarp_min=0.1;
 var timewarp_max=20;
@@ -67,7 +67,7 @@ var IDM_s0=IDM_s0Init;
 var IDM_s0_min=0.5;
 var IDM_s0_max=5;
 
-var IDM_aInit=0.3; 
+var IDM_aInit=0.4; 
 var IDM_a=IDM_aInit;
 var IDM_a_min=0.3;
 var IDM_a_max=3;
@@ -129,6 +129,25 @@ function myStartStopFunction(){
     else{
 	document.getElementById('startStop').innerHTML="Resume";
 	isStopped=true;
+    }
+}
+
+//#########################################################
+// Disturb button (triggered by "onclick" callback in html file)
+//#########################################################
+
+function disturbOneVehicle(){
+    if(false){
+	console.log("in disturbOneVehicle()\n",
+		    " mainroad.veh.length=",mainroad.veh.length);
+    }
+    var speedReduce=10;
+    for (var i=0; i<mainroad.veh.length; i++){
+        if(mainroad.veh[i].id==1){
+	  console.log("veh to be perturbed has index ",i);
+	  mainroad.veh[i].speed
+	      =Math.max(0.,mainroad.veh[i].speed-speedReduce);
+      }
     }
 }
 

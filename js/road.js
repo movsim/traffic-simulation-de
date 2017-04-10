@@ -436,7 +436,7 @@ road.prototype.calcAccelerations=function(){
 
 //!!!
 	if(this.veh[i].id==1){// ego vehicle
-	    this.veh[i].acc+=1;
+	    this.veh[i].acc+=0;
 	}
 
 
@@ -1048,7 +1048,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 	  vehNew.route=this.route;
 
           //!!! define ego vehicles for testing purposes
-	  var percEgo=10;
+	  var percEgo=5;
 	  if(vehNew.id%100<percEgo){vehNew.id=1;}
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1

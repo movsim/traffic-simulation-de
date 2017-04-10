@@ -97,6 +97,26 @@ function updateModels(){
 }
 
 
+//#########################################################
+// Disturb button (triggered by "onclick" callback in html file)
+//#########################################################
+
+function disturbOneVehicle(){
+    if(false){
+	console.log("in disturbOneVehicle()\n",
+		    " mainroad.veh.length=",mainroad.veh.length);
+    }
+    var speedReduce=6;
+    for (var i=0; i<mainroad.veh.length; i++){
+        if(mainroad.veh[i].id==1){
+	  console.log("veh to be perturbed has index ",i);
+	  mainroad.veh[i].speed
+	      =Math.max(0.,mainroad.veh[i].speed-speedReduce);
+      }
+    }
+}
+
+
 
 //#########################################################
 // Start/Stop button (triggered by "onclick" callback in html file)
