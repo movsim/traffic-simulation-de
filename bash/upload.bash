@@ -3,12 +3,19 @@
 
 # prepares package for upload to webserver or local use
 
+
+#############################################
+# (0) translate some js files to German
+#############################################
+wd=$PWD
+startDir=$HOME/versionedProjects/traffic-simulation-de
+
+$startDir/bash/engl2ger.bash
+
 #############################################
 # (1) select projects and prepare targetdir
 #############################################
 
-wd=$PWD
-startDir=$HOME/versionedProjects/traffic-simulation-de
 projects="ring onramp offramp roadworks uphill routing"
 # targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 targetDir="$startDir/trafficSimulationLocalVersion"

@@ -237,7 +237,7 @@ button{
   font-size: calc(2.3vmin + 0.3vh);
   width:    calc(14vmin + 3.5vh );
   height:    calc(2.5vmin + 1.5vh);
-  vertical-align: center; /* bug: DOS */
+  /*vertical-align: center;*/ /* bug: DOS */
 }
 
 TR{
@@ -324,7 +324,7 @@ TR{
 
 #impressum{ 
   top: 98vh;
-  height: 2h;
+  height: 2vh;
 }
 
 /* (7b)  */

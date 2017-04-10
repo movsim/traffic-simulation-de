@@ -238,7 +238,6 @@ button{
   font-size: calc( 2.3vmin + 0.3vh);
   width:     calc( 16vmin + 2vh);
   height:    calc( 3.0vmin + 1.0vh);
-  vertical-align: center; 
 }
 
 TR{

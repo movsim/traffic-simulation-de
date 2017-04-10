@@ -190,10 +190,12 @@ function updateU(){
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 
 
-
+    //console.log("\nbefore mainroad.writeVehicles:"); mainroad.writeVehicles();
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
+
+    //console.log("\nbefore onramp.writeVehicles:"); onramp.writeVehicles();
     onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
@@ -206,11 +208,15 @@ function updateU(){
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
+    //console.log("1: mainroad.nveh=",mainroad.veh.length);
     mainroad.calcAccelerations();  
     mainroad.changeLanes();         
+    //console.log("3: mainroad.nveh=",mainroad.veh.length);
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
+    //console.log("5: mainroad.nveh=",mainroad.veh.length);
     mainroad.updateBCup(qIn,dt); // argument=total inflow
+    //console.log("6: mainroad.nveh=",mainroad.veh.length);
 
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){
@@ -222,16 +228,21 @@ function updateU(){
 	}
     }
 
+    //console.log("1: onramp.nveh=",onramp.veh.length);
     onramp.calcAccelerations();  
     onramp.updateSpeedPositions();
     onramp.updateBCdown();
+    //console.log("5: onramp.nveh=",onramp.veh.length);
     onramp.updateBCup(qOn,dt); // argument=total inflow
+    //console.log("6: onramp.nveh=",onramp.veh.length);
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
     onramp.mergeDiverge(mainroad,mainRampOffset,
 			rampLen-mergeLen,rampLen,true,false);
- 
+    //console.log("7: mainroad.nveh=",mainroad.veh.length);
+    //console.log("7: onramp.nveh=",onramp.veh.length);
+
     //logging
 
     if(false){

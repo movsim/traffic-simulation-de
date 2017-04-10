@@ -4,16 +4,32 @@
 
 //!!! => plan: see README_routing
 
-//#########################################
-// object cstr for a road
-//#########################################
+
+/**
+##########################################################
+road segment (link) object constructor: logic-geometrical properties (u,v),  
+physical dynamics of the vehicles on a road section,
+drawing routines of road/vehicles 
+with road geometry functions (u,v)->(x,y) to be provided by the main program 
+##########################################################
+ 
+@param roadID:          integer-valued road ID
+@param roadLen:         link length [m]
+@param nLanes:          #lanes (replaced by roadWidth in mixed traffic)
+@param densInitPerLane: initial linear density [veh/m/lane]
+@param speedInit:       initial longitudinal speed [m/s]
+@param truckFracInit:   initial truck fraction [0-1]
+@param isRing:          true if periodic BC, false if open BC
+
+@return:                road segment instance
+*/
 
 
 function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit, isRing){
     this.roadID=roadID;
     this.roadLen=roadLen;
     this.nLanes=nLanes;
-    this.nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
+    var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
     // network related properties
 
@@ -57,36 +73,43 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
     this.draw_sinphi=[];
 
     // construct vehicle array
+    // u=long logical coordinate; i=0: first vehicle=maximum u
+    // =(n-1)/n*roadLen
+    // lane or v is transversal coordinate
 
     this.veh=[];
-    for(var i=0; i<this.nveh; i++){
+    for(var i=0; i<nveh; i++){
 
         // position trucks mainly on the right lane nLanes-1
 
+	var u=(nveh-i-1)*this.roadLen/(nveh); //!!(nveh+1)
 	var lane=i%this.nLanes; // left: 0; right: nLanes-1
 	var truckFracRight=Math.min(this.nLanes*truckFracInit,1);
 	var truckFracRest=(this.nLanes*truckFracInit>1)
 	    ? ((this.nLanes*truckFracInit-1)/(this.nLanes-1)) : 0;
 	var truckFrac=(lane==this.nLanes-1) ? truckFracRight : truckFracRest;
-	var r=Math.random();
 	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
 	var vehLength=(vehType == "car") ? car_length:truck_length;
 	var vehWidth=(vehType == "car") ? car_width:truck_width;
+        //var longModel=(vehType=="car") ? longModelCar : longModelTruck;
+        //var LCModel=(vehType=="car") ? LCModelCar : LCModelTruck;
 
         // actually construct vehicles
 
-	this.veh[i]=new vehicle(vehLength, vehWidth,
-				 (this.nveh-i-1)*this.roadLen/(this.nveh+1), 
-				 i%this.nLanes, 0.8*speedInit,vehType);
+	this.veh[i]=new vehicle(vehLength, vehWidth,u,lane, 
+				0.8*speedInit,vehType);
 
-	this.veh[i].longModel=(vehType == "car") 
-	    ? longModelCar : longModelTruck;
-	this.veh[i].LCModel=(vehType == "car") 
-	    ? LCModelCar : LCModelTruck;
+	//this.veh[i].longModel=longModel;
+	//this.veh[i].LCModel=LCModel;
+
+
     }
 
+    //!!! select "ego vehicle" and mark it
+    // by changing its id to 1 (they begin at 100, otherwise)
 
-
+    var iEgo=Math.floor(0.8*this.veh.length);
+    if(this.veh.length>0){this.veh[iEgo].id=1;} 
     //this.writeVehicles();
 }
 
@@ -95,12 +118,15 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 
 
 //######################################################################
+// write vehicle info
 //######################################################################
 
 road.prototype.writeVehicles= function() {
-  console.log("\nin road.writeVehicles(): roadLen="+this.roadLen);
-  for(var i=0; i<this.veh.length; i++){
-      console.log(" veh["+i+"].u="+parseFloat(this.veh[i].u,10).toFixed(1)
+    console.log("\nin road.writeVehicles(): nveh=",this.veh.length,
+		" roadLen="+this.roadLen);
+    for(var i=0; i<this.veh.length; i++){
+      console.log(" veh["+i+"].id="+this.veh[i].id
+		   +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		   +"  lane="+this.veh[i].lane
 		   +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
 		   +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
@@ -114,12 +140,15 @@ road.prototype.writeVehicles= function() {
   }
 }
 
+
 //######################################################################
+// simple write vehicle info
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function() {
-  console.log("\nin road.writeVehicles(): roadLen="+this.roadLen);
-  for(var i=0; i<this.veh.length; i++){
+    console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
+		" roadLen="+this.roadLen);
+    for(var i=0; i<this.veh.length; i++){
       console.log(" veh["+i+"].u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		   +"  lane="+this.veh[i].lane
 		   +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
@@ -127,6 +156,8 @@ road.prototype.writeVehiclesSimple= function() {
 		   +"");
   }
 }
+
+
 
 //#####################################################
 // get network info of offramps attached to this road (for routing)
@@ -139,6 +170,23 @@ road.prototype.setOfframpInfo
      this.offrampLastExits=offrampLastExits; // road.u at begin of diverge
      this.offrampToRight=offrampToRight; // whether offramp is to the right
  }
+
+
+
+//#####################################################
+// sort vehicles into descending arc-length positions u 
+//#####################################################
+
+road.prototype.sortVehicles=function(){
+    if(this.veh.length>2){
+	this.veh.sort(function(a,b){
+	    return b.u-a.u;
+	})
+    };
+}
+
+
+
 
 //##################################################################
 // get next offramp index for a given longitudinal position u (routing)
@@ -156,6 +204,7 @@ road.prototype.getNextOffIndex=function(u){
     return index;
       
 }
+
 
 //#####################################################
 // set vehicles in range to new CF models
@@ -213,23 +262,13 @@ road.prototype.setLCMandatory=function(umin,umax,toRight){
     }
 }
 
-//#####################################################
-// sort vehicles into descending arc-length positions u 
-//#####################################################
 
-road.prototype.sortVehicles=function(){
-    if(this.veh.length>2){
-	this.veh.sort(function(a,b){
-	    return b.u-a.u;
-	})
-    };
-}
 
 
 //#####################################################
 /**
   functions for getting/updating the vehicle environment of a vehicle array 
-  sorted into descending arc-length positions u 
+  sorted into descending arc-length positions u (first veh has maximum u)
 
   vehicle indices iLead, iLag, iLeadLeft, iLeadRight, iLagLeft, iLagRight
 
@@ -250,8 +289,7 @@ road.prototype.sortVehicles=function(){
   // get/update leader
 
 road.prototype.update_iLead=function(i){
-    var n=this.nveh;
-    this.veh[i].iLeadOld=this.veh[i].iLead;
+    var n=this.veh.length;
     var iLead=(i==0) ? n-1 : i-1;  //!! also for non periodic BC
     success=(this.veh[iLead].lane==this.veh[i].lane);
     while(!success){
@@ -264,8 +302,7 @@ road.prototype.update_iLead=function(i){
      // get/update follower
 
 road.prototype.update_iLag=function(i){
-    var n=this.nveh;
-    this.veh[i].iLagOld=this.veh[i].iLag;
+    var n=this.veh.length;
     var iLag=(i==n-1) ? 0 : i+1;
     success=(this.veh[iLag].lane==this.veh[i].lane);
     while(!success){
@@ -279,8 +316,7 @@ road.prototype.update_iLag=function(i){
    // get leader to the right
 
 road.prototype.update_iLeadRight=function(i){
-    var n=this.nveh;
-    this.veh[i].iLeadRightOld=this.veh[i].iLeadRight;
+    var n=this.veh.length;
     var iLeadRight;
     if(this.veh[i].lane<this.nLanes-1){
 	iLeadRight=(i==0) ? n-1 : i-1;
@@ -297,8 +333,7 @@ road.prototype.update_iLeadRight=function(i){
     // get follower to the right
 
 road.prototype.update_iLagRight=function(i){
-    var n=this.nveh;
-    this.veh[i].iLagRightOld=this.veh[i].iLagRight;
+    var n=this.veh.length;
     var iLagRight;
     if(this.veh[i].lane<this.nLanes-1){
 	iLagRight=(i==n-1) ? 0 : i+1;
@@ -315,8 +350,7 @@ road.prototype.update_iLagRight=function(i){
     // get leader to the left
 
 road.prototype.update_iLeadLeft=function(i){
-    var n=this.nveh;
-    this.veh[i].iLeadLeftOld=this.veh[i].iLeadLeft;
+    var n=this.veh.length;
 
     var iLeadLeft;
     if(this.veh[i].lane>0){
@@ -334,9 +368,8 @@ road.prototype.update_iLeadLeft=function(i){
     // get follower to the left
 
 road.prototype.update_iLagLeft=function(i){
-    var n=this.nveh;
+    var n=this.veh.length;
     var iLagLeft;
-    this.veh[i].iLagLeftOld=this.veh[i].iLagLeft;
 
     if(this.veh[i].lane>0){
 	iLagLeft=(i==n-1) ? 0 : i+1;
@@ -356,7 +389,7 @@ road.prototype.update_iLagLeft=function(i){
 //#####################################################
 
 road.prototype.updateEnvironment=function(){
-    for(var i=0; i<this.nveh; i++){
+    for(var i=0; i<this.veh.length; i++){
 
         // get leader
 	this.update_iLead(i);
@@ -387,11 +420,12 @@ road.prototype.updateEnvironment=function(){
 
 
 road.prototype.calcAccelerations=function(){
-    for(var i=0; i<this.nveh; i++){
-	var iLead= this.veh[i].iLead;
-	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
+    for(var i=0; i<this.veh.length; i++){
 	var speed=this.veh[i].speed;
-	var speedLead=this.veh[iLead].speed;
+	var iLead= this.veh[i].iLead;
+	if(iLead==-100){console.log("should not happen!! nveh=",this.veh.length," iLead=",iLead);}
+	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
+	var speedLead=this.veh[iLead].speed;;
 	var accLead=this.veh[iLead].acc;
 	if(iLead>=i){ // vehicle i is leader, for any BC iLead defined
 	    if(this.isRing){s+=this.roadLen;} // periodic BC; accLead OK
@@ -399,11 +433,18 @@ road.prototype.calcAccelerations=function(){
 	}
 	this.veh[i].acc
 	    =this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead);
+
+//!!!
+	if(this.veh[i].id==1){// ego vehicle
+	    this.veh[i].acc+=1;
+	}
+
+
 	//if(false){
 	//if(this.veh[i].mandatoryLCahead){
 	//if(speed>1.05*this.veh[i].longModel.v0){
 	if(false){
-	    console.log("after calcAccelerations: i="+i
+	    console.log("after calcAccelerations: i="+i+" iLead="+iLead
 			+" pos="+this.veh[i].u
 			+" lane="+this.veh[i].v
 			+" s="+s
@@ -426,7 +467,7 @@ road.prototype.calcAccelerations=function(){
 //######################################################################
 
 road.prototype.updateSpeedPositions=function(){
-  for(var i=0; i<this.nveh; i++){
+  for(var i=0; i<this.veh.length; i++){
 
       this.veh[i].u += Math.max(0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
      
@@ -468,7 +509,7 @@ road.prototype.doChangesInDirection=function(toRight){
   if(log&&toRight){console.log("changeLanes: before changes to the right");}
   if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
-  for(var i=0; i<this.nveh; i++){
+  for(var i=0; i<this.veh.length; i++){
 
     // test if there is a target lane and if last change is sufficiently long ago
 
@@ -482,7 +523,7 @@ road.prototype.doChangesInDirection=function(toRight){
 
       // check if also the new leader/follower did not change recently
 
-      if((this.veh[iLeadNew].dt_lastLC>waitTime)
+      if((iLeadNew>=0)&&(this.veh[iLeadNew].dt_lastLC>waitTime)
 	 &&(this.veh[iLagNew].dt_lastLC>waitTime)){
 
          var acc=this.veh[i].acc;
@@ -736,8 +777,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
         newRoad.veh.push(changingVeh); // appends changingVeh at last pos;
 //####################################################################
 
-	this.nveh=this.veh.length; // !! updates array lengths
-	newRoad.nveh=newRoad.veh.length;
+	//newRoad.nveh=newRoad.veh.length;
 	newRoad.sortVehicles();       // move the mergingVeh at correct position
 	newRoad.updateEnvironment(); // and provide updated neighbors
 
@@ -753,11 +793,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 //######################################################################
 
 road.prototype.updateOrientation=function(){
-  for(var i=0; i<this.nveh; i++){
-   this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,dt_LC, // get_dvdu from paths.js
+    for(var i=0; i<this.veh.length; i++){
+	//console.log("iveh=",i," this.veh.length=",this.veh.length);
+        this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,dt_LC, // get_dvdu from paths.js
 			       this.veh[i].laneOld,
 			       this.veh[i].lane,this.veh[i].speed);
-  }
+    }
 }
 
 
@@ -826,8 +867,6 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 
         // actually do the transformation if no collision entails by it
 
-   // console.log("in updateTruckFrac: nTruck="+nTruck+" nTruckDesired="+nTruckDesired+" k="+k+" maxSpace="+maxSpace+" candidateType=" +candidateType+" newType="+newType);
-
 	if(success){
 	    this.veh[k].type=newType;
 	    this.veh[k].length=newLength;
@@ -848,14 +887,13 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 
 road.prototype.updateDensity=function(density){
     var nDesired= Math.floor(this.nLanes*this.roadLen*density);
-    var nveh_old=this.nveh;
-    if(this.nveh>nDesired){// too many vehicles, remove one per time step
+    var nveh_old=this.veh.length;
+    if(this.veh.length>nDesired){// too many vehicles, remove one per time step
         var r=Math.random();
-        var k=Math.floor( this.nveh*r);
+        var k=Math.floor( this.veh.length*r);
 	this.veh.splice(k,1); // remove vehicle at random position k  (k=0 ... n-1)
-	this.nveh--;
     }
-    else if(this.nveh<nDesired){// too few vehicles, generate one per time step in largest gap
+    else if(this.veh.length<nDesired){// too few vehicles, generate one per time step in largest gap
 	var maxSpace=0;
 	var k=0; // considered veh index
 	var success=false;
@@ -876,8 +914,8 @@ road.prototype.updateDensity=function(density){
 
 	var nvehLane = []; 
 	for (var il=0; il<this.nLanes; il++){nvehLane[il]=0;}
-	for (var i=0; i<this.nveh; i++){nvehLane[this.veh[i].lane]++;}
-	//console.log("nveh="+this.nveh);
+	for (var i=0; i<this.veh.length; i++){nvehLane[this.veh[i].lane]++;}
+	//console.log("nveh="+this.veh.length);
 	//for (var il=0; il<this.nLanes; il++){
 	//    console.log("road.updateDensity: lane="+il+" #veh="+nvehLane[il]);
 	//}
@@ -892,7 +930,7 @@ road.prototype.updateDensity=function(density){
         // if there are no empty lanes, search the largest gap
 
 	if(!emptyLanes){
-          for(var i=0; i<this.nveh; i++){
+          for(var i=0; i<this.veh.length; i++){
 	    var iLead= this.veh[i].iLead;
 	    var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
 	    if( (iLead>=i)&&(s<0) ){s+=this.roadLen;}// periodic BC
@@ -901,7 +939,7 @@ road.prototype.updateDensity=function(density){
 	  success=(maxSpace>car_length+2*this.veh[k].longModel.s0);
 	}
 
-        // actually add vehicles
+        // actually add vehicles (no model adding needed)
 
 	if(success){// otherwise, no veh added
 	    if(!emptyLanes){
@@ -913,16 +951,15 @@ road.prototype.updateDensity=function(density){
 
 	    var vehNew=new vehicle(vehLength,vehWidth,uNew,laneNew,
 				    speedNew,vehType);
-	    vehNew.longModel=(vehType=="car") ? longModelCar : longModelTruck;
-	    if(emptyLanes){vehNew.speed=vehNew.longModel.v0;}
+	    //vehNew.longModel=(vehType=="car") ? longModelCar : longModelTruck;
+	    if(emptyLanes){vehNew.speed=longModelTruck.v0;}
 	    this.veh.splice(k,0,vehNew); // add vehicle at position k  (k=0 ... n-1)
-	    this.nveh++;
 	}
     }
     // sort (re-sort) vehicles with respect to decreasing positions
     // and provide the updated local environment to each vehicle
 
-    if(this.nveh!=nveh_old){
+    if(this.veh.length!=nveh_old){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
@@ -934,14 +971,13 @@ road.prototype.updateDensity=function(density){
 //######################################################################
 
 road.prototype.updateBCdown=function(){
-  var nvehOld=this.nveh;
+  var nvehOld=this.veh.length;
   if( (!this.isRing) &&(this.veh.length>0)){
       if(this.veh[0].u>this.roadLen){
-	  //console.log("road.updateBCdown: nveh="+this.nveh+" removing one vehicle);
+	  //console.log("road.updateBCdown: nveh="+this.veh.length+" removing one vehicle);
 	  this.veh.splice(0,1);
-	  this.nveh--;
       }
-      if(this.nveh<nvehOld){this.updateEnvironment();}
+      if(this.veh.length<nvehOld){this.updateEnvironment();}
   }
 }
 
@@ -973,10 +1009,10 @@ road.prototype.updateBCup=function(Qin,dt,route){
       // try to set trucks at the right lane
 
       var lane=this.nLanes-1; // start with right lane
-      if(this.nveh==0){success=true; space=this.roadLen;}
+      if(this.veh.length==0){success=true; space=this.roadLen;}
 
       else if(vehType=="truck"){
-	  var iLead=this.nveh-1;
+	  var iLead=this.veh.length-1;
 	  while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
 	  space=this.veh[iLead].u-this.veh[iLead].length;
 	  success=(iLead<0) || (space>smin);
@@ -988,7 +1024,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       if(!success){
         var spaceMax=0;
         for(var candLane=this.nLanes-1; candLane>=0; candLane--){
-	  var iLead=this.nveh-1;
+	  var iLead=this.veh.length-1;
 	  while( (iLead>=0)&&(this.veh[iLead].lane!=candLane)){iLead--;}
 	  space=(iLead>=0) // "minus candLine" implements right-driving 
 	      ? this.veh[iLead].u-this.veh[iLead].length : this.roadLen+candLane;
@@ -1008,16 +1044,19 @@ road.prototype.updateBCup=function(Qin,dt,route){
 	  var speedNew=Math.min(longModelNew.v0, longModelNew.speedlimit, 
 				space/longModelNew.T);
 	  var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
-	  vehNew.longModel=longModelNew;
+	  //vehNew.longModel=longModelNew;
 	  vehNew.route=this.route;
+
+          //!!! define ego vehicles for testing purposes
+	  var percEgo=10;
+	  if(vehNew.id%100<percEgo){vehNew.id=1;}
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1
 	  this.inVehBuffer -=1;
-	  this.nveh++;
 	  if(false){
 	      console.log("road.updateBCup: new vehicle at pos u=0, lane "+lane
 			  +", type "+vehType+", s="+space+", speed="+speedNew);
-	      console.log(this.veh.length); //!!!!
+	      console.log(this.veh.length); 
 	      for(var i=0; i<this.veh.length; i++){
 	        console.log("i="+i+" this.veh[i].u="+this.veh[i].u
 +" this.veh[i].route="+this.veh[i].route);
@@ -1040,7 +1079,9 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
     var targetVehicles=[];
     var iTarget=0;
     var firstTime=true;
+    //console.log("getTargetNeighbourhood:");
     for (var i=0; i<this.veh.length; i++){
+	//console.log("i=",i," nveh=",this.veh.length," u=",this.veh[i].u);
 	if( (this.veh[i].lane==targetLane)&&(this.veh[i].u>=umin)&&(this.veh[i].u<=umax)){
 	    if(firstTime==true){this.iOffset=i;firstTime=false;}
 	    targetVehicles[iTarget]=this.veh[i];
@@ -1060,14 +1101,15 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 
 //####################################################
 // distribute model parameters updated from  GUI to all vehicles
+// at least tactical part really necessary; keep also first part as
+// future central update before calc any accelerations although
+// at present obviously not necessary (2017-03-23)
 //####################################################
 
 road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 						  LCModelCar,LCModelTruck){
 
-  this.nveh=this.veh.length; // just in case; this is typically first cmd for update
-
-  for(var i=0; i<this.nveh; i++){
+  for(var i=0; i<this.veh.length; i++){
       if(this.veh[i].type != "obstacle"){// then do nothing
         this.veh[i].longModel=(this.veh[i].type == "car")
 	  ? longModelCar : longModelTruck;
@@ -1076,9 +1118,10 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
       }
   }
 
+
   // update tactical info for mandatory lane changes upstream of offramps
 
-  if(this.duTactical>0) for(var i=0; i<this.nveh; i++){
+  if(this.duTactical>0) for(var i=0; i<this.veh.length; i++){
       var iNextOff=this.getNextOffIndex(this.veh[i].u); //-1 if nothing
       var uLastExit=this.offrampLastExits[iNextOff];
 
@@ -1135,7 +1178,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 //######################################################################
 
 road.prototype.updateLastLCtimes=function(dt){
-    for(var i=0; i<this.nveh; i++){
+    for(var i=0; i<this.veh.length; i++){
       this.veh[i].dt_lastLC +=dt;
       this.veh[i].dt_lastPassiveLC +=dt;
     }
@@ -1332,8 +1375,17 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
               var effLenPix=(type=="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
               var effWPix=(type=="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
               var speed=this.veh[i].speed;
-              ctx.fillStyle=colormapSpeed(speed,speedmin,speedmax,type);
+	      var isEgo=(this.veh[i].id==1);
+              ctx.fillStyle=colormapSpeed(speed,speedmin,speedmax,type,
+					  isEgo,time);
 	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
+	      if(isEgo){
+		  ctx.strokeStyle="rgb(0,0,0)";
+		  ctx.strokeRect(-0.6*effLenPix, -0.6*effWPix, 
+			       1.2*effLenPix, 1.2*effWPix);
+		  ctx.strokeRect(-0.7*effLenPix, -0.7*effWPix, 
+			       1.4*effLenPix, 1.4*effWPix);
+	      }
 	  }
           ctx.fillStyle="rgb(0,0,0)";
 

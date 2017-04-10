@@ -73,7 +73,7 @@ var dt_LC=4; // duration of a lane change
 //(initial values and range of user-ctrl var in gui.js)
 
 var speedInit=20; // m/s
-var densityInit=0.001;
+var densityInit=0.01;
 var speedInitPerturb=13;
 var relPosPerturb=0.8;
 var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes
