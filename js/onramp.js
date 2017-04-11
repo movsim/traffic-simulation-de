@@ -284,6 +284,9 @@ function updateU(){
 function drawU() {
 //##################################################
 
+    //!!! test relative motion
+    var relObserver=true;
+    var uObs=10*time;
 
     /* (0) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
@@ -392,7 +395,8 @@ function drawU() {
     //!! canvas dimensions kein DOS
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=2) || (itime==20) ||false || (!drawRoad)){ 
+	if(hasChanged||(itime<=2) || (itime==20) || relObserver 
+	   || (!drawRoad)){
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -402,17 +406,29 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    onramp.draw(rampImg,scale,trajRamp_x,trajRamp_y,laneWidthRamp,changedGeometry);
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+    onramp.draw(rampImg,scale,trajRamp_x,trajRamp_y,
+		laneWidthRamp,changedGeometry,
+		relObserver,0, 
+		center_xPhys-traj_x(uObs)+trajRamp_x(0),
+		center_yPhys-traj_y(uObs)+trajRamp_y(0)); //!!
 
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry,
+		  relObserver,uObs,center_xPhys,center_yPhys); //!!
 
+// center_xPhys, center_yPhys
  
     // (4) draw vehicles
 
     onramp.drawVehicles(carImg,truckImg,obstacleImg,scale,trajRamp_x,trajRamp_y,
-			laneWidth, vmin, vmax);
+			laneWidth, vmin, vmax, 
+                        0,rampLen,relObserver,0,
+			center_xPhys-traj_x(uObs)+trajRamp_x(0),
+			center_yPhys-traj_y(uObs)+trajRamp_y(0)); //!!
+
+
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax);
+			  laneWidth, vmin, vmax,
+                        0,mainroadLen,relObserver,uObs,center_xPhys,center_yPhys);
 
 
 

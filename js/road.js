@@ -1320,14 +1320,32 @@ road.prototype.get_yPix=function(traj_x,traj_y,u,v,scale){
 //######################################################################
 
 /**
-@param traj_x(u), traj_y(u)=phys. road geometry as parametrized function of the arc length
-@param scale translates physical road coordinbates into pixel:[scale]=pixels/m
-@param changed geometry is true if a resize event took place in parent
+@param scale:     physical road coordinbates => pixels, [scale]=pixels/m
+@param roadImg:   image of a (small, straight) road element
+@param traj_x(u): x coord of physical road geoemtry as f(arclength u)
+@param traj_y(u): y coord of physical road geoemtry as f(arclength u)
+@param laneWidth: lane width [m] (needed extra since transv coord v=lanes)
+@param changed geometry: true if a resize event took place in parent
+@param movingObs: (optional) whether observer is moving, default=false 
+@param uObs:      (optional) location uObs is drawn at the physical
+@param xObs,yObs: position (xObs,yObs), all other positions relative to it
+                  !Need to define (xObs,yObs) separately since other links
+                  such as onramps may be drawn relatively to the position
+                  of the actual link (e.g. mainroad)
+
 @return draw into graphics context ctx (defined in calling routine)
 */
 
 road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
- changedGeometry){
+			     changedGeometry, movingObs, uObs, xObs, yObs){
+
+    var movingObserver=(typeof movingObs === 'undefined')
+	? false : movingObs;
+    var uRef=(movingObserver) ? uObs : 0;
+    var xRef=(movingObserver) ? xObs : traj_x(0);
+    var yRef=(movingObserver) ? yObs : traj_y(0);
+
+    //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
 
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*laneWidth;
@@ -1364,15 +1382,12 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 	var cosphi=this.draw_cosphi[iSegm];
 	var sinphi=this.draw_sinphi[iSegm];
 	var lSegmPix=scale*factor*lSegm;
-	//var lSegmPix=scale*1*lSegm;
 	var wSegmPix=scale*(this.nLanes*laneWidth+boundaryStripWidth);
 
-	  // road center of two-lane road has v=1 (vPhys=laneWidth)
-         //  notice phi_v=phi-pi/2
-        // yPix downwards;
-	var vCenterPhys=0.0*this.nLanes*laneWidth; //check if not =0 if traj at center!!
-	var xCenterPix=scale*(this.draw_x[iSegm]+vCenterPhys*sinphi); 
-	var yCenterPix=-scale*(this.draw_y[iSegm]-vCenterPhys*cosphi);
+	var xCenterPix= scale*(this.draw_x[iSegm]-traj_x(uRef)+xRef); 
+	var yCenterPix=-scale*(this.draw_y[iSegm]-traj_y(uRef)+yRef);
+
+
 	ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
 	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 	if(false){
@@ -1395,21 +1410,34 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 @param scale: translates physical coordinbates into pixel:[scale]=pixels/m
 @param traj_x(u), traj_y(u): phys. road geometry 
        as parameterized function of the arc length
-@param laneWidth: lane width in m 
+@param laneWidth: lane width [m] (needed extra since transv coord v=lanes)
 @param speedmin,speedmax: speed range [m/s] for the colormap 
        (red=slow,blue=fast)
 @param umin,umax: optional restriction of the long drawing range 
-       (useful when drawing veh only when fully entered 
-       or re-drawing merging veh)
+       (useful when drawing veh only when fully entered, under bridges 
+       => routing scenario or re-drawing merging veh)
+@param movingObs: optional: whether observer is moving, default=false 
+@param uObs:      (optional) location uObs is drawn at the physical
+@param xObs,yObs: position (xObs,yObs), all other positions relative to it
+                  !Need to define (xObs,yObs) separately since other links
+                  such as onramps may be drawn relatively to the position
+                  of the actual link (e.g. mainroad)
+
 @return draw into graphics context ctx (defined in calling routine)
 */
 
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     traj_x, traj_y, laneWidth, 
 				     speedmin,speedmax,
-				     umin,umax){
+				     umin,umax,
+				     movingObs, uObs, xObs, yObs){
 
   var noRestriction=(typeof umin === 'undefined'); 
+  var movingObserver=(typeof movingObs === 'undefined')
+	? false : movingObs;
+  var uRef=(movingObserver) ? uObs : 0;
+  var xRef=(movingObserver) ? xObs : traj_x(0);
+  var yRef=(movingObserver) ? yObs : traj_y(0);
 
   for(var i=0; i<this.veh.length; i++){
       if(noRestriction || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax))){
@@ -1430,8 +1458,10 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var sphiRoad=Math.sin(phiRoad);
           var cphiVeh=Math.cos(phiVeh);
           var sphiVeh=Math.sin(phiVeh);
-          var xCenterPix=scale*(traj_x(uCenterPhys) + vCenterPhys*sphiRoad);
-          var yCenterPix=-scale*(traj_y(uCenterPhys) - vCenterPhys*cphiRoad);
+          var xCenterPix= scale*(traj_x(uCenterPhys) + vCenterPhys*sphiRoad
+				 -traj_x(uRef)+xRef);
+          var yCenterPix=-scale*(traj_y(uCenterPhys) - vCenterPhys*cphiRoad
+				 -traj_y(uRef)+yRef);
 
           // (1) draw vehicles as images
 
