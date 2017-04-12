@@ -149,7 +149,8 @@ function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
 
     // draw the legend
 
-    var textsize=0.11*heightPix;
+    // var textsize=0.11*heightPix; //!!
+    var textsize=0.18*widthPix;
     ctx.font=textsize+'px Arial';
     var textwidthPix=4*textsize;
     ctx.fillStyle="#FFFFFF";
