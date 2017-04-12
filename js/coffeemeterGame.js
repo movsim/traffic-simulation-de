@@ -1,14 +1,85 @@
 
-// general comments: ring.js, offramp.js (responsive design)
+//################################################################
+// GUI: Start/Stop button callback (triggered by "onclick" in html file)
+//#################################################################
+
+// in any case need first to stop;
+// otherwise multiple processes after clicking 2 times start
+// define no "var myRun "; otherwise new local instance started
+// whenever myRun is inited
+
+var isStopped=false; // only initialization
+
+function myStartStopFunction(){
+
+    clearInterval(myRun);
+    console.log("in myStartStopFunction: isStopped=",isStopped);
+
+    if(isStopped){
+        isStopped=false;
+        document.getElementById('startStop').innerHTML="Stop";
+        myRun=init();
+    }
+    else{
+        document.getElementById('startStop').innerHTML="Resume";
+        isStopped=true;
+    }
+}
+
+
+
+//#############################################
+// fixed model settings (these are GUI-sliders in the "normal" scenarios)
+//#############################################
+
+var timewarp=2;
+var scale=2.3;   // pixel/m probably overridden (check!)
+var qIn=0;       // no additional vehicles
+
+var IDM_v0=30;
+var IDM_T=1.5;
+var IDM_s0=2;
+var IDM_a=1.0;
+var IDM_b=2;
+var IDMtruck_v0=22.23;
+var IDMtruck_T=2;
+var IDMtruck_a=0.6;
+
+var MOBIL_bSafe=4;    // bSafe if v to v0
+var MOBIL_bSafeMax=17; // bSafe if v to 0
+var MOBIL_bThr=0.2;
+var MOBIL_bBiasRight_car=-0.2;
+var MOBIL_bBiasRight_truck=0.1;
+
+var MOBIL_mandat_bSafe=6;
+var MOBIL_mandat_bSafeMax=20;
+var MOBIL_mandat_bThr=0;
+var MOBIL_mandat_biasRight=20;
+
+var dt_LC=4; // duration of a lane change
+
+
+// derived objects
+
+var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
+var LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+                         MOBIL_bThr, MOBIL_bBiasRight_car);
+var LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+                           MOBIL_bThr, MOBIL_bBiasRight_truck);
+var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+                                    MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
+var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+                                    MOBIL_mandat_bThr, -MOBIL_mandat_biasRight);
+
+
+ 
 
 //#############################################################
-// Initial settings
+// graphical settings/variables
 //#############################################################
 
-
-// graphical settings
-
-var hasChanged=true; // window dimensions have changed (responsive design)
+var hasChanged=true; // whether window dimensions has changed (resp. design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
@@ -17,63 +88,62 @@ var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
+
+//#############################################################
 // physical geometry settings [m]
-// sizePhys=physical dimension; should be of the order of vertical extension
+//#############################################################
 
-// fixed at initialization; relevant for actual simulation
+var sizePhys=200;  // visible road section [m] (scale=canvas.height/sizePhys)
 
-var mainroadLen=800;
+// 'S'-shaped mainroad
+
+var lenStraightBegin=150;
+var lenCurve=200; // each of the left and right curve making up the 'S'
+var lenStraightEnd=250;
+var maxAngleLeft=0.3; // maximum angle of the S bend (if <0, mirrored 'S')
+
+// for optical purposes both lanes and cars bigger than in reality
+
 var nLanes=3;
 var laneWidth=7;
-var laneWidthRamp=5;
-
-var rampLen=240;
-var mergeLen=120;
-var mainRampOffset=410; // =mainroadLen-straightLen+mergeLen-rampLen;
-var taperLen=60;
-
-// variable depending on aspect ratio: only relevant for graphics
-
-var straightLen=0.34*mainroadLen;      // straight segments of U
-var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
-var arcRadius=arcLen/Math.PI;
-var center_xPhys=85; // only IC!! later not relevant!
-var center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
-
-var rampRadius=4*arcRadius;
-
-var sizePhys=200;  // typical physical linear dimension for scaling 
-
-
-
-// specification of vehicle and traffic  properties
-
 var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
 var truck_width=7; 
 
+// derived quantities and functions
 
-var MOBIL_bSafe=4;     // bSafe if v to v0
-var MOBIL_bSafeMax=17; // bSafe if v to 0 //!!! use it
-var MOBIL_bThr=0.4;
-var MOBIL_bBiasRight_car=-0.2; 
-var MOBIL_bBiasRight_truck=0.1; 
+var lenMainroad=lenStraightBegin+lenCurves+lenStraightEnd;
+var arcCurv=2*maxAngleLeft/lenCurves;
 
-var MOBIL_mandat_bSafe=42;
-var MOBIL_mandat_bThr=0;
-var MOBIL_mandat_bias=42;
+var yPhysBegin=-sizePhys; // road from -sizePhys to about lenMainroad-sizePhys
+var xPhysBegin=0.3*sizePhys; // portrait with aspect ratio 6:10 
+                             // change later on when calling draw() 
+var yPhysCurveBegin=yPhysBegin+lenStraightBegin;
+var yPhysCurveCenter=yPhysBegin+lenStraightBegin;
 
-var dt_LC=4; // duration of a lane change
 
-// simulation initial conditions settings
-//(initial values and range of user-ctrl var in gui.js)
+// road geometry in physical coordinates 
+// (norcmal CS, x=>toRght, y=>toTop )
 
-var speedInit=20; // m/s
-var densityInit=0.02;
-var speedInitPerturb=13;
-var relPosPerturb=0.8;
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes
+    function traj_x(u){ 
+        var dxPhysFromCenter= // left side (median), phys coordinates
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
+	return center_xPhys+dxPhysFromCenter;
+    }
+
+    function traj_y(u){ // physical coordinates
+        var dyPhysFromCenter=
+ 	    (u<straightLen) ? sizePhys
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
+	return center_yPhys+dyPhysFromCenter;
+    }
+
+
+
 
 
 //############################################################################
@@ -266,7 +336,7 @@ function drawU() {
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
 
-      scale=refSizePix/sizePhys; 
+      scale=canvas.height/sizePhys; 
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",
@@ -275,24 +345,6 @@ function drawU() {
     }
 
 
-    // (1) define road geometry as parametric functions of arclength u
-    // (physical coordinates!)
-
-    function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-    }
-
-    function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-    }
 
 
 
