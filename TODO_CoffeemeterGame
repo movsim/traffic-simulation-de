@@ -27,7 +27,9 @@ TODO  (apr17)
 
 * Grafik: Mit dem stark gekennzeichnetem Ego-Fz (farbig, alle anderen
   Fz grau bzw. schwachfarbig) mitfahrende Ansicht (zunaechst 2d,
-  Vogelperspektive wie bisher). Mitfahrend => aendere in
+  Vogelperspektive wie bisher).
+
+* DONE Grafik: Mitfahrend => aendere in
   ctx.setTransform die Translationsparameter durch Beitrag
   scale*uCenterPhysRoad bzw. Umdefinition von traj_x und traj_y
   (phys. Koordinaten, wirkt
