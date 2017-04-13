@@ -10,18 +10,29 @@
 
 var isStopped=false; // only initialization
 
-function myStartStopFunction(){
+function myRestartFunction(){
 
     clearInterval(myRun);
-    console.log("in myStartStopFunction: isStopped=",isStopped);
+    init(); // set times to zero, re-initialize road
+
+    // update state of "Stop/Resume button 
+    isStopped=false;
+    document.getElementById('stopResume').innerHTML="Stop";
+    myRun=start();
+}
+
+function myStopResumeFunction(){
+
+    clearInterval(myRun);
+    console.log("in myStopResumeFunction: isStopped=",isStopped);
 
     if(isStopped){
         isStopped=false;
-        document.getElementById('startStop').innerHTML="Stop";
-        myRun=init();
+        document.getElementById('stopResume').innerHTML="Stop";
+        myRun=start();
     }
     else{
-        document.getElementById('startStop').innerHTML="Resume";
+        document.getElementById('stopResume').innerHTML="Resume";
         isStopped=true;
     }
 }
@@ -29,7 +40,8 @@ function myStartStopFunction(){
 
 
 //#############################################
-// fixed model settings (these are GUI-sliders in the "normal" scenarios)
+// model specifications and fixed settings 
+// (these are GUI-sliders in the "normal" scenarios)
 //#############################################
 
 var timewarp=2;
@@ -93,14 +105,14 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings [m]
 //#############################################################
 
-var sizePhys=200;  // visible road section [m] (scale=canvas.height/sizePhys)
+var sizePhys=100;  // visible road section [m] (scale=canvas.height/sizePhys)
 
 // 'S'-shaped mainroad
 
 var lenStraightBegin=150;
 var lenCurve=200; // each of the left and right curve making up the 'S'
 var lenStraightEnd=250;
-var maxAngleLeft=0.3; // maximum angle of the S bend (if <0, mirrored 'S')
+var maxAng=0.3; // maximum angle of the S bend (if <0, mirrored 'S')
 
 // for optical purposes both lanes and cars bigger than in reality
 
@@ -113,54 +125,61 @@ var truck_width=7;
 
 // derived quantities and functions
 
-var lenMainroad=lenStraightBegin+lenCurves+lenStraightEnd;
-var arcCurv=2*maxAngleLeft/lenCurves;
+var lenMainroad=lenStraightBegin+2*lenCurve+lenStraightEnd;
+var curvature=maxAng/lenCurve; // positive if first curve is left curve
 
-var yPhysBegin=-sizePhys; // road from -sizePhys to about lenMainroad-sizePhys
-var xPhysBegin=0.3*sizePhys; // portrait with aspect ratio 6:10 
-                             // change later on when calling draw() 
-var yPhysCurveBegin=yPhysBegin+lenStraightBegin;
-var yPhysCurveCenter=yPhysBegin+lenStraightBegin;
+// phys coords start road
+var xBegin=0.7*sizePhys; // portrait with aspect ratio 6:10 
+var yBegin=-sizePhys;    // road from -sizePhys to about lenMainroad-sizePhys
+
+// phys coords begin first curve
+var y1=yBegin+lenStraightBegin;
+
+// phys coords center of 'S'
+var y2=y1+Math.sin(maxAng)/curvature;
+
+// phys coords end of 'S'
+var y3=2*y2-y1;
 
 
 // road geometry in physical coordinates 
 // (norcmal CS, x=>toRght, y=>toTop )
 
-    function traj_x(u){ 
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-    }
+function traj_x(u){ 
+    var u1=lenStraightBegin;
+    var u2=lenStraightBegin+lenCurve;
+    var u3=lenStraightBegin+2*lenCurve;
 
-    function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? sizePhys
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-    }
+    var x1=xBegin; //phys coords begin first curve
+    var x2=x1-(1-Math.cos(maxAng))/curvature; //center of 'S'
+    var x3=2*x2-x1; // end of 'S'
+
+    var x=(u<u1)
+	? xBegin : (u<u2)
+	? x1-(1-Math.cos(maxAng*(u-u1)/(u2-u1)))/curvature : (u<u3)
+	? x3+(1-Math.cos(maxAng*(u3-u)/(u3-u2)))/curvature : x3;
+    return x;
+}
+
+function traj_y(u){ 
+    var u1=lenStraightBegin;
+    var u2=lenStraightBegin+lenCurve;
+    var u3=lenStraightBegin+2*lenCurve;
+
+    var y1=yBegin+lenStraightBegin;
+    var y2=y1+Math.sin(maxAng)/curvature;
+    var y3=2*y2-y1; // end of 'S'
+
+    var y=(u<u1)
+	? yBegin + u : (u<u2)
+	? y1+Math.sin(maxAng*(u-u1)/(u2-u1))/curvature : (u<u3)
+	? y3-Math.sin(maxAng*(u3-u)/(u3-u2))/curvature : y3+u-u3;
+    return y;
+}
+ 
 
 
 
-
-
-//############################################################################
-// image file settings
-//############################################################################
-
-
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-
-
-// Notice: set drawBackground=false if no bg wanted
-var background_srcFile='figs/backgroundGrass.jpg'; 
 
 
 
@@ -171,13 +190,27 @@ var background_srcFile='figs/backgroundGrass.jpg';
 var canvas;
 var ctx;  // graphics context
  
-var background;
- 
+var background = new Image();
+var carImg = new Image();
+var truckImg = new Image();
+var obstacleImg = new Image();
+var roadImg = new Image();
+
+background.src ='figs/backgroundGrass.jpg'; // set drawBackground=false if no bg
+
+carImg.src='figs/blackCarCropped.gif';
+truckImg.src='figs/truck1Small.png';
+obstacleImg.src='figs/obstacleImg.png';
+
+roadImg.src=
+    (nLanes==1) ? 'figs/oneLaneRoadRealisticCropped.png' :
+    (nLanes==2) ? 'figs/twoLanesRoadRealisticCropped.png' :
+    'figs/threeLanesRoadRealisticCropped.png';
 
 
 
 //###############################################################
-// physical (m) road, vehicle and model specification
+// physical (m) road  specification and sim initialization
 //###############################################################
 
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
@@ -192,23 +225,12 @@ var densityInit=0;
 var speedInit=0; // not relevant since initially no vehicles
 var truckFracInit=0; // not relevant since initially no vehicles
 
-var mainroad=new road(roadIDmain, mainroadLen, nLanes, densityInit, speedInit, 
+var mainroad=new road(roadIDmain, lenMainroad, nLanes, densityInit, speedInit, 
 		      truckFracInit, isRing);
 
-// specify microscopic init conditions (direct/deterministic
-// control possibility crucial for game!)
-
-
-var types  =[0,    0,    1,    0];
-var lengths=[8,    5,    14,   7];
-var widths =[4.5,  4,    6,  4.5];
-var longPos=[50,   60,   70,  80];
-var lanes  =[0,    1,    2,    0];
-var speeds =[25,   25,   0,   30];
-mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
-
-
-
+var time=0;
+var itime=0;
+init();
 
 
 
@@ -217,14 +239,38 @@ mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
 // run-time specification and functions
 //############################################
 
-var time=0;
-var itime=0;
 var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
+//##############################################################
+// initialize simulation without completely new loading 
+// (this would be window.location.href = "./coffeemeterGame.html";)
+// thus saving all past global interactions such as changed parameters
+//##############################################################
+
+function init(){  
+    time=0;
+    itime=0;
+
+    // specify microscopic init conditions (direct/deterministic
+    // control possibility crucial for game!)
+
+
+    var types  =[0,    0,    1,    0];
+    var lengths=[8,    5,    14,   7];
+    var widths =[4.5,  4,    6,  4.5];
+    var longPos=[50,   60,   70,  80];
+    var lanes  =[0,    1,    2,    0];
+    var speeds =[25,   25,   0,   30];
+
+    mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
+}
+
+
+
 //#################################################################
-function updateU(){
+function update(){
 //#################################################################
 
     // update times
@@ -267,31 +313,23 @@ function updateU(){
     //logging
 
     if(false){
-        console.log("\nafter updateU: itime="+itime+" mainroad.nveh="+mainroad.nveh);
+        console.log("\nafter update: itime="+itime+" mainroad.nveh="+mainroad.nveh);
 	for(var i=0; i<mainroad.veh.length; i++){
 	    console.log("i="+i+" mainroad.veh[i].u="+mainroad.veh[i].u
 			+" mainroad.veh[i].v="+mainroad.veh[i].v
 			+" mainroad.veh[i].lane="+mainroad.veh[i].lane
 			+" mainroad.veh[i].laneOld="+mainroad.veh[i].laneOld);
 	}
-        console.log("\nonramp.nveh="+onramp.nveh);
-	for(var i=0; i<onramp.veh.length; i++){
-	    console.log("i="+i
-			+" onramp.veh[i].type="+onramp.veh[i].type
-			+" onramp.veh[i].u="+onramp.veh[i].u
-			+" onramp.veh[i].v="+onramp.veh[i].v
-			+" onramp.veh[i].speed="+onramp.veh[i].speed);
-	}
 	console.log("\n");
     }
 
-}//updateU
+}//update
 
 
 
 
 //##################################################
-function drawU() {
+function draw() {
 //##################################################
 
     //!!! test relative motion
@@ -321,21 +359,6 @@ function drawU() {
 
     if(hasChanged){
 
-      // update sliderWidth in *_gui.js; 
-
-      var css_track_vmin=15; // take from sliders.css 
-      sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
-
-      // update geometric properties
-
-      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
-      arcLen=arcRadius*Math.PI;
-      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
- 
-      center_xPhys=1.2*arcRadius;
-      center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-
       scale=canvas.height/sizePhys; 
       if(true){
 	console.log("canvas has been resized: new dim ",
@@ -356,15 +379,24 @@ function drawU() {
 
 
 
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-    //!! canvas dimensions kein DOS
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(hasChanged||(itime<=2) || (itime==20) || relObserver 
-	   || (!drawRoad)){
+    // (2) set transform matrix and draw background if needed
+    // moving observer => select appropriate pair of tiles in y direction!
+
+    var iLowerTile=Math.floor( (traj_y(uObs)-yBegin)/sizePhys);
+    var xLeftPix= scale*(xBegin-traj_x(uObs))-0.1*canvas.width;
+    var yTopPix=-scale*(yBegin+sizePhys*iLowerTile-traj_y(uObs));
+
+    if(drawBackground&&(hasChanged||(itime<=2) || (itime==20) || relObserver 
+			|| (!drawRoad))){
+
+        // lower tile
+	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix);
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
-      }
+
+        // upper tile
+	yTopPix-=scale*sizePhys;
+	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix);
+        ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
 
 
@@ -374,9 +406,8 @@ function drawU() {
     var changedGeometry=hasChanged||(itime<=1)||true; 
 
     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry,
-		  relObserver,uObs,center_xPhys,center_yPhys); //!!
+		  relObserver,uObs,xBegin,yBegin); //!!
 
-// center_xPhys, center_yPhys
  
     // (4) draw vehicles
 
@@ -384,7 +415,7 @@ function drawU() {
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
 			  laneWidth, vmin, vmax,
-                        0,mainroadLen,relObserver,uObs,center_xPhys,center_yPhys);
+                        0,lenMainroad,relObserver,uObs,xBegin,yBegin);
 
 
 
@@ -437,12 +468,9 @@ function drawU() {
  
 
 
-
-
-function init() {
+function start() {
 
     // get overall dimensions from parent html page
-    // "canvas_onramp" defined in onramp.html
 
     canvas = document.getElementById("canvas_coffeeGame"); 
     ctx = canvas.getContext("2d");
@@ -450,35 +478,11 @@ function init() {
     width  = canvas.width;   // pixel coordinates (DOS)
     height = canvas.height;  // DOS
 
-
-    // init background image
-
-    background = new Image();
-    background.src =background_srcFile;
-
-    // init vehicle image(s)
-
-    carImg = new Image();
-    carImg.src = car_srcFile;
-    truckImg = new Image();
-    truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    obstacleImg.src = obstacle_srcFile;
-
-    // init road image(s)
-
-    roadImg = new Image();
-    roadImg.src=(nLanes==1)
-	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
-
-
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
 
     return setInterval(main_loop, 1000/fps); 
-} // end init()
+} // end start()
 
 
 //##################################################
@@ -486,16 +490,17 @@ function init() {
 //##################################################
 
 function main_loop() {
-    drawU();
-    updateU();
+    draw();
+    update();
 }
  
 
 //##################################################
-// Actual start of the simulation thread
-// (also started from gui.js "Onramp" button) 
+// Actual start of the simulation thread 
+// Notice: init() and start() are the only top-level calls of the simulation
+// top-level: called by "onload" event of js in webpage
 //##################################################
 
  
- var myRun=init(); //if start with onramp: init, starts thread "main_loop" 
+ var myRun=start(); //if start with onramp: init, starts thread "main_loop" 
 
