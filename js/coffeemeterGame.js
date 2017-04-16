@@ -9,6 +9,7 @@
 // whenever myRun is inited
 
 var isStopped=false; // only initialization
+var isOutside=true; // mouse pointer outside of sim canvas (only init)
 
 function myRestartFunction(){
 
@@ -98,6 +99,34 @@ var drawRoad=true; // if false, only vehicles are drawn
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
+
+// pixel center of coffee surface = shooting direction of 3d model
+// pixel coordinates of center given by mult rel position with canvas.width,
+// canvas.heigt; however, canvas not yet defined => in draw() methods
+// size of coffeemeter propto diam/dist*f 
+// (f, shooting angle etc set internally)
+
+var xRelCenterCoffee=0.8; 
+var yRelCenterCoffee=0.4;
+var diam=0.2;      // cup and approx coffee surface diameter
+var dist=1.2;      // viewing distance to coffeemeter 
+
+// mouse pos for zero x,y acc of ego vehicle  relative to canvas 
+// = e.clientX/Y-canvas.offset; x=toRight (aLat),y=ahead (aLong)
+
+var xRelMouse_aLat0=xRelCenterCoffee;  
+var yRelMouse_aLong0=yRelCenterCoffee+0.1; // positive increments=>down
+
+// actual mouse position (calculated in myMouseMoveHandler(e))
+
+var xMouseCanvas; 
+var yMouseCanvas;
+
+//  pixel coords of center of speedometer relative to canvas 
+
+var xRelSpeedo=0.2;
+var yRelSpeedo=0.12;
+var sizeSpeedo=0.3; // in multiples of the larger pixel dimension
 
 
 //#############################################################
@@ -194,8 +223,11 @@ var carImg = new Image();
 var truckImg = new Image();
 var obstacleImg = new Image();
 var roadImg = new Image();
+var cupImgBack = new Image(); // back part of coffeecup (drawn before surface)
+var cupImgFront = new Image(); // front part of coffeecup (drawn after)
+var speedoImg = new Image(); // speedometer w/o needle
 
-background.src ='figs/backgroundGrass.jpg'; // set drawBackground=false if no bg
+background.src ='figs/backgroundGrass.jpg';
 
 carImg.src='figs/blackCarCropped.gif';
 truckImg.src='figs/truck1Small.png';
@@ -205,6 +237,18 @@ roadImg.src=
     (nLanes==1) ? 'figs/oneLaneRoadRealisticCropped.png' :
     (nLanes==2) ? 'figs/twoLanesRoadRealisticCropped.png' :
     'figs/threeLanesRoadRealisticCropped.png';
+
+cupImgBack.src='figs/emptycupOrig.jpg';
+cupImgFront.src='figs/emptycupFront.png';
+speedoImg.src='figs/speedometer.jpg';
+
+// pixel widths and heighs with identify -verbose <imgfile> | grep Geometry 
+
+var wPixCup=500;   // pixel width of both coffee images (should be the same)
+var hPixCupBack=500;   // pixel height of back (upper part) of cup image
+var hPixCupFront=284; // pixel height of front (lower part) of cup image
+var wPixSpeedo=512;
+var hPixSpeedo=318;
 
 
 
@@ -504,10 +548,8 @@ function start() {
     // get overall dimensions from parent html page
 
     canvas = document.getElementById("canvas_coffeeGame"); 
-    ctx = canvas.getContext("2d");
+    ctx = canvas.getContext("2d"); // defines canvas.width,canvas.height
  
-    width  = canvas.width;   // pixel coordinates (DOS)
-    height = canvas.height;  // DOS
 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
