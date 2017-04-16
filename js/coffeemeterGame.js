@@ -45,7 +45,7 @@ function myStopResumeFunction(){
 //#############################################
 
 var timewarp=2;
-var scale=2.3;   // pixel/m probably overridden (check!)
+var scale;   // pixel/m defined in draw() by canvas.height/sizePhys
 var qIn=0;       // no additional vehicles
 
 var IDM_v0=30;
@@ -55,7 +55,7 @@ var IDM_a=1.0;
 var IDM_b=2;
 var IDMtruck_v0=22.23;
 var IDMtruck_T=2;
-var IDMtruck_a=0.6;
+var IDMtruck_a=0.8;
 
 var MOBIL_bSafe=4;    // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0
@@ -68,7 +68,6 @@ var MOBIL_mandat_bSafeMax=20;
 var MOBIL_mandat_bThr=0;
 var MOBIL_mandat_biasRight=20;
 
-var dt_LC=4; // duration of a lane change
 
 
 // derived objects
@@ -105,14 +104,14 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings [m]
 //#############################################################
 
-var sizePhys=100;  // visible road section [m] (scale=canvas.height/sizePhys)
+var sizePhys=200;  // visible road section [m] (scale=canvas.height/sizePhys)
 
 // 'S'-shaped mainroad
 
 var lenStraightBegin=150;
 var lenCurve=200; // each of the left and right curve making up the 'S'
 var lenStraightEnd=250;
-var maxAng=0.3; // maximum angle of the S bend (if <0, mirrored 'S')
+var maxAng=0.4; // maximum angle of the S bend (if <0, mirrored 'S')
 
 // for optical purposes both lanes and cars bigger than in reality
 
@@ -255,16 +254,22 @@ function init(){
 
     // specify microscopic init conditions (direct/deterministic
     // control possibility crucial for game!)
+    // types: 0 translated into "car", 1 into "truck", 2 into "obstacle"
 
+    var types  =[0,    0,    1,    0,       2,   2,   2,   2,   2,   2];
+    var lengths=[8,    5,    14,   7,     5.5, 5.5,20.5,20.5, 5.5, 5.5];
+    var widths =[4.5,  4,    6,  4.5,       2,   4,   6,   6,   4,   2];
+    var longPos=[50,   60,   80,  80,     195, 200, 220, 240, 245, 250];
+    var lanesReal=[0, 1.8,    2,   0,    2.33,2.16,   2,   2,2.16,2.33];
+    var speeds =[25,   25,   20,   30,      0,   0,   0,   0,   0,   0];
 
-    var types  =[0,    0,    1,    0];
-    var lengths=[8,    5,    14,   7];
-    var widths =[4.5,  4,    6,  4.5];
-    var longPos=[50,   60,   70,  80];
-    var lanes  =[0,    1,    2,    0];
-    var speeds =[25,   25,   0,   30];
+    mainroad.initializeMicro(types,lengths,widths,longPos,lanesReal,speeds);
 
-    mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
+    // set ego vehicle
+
+    var iEgo=mainroad.veh.length-2;  // first veh has i=0!
+    mainroad.veh[iEgo].id=1;         // (first) ego vehicle characterized by id=1
+
 }
 
 
@@ -281,7 +286,6 @@ function update(){
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 
 
-    //console.log("\nbefore mainroad.writeVehicles:"); mainroad.writeVehicles();
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck); //!! test if needed
 
@@ -289,15 +293,28 @@ function update(){
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    //console.log("1: mainroad.nveh=",mainroad.veh.length);
     mainroad.calcAccelerations();  
     mainroad.changeLanes();         
-    //console.log("3: mainroad.nveh=",mainroad.veh.length);
-    mainroad.updateSpeedPositions();
+    if(true&&(itime<2)){
+	console.log("\nitime=",itime," before updateSpeedPositions:");
+	mainroad.writeVehicles();
+    }
+     mainroad.updateSpeedPositions();
+    if(true&&(itime<2)){
+	console.log("\nitime=",itime," after updateSpeedPositions:");
+	mainroad.writeVehicles();
+    }
     mainroad.updateBCdown();
-    //console.log("5: mainroad.nveh=",mainroad.veh.length);
     mainroad.updateBCup(qIn,dt); // argument=total inflow
-    //console.log("6: mainroad.nveh=",mainroad.veh.length);
+
+    if(false){
+	for (var iveh=0; iveh<mainroad.veh.length; iveh++){
+	    if(mainroad.veh[iveh].type=="truck"){
+		console.log("iveh=",iveh,
+			    " LCmodel=",mainroad.veh[iveh].LCModel);
+	    }
+	}
+    }
 
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){
@@ -312,8 +329,8 @@ function update(){
 
     //logging
 
-    if(false){
-        console.log("\nafter update: itime="+itime+" mainroad.nveh="+mainroad.nveh);
+    if(false&&(itime<2)){
+        console.log("\nafter update: itime="+itime+" mainroad.nveh="+mainroad.veh.length);
 	for(var i=0; i<mainroad.veh.length; i++){
 	    console.log("i="+i+" mainroad.veh[i].u="+mainroad.veh[i].u
 			+" mainroad.veh[i].v="+mainroad.veh[i].v
@@ -383,19 +400,33 @@ function draw() {
     // moving observer => select appropriate pair of tiles in y direction!
 
     var iLowerTile=Math.floor( (traj_y(uObs)-yBegin)/sizePhys);
-    var xLeftPix= scale*(xBegin-traj_x(uObs))-0.1*canvas.width;
+    var iLeftTile=Math.floor( (traj_x(uObs)-xBegin)/sizePhys);
+    var xLeftPix= scale*(xBegin+sizePhys*iLeftTile-traj_x(uObs));
     var yTopPix=-scale*(yBegin+sizePhys*iLowerTile-traj_y(uObs));
 
+    if(false){
+	console.log("lower tile: i=",iLowerTile," yTopPix=",yTopPix,
+		    "\nupper tile:      yTopPix=",yTopPix-scale*sizePhys,
+		    "\nleft tile: i=",iLeftTile," xLeftPix=",xLeftPix,
+		    "\nright tile:      xLeftPix=",xLeftPix+scale*sizePhys);
+    }
     if(drawBackground&&(hasChanged||(itime<=2) || (itime==20) || relObserver 
 			|| (!drawRoad))){
 
-        // lower tile
+        // lower lefttile
 	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix);
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
 
-        // upper tile
-	yTopPix-=scale*sizePhys;
-	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix);
+        // upper left tile
+	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix-scale*sizePhys);
+        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+ 
+       // lower right tile
+	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizePhys,yTopPix);
+        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+
+        // upper right tile
+	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizePhys,yTopPix-scale*sizePhys);
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
 

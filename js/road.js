@@ -61,6 +61,9 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 					 this.MOBIL_bSafeMandat,
 					0,-0.5*this.MOBIL_bSafeMax);
 
+    this.dt_LC=4;         // 4 duration of a lane change
+    this.waitTime=this.dt_LC;  // waiting time after passive LC to do an active LC
+
 
     // drawing-related vatiables
 
@@ -109,7 +112,7 @@ function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit
 
     //!!! select "ego vehicle" or other "special vehicles" and mark it/them
     // by changing its id to 1-99 
-    // (the normal id's begin at 100 as defined in the vehicle cstr)
+    // (the non-ego veh id's begin at 100 as defined in the vehicle cstr)
 
     var iEgo=Math.floor(0.8*this.veh.length);
     if(this.veh.length>0){this.veh[iEgo].id=1;} 
@@ -133,6 +136,7 @@ road.prototype.writeVehicles= function() {
 		   +"  len="+this.veh[i].length
 		   +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		   +"  lane="+this.veh[i].lane
+		   +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		   +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
 		   +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
 		   +"  iLead="+this.veh[i].iLead
@@ -176,17 +180,17 @@ same number of elements (otherwise, an error is given)
 @param lengths: array of veh lengths [m]
 @param widths:  array of veh widths [m]
 @param longPos: array of the init longitudinal positions of the veh front [m]
-@param lanes:   array of the initial lanes (0=left, nLanes-1=right)
+@param lanes:   array of the initial real-valued lanes (=v; 0=left, nLanes-1=right)
 @param speeds:  array of the initial speeds [m/s]
 @return:        void; (re-)defines the road's veh array
 */
 
-road.prototype.initializeMicro=function(types,lengths,widths,longPos,lanes, 
-					speeds){
+road.prototype.initializeMicro=function(types,lengths,widths,
+					longPos,lanesReal,speeds){
 
     var nvehInit=types.length;
     if( (lengths.length!=nvehInit) || (widths.length!=nvehInit)
-	|| (longPos.length!=nvehInit) || (lanes.length!=nvehInit)
+	|| (longPos.length!=nvehInit) || (lanesReal.length!=nvehInit)
 	|| (speeds.length!=nvehInit)){
 	console.log(
 	    "road.initializeMicro: bad input: not all arrays have length",
@@ -205,10 +209,12 @@ road.prototype.initializeMicro=function(types,lengths,widths,longPos,lanes,
         // !! later on directly (if types internally = integer)
 	var type=(types[i]==0) ? "car" :
 	    (types[i]==1) ? "truck" : "obstacle";
-	
+	var lane=Math.round(lanesReal[i]);
         var vehNew=new vehicle(lengths[i],widths[i], 
-			       longPos[i],lanes[i], speeds[i], type);
+			       longPos[i],lane, speeds[i], type);
+	vehNew.v=lanesReal[i]; // since vehicle cstr initializes veh.v=veh.lane
 	this.veh.push(vehNew);
+	console.log("road.initializeMicro: vehNew.v=",vehNew.v);
     }
 
     // set up all neighborhood relations
@@ -502,14 +508,24 @@ road.prototype.calcAccelerations=function(){
 
         // set acc=0 explicitely if obstacle 
         // (it may have truck model by this.updateModelsOfAllVehicles)
-	this.veh[i].acc 
-	    =(this.veh[i].type != "obstacle") 
-	    ? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead) : 0;
+        // do not accelerate programmatically the ego vehicle(s)
+
+	if(this.veh[i].id>=100){
+	    this.veh[i].acc =(this.veh[i].type != "obstacle") 
+		? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead)
+		: 0;
+	}
 
 
-        //!!!
-	if(this.veh[i].id==1){// ego vehicle
-	    this.veh[i].acc+=0;
+        //!!! ego vehicle only logged; accelerations imposed in top-level js
+
+	if(this.veh[i].id==1){
+	    if(true){
+		console.log("ego vehicle: u=",this.veh[i].u,
+			    " v=",this.veh[i].v,
+			    " speed_u=",this.veh[i].speed,
+			    "  acc_u=",this.veh[i].acc);
+	    }
 	}
 
 
@@ -549,10 +565,14 @@ road.prototype.updateSpeedPositions=function(){
     this.veh[i].speed += this.veh[i].acc*dt;
     if(this.veh[i].speed<0){this.veh[i].speed=0;}
 
-    // update drawing coordinates: get_v (fractional lane)
+    // update drawing coordinates: update laneReal=v (fractional lane)
+    // unless variable-positioned obstacles (logical lane=round(v))
+    //  or the ego-vehicle(s) (this.veh[i].id<100)
 
-    this.veh[i].v=get_v(this.veh[i].dt_lastLC,dt_LC,this.veh[i].laneOld,
-			this.veh[i].lane);
+    if( (this.veh[i].id>=100) && (this.veh[i].type != "obstacle")){
+	this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,this.veh[i].laneOld,
+			    this.veh[i].lane);
+    }
   }
 
   this.updateOrientation(); // drawing: get heading relative to road from path.js
@@ -576,7 +596,6 @@ road.prototype.changeLanes=function(){
 
 road.prototype.doChangesInDirection=function(toRight){
   var log=false;
-  var waitTime=2*dt_LC;
   //changeSuccessful=0; //return value; initially false
 
   if(log&&toRight){console.log("changeLanes: before changes to the right");}
@@ -585,9 +604,11 @@ road.prototype.doChangesInDirection=function(toRight){
   for(var i=0; i<this.veh.length; i++){
 
     // test if there is a target lane and if last change is sufficiently long ago
+      //console.log("changeLanes: i=",i," outer loop");
+  var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
+  if( (newLane>=0)&&(newLane<this.nLanes)
+	&&(this.veh[i].dt_lastLC>this.waitTime)){
 
-    var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
-    if( (newLane>=0)&&(newLane<this.nLanes)&&(this.veh[i].dt_lastLC>waitTime)){
 
       var iLead=this.veh[i].iLead;
       var iLag=this.veh[i].iLag; // actually not used
@@ -596,44 +617,63 @@ road.prototype.doChangesInDirection=function(toRight){
 
       // check if also the new leader/follower did not change recently
 
-      if((iLeadNew>=0)&&(this.veh[iLeadNew].dt_lastLC>waitTime)
-	 &&(this.veh[iLagNew].dt_lastLC>waitTime)){
+	//console.log("iLeadNew=",iLeadNew," dt_lastLC_iLeadNew=",this.veh[iLeadNew].dt_lastLC," dt_lastLC_iLagNew=",this.veh[iLag].dt_lastLC); 
 
+      if((this.veh[i].id>=100) // not an ego-vehicle
+	 &&(iLeadNew>=0)       // target lane allowed (otherwise iLeadNew=-10)
+	 &&(this.veh[iLeadNew].dt_lastLC>this.waitTime)  // lower time limit
+	 &&(this.veh[iLagNew].dt_lastLC>this.waitTime)){ // for serial LC
+      
+         //console.log("changeLanes: i=",i," cond 2 passed");
          var acc=this.veh[i].acc;
          var accLead=this.veh[iLead].acc;
          var accLeadNew=this.veh[iLeadNew].acc; // leaders: exogen. for MOBIL
 	 var speed=this.veh[i].speed;
 	 var speedLeadNew=this.veh[iLeadNew].speed;
 	 var sNew=this.veh[iLeadNew].u - this.veh[iLeadNew].length - this.veh[i].u;
-
+	 var sLagNew= this.veh[i].u - this.veh[i].length - this.veh[iLagNew].u;
+      
          // treat case that no leader/no veh at all on target lane
+         // notice: if no target vehicle iLagNew=i set in updateEnvironment()
+         //    => update_iLagLeft, update_iLagRight
       
 	 if(iLeadNew>=i){ // if iLeadNew=i => laneNew is empty
 	     if(this.isRing){sNew+=this.roadLen;} // periodic BC
 	     else{sNew=10000;}
 	 }
-
+      
          // treat case that no follower/no veh at all on target lane
 
 	 if(iLagNew<=i){ // if iLagNew=i => laneNew is empty
 	     if(this.isRing){sLagNew+=this.roadLen;} // periodic BC
 	     else{sLagNew=10000;}
 	 }
-
-
+      
+      
          // calculate MOBIL input
 
 	 var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
 	 var accNew=this.veh[i].longModel.calcAcc(sNew,speed,speedLeadNew,accLeadNew);
-	 var sLagNew=this.veh[i].u - this.veh[i].length - this.veh[iLagNew].u;
-	 var speedLagNew=this.veh[iLagNew].speed;
-         // !!new follower assumes new acceleration of  changing veh
-	 var accLagNew =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed,accNew); 
 
+         // reactions of new follower if LC performed
+         // it assumes new acceleration of changing veh
+
+	 var speedLagNew=this.veh[iLagNew].speed;
+ 	 var accLagNew 
+	      =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed,accNew); 
+      
          // final MOBIL incentive/safety test before actual lane change
          // (regular lane changes; for merges, see below)
 
-	 var MOBILOK=this.veh[i].LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,false);
+
+	 //var log=(this.veh[i].type=="truck");
+	 var log=false;
+	//var log=true;
+
+	 var MOBILOK=this.veh[i].LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,log);
+    
+    
+    
 
 	 changeSuccessful=(this.veh[i].type != "obstacle")&&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 	 if(changeSuccessful){
@@ -661,7 +701,7 @@ road.prototype.doChangesInDirection=function(toRight){
 
            // update the local envionment implies 12 updates, 
            // better simply to update all ...
-
+	 
 	   this.updateEnvironment();
 	 }
       }
@@ -868,7 +908,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 road.prototype.updateOrientation=function(){
     for(var i=0; i<this.veh.length; i++){
 	//console.log("iveh=",i," this.veh.length=",this.veh.length);
-        this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,dt_LC, // get_dvdu from paths.js
+        this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,this.dt_LC, // get_dvdu from paths.js
 			       this.veh[i].laneOld,
 			       this.veh[i].lane,this.veh[i].speed);
     }

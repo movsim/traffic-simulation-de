@@ -9,7 +9,7 @@ TODO  (apr17)
 
 * DONE definiere Mikro-ICs als Methode von road.js (demo: onramp.js)
 
-* Kombiniere Top-Level-Element aus roadworks.js und roadworks_gui.js in neues
+* DONE Kombiniere Top-Level-Element aus roadworks.js und roadworks_gui.js in neues
   Toplevel-File coffeemeterGame.js (und coffeemeterGame.html, .css)
 
 * GUI: keine Slider, der normale "Start/Stop/Resume" Resume wird
@@ -19,9 +19,9 @@ TODO  (apr17)
   "beschleunigen" (oben), "bremsen" (unten) sowie "links" und "rechts"
   seitlich => ../coffemeter/Coffeemeter_main.js
 
-* Systemablauf: feste  Parameter, Mikro-ICs
+* DONE Systemablauf: feste  Parameter, Mikro-ICs
   (einschl. Zusammensetzung), BC-Fluss/Fluesse=0, Baustelle bei
-  u=40m, Ziel bei u=500m. Die Spielidee lebt
+  u=400m, Ziel bei u=500m. Die Spielidee lebt
   von den Micro-ICs: Ego-Fz hinter langsame LKW, welche vor der
   Engstelle (linke Spur schliesst) ueberholt werden muessen, evtl. Kurve
 
@@ -36,7 +36,8 @@ TODO  (apr17)
   auf Strasse und Fzge und ist unabhaengig von Fensterveraenderungen)
   durch traj_x(u) => traj_x(u,uCenter), traj_y analog zB center_xPhys
   + traj_x(u) - traj_x(uCenter), uCenter als f(Ego-Fz), implementiert
-  in draw-Routinen mit zus arg uCenter, nicht in traj_x(u), traj_y(u) 
+  in draw-Routinen mit zus arg uCenter, nicht in traj_x(u), traj_y(u)
+  ausserdem Hintergrund (grass) in Tiles mitbewegt 
 
 * Response auf GUI Mouse-X und Mouse-Y: 
   - X: entweder Lenken = zweite Ableitung => Tricky, nicht zu

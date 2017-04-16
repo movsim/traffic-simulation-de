@@ -228,13 +228,13 @@ function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
     @return: whether an immediate lane change is safe and desired
     */
 
-    MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagTargetNew,toRight,log){
+    MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,toRight,log){
 
  	if(log|| (this.bSafe>24)){
           console.log("\nIn MOBIL.realizeLaneChange");
 	  console.log("  vrel="+vrel
 	              +" acc="+acc+" accNew="+accNew
-		      +" accLagTargetNew="+accLagTargetNew);
+		      +" accLagNew="+accLagNew);
 	  console.log("  toRight="+toRight);
 	  console.log("  this.bSafe="+this.bSafe+" this.bThr="+this.bThr
 		      +" this.bBiasRight="+this.bBiasRight);
@@ -242,7 +242,7 @@ function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
 
 	var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
 
-	if(accLagTargetNew<-bSafeActual){return false;}
+	if(accLagNew<-bSafeActual){return false;}
 	var dacc=accNew-acc + this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
 
 	if(log || (this.bSafe>24)){

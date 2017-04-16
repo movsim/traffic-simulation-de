@@ -4,8 +4,11 @@
 function vehicle(length, width, u, lane, speed, type){
     this.length=length; // car length[m]
     this.width=width;   // car width[m]
-    this.u=u;           // arc length [m]
-    this.lane=lane;
+    this.u=u;           // long coordinate=arc length [m]
+    this.lane=lane;     // integer-valued lane 0=leftmost
+    this.v=lane;        // lane coordinate (lateral, units of lane width), not speed!!
+    this.dvdu=lane;     // vehicle angle to road axis (for drawing purposes)
+    this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
     this.speed=speed;
     this.type=type;
     this.id=Math.floor(100000*Math.random()+100); // ids 0-99 special purpose
@@ -16,12 +19,9 @@ function vehicle(length, width, u, lane, speed, type){
     this.toRight=false; // set strong urge to toRight,!toRight IF mandatoryLCahead
 
 
-    this.v=lane;  // v = lane coordinate, not speed!!
-    this.dvdu=lane;
-    this.laneOld=lane; // for logging and drawing vontinuous lat coords v
     this.dt_lastLC=10;
     this.dt_lastPassiveLC=10;
-    this.acc=-100;
+    this.acc=0;
     this.iLead=-100;
     this.iLag=-100;
     //this.iLeadOld=-100; // necessary for update local environm after change
