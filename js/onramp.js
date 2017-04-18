@@ -284,8 +284,8 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    //!!! test relative motion
-    var relObserver=true;
+    //!!! test relative motion isMoving
+    var relObserver=false;
     var uObs=10*time;
 
     /* (0) redefine graphical aspects of road (arc radius etc) using
