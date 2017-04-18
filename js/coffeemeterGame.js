@@ -14,12 +14,12 @@ var isOutside=true; // mouse pointer outside of sim canvas (only init)
 function myRestartFunction(){
 
     clearInterval(myRun);
-    init(); // set times to zero, re-initialize road
 
     // update state of "Stop/Resume button 
     isStopped=false;
     document.getElementById('stopResume').innerHTML="Stop";
-    myRun=start();
+    init(); // set times to zero, re-initialize road
+    myRun=setInterval(main_loop, 1000/fps);
 }
 
 function myStopResumeFunction(){
@@ -30,7 +30,7 @@ function myStopResumeFunction(){
     if(isStopped){
         isStopped=false;
         document.getElementById('stopResume').innerHTML="Stop";
-        myRun=start();
+        myRun=setInterval(main_loop, 1000/fps); 
     }
     else{
         document.getElementById('stopResume').innerHTML="Resume";
@@ -45,9 +45,30 @@ function myStopResumeFunction(){
 // (these are GUI-sliders in the "normal" scenarios)
 //#############################################
 
+// space and time
+
 var timewarp=2;
 var scale;   // pixel/m defined in draw() by canvas.height/sizePhys
-var qIn=0;       // no additional vehicles
+var fps=30; // frames per second (unchanged during runtime)
+var dt=timewarp/fps;
+var time=0;
+var itime=0;
+
+
+// traffic flow
+
+var qIn=0;       // no additional inflowing vehicles; all done by initializeMicro
+
+// model parameters (or better: restraints) of ego vehicle 
+
+var bmax=9;// maximum absolue acceleration (limit where sliding/ESP begins)
+var amax=4;// max acceleration (if vLong=0)
+var vmax=190/3.6; // maximum speed of ego-vehicle @ full throttle
+var vc=25; // if vLong>vc, then steering can lead to accLat>bmax
+
+
+
+// model parameters of surrounding traffic
 
 var IDM_v0=30;
 var IDM_T=1.5;
@@ -70,8 +91,7 @@ var MOBIL_mandat_bThr=0;
 var MOBIL_mandat_biasRight=20;
 
 
-
-// derived objects
+// models
 
 var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
 var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
@@ -91,6 +111,14 @@ var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
 // graphical settings/variables
 //#############################################################
 
+// get overall dimensions from parent html page => canvas.width,canvas.height
+// and graphics context
+
+var simDivWindow=document.getElementById("contents");
+var canvas = document.getElementById("canvas_coffeeGame");
+var ctx = canvas.getContext("2d"); // graphics contextdefines canvas.width,canvas.height
+ 
+
 var hasChanged=true; // whether window dimensions has changed (resp. design)
 
 var drawBackground=true; // if false, default unicolor background
@@ -102,20 +130,19 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 // pixel center of coffee surface = shooting direction of 3d model
 // pixel coordinates of center given by mult rel position with canvas.width,
-// canvas.heigt; however, canvas not yet defined => in draw() methods
 // size of coffeemeter propto diam/dist*f 
 // (f, shooting angle etc set internally)
 
-var xRelCenterCoffee=0.8; 
-var yRelCenterCoffee=0.4;
+var xPixCenterCoffee=0.8*canvas.width; 
+var yPixCenterCoffee=0.4*canvas.height;
 var diam=0.2;      // cup and approx coffee surface diameter
 var dist=1.2;      // viewing distance to coffeemeter 
 
 // mouse pos for zero x,y acc of ego vehicle  relative to canvas 
 // = e.clientX/Y-canvas.offset; x=toRight (aLat),y=ahead (aLong)
 
-var xRelMouse_aLat0=xRelCenterCoffee;  
-var yRelMouse_aLong0=yRelCenterCoffee+0.1; // positive increments=>down
+var xPixMouse_aLat0=xPixCenterCoffee;  
+var yPixMouse_aLong0=yPixCenterCoffee+0.1*canvas.height; // positive increments=>down
 
 // actual mouse position (calculated in myMouseMoveHandler(e))
 
@@ -124,9 +151,9 @@ var yMouseCanvas;
 
 //  pixel coords of center of speedometer relative to canvas 
 
-var xRelSpeedo=0.2;
-var yRelSpeedo=0.12;
-var sizeSpeedo=0.3; // in multiples of the larger pixel dimension
+var xPixSpeedo=0.2*canvas.width;
+var yPixSpeedo=0.12*canvas.height;
+var sizeSpeedo=0.3*Math.max(canvas.height,canvas.width); 
 
 
 //#############################################################
@@ -212,11 +239,9 @@ function traj_y(u){
 
 
 //#################################
-// Global graphics specification
+// Images specification
 //#################################
 
-var canvas;
-var ctx;  // graphics context
  
 var background = new Image();
 var carImg = new Image();
@@ -271,19 +296,16 @@ var truckFracInit=0; // not relevant since initially no vehicles
 var mainroad=new road(roadIDmain, lenMainroad, nLanes, densityInit, speedInit, 
 		      truckFracInit, isRing);
 
-var time=0;
-var itime=0;
-init();
 
 
+// define and initialize coffeemeter
+
+var tau=3;
+var angSurfSpill=0.2;   // related to draw-vertShiftCupPix, draw-drWall[2]
+var evap=0.2; // [rad/s] with rad=angle of spilled coffee
+var coffeemeter=new Coffeemeter(diam,tau,angSurfSpill,evap);
 
 
-//############################################
-// run-time specification and functions
-//############################################
-
-var fps=30; // frames per second (unchanged during runtime)
-var dt=timewarp/fps;
 
 
 //##############################################################
@@ -405,7 +427,6 @@ function draw() {
 
     var critAspectRatio=1.15;
     var hasChanged=false;
-    var simDivWindow=document.getElementById("contents");
 
     if (canvas.width!=simDivWindow.clientWidth){
 	hasChanged=true;
@@ -543,20 +564,6 @@ function draw() {
  
 
 
-function start() {
-
-    // get overall dimensions from parent html page
-
-    canvas = document.getElementById("canvas_coffeeGame"); 
-    ctx = canvas.getContext("2d"); // defines canvas.width,canvas.height
- 
-
-    // starts simulation thread "main_loop" (defined below) 
-    // with update time interval 1000/fps milliseconds
-
-    return setInterval(main_loop, 1000/fps); 
-} // end start()
-
 
 //##################################################
 // Running function of the sim thread (triggered by setInterval)
@@ -570,10 +577,10 @@ function main_loop() {
 
 //##################################################
 // Actual start of the simulation thread 
-// Notice: init() and start() are the only top-level calls of the simulation
+// Notice: init() and setInterval(...) are the only top-level calls of the simulation
 // top-level: called by "onload" event of js in webpage
 //##################################################
 
- 
- var myRun=start(); //if start with onramp: init, starts thread "main_loop" 
+ init();
+ var myRun=setInterval(main_loop, 1000/fps);
 
