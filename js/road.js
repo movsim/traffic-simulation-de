@@ -214,7 +214,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 			       longPos[i],lane, speeds[i], type);
 	vehNew.v=lanesReal[i]; // since vehicle cstr initializes veh.v=veh.lane
 	this.veh.push(vehNew);
-	console.log("road.initializeMicro: vehNew.v=",vehNew.v);
+	//console.log("road.initializeMicro: vehNew.v=",vehNew.v);
     }
 
     // set up all neighborhood relations
@@ -224,7 +224,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 
     // check
 
-    if(true){
+    if(false){
         console.log("road.initializeMicro: initialized with ", 
 		    this.veh.length," vehicles");
 	this.writeVehicles();
@@ -520,7 +520,7 @@ road.prototype.calcAccelerations=function(){
         //!!! ego vehicle only logged; accelerations imposed in top-level js
 
 	if(this.veh[i].id==1){
-	    if(true){
+	    if(false){
 		console.log("ego vehicle: u=",this.veh[i].u,
 			    " v=",this.veh[i].v,
 			    " speed_u=",this.veh[i].speed,

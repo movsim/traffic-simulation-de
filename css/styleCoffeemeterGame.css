@@ -32,7 +32,7 @@ body{
   padding: 0;
   font-family: 'helvetica', sans-serif;
                  /*font-size: 14px;*/
-  font-size: 2vw;
+  font-size: 1.9vw;
   text-align: center;
   color: #404050;   /* text color */
   background-color: #FFFFFF;
@@ -135,12 +135,22 @@ img.title{
   max-height: 7vmin;
 }
 
+/* (1) control feedback field */
 
+#mouseMoveDisplay{
+  position: absolute;
+  top:    5vh;
+  left:   20vw;
+  width:  70vw;
+  height: 10vw;
+  border:1px solid #d3d3d3;
+}
+    
 /* (2) the simulation canvas */
 
 #contents{
   position: absolute;
-  top:    8vh;
+  top:    15vh;
   bottom: 1vh;
  /* height: calc(112vmin + 10vh - 8vh);*/
   left:   0vw;

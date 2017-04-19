@@ -37,18 +37,24 @@
 <script src="js/redirect.js" type="text/javascript"></script>
 
 <div id="scenarios">
-  <button  onclick="myRestartFunction()">Re-Start</button>
-  <button id="stopResume" onclick="myStopResumeFunction()">Stop</button>
-
+  <button id="startStopButton" onclick="myRestartStopFunction()"> </button>
 </div> 
 
+<div id="mouseMoveDisplay"> Displaytext  </div>
 
 <!-- ############################################## -->
 <!-- the actual simulation canvas -->
 <!-- ############################################## -->
 
+<!-- ATTENTION! Mouse DOS if not EXPLICIT pixel size of initial --
+-- canvas, even if wrong! vw,vh does not work! -->
+
 <div id="contents">
-  <canvas id="canvas_coffeeGame" width="800" height="600">
+  <canvas id="canvas_coffeeGame" width="700" height="800"
+          onmousemove="myMouseMoveHandler(event)"
+          onmouseout="myMouseOutHandler()"
+          onclick="myClickHandler()"
+	  onkeyup="myCheckKeyUpC(event)">
     You are probably using a very ancient web browser (or an Internet Explorer) 
     not supporting html5 canvas. Please switch to another browser for
     running this simulation.
@@ -69,15 +75,15 @@
 
 <script src="js/models.js"></script> 
 <script src="js/vehicle.js"></script>
-
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
 
-<!-- transfer to local directory if finalized -->
 <script src="../coffeemeter/Coffeemeter.js"></script>
+<script src="js/Speedometer.js"></script>
+<script src="../coffeemeter/EgovehControl.js"></script>
 <script src="../demo_js/transform3d.js"></script> 
 
-
+<script src="js/coffeemeterGame_gui.js"></script> 
 <script src="js/coffeemeterGame.js"></script> 
 
 

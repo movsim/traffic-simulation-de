@@ -1,43 +1,4 @@
 
-//################################################################
-// GUI: Start/Stop button callback (triggered by "onclick" in html file)
-//#################################################################
-
-// in any case need first to stop;
-// otherwise multiple processes after clicking 2 times start
-// define no "var myRun "; otherwise new local instance started
-// whenever myRun is inited
-
-var isStopped=false; // only initialization
-var isOutside=true; // mouse pointer outside of sim canvas (only init)
-
-function myRestartFunction(){
-
-    clearInterval(myRun);
-
-    // update state of "Stop/Resume button 
-    isStopped=false;
-    document.getElementById('stopResume').innerHTML="Stop";
-    init(); // set times to zero, re-initialize road
-    myRun=setInterval(main_loop, 1000/fps);
-}
-
-function myStopResumeFunction(){
-
-    clearInterval(myRun);
-    console.log("in myStopResumeFunction: isStopped=",isStopped);
-
-    if(isStopped){
-        isStopped=false;
-        document.getElementById('stopResume').innerHTML="Stop";
-        myRun=setInterval(main_loop, 1000/fps); 
-    }
-    else{
-        document.getElementById('stopResume').innerHTML="Resume";
-        isStopped=true;
-    }
-}
-
 
 
 //#############################################
@@ -48,11 +9,16 @@ function myStopResumeFunction(){
 // space and time
 
 var timewarp=2;
-var scale;   // pixel/m defined in draw() by canvas.height/sizePhys
+var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
+var scaleBg;      // pixel bg Img/m defined in draw()
 var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 var time=0;
 var itime=0;
+    //!!! test relative motion
+var relObserver=true;
+var uObs=0;
+
 
 
 // traffic flow
@@ -128,39 +94,19 @@ var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
-// pixel center of coffee surface = shooting direction of 3d model
-// pixel coordinates of center given by mult rel position with canvas.width,
-// size of coffeemeter propto diam/dist*f 
-// (f, shooting angle etc set internally)
-
-var xPixCenterCoffee=0.8*canvas.width; 
-var yPixCenterCoffee=0.4*canvas.height;
-var diam=0.2;      // cup and approx coffee surface diameter
-var dist=1.2;      // viewing distance to coffeemeter 
-
-// mouse pos for zero x,y acc of ego vehicle  relative to canvas 
-// = e.clientX/Y-canvas.offset; x=toRight (aLat),y=ahead (aLong)
-
-var xPixMouse_aLat0=xPixCenterCoffee;  
-var yPixMouse_aLong0=yPixCenterCoffee+0.1*canvas.height; // positive increments=>down
 
 // actual mouse position (calculated in myMouseMoveHandler(e))
 
 var xMouseCanvas; 
 var yMouseCanvas;
 
-//  pixel coords of center of speedometer relative to canvas 
-
-var xPixSpeedo=0.2*canvas.width;
-var yPixSpeedo=0.12*canvas.height;
-var sizeSpeedo=0.3*Math.max(canvas.height,canvas.width); 
-
 
 //#############################################################
 // physical geometry settings [m]
 //#############################################################
 
-var sizePhys=200;  // visible road section [m] (scale=canvas.height/sizePhys)
+var sizePhys=200;  // visible road section [m] [scale=min(canvas.width,height/sizePhys)]
+var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
 
@@ -239,7 +185,7 @@ function traj_y(u){
 
 
 //#################################
-// Images specification
+// Background, road and vehicle images specification
 //#################################
 
  
@@ -248,11 +194,8 @@ var carImg = new Image();
 var truckImg = new Image();
 var obstacleImg = new Image();
 var roadImg = new Image();
-var cupImgBack = new Image(); // back part of coffeecup (drawn before surface)
-var cupImgFront = new Image(); // front part of coffeecup (drawn after)
-var speedoImg = new Image(); // speedometer w/o needle
 
-background.src ='figs/backgroundGrass.jpg';
+background.src ='figs/backgroundGrassTest.jpg';
 
 carImg.src='figs/blackCarCropped.gif';
 truckImg.src='figs/truck1Small.png';
@@ -262,18 +205,6 @@ roadImg.src=
     (nLanes==1) ? 'figs/oneLaneRoadRealisticCropped.png' :
     (nLanes==2) ? 'figs/twoLanesRoadRealisticCropped.png' :
     'figs/threeLanesRoadRealisticCropped.png';
-
-cupImgBack.src='figs/emptycupOrig.jpg';
-cupImgFront.src='figs/emptycupFront.png';
-speedoImg.src='figs/speedometer.jpg';
-
-// pixel widths and heighs with identify -verbose <imgfile> | grep Geometry 
-
-var wPixCup=500;   // pixel width of both coffee images (should be the same)
-var hPixCupBack=500;   // pixel height of back (upper part) of cup image
-var hPixCupFront=284; // pixel height of front (lower part) of cup image
-var wPixSpeedo=512;
-var hPixSpeedo=318;
 
 
 
@@ -298,12 +229,83 @@ var mainroad=new road(roadIDmain, lenMainroad, nLanes, densityInit, speedInit,
 
 
 
-// define and initialize coffeemeter
 
-var tau=3;
-var angSurfSpill=0.2;   // related to draw-vertShiftCupPix, draw-drWall[2]
-var evap=0.2; // [rad/s] with rad=angle of spilled coffee
-var coffeemeter=new Coffeemeter(diam,tau,angSurfSpill,evap);
+//#######################################################################
+// create/generate/make coffeemeter 
+//#######################################################################
+
+// size of coffeemeter propto diam/dist*f 
+// (f, shooting angle etc set internally)
+// Note: pixel widths and heighs with shell cmd
+// identify -verbose <imgfile> | grep Geometry 
+// or in js with cupImgBack.naturalWidth,-Height
+
+var cupImgBack = new Image(); // back part of coffeecup (drawn before surface)
+var cupImgFront = new Image(); // front part of coffeecup (drawn after)
+cupImgBack.src='figs/emptycupOrig.jpg';
+cupImgFront.src='figs/emptycupFront.png';
+
+var xPixCoffee=0.25*canvas.width;
+var yPixCoffee=0.9*canvas.height;
+var diam=0.18;      // cup and approx coffee surface diameter
+var dist=1.2;      // viewing distance to coffeemeter 
+
+var tau=3;             // relaxation time [s] of coffee surface oscillations
+var angSurfSpill=0.2;  // angle [rad] where spilling begins
+var evap=0.2;          // evap rate [rad/s] with rad=angle of spilled coffee
+var coffeemeter=new Coffeemeter(cupImgBack,cupImgFront,
+				diam,dist,xPixCoffee,yPixCoffee,
+				tau,angSurfSpill,evap);
+
+
+//#######################################################################
+// create/generate/make control region for accelerating/steering 
+// the ego vehicleby mouse movements
+//!!! introduce relative positional coordinates since DOS at init definition
+//!!! canvas.width, .height, .offsetTop etc not up to date @ this stage!
+//!!! object              location      size
+//!!! coffeemeter         wrong         ok
+//!!! speedometer         wrong         wrong
+//!!! egoControlRegion    wrong         with width => with min
+//!!! mouse event         wrong (!bullet, !center, possibly solved if ctrl solved)  - 
+//#######################################################################
+
+// mouse pos for zero x,y acc of ego vehicle  relative to canvas 
+// = e.clientX/Y-canvas.offset; x=toRight (aLat),y=ahead (aLong)
+     
+var xPixMouseZero=canvas.offsetLeft+0.5*canvas.width;
+var yPixMouseZero=canvas.offsetTop+0.5*canvas.height;
+var xMouseCanvas;   // (calculated in myMouseMoveHandler(e))
+var yMouseCanvas;
+console.log("canvas.offsetTop=",canvas.offsetTop,
+	    " canvas.height=",canvas.height,
+	    " yPixMouseZero=",yPixMouseZero);
+var egoControlRegion=new EgoControlRegion(xPixMouseZero,yPixMouseZero);
+
+//#######################################################################
+// create ego vehicle and associated coffeemeter dynamics
+//#######################################################################
+
+var vLongInit=0;
+var egoVeh=new EgoVeh(vLongInit);
+
+
+
+//#######################################################################
+// create/generate/make speedometer
+//#######################################################################
+
+var speedoImg = new Image(); // speedometer w/o needle
+speedoImg.src='figs/speedometer.jpg';
+
+var xPixSpeedo=0.2*canvas.width; // center of speedometer
+var yPixSpeedo=0.12*canvas.width;
+var sizeSpeedo=Math.max(0.3*canvas.width, 0.3*canvas.height); 
+
+var vmaxSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
+
+var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeSpeedo,
+				xPixSpeedo,yPixSpeedo);
 
 
 
@@ -317,6 +319,7 @@ var coffeemeter=new Coffeemeter(diam,tau,angSurfSpill,evap);
 function init(){  
     time=0;
     itime=0;
+    uObs=0;
 
     // specify microscopic init conditions (direct/deterministic
     // control possibility crucial for game!)
@@ -340,184 +343,61 @@ function init(){
 
 
 
-//#################################################################
-function update(){
-//#################################################################
-
-    // update times
-
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-
-    // transfer effects from slider interaction 
-    // and changed mandatory states to the vehicles and models 
-
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck); //!! test if needed
-
- 
-    // do central simulation update of vehicles
-
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
-    if(true&&(itime<2)){
-	console.log("\nitime=",itime," before updateSpeedPositions:");
-	mainroad.writeVehicles();
-    }
-     mainroad.updateSpeedPositions();
-    if(true&&(itime<2)){
-	console.log("\nitime=",itime," after updateSpeedPositions:");
-	mainroad.writeVehicles();
-    }
-    mainroad.updateBCdown();
-    mainroad.updateBCup(qIn,dt); // argument=total inflow
-
-    if(false){
-	for (var iveh=0; iveh<mainroad.veh.length; iveh++){
-	    if(mainroad.veh[iveh].type=="truck"){
-		console.log("iveh=",iveh,
-			    " LCmodel=",mainroad.veh[iveh].LCModel);
-	    }
-	}
-    }
-
-    if(true){
-	for (var i=0; i<mainroad.nveh; i++){
-	    if(mainroad.veh[i].speed<0){
-		console.log("speed "+mainroad.veh[i].speed
-			    +" of mainroad vehicle "
-			    +i+" is negative!");
-	    }
-	}
-    }
-
-
-    //logging
-
-    if(false&&(itime<2)){
-        console.log("\nafter update: itime="+itime+" mainroad.nveh="+mainroad.veh.length);
-	for(var i=0; i<mainroad.veh.length; i++){
-	    console.log("i="+i+" mainroad.veh[i].u="+mainroad.veh[i].u
-			+" mainroad.veh[i].v="+mainroad.veh[i].v
-			+" mainroad.veh[i].lane="+mainroad.veh[i].lane
-			+" mainroad.veh[i].laneOld="+mainroad.veh[i].laneOld);
-	}
-	console.log("\n");
-    }
-
-}//update
-
-
-
 
 //##################################################
-function draw() {
+function drawMovingBackground(uObs){
 //##################################################
 
-    //!!! test relative motion
-    var relObserver=true;
-    var uObs=20*time;
+    var iLowerTile=Math.floor( (traj_y(uObs)-yBegin)/sizeBgPhys);
+    var iLeftTile=Math.floor( (traj_x(uObs)-xBegin)/sizeBgPhys);
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
-     responsive design if canvas has been resized 
-     (=actions of canvasresize.js for the ring-road scenario,
-     here not usable ecause of side effects with sizePhys)
-     */
+    var xLeftPix= scale*(iLeftTile*sizeBgPhys  + xBegin-traj_x(uObs));
+    var yTopPix =-scale*(iLowerTile*sizeBgPhys + yBegin-traj_y(uObs));
 
-    var critAspectRatio=1.15;
-    var hasChanged=false;
-
-    if (canvas.width!=simDivWindow.clientWidth){
-	hasChanged=true;
-	canvas.width  = simDivWindow.clientWidth;
-    }
-    if (canvas.height != simDivWindow.clientHeight){
-	hasChanged=true;
-        canvas.height  = simDivWindow.clientHeight;
-    }
-    var aspectRatio=canvas.width/canvas.height;
-    var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-
-    if(hasChanged){
-
-      scale=canvas.height/sizePhys; 
-      if(true){
-	console.log("canvas has been resized: new dim ",
-		    canvas.width,"X",canvas.height," refSizePix=",
-		    refSizePix," sizePhys=",sizePhys," scale=",scale);
-      }
-    }
-
-
-
-
-
-
-    // update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
-
-    mainroad.updateOrientation(); 
-
-
-
-    // (2) set transform matrix and draw background if needed
-    // moving observer => select appropriate pair of tiles in y direction!
-
-    var iLowerTile=Math.floor( (traj_y(uObs)-yBegin)/sizePhys);
-    var iLeftTile=Math.floor( (traj_x(uObs)-xBegin)/sizePhys);
-    var xLeftPix= scale*(xBegin+sizePhys*iLeftTile-traj_x(uObs));
-    var yTopPix=-scale*(yBegin+sizePhys*iLowerTile-traj_y(uObs));
-
-    if(false){
-	console.log("lower tile: i=",iLowerTile," yTopPix=",yTopPix,
-		    "\nupper tile:      yTopPix=",yTopPix-scale*sizePhys,
-		    "\nleft tile: i=",iLeftTile," xLeftPix=",xLeftPix,
-		    "\nright tile:      xLeftPix=",xLeftPix+scale*sizePhys);
-    }
     if(drawBackground&&(hasChanged||(itime<=2) || (itime==20) || relObserver 
 			|| (!drawRoad))){
 
-        // lower lefttile
+	var sizeScreenImg=scale*sizeBgPhys;
+	
+        // lower left tile
 	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix);
-        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+        ctx.drawImage(background,0,0,sizeScreenImg,sizeScreenImg);
 
         // upper left tile
-	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix-scale*sizePhys);
-        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	ctx.setTransform(1,0,0,1,xLeftPix,yTopPix-scale*sizeBgPhys);
+        ctx.drawImage(background,0,0,sizeScreenImg,sizeScreenImg);
+
  
        // lower right tile
-	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizePhys,yTopPix);
-        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizeBgPhys,yTopPix);
+        ctx.drawImage(background,0,0,sizeScreenImg,sizeScreenImg);
+ 
 
         // upper right tile
-	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizePhys,yTopPix-scale*sizePhys);
-        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	ctx.setTransform(1,0,0,1,xLeftPix+scale*sizeBgPhys,yTopPix-scale*sizeBgPhys);
+        ctx.drawImage(background,0,0,sizeScreenImg,sizeScreenImg);
+ 
     }
+    if(false){
+	console.log(
+	    "drawing moving background: traj_x(uObs)=",traj_x(uObs),
+	    " traj_y(uObs)=",traj_y(uObs),
+	    "\n  sizeBgPhys=",sizeBgPhys,
+	    "\n  lower tile: j=",iLowerTile," yTopPix=",yTopPix,
+	    "yTopPhys=",yTopPix/scale,
+	    "\n  upper tile: j=",iLowerTile-1," yTopPix=",yTopPix-scale*sizeBgPhys,
+	    "yTopPhys=",yTopPix/scale-sizeBgPhys
+	   // "\nleft tile: i=",iLeftTile," xLeftPix=",xLeftPix,
+	   // "\nright tile:      xLeftPix=",xLeftPix+scale*sizeBgPhys
+	);
+    }
+}
 
 
-    // (3) draw mainroad
-    // (always drawn; changedGeometry only triggers building a new lookup table)
+//##################################################
+function drawRuntimeVars(){
+//##################################################
 
-    var changedGeometry=hasChanged||(itime<=1)||true; 
-
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry,
-		  relObserver,uObs,xBegin,yBegin); //!!
-
- 
-    // (4) draw vehicles
-
- 
-
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax,
-                        0,lenMainroad,relObserver,uObs,xBegin,yBegin);
-
-
-
-    // (5) draw some running-time vars
-
-  if(true){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
@@ -559,9 +439,120 @@ function draw() {
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
-  }
 }
+
+
+//##################################################
+function respondToWindowChanges(){
+//##################################################
+
+    hasChanged=false;
+
+    if (canvas.width!=simDivWindow.clientWidth){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
+    }
+    if (canvas.height != simDivWindow.clientHeight){
+	hasChanged=true;
+        canvas.height  = simDivWindow.clientHeight;
+    }
+
+    if(hasChanged){
+	scale=Math.min(canvas.height,canvas.width)/sizePhys;
+	//scaleBg=scale*sizePhys/sizeBgPhys;
+        if(true){
+	  console.log("canvas has been resized: new dim ",
+		      canvas.width,"X",canvas.height,
+		      " sizePhys=",sizePhys," scale=",scale);
+	}
+    }
+}
+
+
+
+
+//#################################################################
+function update(){
+//#################################################################
+
+    // update times
+
+    time +=dt; // dt depends on timewarp slider (fps=const)
+    itime++;
+    uObs=20*time; //!!!
+
+    // transfer effects from slider interaction 
+    // and changed mandatory states to the vehicles and models 
+
+    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+				       LCModelCar,LCModelTruck); //!! test if needed
+
  
+    // do central simulation update of vehicles
+
+    mainroad.updateLastLCtimes(dt);
+    mainroad.calcAccelerations();  
+    mainroad.changeLanes();         
+    mainroad.updateSpeedPositions();
+    mainroad.updateBCdown();
+    mainroad.updateBCup(qIn,dt); // argument=total inflow
+
+
+    // logging
+    
+    if(false){
+	for (var iveh=0; iveh<mainroad.veh.length; iveh++){
+	    if(mainroad.veh[iveh].type=="truck"){
+		console.log("iveh=",iveh,
+			    " LCmodel=",mainroad.veh[iveh].LCModel);
+	    }
+	}
+    }
+
+    if(true){
+	for (var i=0; i<mainroad.nveh; i++){
+	    if(mainroad.veh[i].speed<0){
+		console.log("speed "+mainroad.veh[i].speed
+			    +" of mainroad vehicle "
+			    +i+" is negative!");
+	    }
+	}
+    }
+
+    egoVeh.update(canvas,egoControlRegion,isOutside,xMouseCanvas,yMouseCanvas);
+    coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
+    
+
+}//update
+
+
+
+
+//##################################################
+function draw() {
+//##################################################
+    
+    respondToWindowChanges();
+    
+    drawMovingBackground(uObs);
+
+    var changedGeometry=hasChanged||(itime<=1)||true; 
+    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry,
+		  relObserver,uObs,xBegin,yBegin); //!!
+
+    mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
+			  laneWidth, vmin, vmax,
+                          0,lenMainroad,relObserver,uObs,xBegin,yBegin);
+    displayEgoVehInfo();
+    coffeemeter.draw(canvas);
+    egoControlRegion.draw(canvas);
+    speedometer.draw(canvas,egoVeh.vLong);
+
+    drawRuntimeVars();
+ 
+}
+
 
 
 
@@ -569,7 +560,7 @@ function draw() {
 // Running function of the sim thread (triggered by setInterval)
 //##################################################
 
-function main_loop() {
+function main_step() {
     draw();
     update();
 }
@@ -581,6 +572,8 @@ function main_loop() {
 // top-level: called by "onload" event of js in webpage
 //##################################################
 
- init();
- var myRun=setInterval(main_loop, 1000/fps);
+init();
+var myRun;
+main_step();
+//var myRun=setInterval(main_step, 1000/fps);
 
