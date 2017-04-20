@@ -195,7 +195,8 @@ var truckImg = new Image();
 var obstacleImg = new Image();
 var roadImg = new Image();
 
-background.src ='figs/backgroundGrassTest.jpg';
+//background.src ='figs/backgroundGrassTest.jpg';
+background.src ='figs/backgroundGrass.jpg';
 
 carImg.src='figs/blackCarCropped.gif';
 truckImg.src='figs/truck1Small.png';
@@ -242,11 +243,12 @@ var mainroad=new road(roadIDmain, lenMainroad, nLanes, densityInit, speedInit,
 
 var cupImgBack = new Image(); // back part of coffeecup (drawn before surface)
 var cupImgFront = new Image(); // front part of coffeecup (drawn after)
-cupImgBack.src='figs/emptycupOrig.jpg';
+//cupImgBack.src='figs/emptycupOrig.jpg';
+cupImgBack.src='figs/emptycupBack.jpg';
 cupImgFront.src='figs/emptycupFront.png';
 
-var xRelCoffee=0.15; // right position of cup center relative to canvas.width
-var yRelCoffee=0.6;  // bottom position of cup center relative to canvas.height
+var xRelCoffee=0.18; // right position of cup center relative to canvas.width
+var yRelCoffee=0.8;  // bottom position of cup center relative to canvas.height
 var diam=0.18;       // cup and approx coffee surface diameter
 var dist=1.5;        // viewing distance to coffeemeter 
 
@@ -290,8 +292,8 @@ var egoVeh=new EgoVeh(vLongInit);
 var speedoImg = new Image(); // speedometer w/o needle
 speedoImg.src='figs/speedometer.jpg';
 
-var xRelSpeedo=0.15;     // center of speedometer in units of canvas width
-var yRelSpeedo=0.5;    // and height, respectively
+var xRelSpeedo=0.18;     // center of speedometer in units of canvas width
+var yRelSpeedo=0.60;    // and height, respectively
 var sizeRelSpeedo=0.24;  // in terms of min(canvas width,height)
 var vmaxSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
 
@@ -467,7 +469,6 @@ function update(){
 //#################################################################
 
 
-    console.log(" canvas.offsetTop=",canvas.offsetTop);
     // update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)

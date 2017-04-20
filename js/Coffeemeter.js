@@ -271,7 +271,7 @@ Coffeemeter.prototype.draw=function(canvas){
     var hPixCoffee=0.6*wPixCoffee; //!! only valid for specific cup image
     var vertShiftCupPix=0.2*angSurfSpill*hPixCoffee; //cup rim - coffee surface
 
-    if(true){
+    if(false){
 	console.log("Coffeemeter.draw: xPixCoffee=",xPixCoffee,
 		    " yPixCoffee=",yPixCoffee,
 		    " wPixCoffee=",wPixCoffee,
@@ -326,7 +326,7 @@ Coffeemeter.prototype.draw=function(canvas){
 
     //console.log("wPixCoffee=",wPixCoffee," hPixCoffee=",hPixCoffee);
 
-    if(true){
+    if(false){
       ctx.setTransform(1,0,0,1,xPixCoffee,yPixCoffee);
       ctx.fillStyle="orange";
       ctx.fillRect(-0.5*wPixCoffee,-0.5*hPixCoffee,wPixCoffee,hPixCoffee);
@@ -342,10 +342,11 @@ Coffeemeter.prototype.draw=function(canvas){
 				    nShoot, rotCamera, f, canvas.width);
     if(affCup[6]){
 	ctx.setTransform(affCup[0],affCup[1],affCup[2],affCup[3],
-			 affCup[4]+this.xPixCoffee,
-			 affCup[5]+this.yPixCoffee-vertShiftCupPix);
+			 affCup[4]+xPixCoffee,
+			 affCup[5]+yPixCoffee-vertShiftCupPix);
 
-	ctx.drawImage(this.cupImgBack, -0.5*wPixCup,-0.3*hPixCupBack,
+	ctx.drawImage(this.cupImgBack, 
+		      -0.5*wPixCup,-hPixCupBack,
 		      wPixCup,hPixCupBack);
     }
     else{
@@ -364,7 +365,7 @@ Coffeemeter.prototype.draw=function(canvas){
     
     if(aff[6]){ // seventh element of return array is success flag
 	ctx.setTransform(aff[0],aff[1],aff[2],aff[3],
-			 aff[4]+this.xPixCoffee,aff[5]+this.yPixCoffee);
+			 aff[4]+xPixCoffee,aff[5]+yPixCoffee);
 
 	ctx.beginPath();
 	ctx.strokeStyle=coffeeStrokeColor;
@@ -384,10 +385,11 @@ Coffeemeter.prototype.draw=function(canvas){
     // draw front part of empty cup
 
     ctx.setTransform(affCup[0],affCup[1],affCup[2],affCup[3],
-		     affCup[4]+this.xPixCoffee,
-		     affCup[5]+this.yPixCoffee-vertShiftCupPix);
+		     affCup[4]+xPixCoffee,
+		     affCup[5]+yPixCoffee-vertShiftCupPix);
 
-    ctx.drawImage(this.cupImgFront, -0.5*wPixCup,0*hPixCupFront,
+    ctx.drawImage(this.cupImgFront, 
+		  -0.5*wPixCup,0*hPixCupFront,
 		  wPixCup,hPixCupFront);
 
 
@@ -410,8 +412,8 @@ Coffeemeter.prototype.draw=function(canvas){
 		canvas.width);
 
 	    ctx.setTransform(affStain[0], affStain[1], affStain[2],
-			     affStain[3], affStain[4]+this.xPixCoffee,
-			     affStain[5]+this.yPixCoffee);
+			     affStain[3], affStain[4]+xPixCoffee,
+			     affStain[5]+yPixCoffee);
 
 	    ctx.beginPath();
 	    ctx.strokeStyle=stainStrokeColor;
@@ -437,8 +439,8 @@ Coffeemeter.prototype.draw=function(canvas){
 		    canvas.width);
                 // elongate result vertically
 		ctx.setTransform(0.6*affWall[0],0.6*affWall[1],1.6*affWall[2],
-				 1.6*affWall[3], affWall[4]+this.xPixCoffee,
-				 affWall[5]+this.yPixCoffee);
+				 1.6*affWall[3], affWall[4]+xPixCoffee,
+				 affWall[5]+yPixCoffee);
 		ctx.beginPath();
  		ctx.arc(0,0,50*Math.sqrt(stainVol),1*Math.PI,2*Math.PI,false);
 		ctx.fill();                // first fill, then stroke!
