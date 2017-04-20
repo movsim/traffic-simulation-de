@@ -25,9 +25,7 @@ function Speedometer(speedoImg,speedMax,sizeRel,
     this.sizeRel=sizeRel;
     this.xRel=xRel;
     this.yRel=yRel;
-    this.wPixImg=speedoImg.naturalWidth;
-    this.hPixImg=speedoImg.naturalHeight;
-    this.sizeImg=Math.max(this.wPixImg,this.hPixImg);
+    this.aspectImg=speedoImg.naturalWidth/speedoImg.naturalHeight;
     if(false){
 	console.log("speedoImg.naturalWidth=",speedoImg.naturalWidth,
 		    "speedoImg.naturalHeight=",speedoImg.naturalHeight);
@@ -36,20 +34,22 @@ function Speedometer(speedoImg,speedMax,sizeRel,
 
 Speedometer.prototype.draw=function(canvas,vLong){
 
-    ctx = canvas.getContext("2d");
+    // scale speedometer such that the larger of the 
+    // relations image edge/canvas edge = sizeRel
 
-    // update geometry (@relevant for first drawing and also after resizing)
+    var aspectCanvas=canvas.width/canvas.height;
+    var ratio=this.aspectImg/aspectCanvas;
+
+    // update geometry (relevant for first drawing and also after resizing)
 
     var xPix=this.xRel*canvas.width; // coordinates of speedo center
     var yPix=this.yRel*canvas.height;
-    var scaleImg=this.sizeRel*Math.min(canvas.width, canvas.height)
-	/this.sizeImg;  // ratio displayed/natural image size
-    var wPix=scaleImg*this.wPixImg;
-    var hPix=scaleImg*this.hPixImg;
+    var wPix=Math.min(1.,ratio)* this.sizeRel * canvas.width;
+    var hPix=wPix/this.aspectImg;
 
     if(false){
 	console.log("Speedometer.draw: after update of geometry:");
-	console.log(" xPix=",xPix," yPix=",yPix," scaleImg=",scaleImg,
+	console.log(" xPix=",xPix," yPix=",yPix,
 		    " wPix=",wPix," hPix=",hPix);
     }
 
@@ -63,6 +63,8 @@ Speedometer.prototype.draw=function(canvas,vLong){
  
 
     // draw speedometer w/o needle
+
+    ctx = canvas.getContext("2d");
 
     ctx.setTransform(1,0,0,1,xPix,yPix);
     ctx.drawImage(this.backgroundImg,-0.5*wPix, -0.5*hPix,wPix,hPix);

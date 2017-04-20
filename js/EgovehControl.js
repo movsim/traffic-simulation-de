@@ -57,8 +57,8 @@ EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
 
     // standard settings if mouse pointer outside of "control box"
 
-    var xPixZero=egoCtrlRegion.xPixZero;
-    var yPixZero=egoCtrlRegion.yPixZero;
+    var xPixZero=egoCtrlRegion.xRelZero*canvas.width;
+    var yPixZero=egoCtrlRegion.yRelZero*canvas.height;
     this.aLong=0;
     var curv=0; 
  
@@ -120,27 +120,29 @@ EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
 // control region for accel/steering  as generic object function as road.js
 //####################################################################
 
-function EgoControlRegion(xPixMouseZero,yPixMouseZero){
-    this.xPixZero=xPixMouseZero; // mouse position for zero steering
-    this.yPixZero=yPixMouseZero; // mouse position for zero acceleration
+function EgoControlRegion(xRelZero,yRelZero){
+    this.xRelZero=xRelZero; // mouse position for zero steering [canvas.width]
+    this.yRelZero=yRelZero; // mouse position for zero acceleration [c.height]
 }
 
 EgoControlRegion.prototype.draw=function(canvas){
 
+    var xPixZero=this.xRelZero*canvas.width;
+    var yPixZero=this.yRelZero*canvas.height;
     ctx = canvas.getContext("2d");
 
     ctx.setTransform(1,0,0,1,0,0);
     ctx.beginPath();
     ctx.fillStyle="black";
-    ctx.arc(this.xPixZero,this.yPixZero,0.01*canvas.width,
+    ctx.arc(xPixZero,yPixZero,0.01*canvas.width,
 	    0*Math.PI, 2*Math.PI,true);
     ctx.fill();   
     ctx.closePath();
     ctx.font="15px Verdana";
     ctx.strokeStyle="red";
     ctx.strokeText( "accel zero at bullet point",
-		    this.xPixZero+0.012*canvas.width, 
-		    this.yPixZero+0.006*canvas.width);
+		    xPixZero+0.012*canvas.width, 
+		    yPixZero+0.006*canvas.width);
 }
 
 

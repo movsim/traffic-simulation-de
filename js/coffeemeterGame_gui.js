@@ -71,11 +71,26 @@ function myKeyUpHandler(e) {
 
 // autom. called if mouse is moved inside canvas, 
 // triggered by html attribute onmousemove
+// !! even with header and canvas beginning at 100, we have
+// canvas.offsetTop=0
+// canvas.offsetY=undefined
+// e.clientY=100+e.offsetY
+// e.offsetY=canvas_y_coord
+// => use e.offsetX/Y !!
 
 function myMouseMoveHandler(e){ 
     isOutside=false;
-    xMouseCanvas=e.clientX - canvas.offsetLeft;
-    yMouseCanvas=e.clientY - canvas.offsetTop;
+    //xMouseCanvas=e.clientX - canvas.offsetLeft;
+    //yMouseCanvas=e.clientY - canvas.offsetTop;
+    xMouseCanvas=e.offsetX;
+    yMouseCanvas=e.offsetY;
+    if(false){
+	console.log("xMouseCanvas,yMouseCanvas=(",
+		    xMouseCanvas,",",yMouseCanvas,")",
+		    " canvas.offsetTop=",canvas.offsetTop,
+		    " canvas.offsetY=",canvas.offsetY,
+		    " e.offsetY=",e.offsetY);
+    }
 }
 
 // autom. called if mouse is moved outside of canvas, 

@@ -245,42 +245,34 @@ var cupImgFront = new Image(); // front part of coffeecup (drawn after)
 cupImgBack.src='figs/emptycupOrig.jpg';
 cupImgFront.src='figs/emptycupFront.png';
 
-var xPixCoffee=0.25*canvas.width;
-var yPixCoffee=0.9*canvas.height;
-var diam=0.18;      // cup and approx coffee surface diameter
-var dist=1.2;      // viewing distance to coffeemeter 
+var xRelCoffee=0.15; // right position of cup center relative to canvas.width
+var yRelCoffee=0.6;  // bottom position of cup center relative to canvas.height
+var diam=0.18;       // cup and approx coffee surface diameter
+var dist=1.5;        // viewing distance to coffeemeter 
 
 var tau=3;             // relaxation time [s] of coffee surface oscillations
 var angSurfSpill=0.2;  // angle [rad] where spilling begins
 var evap=0.2;          // evap rate [rad/s] with rad=angle of spilled coffee
 var coffeemeter=new Coffeemeter(cupImgBack,cupImgFront,
-				diam,dist,xPixCoffee,yPixCoffee,
+				diam,dist,xRelCoffee,yRelCoffee,
 				tau,angSurfSpill,evap);
 
 
 //#######################################################################
 // create/generate/make control region for accelerating/steering 
 // the ego vehicleby mouse movements
-//!!! introduce relative positional coordinates since DOS at init definition
-//!!! canvas.width, .height, .offsetTop etc not up to date @ this stage!
-//!!! object              location      size
-//!!! coffeemeter         wrong         ok
-//!!! speedometer         wrong         wrong
-//!!! egoControlRegion    wrong         with width => with min
-//!!! mouse event         wrong (!bullet, !center, possibly solved if ctrl solved)  - 
 //#######################################################################
 
+// myMouseMoveHandler(e):
 // mouse pos for zero x,y acc of ego vehicle  relative to canvas 
-// = e.clientX/Y-canvas.offset; x=toRight (aLat),y=ahead (aLong)
+// = e.offsetX/Y=e.clientX/Y-upper screen coord of canvas
+// x=toRight (aLat),y=ahead (aLong)
      
-var xPixMouseZero=canvas.offsetLeft+0.5*canvas.width;
-var yPixMouseZero=canvas.offsetTop+0.5*canvas.height;
-var xMouseCanvas;   // (calculated in myMouseMoveHandler(e))
+var xRelZero=0.5; // zero steering at fraction xRelZero of canvas width
+var yRelZero=0.5; // zero acceleration at frac yRelZero of canvas height
+var xMouseCanvas; // calculated in myMouseMoveHandler(e)
 var yMouseCanvas;
-console.log("canvas.offsetTop=",canvas.offsetTop,
-	    " canvas.height=",canvas.height,
-	    " yPixMouseZero=",yPixMouseZero);
-var egoControlRegion=new EgoControlRegion(xPixMouseZero,yPixMouseZero);
+var egoControlRegion=new EgoControlRegion(xRelZero,yRelZero);
 
 //#######################################################################
 // create ego vehicle and associated coffeemeter dynamics
@@ -298,9 +290,9 @@ var egoVeh=new EgoVeh(vLongInit);
 var speedoImg = new Image(); // speedometer w/o needle
 speedoImg.src='figs/speedometer.jpg';
 
-var xRelSpeedo=0.2;     // center of speedometer in units of canvas width
+var xRelSpeedo=0.15;     // center of speedometer in units of canvas width
 var yRelSpeedo=0.5;    // and height, respectively
-var sizeRelSpeedo=0.3;  // in terms of min(canvas width,height)
+var sizeRelSpeedo=0.24;  // in terms of min(canvas width,height)
 var vmaxSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
 
 var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeRelSpeedo,
@@ -474,6 +466,8 @@ function respondToWindowChanges(){
 function update(){
 //#################################################################
 
+
+    console.log(" canvas.offsetTop=",canvas.offsetTop);
     // update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)

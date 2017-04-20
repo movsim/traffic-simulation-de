@@ -42,6 +42,8 @@ Coffeemeter's draw function
 @param cupImgFront:  image of front part (to be drawn after surface)
 @param diam:         diameter of cup [m]
 @param dist:         observing distance driver-coffee cup [m]
+@param xRelCoffee:   center of coffeemeter relative to canvas (frac right)
+@param yRelCoffee:   center of coffeemeter relative to canvas (frac bottom)
 @param tau:          damping time constant [s]
 @param angSurfSpill: angle [rad] of coffee surface where spilling begins
 @param evap:         evaporation rate of coffee stains [rad/s]
@@ -52,7 +54,7 @@ Coffeemeter's draw function
 
  
 function Coffeemeter(cupImgBack,cupImgFront,
-		     diam,dist,xPixCoffee,yPixCoffee,
+		     diam,dist,xRelCoffee,yRelCoffee,
 		     tau,angSurfSpill,evap){
 
     // quantities that possibly need to be tuned here
@@ -64,8 +66,8 @@ function Coffeemeter(cupImgBack,cupImgFront,
     this.cupImgFront=cupImgFront;
     this.diam=diam; 
     this.dist=dist; 
-    this.xPixCoffee=xPixCoffee; 
-    this.yPixCoffee=yPixCoffee; 
+    this.xRelCoffee=xRelCoffee; 
+    this.yRelCoffee=yRelCoffee; 
     this.tau=tau;
     this.angSurfSpill=angSurfSpill;
     this.evap=evap;
@@ -232,6 +234,9 @@ Coffeemeter.prototype.updateSurface=function(ax,ay,dt){
 
 
 
+
+
+
 //##############################################################
 /**
 draw the coffee cup including coffee surface and spilt coffee stains
@@ -250,7 +255,6 @@ is set internally
 
 Coffeemeter.prototype.draw=function(canvas){
 
-    ctx = canvas.getContext("2d");
  
 
     // finetune by changing the following values
@@ -258,10 +262,22 @@ Coffeemeter.prototype.draw=function(canvas){
     var diam=this.diam;     // to save typing
     var dist=this.dist;
     var angSurfSpill=this.angSurfSpill;
+
     var f=60;               // focal length for 24mm X 36mm film
+
+    var xPixCoffee=canvas.width*this.xRelCoffee;
+    var yPixCoffee=canvas.height*this.yRelCoffee;
     var wPixCoffee=canvas.width*diam/dist * (2.3*f/50); // rect background
-    var hPixCoffee=0.6*wPixCoffee; 
+    var hPixCoffee=0.6*wPixCoffee; //!! only valid for specific cup image
     var vertShiftCupPix=0.2*angSurfSpill*hPixCoffee; //cup rim - coffee surface
+
+    if(true){
+	console.log("Coffeemeter.draw: xPixCoffee=",xPixCoffee,
+		    " yPixCoffee=",yPixCoffee,
+		    " wPixCoffee=",wPixCoffee,
+		    " hPixCoffee=",hPixCoffee);
+    }
+
 
     // x=to right, y=forwards, z=to top
     // to connect coffeemeter to microsim coord system x=forwards, y=to right
@@ -300,15 +316,17 @@ Coffeemeter.prototype.draw=function(canvas){
 
     // test with orange background (set if(false) after testing)
 
+    ctx = canvas.getContext("2d");
+    ctx.setTransform(1,0,0,1,0,0);
+
     if(false){
-      ctx.setTransform(1,0,0,1,0,0);
       ctx.fillStyle="rgb(255,240,200)";
       ctx.fillRect(0,0,canvas.width,canvas.height);
     }
 
     //console.log("wPixCoffee=",wPixCoffee," hPixCoffee=",hPixCoffee);
 
-    if(false){
+    if(true){
       ctx.setTransform(1,0,0,1,xPixCoffee,yPixCoffee);
       ctx.fillStyle="orange";
       ctx.fillRect(-0.5*wPixCoffee,-0.5*hPixCoffee,wPixCoffee,hPixCoffee);
