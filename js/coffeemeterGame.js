@@ -298,14 +298,13 @@ var egoVeh=new EgoVeh(vLongInit);
 var speedoImg = new Image(); // speedometer w/o needle
 speedoImg.src='figs/speedometer.jpg';
 
-var xPixSpeedo=0.2*canvas.width; // center of speedometer
-var yPixSpeedo=0.12*canvas.width;
-var sizeSpeedo=Math.max(0.3*canvas.width, 0.3*canvas.height); 
-
+var xRelSpeedo=0.2;     // center of speedometer in units of canvas width
+var yRelSpeedo=0.5;    // and height, respectively
+var sizeRelSpeedo=0.3;  // in terms of min(canvas width,height)
 var vmaxSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
 
-var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeSpeedo,
-				xPixSpeedo,yPixSpeedo);
+var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeRelSpeedo,
+				xRelSpeedo,yRelSpeedo);
 
 
 
