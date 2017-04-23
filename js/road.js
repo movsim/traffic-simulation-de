@@ -17,7 +17,10 @@ v=lateral coordinate [lanewidth units] (real-valued; left: 0; right: nLanes-1)
  
 @param roadID:          integer-valued road ID
 @param roadLen:         link length [m]
+@param laneWidth:       lane width [m]
 @param nLanes:          #lanes (replaced by roadWidth in mixed traffic)
+@param traj_x:          function arc length u -> phys x coordinate (East)
+@param traj_y:          function arc length u -> phys y coordinate (North)
 @param densInitPerLane: initial linear density [veh/m/lane]
 @param speedInit:       initial longitudinal speed [m/s]
 @param truckFracInit:   initial truck fraction [0-1]
@@ -27,10 +30,15 @@ v=lateral coordinate [lanewidth units] (real-valued; left: 0; right: nLanes-1)
 */
 
 
-function road(roadID, roadLen, nLanes, densInitPerLane, speedInit, truckFracInit, isRing){
+function road(roadID, roadLen, laneWidth, nLanes, traj_x, traj_y,
+	      densInitPerLane, speedInit, truckFracInit, isRing){
     this.roadID=roadID;
     this.roadLen=roadLen;
+    this.laneWidth=laneWidth;
     this.nLanes=nLanes;
+    this.traj_x=traj_x;
+    this.traj_y=traj_y;
+
     var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
     // network related properties
@@ -490,6 +498,7 @@ road.prototype.updateEnvironment=function(){
 
 //######################################################################
 // main calculation of accelerations 
+// only vehicles with id>=100 <=> no externally controlled ego-vehicles 
 //######################################################################
 
 
@@ -506,7 +515,7 @@ road.prototype.calcAccelerations=function(){
 	    else{s=10000;accLead=0;} // free outflow BC: virt veh 10km away
 	}
 
-        // set acc=0 explicitely if obstacle 
+        // obstacles: set acc=0 explicitely
         // (it may have truck model by this.updateModelsOfAllVehicles)
         // do not accelerate programmatically the ego vehicle(s)
 
@@ -517,16 +526,20 @@ road.prototype.calcAccelerations=function(){
 	}
 
 
-        //!!! ego vehicle only logged; accelerations imposed in top-level js
+        //!! ego vehicles: accelerations acc, lanes lane (for logic),
+        // and lateral positions v (for drawing) 
+        // imposed directly by road.updateEgoEgoVeh(externalEgoVeh) 
+        // called in the top-level js; here only logging
 
 	if(this.veh[i].id==1){
-	    if(false){
+	    if(true){
 		console.log("ego vehicle: u=",this.veh[i].u,
 			    " v=",this.veh[i].v,
 			    " speed_u=",this.veh[i].speed,
 			    "  acc_u=",this.veh[i].acc);
 	    }
 	}
+
 
 
 	//if(false){
@@ -550,28 +563,104 @@ road.prototype.calcAccelerations=function(){
 }
 
 
+//#######################################################################
+/** exchanges the information of an external control vehicle 
+    (instance of EgoVeh in EgoVehControl.js) with the corresponding 
+    vehicle of the road object
+
+@param externalEgoVeh:  instance of the pseudo-class EgoVeh
+@return: updates in the road.veh element with road.veh.id=1:
+         - the longitudinal acceleration acc, 
+         - the lane (for logic),
+         - the physical lateral position v (for drawing)
+         - the logical angle dvdu (for drawing)
+*/
+
+road.prototype.updateEgoVeh=function(externalEgoVeh){
+
+    // find the ego vehicle
+
+    var found=false;
+    var iEgo=-1;
+    for(var i=0; !found &&(i<this.veh.length); i++){
+	if(this.veh[i].id<100){
+	    iEgo=i;
+	    found=true;
+	}
+    }
+    if(iEgo==-1){
+	console.log("warning: road.updateEgoVeh called"+
+		    " although no ego vehicle exists; doing nothing");
+	return;
+    }
+
+
+    // translate the road axis accelerations of the ego vehicle into 
+    // logical accelerations au=acc and av of the controlled vehicle 
+    // in the road.veh array by the road curvature
+
+    var u=this.veh[iEgo].u;
+    var roadCurv=this.get_curv(u);
+
+
+    // calculate logical accelerations
+    // acc_v=accel to logical increasing lane indices=acc to right
+    // roadCurv>0 for left curves, therefore "+"
+
+    this.veh[iEgo].acc=externalEgoVeh.aLong; // !! dvdu <<1, driveAngle<<1
+    var acc_v=externalEgoVeh.aLat+roadCurv*this.veh[iEgo].speed;
+
+    // calculate lateral dynamics directly by ballistic update 
+    // (old speeds, old positions => before main kinematic update!)
+    // Watch out: coordinate v has unit laneWidth, not m! 
+    // Notice: long dynamics by normal road.updateSpeedPositions
+
+    if(itime<2){this.veh[iEgo].dvdu=0;} //!! 
+    var dvdt=this.veh[iEgo].speed*this.veh[iEgo].dvdu;
+    this.veh[iEgo].v += dvdt*dt+0.5*acc_v*dt*dt/this.laneWidth; 
+    this.veh[iEgo].dvdu += (acc_v*dt/this.laneWidth)/this.veh[iEgo].speed;
+    this.veh[iEgo].lane=Math.round(this.veh[iEgo].v);
+    console.log("updateEgoVeh: speed=",this.veh[iEgo].speed,
+		" dvdu=",this.veh[iEgo].dvdu);
+}// updateEgoVeh
+
+
+
 //######################################################################
 // main kinematic update (ballistic update scheme)
 // including ring closure if isRing
 //######################################################################
 
+// Notice on ego-vehicles: update speed and u normally from acc and 
+// take lateral coordinate v, lane, dvdu directly from the results of 
+// road.updateEgoEgoVeh(externalEgoVeh) => ego.acc, ego.v, ego.dvdu, ego.lane
+// given from the top-level js
+
+
 road.prototype.updateSpeedPositions=function(){
   for(var i=0; i<this.veh.length; i++){
 
-      this.veh[i].u += Math.max(0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
+    // longitudinal positional with old speeds
+
+    this.veh[i].u += Math.max(
+	0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
      
-    if(this.isRing &&(this.veh[i].u>this.roadLen)){this.veh[i].u -= this.roadLen;} // periodic BC
+    // periodic BC closure
+
+    if(this.isRing &&(this.veh[i].u>this.roadLen)){
+	this.veh[i].u -= this.roadLen;}
+
+    // longitudinal speed update 
 
     this.veh[i].speed += this.veh[i].acc*dt;
     if(this.veh[i].speed<0){this.veh[i].speed=0;}
 
-    // update drawing coordinates: update laneReal=v (fractional lane)
-    // unless variable-positioned obstacles (logical lane=round(v))
-    //  or the ego-vehicle(s) (this.veh[i].id<100)
+    // lateral positional update (v=fractional lane)
+    // for non-ego vehicles and non-obstacles
 
     if( (this.veh[i].id>=100) && (this.veh[i].type != "obstacle")){
-	this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,this.veh[i].laneOld,
-			    this.veh[i].lane);
+	this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,
+			    this.veh[i].laneOld,this.veh[i].lane);
     }
   }
 
@@ -579,6 +668,26 @@ road.prototype.updateSpeedPositions=function(){
   this.sortVehicles(); // positional update may have disturbed sorting (if passing)
   this.updateEnvironment();
 }
+
+
+
+//######################################################################
+// get heading (relative to road)
+// using get_dvdu from paths.js
+//######################################################################
+
+road.prototype.updateOrientation=function(){
+    for(var i=0; i<this.veh.length; i++){
+	//console.log("iveh=",i," this.veh.length=",this.veh.length);
+	if(this.veh[i].id>=100){//ego vehicles are updated separately 
+            this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,this.dt_LC,
+				      this.veh[i].laneOld,
+				      this.veh[i].lane,this.veh[i].speed);
+	}
+    }
+}
+
+
 
 
 //######################################################################
@@ -900,19 +1009,6 @@ road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
 
 
-
-//######################################################################
-// get heading (relative to road)
-//######################################################################
-
-road.prototype.updateOrientation=function(){
-    for(var i=0; i<this.veh.length; i++){
-	//console.log("iveh=",i," this.veh.length=",this.veh.length);
-        this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,this.dt_LC, // get_dvdu from paths.js
-			       this.veh[i].laneOld,
-			       this.veh[i].lane,this.veh[i].speed);
-    }
-}
 
 
 //######################################################################
@@ -1301,22 +1397,40 @@ road.prototype.updateLastLCtimes=function(dt){
 // get direction of road at arclength u
 //######################################################################
 /**
-@param traj_x(u), traj_y(u)=phys. road geometry as parametrized 
-       function of the arc length
 @param u=actual arclength for which to get direction
 @return direction (heading) of the road (0=East, pi/2=North etc)
 */
 
-road.prototype.get_phi=function(traj_x,traj_y,u){
+road.prototype.get_phi=function(u){
 
     var smallVal=0.0000001;
 
     var du=0.1;
-    var dx=traj_x(u+du)-traj_x(u-du);
-    var dy=traj_y(u+du)-traj_y(u-du);
+    var dx=this.traj_x(u+du)-this.traj_x(u-du);
+    var dy=this.traj_y(u+du)-this.traj_y(u-du);
     var phi=(Math.abs(dx)<smallVal) ? 0.5*Math.PI : Math.atan(dy/dx);
     if( (dx<0) || ((Math.abs(dx)<smallVal)&&(dy<0))){phi+=Math.PI;}
     return phi;
+}
+
+
+//######################################################################
+// get local curvature  of road at arclength u
+//######################################################################
+/**
+@param u=actual arclength for which to get curvature
+@return curvature of the road (positive for left curves)
+*/
+
+road.prototype.get_curv=function(u){
+
+    var smallVal=0.0000001;
+
+    var du=0.1;
+    var phiPlus=this.get_phi(this.traj_x,this.traj_y,u+du);
+    var phiMinus=this.get_phi(this.traj_x,this.traj_y,u-du);
+    return 0.5*(phiPlus-phiMinus)/du;
+
 }
 
 //######################################################################
@@ -1325,15 +1439,13 @@ road.prototype.get_phi=function(traj_x,traj_y,u){
 /**
 @param u=logical longitudinal coordinate (zero at beginning)
 @param v=logical transversal coordinate (zero at road center, towards right)
-@param traj_x(u), traj_y(u)=phys. road geometry as parametrized 
-       function of the arc length
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
 @return x pixel coordinate
 */
 
-road.prototype.get_xPix=function(traj_x,traj_y,u,v,scale){
-    var phi=this.get_phi(traj_x,traj_y,u);
-    return scale*(traj_x(u)+v*Math.sin(phi));
+road.prototype.get_xPix=function(u,v,scale){
+    var phi=this.get_phi(this.traj_x,this.traj_y,u);
+    return scale*(this.traj_x(u)+v*Math.sin(phi));
 }
 
 //######################################################################
@@ -1342,15 +1454,13 @@ road.prototype.get_xPix=function(traj_x,traj_y,u,v,scale){
 /**
 @param u=logical longitudinal coordinate (zero at beginning)
 @param v=logical transversal coordinate (zero at road center, towards right)
-@param traj_x(u), traj_y(u)=phys. road geometry as parametrized 
-       function of the arc length
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
 @return y pixel coordinate
 */
 
-road.prototype.get_yPix=function(traj_x,traj_y,u,v,scale){
-    var phi=this.get_phi(traj_x,traj_y,u);
-    return -scale*(traj_y(u)-v*Math.cos(phi));
+road.prototype.get_yPix=function(u,v,scale){
+    var phi=this.get_phi(this.traj_x,this.traj_y,u);
+    return -scale*(this.traj_y(u)-v*Math.cos(phi));
 }
 
  
@@ -1362,9 +1472,6 @@ road.prototype.get_yPix=function(traj_x,traj_y,u,v,scale){
 /**
 @param scale:     physical road coordinbates => pixels, [scale]=pixels/m
 @param roadImg:   image of a (small, straight) road element
-@param traj_x(u): x coord of physical road geoemtry as f(arclength u)
-@param traj_y(u): y coord of physical road geoemtry as f(arclength u)
-@param laneWidth: lane width [m] (needed extra since transv coord v=lanes)
 @param changed geometry: true if a resize event took place in parent
 @param movingObs: (optional) whether observer is moving, default=false 
 @param uObs:      (optional) location uObs is drawn at the physical
@@ -1376,21 +1483,21 @@ road.prototype.get_yPix=function(traj_x,traj_y,u,v,scale){
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
+road.prototype.draw=function(roadImg,scale,
 			     changedGeometry, movingObs, uObs, xObs, yObs){
 
     var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
     var uRef=(movingObserver) ? uObs : 0;
-    var xRef=(movingObserver) ? xObs : traj_x(0);
-    var yRef=(movingObserver) ? yObs : traj_y(0);
+    var xRef=(movingObserver) ? xObs : this.traj_x(0);
+    var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
-    //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
+    console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
 
     var smallVal=0.0000001;
-    var boundaryStripWidth=0.3*laneWidth;
+    var boundaryStripWidth=0.3*this.laneWidth;
 
-    var factor=1+this.nLanes*laneWidth*this.draw_curvMax; // "stitch factor"
+    var factor=1+this.nLanes*this.laneWidth*this.draw_curvMax; // "stitch factor"
     var lSegm=this.roadLen/this.draw_nSegm;
 
     // lookup table only at beginning or after rescaling => 
@@ -1401,9 +1508,9 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 	this.draw_scaleOld=scale;
         for (var iSegm=0; iSegm<this.draw_nSegm; iSegm++){
 	  var u=this.roadLen*(iSegm+0.5)/this.draw_nSegm;
-	  this.draw_x[iSegm]=traj_x(u); 
-	  this.draw_y[iSegm]=traj_y(u);
-	  this.draw_phi[iSegm]=this.get_phi(traj_x, traj_y, u);
+	  this.draw_x[iSegm]=this.traj_x(u); 
+	  this.draw_y[iSegm]=this.traj_y(u);
+	  this.draw_phi[iSegm]=this.get_phi(u);
 	  this.draw_cosphi[iSegm]=Math.cos(this.draw_phi[iSegm]);
 	  this.draw_sinphi[iSegm]=Math.sin(this.draw_phi[iSegm]);
 
@@ -1422,15 +1529,15 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 	var cosphi=this.draw_cosphi[iSegm];
 	var sinphi=this.draw_sinphi[iSegm];
 	var lSegmPix=scale*factor*lSegm;
-	var wSegmPix=scale*(this.nLanes*laneWidth+boundaryStripWidth);
+	var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
 
-	var xCenterPix= scale*(this.draw_x[iSegm]-traj_x(uRef)+xRef); 
-	var yCenterPix=-scale*(this.draw_y[iSegm]-traj_y(uRef)+yRef);
+	var xCenterPix= scale*(this.draw_x[iSegm]-this.traj_x(uRef)+xRef); 
+	var yCenterPix=-scale*(this.draw_y[iSegm]-this.traj_y(uRef)+yRef);
 
 
 	ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
 	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
-	if(false){
+	if(true){
 	  console.log("road.draw: iSegm="+iSegm+
 		      " cosphi="+cosphi+" factor="+factor+
 		      " lSegmPix="+lSegmPix+" wSegmPix="+wSegmPix+
@@ -1448,9 +1555,6 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 
 /**
 @param scale: translates physical coordinbates into pixel:[scale]=pixels/m
-@param traj_x(u), traj_y(u): phys. road geometry 
-       as parameterized function of the arc length
-@param laneWidth: lane width [m] (needed extra since transv coord v=lanes)
 @param speedmin,speedmax: speed range [m/s] for the colormap 
        (red=slow,blue=fast)
 @param umin,umax: optional restriction of the long drawing range 
@@ -1467,7 +1571,6 @@ road.prototype.draw=function(roadImg,scale,traj_x,traj_y,laneWidth,
 */
 
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
-				     traj_x, traj_y, laneWidth, 
 				     speedmin,speedmax,
 				     umin,umax,
 				     movingObs, uObs, xObs, yObs){
@@ -1476,8 +1579,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
   var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
   var uRef=(movingObserver) ? uObs : 0;
-  var xRef=(movingObserver) ? xObs : traj_x(0);
-  var yRef=(movingObserver) ? yObs : traj_y(0);
+  var xRef=(movingObserver) ? xObs : this.traj_x(0);
+  var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
   for(var i=0; i<this.veh.length; i++){
       if(noRestriction || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax))){
@@ -1488,9 +1591,9 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
           // v increasing from left to right, 0 @ road center
 
-          var vCenterPhys=laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
+          var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
 
-          var phiRoad=this.get_phi(traj_x, traj_y, uCenterPhys);
+          var phiRoad=this.get_phi(uCenterPhys);
           var phiVehRel=(Math.abs(this.veh[i].dvdu)<0.00001) 
 	  ? 0 : - Math.atan(this.veh[i].dvdu);
           var phiVeh=phiRoad + phiVehRel;
@@ -1498,10 +1601,10 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var sphiRoad=Math.sin(phiRoad);
           var cphiVeh=Math.cos(phiVeh);
           var sphiVeh=Math.sin(phiVeh);
-          var xCenterPix= scale*(traj_x(uCenterPhys) + vCenterPhys*sphiRoad
-				 -traj_x(uRef)+xRef);
-          var yCenterPix=-scale*(traj_y(uCenterPhys) - vCenterPhys*cphiRoad
-				 -traj_y(uRef)+yRef);
+          var xCenterPix= scale*(this.traj_x(uCenterPhys) + vCenterPhys*sphiRoad
+				 -this.traj_x(uRef)+xRef);
+          var yCenterPix=-scale*(this.traj_y(uCenterPhys) - vCenterPhys*cphiRoad
+				 -this.traj_y(uRef)+yRef);
 
           // (1) draw vehicles as images
 

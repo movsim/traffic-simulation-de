@@ -225,8 +225,8 @@ var densityInit=0;
 var speedInit=0; // not relevant since initially no vehicles
 var truckFracInit=0; // not relevant since initially no vehicles
 
-var mainroad=new road(roadIDmain, lenMainroad, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
+var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,traj_x,traj_y, 
+		      densityInit, speedInit,truckFracInit, isRing);
 
 
 
@@ -323,7 +323,7 @@ function init(){
     var widths =[4.5,  4,    6,  4.5,       2,   4,   6,   6,   4,   2];
     var longPos=[50,   60,   80,  80,     195, 200, 220, 240, 245, 250];
     var lanesReal=[0, 1.8,    2,   0,    2.33,2.16,   2,   2,2.16,2.33];
-    var speeds =[25,   25,   20,   30,      0,   0,   0,   0,   0,   0];
+    var speeds =[20,   20,   20,   30,      0,   0,   0,   0,   0,   0];
 
     mainroad.initializeMicro(types,lengths,widths,longPos,lanesReal,speeds);
 
@@ -485,7 +485,8 @@ function update(){
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
+    mainroad.calcAccelerations(); 
+    mainroad.updateEgoVeh(egoVeh); // egoVeh: updates aLong and all lat. stuff
     mainroad.changeLanes();         
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
@@ -531,12 +532,12 @@ function draw() {
     drawMovingBackground(uObs);
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry,
+    mainroad.draw(roadImg,scale,traj_x,traj_y,changedGeometry,
 		  relObserver,uObs,xBegin,yBegin); //!!
 
     mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax,
+			  vmin, vmax,
                           0,lenMainroad,relObserver,uObs,xBegin,yBegin);
     displayEgoVehInfo();
     coffeemeter.draw(canvas);

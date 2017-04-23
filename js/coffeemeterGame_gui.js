@@ -11,7 +11,7 @@ function myRestartStopFunction(){
     console.log("Begin myRestartStopFunction: isStopped=",isStopped);
     clearInterval(myRun);
     init();
-    if(isStopped){
+    if(false){
 	isStopped=false;
 	document.getElementById('startStopButton').innerHTML="Neues Spiel";
 	myRun=setInterval(main_step, 1000/fps);
@@ -38,7 +38,7 @@ function myResumeStopFunction(){
 	myRun=setInterval(main_step, 1000/fps);
     }
     else{
-	document.getElementById('startStopButton').innerHTML="";
+	document.getElementById('startStopButton').innerHTML="Neues Spiel";
 	document.getElementById('mouseMoveDisplay').innerHTML
 	    =coordsText+"<br>Weiter mit Mausklick oder Tastendruck";
 	isStopped=true;
@@ -106,7 +106,7 @@ function myClickHandler() {
 }
 
 
-// display dynamic variables in html DOM element "mouseMoveDisplay"
+// displays dynamic variables in html DOM element "mouseMoveDisplay"
 
 function displayEgoVehInfo(){
 
