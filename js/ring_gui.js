@@ -101,8 +101,10 @@ function updateModels(){
 // Disturb button (triggered by "onclick" callback in html file)
 //#########################################################
 
-// special vehicles get id<100; ego vehicles has id=1, disturbed vehicles 
-// ids 10,11, (max 99)
+// id<100:              special vehicles
+// id=1:                ego vehicle
+// id=10,11, (max 99):  disturbed vehicles 
+// id>=100:             normal vehicles
 
 function disturbOneVehicle(){
 
