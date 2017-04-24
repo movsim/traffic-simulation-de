@@ -101,18 +101,36 @@ function updateModels(){
 // Disturb button (triggered by "onclick" callback in html file)
 //#########################################################
 
+// special vehicles get id<100; ego vehicles has id=1, disturbed vehicles 
+// ids 10,11, (max 99)
+
 function disturbOneVehicle(){
+
+    var speedReduce=6; // parameter: speed reduction amount [m/s] 
+
     if(false){
 	console.log("in disturbOneVehicle()\n",
 		    " mainroad.veh.length=",mainroad.veh.length);
     }
-    var speedReduce=6;
-    for (var i=0; i<mainroad.veh.length; i++){
-        if(mainroad.veh[i].id==1){
-	  console.log("veh to be perturbed has index ",i);
-	  mainroad.veh[i].speed
-	      =Math.max(0.,mainroad.veh[i].speed-speedReduce);
-      }
+
+    // select veh to be perturbed (must not be an ego vehicle)
+    // give up as a bad job if veh.id=1 two times in a row
+    // (may be because the only mainroad vehicle is an ego vehicle)
+
+    if(mainroad.veh.length>=1){
+	var iDisturb=Math.floor(mainroad.veh.length/2);
+	console.log("mainroad.veh.length=",mainroad.veh.length,
+		    " mainroad.veh.length/2=",mainroad.veh.length/2);
+	if(mainroad.veh[iDisturb].id==1){
+	    iDisturb=(iDisturb+1)%mainroad.veh.length;
+	    if(mainroad.veh[iDisturb].id==1){return;} 
+	}
+
+	console.log("veh to be perturbed has index ",iDisturb);
+	mainroad.veh[iDisturb].id=10;
+	mainroad.veh[iDisturb].speed
+	    =Math.max(0.,mainroad.veh[iDisturb].speed-speedReduce);
+     
     }
 }
 

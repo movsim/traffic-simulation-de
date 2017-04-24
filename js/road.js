@@ -7,13 +7,22 @@
 
 /**
 ##########################################################
-road segment (link) object constructor: logic-geometrical properties (u,v),  
-physical dynamics of the vehicles on a road section,
-drawing routines of road/vehicles 
-with road geometry functions (u,v)->(x,y) to be provided by the main program 
+road segment (link) object constructor:
+##########################################################
+
+logic-geometrical properties (u,v):  
 u=long coordinate [m] (increasing in driving direction
 v=lateral coordinate [lanewidth units] (real-valued; left: 0; right: nLanes-1)
-##########################################################
+
+connection to physical coordinates x (East), y (North) provided by
+the functions traj_x, traj_y provided as cstr parameters
+
+special vehicles are defined according to
+veh.id<100:              special vehicles
+veh.id=1:                ego vehicle
+veh.id=10,11, (max 99):  disturbed vehicles 
+veh.id>=100:             normal vehicles
+they are specially drawn and externally influenced from the main program
  
 @param roadID:          integer-valued road ID
 @param roadLen:         link length [m]
@@ -122,8 +131,11 @@ function road(roadID, roadLen, laneWidth, nLanes, traj_x, traj_y,
     // by changing its id to 1-99 
     // (the non-ego veh id's begin at 100 as defined in the vehicle cstr)
 
-    var iEgo=Math.floor(0.8*this.veh.length);
-    if(this.veh.length>0){this.veh[iEgo].id=1;} 
+    if(false){
+	var iEgo=Math.floor(0.8*this.veh.length);
+        if(this.veh.length>0){this.veh[iEgo].id=1;} 
+    }
+
     //this.writeVehicles();
 }
 
@@ -519,7 +531,7 @@ road.prototype.calcAccelerations=function(){
         // (it may have truck model by this.updateModelsOfAllVehicles)
         // do not accelerate programmatically the ego vehicle(s)
 
-	if(this.veh[i].id>=100){
+	if(this.veh[i].id>1){
 	    this.veh[i].acc =(this.veh[i].type != "obstacle") 
 		? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead)
 		: 0;
@@ -533,7 +545,7 @@ road.prototype.calcAccelerations=function(){
 
 	if(this.veh[i].id==1){
 	    if(true){
-		console.log("ego vehicle: u=",this.veh[i].u,
+		console.log("in road: ego vehicle: u=",this.veh[i].u,
 			    " v=",this.veh[i].v,
 			    " speed_u=",this.veh[i].speed,
 			    "  acc_u=",this.veh[i].acc);
@@ -583,7 +595,7 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     var found=false;
     var iEgo=-1;
     for(var i=0; !found &&(i<this.veh.length); i++){
-	if(this.veh[i].id<100){
+	if(this.veh[i].id==1){
 	    iEgo=i;
 	    found=true;
 	}
@@ -658,7 +670,7 @@ road.prototype.updateSpeedPositions=function(){
     // lateral positional update (v=fractional lane)
     // for non-ego vehicles and non-obstacles
 
-    if( (this.veh[i].id>=100) && (this.veh[i].type != "obstacle")){
+    if( (this.veh[i].id!=1) && (this.veh[i].type != "obstacle")){
 	this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,
 			    this.veh[i].laneOld,this.veh[i].lane);
     }
@@ -679,7 +691,7 @@ road.prototype.updateSpeedPositions=function(){
 road.prototype.updateOrientation=function(){
     for(var i=0; i<this.veh.length; i++){
 	//console.log("iveh=",i," this.veh.length=",this.veh.length);
-	if(this.veh[i].id>=100){//ego vehicles are updated separately 
+	if(this.veh[i].id!=1){//ego vehicles are updated separately 
             this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,this.dt_LC,
 				      this.veh[i].laneOld,
 				      this.veh[i].lane,this.veh[i].speed);
@@ -728,7 +740,7 @@ road.prototype.doChangesInDirection=function(toRight){
 
 	//console.log("iLeadNew=",iLeadNew," dt_lastLC_iLeadNew=",this.veh[iLeadNew].dt_lastLC," dt_lastLC_iLagNew=",this.veh[iLag].dt_lastLC); 
 
-      if((this.veh[i].id>=100) // not an ego-vehicle
+      if((this.veh[i].id!=1) // not an ego-vehicle
 	 &&(iLeadNew>=0)       // target lane allowed (otherwise iLeadNew=-10)
 	 &&(this.veh[iLeadNew].dt_lastLC>this.waitTime)  // lower time limit
 	 &&(this.veh[iLagNew].dt_lastLC>this.waitTime)){ // for serial LC
@@ -1257,8 +1269,10 @@ road.prototype.updateBCup=function(Qin,dt,route){
 	  vehNew.route=this.route;
 
           //!!! define ego vehicles for testing purposes
-	  var percEgo=5;
-	  if(vehNew.id%100<percEgo){vehNew.id=1;}
+	  if(false){
+	      var percEgo=5;
+	      if(vehNew.id%100<percEgo){vehNew.id=1;}
+	  }
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1
 	  this.inVehBuffer -=1;
@@ -1483,8 +1497,8 @@ road.prototype.get_yPix=function(u,v,scale){
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-road.prototype.draw=function(roadImg,scale,
-			     changedGeometry, movingObs, uObs, xObs, yObs){
+road.prototype.draw=function(roadImg,scale,changedGeometry,
+			     movingObs,uObs,xObs,yObs){
 
     var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
@@ -1492,7 +1506,7 @@ road.prototype.draw=function(roadImg,scale,
     var xRef=(movingObserver) ? xObs : this.traj_x(0);
     var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
-    console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
+    //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
 
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*this.laneWidth;
@@ -1501,7 +1515,7 @@ road.prototype.draw=function(roadImg,scale,
     var lSegm=this.roadLen/this.draw_nSegm;
 
     // lookup table only at beginning or after rescaling => 
-    // now condition in calling program !!! check onramp.js etc!
+    // now condition in calling program
 
     if(changedGeometry){
     //if(Math.abs(scale-this.draw_scaleOld)>smallVal){
@@ -1537,7 +1551,7 @@ road.prototype.draw=function(roadImg,scale,
 
 	ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
 	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
-	if(true){
+	if(false){
 	  console.log("road.draw: iSegm="+iSegm+
 		      " cosphi="+cosphi+" factor="+factor+
 		      " lSegmPix="+lSegmPix+" wSegmPix="+wSegmPix+
@@ -1554,15 +1568,26 @@ road.prototype.draw=function(roadImg,scale,
 //######################################################################
 
 /**
+
+draws vehicle images into graphics context ctx (defined in calling routine)
+normal vehicles (except the black obstacles) are color-coded 
+special vehicles have special appearance according to
+
+veh.id<100:              special vehicles
+veh.id=1:                ego vehicle
+veh.id=10,11, (max 99):  disturbed vehicles 
+veh.id>=100:             normal vehicles
+
 @param scale: translates physical coordinbates into pixel:[scale]=pixels/m
 @param speedmin,speedmax: speed range [m/s] for the colormap 
        (red=slow,blue=fast)
 @param umin,umax: optional restriction of the long drawing range 
        (useful when drawing veh only when fully entered, under bridges 
        => routing scenario or re-drawing merging veh)
-@param movingObs: optional: whether observer is moving, default=false 
+@param movingObs: (optional) whether observer is moving, default=false 
 @param uObs:      (optional) location uObs is drawn at the physical
-@param xObs,yObs: position (xObs,yObs), all other positions relative to it
+@param xObs,yObs: (optional) position (xObs,yObs), 
+                  all other positions relative to it
                   !Need to define (xObs,yObs) separately since other links
                   such as onramps may be drawn relatively to the position
                   of the actual link (e.g. mainroad)
@@ -1571,8 +1596,7 @@ road.prototype.draw=function(roadImg,scale,
 */
 
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
-				     speedmin,speedmax,
-				     umin,umax,
+				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
 
   var noRestriction=(typeof umin === 'undefined'); 
@@ -1622,10 +1646,11 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
               var effWPix=(type=="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
               var speed=this.veh[i].speed;
 	      var isEgo=(this.veh[i].id==1);
+	      var isPerturbed=(this.veh[i].id==10);
               ctx.fillStyle=colormapSpeed(speed,speedmin,speedmax,type,
 					  isEgo,time);
 	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
-	      if(isEgo){
+	      if((isEgo)||(isPerturbed)){
 		  ctx.strokeStyle="rgb(0,0,0)";
 		  ctx.strokeRect(-0.6*effLenPix, -0.6*effWPix, 
 			       1.2*effLenPix, 1.2*effWPix);

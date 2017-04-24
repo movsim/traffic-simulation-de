@@ -94,6 +94,16 @@ var background;
 // physical (m) road and vehicles  specification
 //###############################################################
 
+    // define road geometry as parametric functions of arclength u
+    // (physical coordinates!)
+
+function traj_x(u){
+    return center_xPhys + roadRadius*Math.cos(u/roadRadius);
+}
+
+function traj_y(u){
+    return center_yPhys + roadRadius*Math.sin(u/roadRadius);
+}
 
 var longModelCar;
 var longModelTruck;
@@ -103,8 +113,8 @@ updateModels(); //  from ring_gui.js
 
 var isRing=1;  // 0: false; 1: true
 var roadID=1;
-var mainroad=new road(roadID, roadLen, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
+var mainroad=new road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
+		      densityInit,speedInit,truckFracInit,isRing);
 
 var veh=mainroad.veh;  // should be not needed in final stage=>onramp.js
 
@@ -188,18 +198,8 @@ function drawRing() {
     //!!center_xPhys=0.5*sizePhys*Math.max(aspectRatio,1.);
 
 
-    // (1) define road geometry as parametric functions of arclength u
-    // (physical coordinates!)
 
-    function traj_x(u){
-        return center_xPhys + roadRadius*Math.cos(u/roadRadius);
-    }
-
-    function traj_y(u){
-        return center_yPhys + roadRadius*Math.sin(u/roadRadius);
-    }
-
-    // update heading of all vehicles rel. to road axis
+    // (1) update heading of all vehicles rel. to road axis
     // (for some reason, strange rotations at beginning)
 
     mainroad.updateOrientation(); 
@@ -222,13 +222,12 @@ function drawRing() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1);
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+    mainroad.draw(roadImg,scale,changedGeometry);
 
 
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
 
     // draw some running-time vars

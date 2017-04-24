@@ -532,11 +532,11 @@ function draw() {
     drawMovingBackground(uObs);
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    mainroad.draw(roadImg,scale,traj_x,traj_y,changedGeometry,
+    mainroad.draw(roadImg,scale,changedGeometry,
 		  relObserver,uObs,xBegin,yBegin); //!!
 
     mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
 			  vmin, vmax,
                           0,lenMainroad,relObserver,uObs,xBegin,yBegin);
     displayEgoVehInfo();
