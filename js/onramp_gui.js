@@ -136,40 +136,10 @@ function myStartStopFunction(){
 // Disturb button (triggered by "onclick" callback in html file)
 //#########################################################
 
-// id<100:              special vehicles
-// id=1:                ego vehicle
-// id=10,11, (max 99):  disturbed vehicles 
-// id>=100:             normal vehicles
-
-function disturbOneVehicle(){
-
-    var speedReduce=6; // parameter: speed reduction amount [m/s] 
-
-    if(false){
-	console.log("in disturbOneVehicle()\n",
-		    " mainroad.veh.length=",mainroad.veh.length);
-    }
-
-    // select veh to be perturbed (must not be an ego vehicle)
-    // give up as a bad job if veh.id=1 two times in a row
-    // (may be because the only mainroad vehicle is an ego vehicle)
-
-    if(mainroad.veh.length>=1){
-	var iDisturb=Math.floor(0.4*mainroad.veh.length);
-	console.log("mainroad.veh.length=",mainroad.veh.length,
-		    " mainroad.veh.length/2=",mainroad.veh.length/2);
-	if(mainroad.veh[iDisturb].id==1){
-	    iDisturb=(iDisturb+1)%mainroad.veh.length;
-	    if(mainroad.veh[iDisturb].id==1){return;} 
-	}
-
-	console.log("veh to be perturbed has index ",iDisturb);
-	mainroad.veh[iDisturb].id=10;
-	mainroad.veh[iDisturb].speed
-	    =Math.max(0.,mainroad.veh[iDisturb].speed-speedReduce);
-     
-    }
+function disturbOneVehicle(relLocation,speedReduce){
+    mainroad.disturbOneVehicle(relLocation,speedReduce);
 }
+
 
 
 

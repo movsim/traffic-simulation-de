@@ -160,6 +160,18 @@ function myStartStopFunction(){
     }
 }
 
+
+//#########################################################
+// Disturb button (triggered by "onclick" callback in html file)
+//#########################################################
+
+function disturbOneVehicle(relLocation,speedReduce){
+    mainroad.disturbOneVehicle(relLocation,speedReduce);
+}
+
+
+
+
 //#############################################
 // callback of "enforce Overtaking Ban"button
 //#############################################

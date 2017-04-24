@@ -139,6 +139,114 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
+
+function traj_x(u){ // physical coordinates
+        var dxPhysFromCenter= // left side (median), phys coordinates
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
+	return center_xPhys+dxPhysFromCenter;
+}
+
+function traj_y(u){ // physical coordinates
+        var dyPhysFromCenter=
+ 	    (u<straightLen) ? arcRadius
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
+	return center_yPhys+dyPhysFromCenter;
+}
+
+function trajDeviation_x(u){ // physical coordinates
+    var calpha=Math.cos(alpha);
+    var salpha=Math.sin(alpha);
+
+    var u1=lrampDev; // end of diverg. section
+    var x1=traj_x(u1+umainDiverge);
+    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
+
+    var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
+    var x2=x1-rDev*salpha;
+    var y2=y1+rDev*(1-calpha);
+
+    var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
+    var x3=x2-rDev*(1+salpha);
+    var y3=y2-rDev*calpha;
+
+
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var x4=x3;
+
+    var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
+    var x5=x4+rDev;
+
+    var u6=u5+lParallel; // end second straight sect parall main
+    var x6=x5+lParallel;
+
+    var u7=u6+rDev*alpha; // end last left curve-begin last right curve
+    var x7=x6+rDev*salpha;
+
+    var u8=u7+rDev*alpha; // begin merge
+    var x8=2*x7-x6;
+
+    var u9=u8+lrampDev; // end merge=end deviation
+    var x9=x8+lrampDev;
+
+    return (u<u1) ? x1+u1-u
+	: (u<u2) ? x1-rDev*Math.sin((u-u1)/rDev)
+	: (u<u3) ? x3+rDev*(1-Math.cos((u3-u)/rDev))
+	: (u<u4) ? x3 
+	: (u<u5) ? x4+rDev*(1-Math.cos((u-u4)/rDev))
+	: (u<u6) ? x5+(u-u5)
+	: (u<u7) ? x6 + rDev*Math.sin((u-u6)/rDev)
+	: (u<u8) ? x8 - rDev*Math.sin((u8-u)/rDev) : x8+(u-u8);
+}
+
+
+function trajDeviation_y(u){ // physical coordinates
+    var calpha=Math.cos(alpha);
+    var salpha=Math.sin(alpha);
+
+    var u1=lrampDev; // end of diverg. section
+    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
+
+    var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
+    var y2=y1+rDev*(1-calpha);
+
+    var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
+    var y3=y2-rDev*calpha;
+
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var y4=y3+u3-u4;
+
+    var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
+    var y5=y4-rDev;
+
+    var u6=u5+lParallel; // end second straight sect parall main
+    var y6=y5;
+
+    var u7=u6+rDev*alpha; // end last left curve-begin last right curve
+    var y7=y6+rDev*(1-calpha);
+
+    var u8=u7+rDev*alpha; // begin merge
+    var y8=2*y7-y6;
+
+    var u9=u8+lrampDev; // end merge=end deviation
+    var y9=y8;
+
+
+    return (u<lTaper) ? y1-0.6*laneWidth*(1-u/lTaper)
+        : (u<u1) ? y1
+	: (u<u2) ? y1+rDev*(1-Math.cos((u-u1)/rDev))
+	: (u<u3) ? y3+rDev*Math.sin((u3-u)/rDev)
+	: (u<u4) ? y3-(u-u3)
+	: (u<u5) ? y4-rDev*Math.sin((u-u4)/rDev)
+	: (u<u6) ? y5
+	: (u<u7) ? y6 + rDev*(1-Math.cos((u-u6)/rDev))
+	: (u<u8) ? y8 - rDev*(1-Math.cos((u8-u)/rDev))
+        : (u<u8+lrampDev-lTaper) ? y8 
+	: y8+0.6*laneWidth*((u-u8-lrampDev+lTaper)/lTaper)
+}
+
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
@@ -161,9 +269,10 @@ updateModels();
 var isRing=0;  // 0: false; 1: true
 duTactical=150; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1, mainroadLen, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
-var deviation=new road(2, lDev, 1, 0.1*densityInit, speedInit, truckFracInit, isRing);
+var mainroad=new road(1,mainroadLen,laneWidth,nLanes,traj_x,traj_y,
+		      densityInit,speedInit,truckFracInit,isRing);
+var deviation=new road(2,lDev,laneWidthRamp,1,trajDeviation_x,trajDeviation_y,
+		       0.1*densityInit,speedInit,truckFracInit,isRing);
 
 var offrampIDs=[2];
 var offrampLastExits=[umainDiverge+lrampDev];
@@ -410,115 +519,7 @@ function drawU() {
   }
 */
 
-   // (1) define geometry of "U" (road center) as parameterized function of 
-   // the arc length u
 
-  function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-  }
-
-  function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-  }
-
-  function trajDeviation_x(u){ // physical coordinates
-    var calpha=Math.cos(alpha);
-    var salpha=Math.sin(alpha);
-
-    var u1=lrampDev; // end of diverg. section
-    var x1=traj_x(u1+umainDiverge);
-    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
-
-    var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
-    var x2=x1-rDev*salpha;
-    var y2=y1+rDev*(1-calpha);
-
-    var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
-    var x3=x2-rDev*(1+salpha);
-    var y3=y2-rDev*calpha;
-
-
-    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
-    var x4=x3;
-
-    var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
-    var x5=x4+rDev;
-
-    var u6=u5+lParallel; // end second straight sect parall main
-    var x6=x5+lParallel;
-
-    var u7=u6+rDev*alpha; // end last left curve-begin last right curve
-    var x7=x6+rDev*salpha;
-
-    var u8=u7+rDev*alpha; // begin merge
-    var x8=2*x7-x6;
-
-    var u9=u8+lrampDev; // end merge=end deviation
-    var x9=x8+lrampDev;
-
-    return (u<u1) ? x1+u1-u
-	: (u<u2) ? x1-rDev*Math.sin((u-u1)/rDev)
-	: (u<u3) ? x3+rDev*(1-Math.cos((u3-u)/rDev))
-	: (u<u4) ? x3 
-	: (u<u5) ? x4+rDev*(1-Math.cos((u-u4)/rDev))
-	: (u<u6) ? x5+(u-u5)
-	: (u<u7) ? x6 + rDev*Math.sin((u-u6)/rDev)
-	: (u<u8) ? x8 - rDev*Math.sin((u8-u)/rDev) : x8+(u-u8);
-  }
-
-
-  function trajDeviation_y(u){ // physical coordinates
-    var calpha=Math.cos(alpha);
-    var salpha=Math.sin(alpha);
-
-    var u1=lrampDev; // end of diverg. section
-    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
-
-    var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
-    var y2=y1+rDev*(1-calpha);
-
-    var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
-    var y3=y2-rDev*calpha;
-
-    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
-    var y4=y3+u3-u4;
-
-    var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
-    var y5=y4-rDev;
-
-    var u6=u5+lParallel; // end second straight sect parall main
-    var y6=y5;
-
-    var u7=u6+rDev*alpha; // end last left curve-begin last right curve
-    var y7=y6+rDev*(1-calpha);
-
-    var u8=u7+rDev*alpha; // begin merge
-    var y8=2*y7-y6;
-
-    var u9=u8+lrampDev; // end merge=end deviation
-    var y9=y8;
-
-
-    return (u<lTaper) ? y1-0.6*laneWidth*(1-u/lTaper)
-        : (u<u1) ? y1
-	: (u<u2) ? y1+rDev*(1-Math.cos((u-u1)/rDev))
-	: (u<u3) ? y3+rDev*Math.sin((u3-u)/rDev)
-	: (u<u4) ? y3-(u-u3)
-	: (u<u5) ? y4-rDev*Math.sin((u-u4)/rDev)
-	: (u<u6) ? y5
-	: (u<u7) ? y6 + rDev*(1-Math.cos((u-u6)/rDev))
-	: (u<u8) ? y8 - rDev*(1-Math.cos((u8-u)/rDev))
-        : (u<u8+lrampDev-lTaper) ? y8 
-	: y8+0.6*laneWidth*((u-u8-lrampDev+lTaper)/lTaper);
-  }
 
     if(false){
 	for (var i=0; i<40; i++){
@@ -556,23 +557,16 @@ function drawU() {
     var changedGeometry=hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
-    deviation.draw(rampImg,scale,trajDeviation_x,trajDeviation_y,laneWidthRamp,changedGeometry);
+    deviation.draw(rampImg,scale,changedGeometry);
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			 trajDeviation_x,trajDeviation_y,laneWidth,vmin,vmax);
-
-
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
-
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			  traj_x,traj_y,laneWidth,vmin,vmax);
+    mainroad.draw(roadImg,scale,changedGeometry);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			   trajDeviation_x,trajDeviation_y,laneWidth,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
 			   0,lrampDev);
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			   trajDeviation_x,trajDeviation_y,laneWidth,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
 			   lDev-lrampDev, lDev);
 
 

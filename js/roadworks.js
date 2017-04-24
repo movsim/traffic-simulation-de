@@ -109,6 +109,23 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
+function traj_x(u){ // physical coordinates
+        var dxPhysFromCenter= // left side (median), phys coordinates
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
+	return center_xPhys+dxPhysFromCenter;
+}
+
+function traj_y(u){ // physical coordinates
+        var dyPhysFromCenter=
+ 	    (u<straightLen) ? arcRadius
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
+	return center_yPhys+dyPhysFromCenter;
+}
+
+
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
@@ -126,8 +143,8 @@ updateModels();
 
 var isRing=0;  // 0: false; 1: true
 var roadID=1;
-var mainroad=new road(roadID, mainroadLen, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes,traj_x,traj_y,
+		      densityInit, speedInit,truckFracInit, isRing);
 
 mainroad.LCModelMandatoryRight=LCModelMandatoryRight; //unique mandat LC model
 mainroad.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
@@ -261,7 +278,7 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
+    /* (1) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
      (=actions of canvasresize.js for the ring-road scenario,
      here not usable ecause of side effects with sizePhys)
@@ -310,25 +327,6 @@ function drawU() {
     }
 
 
- 
-   // (1) define geometry of "U" (road center) as parameterized function of 
-   // the arc length u
-
-    function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-    }
-
-    function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-    }
 
 
 
@@ -355,14 +353,13 @@ function drawU() {
 
     
      var changedGeometry=hasChanged||(itime<=1); 
-     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+     mainroad.draw(roadImg,scale,changedGeometry);
 
 
  
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
 
 
 

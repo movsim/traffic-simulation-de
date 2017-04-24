@@ -99,6 +99,25 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
+
+function traj_x(u){ // physical coordinates
+        var dxPhysFromCenter= // left side (median), phys coordinates
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
+	return center_xPhys+dxPhysFromCenter;
+}
+
+function traj_y(u){ // physical coordinates
+        var dyPhysFromCenter=
+ 	    (u<straightLen) ? arcRadius
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
+	return center_yPhys+dyPhysFromCenter;
+}
+
+
+
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
@@ -121,8 +140,8 @@ updateModels(); // initial update
 
 var isRing=0;  // 0: false; 1: true
 var roadID=1;
-var mainroad=new road(roadID, mainroadLen, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes,traj_x,traj_y,
+		      densityInit, speedInit,truckFracInit, isRing);
 
 //mainroad.LCModelMandatoryRight=LCModelMandatoryRight; //unique mandat LC model
 //mainroad.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
@@ -216,7 +235,7 @@ function updateU(){
 function drawU() {
 //##################################################
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
+    /* (1) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
      (=actions of canvasresize.js for the ring-road scenario,
      here not usable ecause of side effects with sizePhys)
@@ -266,26 +285,6 @@ function drawU() {
 
 
  
-   // (1) define geometry of "U" (road center) as parameterized function of 
-   // the arc length u
-
-    function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-    }
-
-    function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-    }
-
-
 
     //mainroad.updateOrientation(); // update heading of all vehicles rel. to road axis
                                   // (for some reason, strange rotations at beginning)
@@ -310,14 +309,13 @@ function drawU() {
 
     
      var changedGeometry=hasChanged||(itime<=1); 
-     mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+     mainroad.draw(roadImg,scale,changedGeometry);
 
 
  
     // (4) draw vehicles (obstacleImg here empty, only needed for interface)
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,traj_x,traj_y,
-			  laneWidth, vmin, vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
 
     // (4a) draw traffic signs
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
@@ -328,12 +326,12 @@ function drawU() {
 	var sizeSignPix=0.1*refSizePix;
 	var vOffset=1.4*nLanes*laneWidth; // in v direction, pos if right
 
-	var xPixUp=mainroad.get_xPix(traj_x,traj_y,uBeginUp,vOffset,scale);
-	var yPixUp=mainroad.get_yPix(traj_x,traj_y,uBeginUp,vOffset,scale);
-	var xPixEnd=mainroad.get_xPix(traj_x,traj_y,uEndUp,vOffset,scale);
-	var yPixEnd=mainroad.get_yPix(traj_x,traj_y,uEndUp,vOffset,scale);
-	var xPixBan=mainroad.get_xPix(traj_x,traj_y,uBeginBan,-0.5*vOffset,scale);
-	var yPixBan=mainroad.get_yPix(traj_x,traj_y,uBeginBan,-0.5*vOffset,scale);
+	var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,scale);
+	var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,scale);
+	var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,scale);
+	var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,scale);
+	var xPixBan=mainroad.get_xPix(uBeginBan,-0.5*vOffset,scale);
+	var yPixBan=mainroad.get_yPix(uBeginBan,-0.5*vOffset,scale);
 
         // center sign (the drawing coords denote the left upper corner)
 

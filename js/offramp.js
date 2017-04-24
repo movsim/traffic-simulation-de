@@ -111,6 +111,41 @@ var background;
 // physical (m) road, vehicle and model specification
 //###############################################################
 
+
+function traj_x(u){ // physical coordinates
+        var dxPhysFromCenter= // left side (median), phys coordinates
+	    (u<straightLen) ? straightLen-u
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
+	return center_xPhys+dxPhysFromCenter;
+}
+
+function traj_y(u){ // physical coordinates
+        var dyPhysFromCenter=
+ 	    (u<straightLen) ? arcRadius
+	  : (u>straightLen+arcLen) ? -arcRadius
+	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
+	return center_yPhys+dyPhysFromCenter;
+}
+
+
+
+function trajOff_x(u){ // physical coordinates
+	var xDivergeBegin=traj_x(mainOffOffset);
+	return (u<divergeLen)
+	    ? xDivergeBegin+u
+	    : xDivergeBegin+divergeLen+offRadius*Math.sin((u-divergeLen)/offRadius);
+}
+
+function trajOff_y(u){ // physical coordinates
+    	var yDivergeBegin=traj_y(mainOffOffset)
+	    -0.5*laneWidth*(mainroad.nLanes+offramp.nLanes)-0.02*laneWidth;
+	return (u<taperLen)
+            ? yDivergeBegin+laneWidth-laneWidth*u/taperLen: (u<divergeLen)
+	    ? yDivergeBegin
+	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
+}
+
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
 // defined in gui.js
 
@@ -129,9 +164,10 @@ updateModels();
 var isRing=0;  // 0: false; 1: true
 duTactical=150; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1, mainroadLen, nLanes, densityInit, speedInit, 
-		      truckFracInit, isRing);
-var offramp=new road(2, offLen, 1, 0.1*densityInit, speedInit, truckFracInit, isRing);
+var mainroad=new road(1,mainroadLen,laneWidth, nLanes,traj_x,traj_y,
+		      densityInit, speedInit,truckFracInit, isRing);
+var offramp=new road(2,offLen,laneWidthRamp,1,trajOff_x,trajOff_y,
+		     0.1*densityInit,speedInit,truckFracInit,isRing);
 
 var offrampIDs=[2];
 var offrampLastExits=[mainOffOffset+divergeLen];
@@ -243,7 +279,7 @@ function drawU() {
 
 
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
+    /* (1) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
      (=actions of canvasresize.js for the ring-road scenario,
      here not usable ecause of side effects with sizePhys)
@@ -295,42 +331,7 @@ function drawU() {
 
 
 
-   // (1) define geometry of "U" (road center) as parameterized function of 
-   // the arc length u
 
-    function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-    }
-
-    function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-    }
-
-
-
-    function trajOff_x(u){ // physical coordinates
-	var xDivergeBegin=traj_x(mainOffOffset);
-	return (u<divergeLen)
-	    ? xDivergeBegin+u
-	    : xDivergeBegin+divergeLen+offRadius*Math.sin((u-divergeLen)/offRadius);
-    }
-
-    function trajOff_y(u){ // physical coordinates
-    	var yDivergeBegin=traj_y(mainOffOffset)
-	    -0.5*laneWidth*(mainroad.nLanes+offramp.nLanes)-0.02*laneWidth;
-	return (u<taperLen)
-            ? yDivergeBegin+laneWidth-laneWidth*u/taperLen: (u<divergeLen)
-	    ? yDivergeBegin
-	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
-    }
 
     if(hasChanged){
 	console.log("mainOffOffset=",mainOffOffset,
@@ -362,13 +363,11 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1); 
-    offramp.draw(rampImg,scale,trajOff_x,trajOff_y,laneWidthRamp,changedGeometry);
-    mainroad.draw(roadImg,scale,traj_x,traj_y,laneWidth,changedGeometry);
+    offramp.draw(rampImg,scale,changedGeometry);
+    mainroad.draw(roadImg,scale,changedGeometry);
 
-    offramp.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			 trajOff_x,trajOff_y,laneWidth,vmin,vmax);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			  traj_x,traj_y,laneWidth,vmin,vmax);
+    offramp.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
 
 

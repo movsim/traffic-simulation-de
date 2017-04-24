@@ -39,8 +39,8 @@ they are specially drawn and externally influenced from the main program
 */
 
 
-function road(roadID, roadLen, laneWidth, nLanes, traj_x, traj_y,
-	      densInitPerLane, speedInit, truckFracInit, isRing){
+function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
+	      densInitPerLane,speedInit,truckFracInit,isRing){
     this.roadID=roadID;
     this.roadLen=roadLen;
     this.laneWidth=laneWidth;
@@ -1407,6 +1407,58 @@ road.prototype.updateLastLCtimes=function(dt){
     }
 }
 
+
+//######################################################################
+// disturb externally a vehicle
+//######################################################################
+/**
+reduces the speed of the normal vehicle that is nearest 
+(in the upstream direction) to the location relLocation*roadLen 
+by an amount of speedReduce.
+Notice that the same vehicle may be disturbed several times (if not wished,
+change "this.veh[i].id>=10" to "this.veh[i].id>=100" below)
+
+// id<100:              special vehicles
+// id=1:                ego vehicle
+// id=10,11, (max 99):  disturbed vehicles 
+// id>=100:             normal vehicles if type != "obstacle"
+
+@param relLocation: picks vehicle nearest to arclength u=relLocation*roadLen
+@param speedReduce: speed reduction [m/s]
+
+@return this.veh[iPicked].speed reduced
+*/
+
+road.prototype.disturbOneVehicle=function(relLocation,speedReduce){
+    if(false){
+	console.log("in road.disturbOneVehicle\n");
+    }
+
+    // select veh to be perturbed (must not be an ego vehicle)
+    // give up as a bad job if veh.id=1 two times in a row
+    // (may be because the only mainroad vehicle is an ego vehicle)
+    var success=false;
+    var uPick=relLocation*this.roadLen;
+    var iPick=-1;
+    for (var i=0; (i<this.veh.length)&&(!success); i++){
+        if((this.veh[i].u<=uPick) && (this.veh[i].id>=10)
+	   && (this.veh[i].type != "obstacle")){
+	       iPick=i;
+	       success=true;
+	}
+    }
+    if(!success){
+	console.log("road.disturbOneVehicle: found no suitable"+
+		    " normal vehicle upstream of u="+uPick+" to disturb");
+    }
+    else{
+	this.veh[iPick].id=10;
+	this.veh[iPick].speed=Math.max(0.,this.veh[iPick].speed-speedReduce);
+     
+    }
+}// disturbOneVehicle
+
+
 //######################################################################
 // get direction of road at arclength u
 //######################################################################
@@ -1441,8 +1493,8 @@ road.prototype.get_curv=function(u){
     var smallVal=0.0000001;
 
     var du=0.1;
-    var phiPlus=this.get_phi(this.traj_x,this.traj_y,u+du);
-    var phiMinus=this.get_phi(this.traj_x,this.traj_y,u-du);
+    var phiPlus=this.get_phi(u+du);
+    var phiMinus=this.get_phi(u-du);
     return 0.5*(phiPlus-phiMinus)/du;
 
 }
@@ -1458,7 +1510,7 @@ road.prototype.get_curv=function(u){
 */
 
 road.prototype.get_xPix=function(u,v,scale){
-    var phi=this.get_phi(this.traj_x,this.traj_y,u);
+    var phi=this.get_phi(u);
     return scale*(this.traj_x(u)+v*Math.sin(phi));
 }
 
@@ -1473,14 +1525,14 @@ road.prototype.get_xPix=function(u,v,scale){
 */
 
 road.prototype.get_yPix=function(u,v,scale){
-    var phi=this.get_phi(this.traj_x,this.traj_y,u);
+    var phi=this.get_phi(u);
     return -scale*(this.traj_y(u)-v*Math.cos(phi));
 }
 
  
 
 //######################################################################
-// draw road (w/o vehicles; for letter -> drawVehicles(...)
+// draw road (w/o vehicles; for latter -> drawVehicles(...)
 //######################################################################
 
 /**
@@ -1581,7 +1633,7 @@ veh.id>=100:             normal vehicles
 @param scale: translates physical coordinbates into pixel:[scale]=pixels/m
 @param speedmin,speedmax: speed range [m/s] for the colormap 
        (red=slow,blue=fast)
-@param umin,umax: optional restriction of the long drawing range 
+@param umin,umax: (optional) restriction of the long drawing range 
        (useful when drawing veh only when fully entered, under bridges 
        => routing scenario or re-drawing merging veh)
 @param movingObs: (optional) whether observer is moving, default=false 
