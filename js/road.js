@@ -85,7 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
-    this.draw_nSegm=100;
+    this.draw_nSegm=200;
     this.draw_curvMax=0.01; // maximum assmued curvature
 
     this.draw_x=[];  // arrays defined in the draw(..) method
@@ -100,6 +100,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // lane or v is transversal coordinate
 
     this.veh=[];
+
     for(var i=0; i<nveh; i++){
 
         // position trucks mainly on the right lane nLanes-1
@@ -127,14 +128,12 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     }
 
-    //!!! select "ego vehicle" or other "special vehicles" and mark it/them
-    // by changing its id to 1-99 
-    // (the non-ego veh id's begin at 100 as defined in the vehicle cstr)
+    // formally define ego vehicle for external reference
+    // if applicable, it will be attributed to one element of this.veh, 
+    // in this.updateEgoVeh(externalEgoVeh), later on.
 
-    if(false){
-	var iEgo=Math.floor(0.8*this.veh.length);
-        if(this.veh.length>0){this.veh[iEgo].id=1;} 
-    }
+
+    this.egoVeh=new vehicle(0,0,0,0,0,"car");
 
     //this.writeVehicles();
 }
@@ -205,11 +204,12 @@ same number of elements (otherwise, an error is given)
 @param longPos: array of the init longitudinal positions of the veh front [m]
 @param lanes:   array of the initial real-valued lanes (=v; 0=left, nLanes-1=right)
 @param speeds:  array of the initial speeds [m/s]
+@param iEgo:    (optional) index of the ego vehicle as defined in the arrays
 @return:        void; (re-)defines the road's veh array
 */
 
 road.prototype.initializeMicro=function(types,lengths,widths,
-					longPos,lanesReal,speeds){
+					longPos,lanesReal,speeds,iEgo){
 
     var nvehInit=types.length;
     if( (lengths.length!=nvehInit) || (widths.length!=nvehInit)
@@ -236,6 +236,11 @@ road.prototype.initializeMicro=function(types,lengths,widths,
         var vehNew=new vehicle(lengths[i],widths[i], 
 			       longPos[i],lane, speeds[i], type);
 	vehNew.v=lanesReal[i]; // since vehicle cstr initializes veh.v=veh.lane
+	if(i==iEgo){
+            vehNew.id=1;
+	    this.egoVeh=vehNew;
+	}
+
 	this.veh.push(vehNew);
 	//console.log("road.initializeMicro: vehNew.v=",vehNew.v);
     }
@@ -247,7 +252,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 
     // check
 
-    if(false){
+    if(true){
         console.log("road.initializeMicro: initialized with ", 
 		    this.veh.length," vehicles");
 	this.writeVehicles();
@@ -599,7 +604,7 @@ road.prototype.calcAccelerations=function(){
 
 road.prototype.updateEgoVeh=function(externalEgoVeh){
 
-    // find the ego vehicle
+    // find the ego vehicle (its index changes all the time)
 
     var found=false;
     var iEgo=-1;
@@ -615,12 +620,13 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
 	return;
     }
 
+    this.egoVeh=this.veh[iEgo]; // for reference outside
+    var ego=this.veh[iEgo];     // for saving typing
 
     // translate the road axis accelerations of the ego vehicle into 
     // logical accelerations au=acc and av of the controlled vehicle 
     // in the road.veh array by the road curvature
 
-    var ego=this.veh[iEgo]; // safe typing
     var u=ego.u;
     var roadCurv=this.get_curv(u);
 
@@ -1570,7 +1576,8 @@ road.prototype.get_yPix=function(u,v,scale){
 @param changed geometry: true if a resize event took place in parent
 @param movingObs: (optional) whether observer is moving, default=false 
 @param uObs:      (optional) location uObs is drawn at the physical
-@param xObs,yObs: position (xObs,yObs), all other positions relative to it
+@param xObs,yObs: position (xObs,yObs)=>xPix=scale*xObs, yPix=-scale*yObs,
+                  all other positions relative to it
                   !Need to define (xObs,yObs) separately since other links
                   such as onramps may be drawn relatively to the position
                   of the actual link (e.g. mainroad)

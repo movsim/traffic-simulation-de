@@ -15,10 +15,17 @@ var fps=20; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 var time=0;
 var itime=0;
-    //!!! test relative motion
+
+// ego vehicle
+
 var relObserver=true;
-var uObs=0;
-var speedEgoInit=20;
+var ego_speedInit=20;
+var ego_uInit=40;  // initial arclength position
+var ego_laneInit=2; // 0=leftmost
+var ego_yRelPosition=0.3; // fraction of canvas height where ego vehicle
+                          // is drawn (e.g., 0.3 => 30% of canvas height for
+                          // back traffic)
+var uObs=0; // to be defined in init()
 
 
 
@@ -106,7 +113,7 @@ var yMouseCanvas;
 // physical geometry settings [m]
 //#############################################################
 
-var sizePhys=200;  // visible road section [m] [scale=min(canvas.width,height/sizePhys)]
+var sizePhys=120;  // visible road section [m] [scale=min(canvas.width,height/sizePhys)]
 var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
@@ -119,11 +126,11 @@ var maxAng=0.; // maximum angle of the S bend (if <0, mirrored 'S')
 // for optical purposes both lanes and cars bigger than in reality
 
 var nLanes=3;
-var laneWidth=10;
-var car_length=7; // car length in m
-var car_width=5; // car width in m
+var laneWidth=5;
+var car_length=5; // car length in m (all dimensions overridden by ICmicro)
+var car_width=3; // car width in m
 var truck_length=15; // trucks
-var truck_width=7; 
+var truck_width=3; 
 
 // derived quantities and functions
 
@@ -225,7 +232,7 @@ var truckFracInit=0; // not relevant since initially no vehicles
 
 var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,traj_x,traj_y, 
 		      densityInit, speedInit,truckFracInit, isRing);
-
+console.log("mainroad.egoVeh=",mainroad.egoVeh);
 
 
 
@@ -278,7 +285,7 @@ var egoControlRegion=new EgoControlRegion(xRelZero,yRelZero);
 // create ego vehicle and associated coffeemeter dynamics
 //#######################################################################
 
-var egoVeh=new EgoVeh(speedEgoInit);
+var egoVeh=new EgoVeh(ego_speedInit);
 
 
 
@@ -309,29 +316,48 @@ var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeRelSpeedo,
 function init(){  
     time=0;
     itime=0;
-    uObs=0;
 
-    // specify microscopic init conditions (direct/deterministic
+    // specify surrounding traffic by 
+    // microscopic init conditions (direct/deterministic
     // control possibility crucial for game!)
     // types: 0 translated into "car", 1 into "truck", 2 into "obstacle"
 
     var types  =[0,    0,    1,    0,       2,   2,   2,   2,   2,   2];
-    var lengths=[8,    5,    14,   7,     5.5, 5.5,20.5,20.5, 5.5, 5.5];
-    var widths =[4.5,  4,    6,  4.5,       2,   4,   6,   6,   4,   2];
+    var lengths=[6,    4,    14,   7,     5.5, 5.5,20.5,20.5, 5.5, 5.5];
+    var widths =[2.5,  2,    5,    3,       2,   3,   4,   4,   3,   2];
     var longPos=[50,   60,   80,  80,     195, 200, 220, 240, 245, 250];
     var lanesReal=[0, 1.8,    2,   0,    2.33,2.16,   2,   2,2.16,2.33];
     var speeds =[20,   20,   20,   30,      0,   0,   0,   0,   0,   0];
 
-    mainroad.initializeMicro(types,lengths,widths,longPos,lanesReal,speeds);
+    // add ego vehicle (can extend arrays just by defining out-of-bounds
+    // elements) 
 
-    // set ego vehicle
+    var iEgo=types.length;
+    types[iEgo]=0;   //{car,truck,obstacle}
+    lengths[iEgo]=car_length;
+    widths[iEgo]=car_width;
+    longPos[iEgo]=ego_uInit;
+    lanesReal[iEgo]=ego_laneInit;
+    speeds[iEgo]=ego_speedInit;
 
-    var iEgo=mainroad.veh.length-2;  // first veh has i=0!
-    mainroad.veh[iEgo].id=1;         // ego vehicle characterized by id=1
-    mainroad.veh[iEgo].v=2;          // real lane v
-    mainroad.veh[iEgo].speed=speedEgoInit;
-    egoVeh=new EgoVeh(speedEgoInit); // "new" is necessary
+
+    // introduces external traffic and ego vehicle to the road's veh array 
+    // and also provides the ego vehicle  as external reference
+
+    mainroad.initializeMicro(types,lengths,widths,
+			     longPos,lanesReal,speeds,iEgo);
+
+    // defines interface to user and speedometer incl special model
+    // ("new" is necessary), and  initializes/resets coffeemeter 
+
+    egoVeh=new EgoVeh(ego_speedInit); 
     coffeemeter.setLevelSurface();
+
+    // initializes/resets observer: road arc length uObs 
+    // drawn at pixel coords (scale*xBegin, -scale*yBegin)
+
+    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys; 
+
     //mainroad.writeVehiclesSimple();
 
 }
@@ -475,7 +501,8 @@ function update(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    uObs=20*time; //!!!
+    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys;
+
 
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 

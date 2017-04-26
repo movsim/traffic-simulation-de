@@ -142,7 +142,7 @@ img.title{
   top:    5vh;
   left:   20vw;
   width:  70vw;
-  height: 10vw;
+  height: 7vw;
   border:1px solid #d3d3d3;
 }
     
@@ -150,7 +150,7 @@ img.title{
 
 #contents{
   position: absolute;
-  top:    15vh;
+  top:    12vh;
   bottom: 1vh;
  /* height: calc(112vmin + 10vh - 8vh);*/
   left:   0vw;
