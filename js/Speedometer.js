@@ -32,6 +32,7 @@ function Speedometer(speedoImg,speedMax,sizeRel,
     }
 }
 
+//Speedometer.prototype.setSpeed(vLong){
 Speedometer.prototype.draw=function(canvas,vLong){
 
     // scale speedometer such that the larger of the 

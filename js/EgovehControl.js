@@ -31,6 +31,9 @@ function EgoVeh(vLongInit){
 }
 
 
+// sets only speed (but not accelerations, for this use a new cstr
+
+EgoVeh.prototype.setSpeedLong=function(vLong){this.vLong=vLong;}
 
 
 //#######################################################################

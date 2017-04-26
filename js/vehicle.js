@@ -7,7 +7,7 @@ function vehicle(length, width, u, lane, speed, type){
     this.u=u;           // long coordinate=arc length [m]
     this.lane=lane;     // integer-valued lane 0=leftmost
     this.v=lane;        // lane coordinate (lateral, units of lane width), not speed!!
-    this.dvdu=lane;     // vehicle angle to road axis (for drawing purposes)
+    this.dvdt=0;     // vehicle angle to road axis (for drawing purposes)
     this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
     this.speed=speed;
     this.type=type;

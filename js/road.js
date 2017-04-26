@@ -176,11 +176,14 @@ road.prototype.writeVehicles= function() {
 
 road.prototype.writeVehiclesSimple= function() {
     console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
-		" roadLen="+this.roadLen);
+		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +"  id="+this.veh[i].id
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		    +"  lane="+this.veh[i].lane
+		    +"  dvdt="+parseFloat(this.veh[i].dvdt,10).toFixed(2)
 		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
 		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
 		    +"");
@@ -578,14 +581,20 @@ road.prototype.calcAccelerations=function(){
 //#######################################################################
 /** exchanges the information of an external control vehicle 
     (instance of EgoVeh in EgoVehControl.js) with the corresponding 
-    vehicle of the road object
+    vehicle of the road object and updates the kinematics of the ego vehicle
+    since speed_v is no member variable, use dvdt/laneWidth for it 
+    (speed===speed_u)
 
 @param externalEgoVeh:  instance of the pseudo-class EgoVeh
-@return: updates in the road.veh element with road.veh.id=1:
-         - the longitudinal acceleration acc, 
+@return: updates in the road.veh element with road.veh.id=1 in this order:
+         - the longitudinal acceleration (directly)
+         - the lateral acceleration as local variable (directly)
+         - the physical longitudinal position u using the old long speed
+         - the physical lat position v [unit laneWidth] 
+           using the old lateral speed_v=dvdt*laneWidth
          - the lane (for logic),
-         - the physical lateral position v (for drawing)
-         - the logical angle dvdu (for drawing)
+         - the lane changing rate dvdt [lanes/s] and lat speed speed_v [m/s]
+         - the long speed "speed" [m/s] using the new long acceleration
 */
 
 road.prototype.updateEgoVeh=function(externalEgoVeh){
@@ -611,88 +620,108 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // logical accelerations au=acc and av of the controlled vehicle 
     // in the road.veh array by the road curvature
 
-    var u=this.veh[iEgo].u;
+    var ego=this.veh[iEgo]; // safe typing
+    var u=ego.u;
     var roadCurv=this.get_curv(u);
-
 
     // calculate logical accelerations
     // acc_v=accel to logical increasing lane indices=acc to right
     // roadCurv>0 for left curves, therefore "+"
 
-    this.veh[iEgo].acc=externalEgoVeh.aLong; // !! dvdu <<1, driveAngle<<1
-    var acc_v=externalEgoVeh.aLat+roadCurv*this.veh[iEgo].speed;
+    ego.acc=externalEgoVeh.aLong; // !! driveAngle |dvdt*laneWidth/speed|<<1
+    var acc_v=externalEgoVeh.aLat+roadCurv*ego.speed; // [m/s^2]
 
     // calculate lateral dynamics directly by ballistic update 
-    // (old speeds, old positions => before main kinematic update!)
     // Watch out: coordinate v has unit laneWidth, not m! 
-    // Notice: long dynamics by normal road.updateSpeedPositions
 
-    if(itime<2){this.veh[iEgo].dvdu=0;} //!! 
-    var dvdt=this.veh[iEgo].speed*this.veh[iEgo].dvdu;
-    this.veh[iEgo].v += dvdt*dt+0.5*acc_v*dt*dt/this.laneWidth; 
-    this.veh[iEgo].dvdu += (acc_v*dt/this.laneWidth)/this.veh[iEgo].speed;
-    this.veh[iEgo].lane=Math.round(this.veh[iEgo].v);
-    console.log("updateEgoVeh: speed=",this.veh[iEgo].speed,
-		" dvdu=",this.veh[iEgo].dvdu);
+    ego.u += Math.max(0,ego.speed*dt+0.5*ego.acc*dt*dt);
+    var speed_v=ego.dvdt*this.laneWidth; // old lat speed [m/s]
+    ego.v += (speed_v*dt+0.5*acc_v*dt*dt)/this.laneWidth; // [laneWidth] 
+    ego.lane=Math.round(ego.v);
+    ego.speed=Math.max(ego.speed+ego.acc*dt, 0.);
+    speed_v += acc_v*dt;
+    ego.dvdt = speed_v/this.laneWidth;
+
+
+    if(false){
+	console.log("in road.updateEgoVeh:",
+		    " time=",parseFloat(time).toFixed(2),
+		    " dt=",parseFloat(dt).toFixed(2),
+		    " laneWidth=",parseFloat(this.laneWidth).toFixed(1),
+		    " acc=",parseFloat(ego.acc).toFixed(2),
+		    " acc_v[m/s^2]=",parseFloat(acc_v).toFixed(2),
+		    "\n         u=",parseFloat(ego.u).toFixed(2),
+		    " v[laneWidth]=",parseFloat(ego.v).toFixed(2),
+		    " lane=",ego.lane,
+		    "\n         speedLong=",parseFloat(ego.speed).toFixed(2),
+		    " speed_v=",parseFloat(speed_v).toFixed(2),
+		    " dvdt=",parseFloat(ego.dvdt).toFixed(2)
+		   );
+	//this.writeVehiclesSimple();
+    }
 }// updateEgoVeh
 
 
 
 //######################################################################
-// main kinematic update (ballistic update scheme)
+// main kinematic update (ballistic update scheme) for non-ego vehicles
 // including ring closure if isRing
 //######################################################################
 
-// Notice on ego-vehicles: update speed and u normally from acc and 
-// take lateral coordinate v, lane, dvdu directly from the results of 
-// road.updateEgoEgoVeh(externalEgoVeh) => ego.acc, ego.v, ego.dvdu, ego.lane
-// given from the top-level js
+// Notice on ego-vehicles: everything apart from ring closure 
+// updated in this. updateEgoVeh
 
 
 road.prototype.updateSpeedPositions=function(){
-  for(var i=0; i<this.veh.length; i++){
 
-    // longitudinal positional with old speeds
+   // longitudinal and lateral position and speed update
+   // for non-ego vehicles and non-obstacles
 
-    this.veh[i].u += Math.max(
-	0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
-     
-    // periodic BC closure
+    for(var i=0; i<this.veh.length; i++){
+	if( (this.veh[i].id!=1) && (this.veh[i].type != "obstacle")){
 
-    if(this.isRing &&(this.veh[i].u>this.roadLen)){
-	this.veh[i].u -= this.roadLen;}
+            // longitudinal positional with old speeds
 
-    // longitudinal speed update 
+	    this.veh[i].u += Math.max(
+		0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
 
-    this.veh[i].speed += this.veh[i].acc*dt;
-    if(this.veh[i].speed<0){this.veh[i].speed=0;}
+            // longitudinal speed update 
 
-    // lateral positional update (v=fractional lane)
-    // for non-ego vehicles and non-obstacles
+	    this.veh[i].speed 
+		= Math.max(this.veh[i].speed+this.veh[i].acc*dt, 0);
 
-    if( (this.veh[i].id!=1) && (this.veh[i].type != "obstacle")){
-	this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,
-			    this.veh[i].laneOld,this.veh[i].lane);
+            // lateral positional update (v=fractional lane)
+
+	    this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,
+				this.veh[i].laneOld,this.veh[i].lane);
+	}
+
+        // periodic BC closure
+
+	if(this.isRing &&(this.veh[i].u>this.roadLen)){
+	    this.veh[i].u -= this.roadLen;
+	}
     }
-  }
 
-  this.updateOrientation(); // drawing: get heading relative to road from path.js
-  this.sortVehicles(); // positional update may have disturbed sorting (if passing)
-  this.updateEnvironment();
+    this.updateOrientation(); // drawing: get heading relative to road
+    this.sortVehicles(); // positional update may have disturbed sorting (if passing)
+    this.updateEnvironment();
 }
 
 
 
 //######################################################################
 // get heading (relative to road)
-// using get_dvdu from paths.js
+// using get_dvdt from paths.js
 //######################################################################
 
 road.prototype.updateOrientation=function(){
     for(var i=0; i<this.veh.length; i++){
 	//console.log("iveh=",i," this.veh.length=",this.veh.length);
-	if(this.veh[i].id!=1){//ego vehicles are updated separately 
-            this.veh[i].dvdu=get_dvdu(this.veh[i].dt_lastLC,this.dt_LC,
+
+        // ego vehicles are updated separately, obstacles not at all
+	if( (this.veh[i].id!=1) && (this.veh[i].type != "obstacle")){
+            this.veh[i].dvdt=get_dvdt(this.veh[i].dt_lastLC,this.dt_LC,
 				      this.veh[i].laneOld,
 				      this.veh[i].lane,this.veh[i].speed);
 	}
@@ -1650,15 +1679,18 @@ veh.id>=100:             normal vehicles
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
-
-  var noRestriction=(typeof umin === 'undefined'); 
-  var movingObserver=(typeof movingObs === 'undefined')
+    if(false){
+	console.log("in road.drawVehicles:");
+	this.writeVehiclesSimple();
+    }
+    var noRestriction=(typeof umin === 'undefined'); 
+    var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
-  var uRef=(movingObserver) ? uObs : 0;
-  var xRef=(movingObserver) ? xObs : this.traj_x(0);
-  var yRef=(movingObserver) ? yObs : this.traj_y(0);
+    var uRef=(movingObserver) ? uObs : 0;
+    var xRef=(movingObserver) ? xObs : this.traj_x(0);
+    var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
-  for(var i=0; i<this.veh.length; i++){
+    for(var i=0; i<this.veh.length; i++){
       if(noRestriction || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax))){
           var type=this.veh[i].type;
           var vehLenPix=scale*this.veh[i].length;
@@ -1670,8 +1702,9 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
 
           var phiRoad=this.get_phi(uCenterPhys);
-          var phiVehRel=(Math.abs(this.veh[i].dvdu)<0.00001) 
-	  ? 0 : - Math.atan(this.veh[i].dvdu);
+          var phiVehRel=(this.veh[i].speed<0.001) 
+	      ? 0
+	      : -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
           var phiVeh=phiRoad + phiVehRel;
           var cphiRoad=Math.cos(phiRoad);
           var sphiRoad=Math.sin(phiRoad);
@@ -1715,7 +1748,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
 	  if(false){
 	  //if(this.veh[i].v>2){
-	      console.log("in road.drawVehicles:"
+	      console.log("in road.drawVehicles: itime=",itime,
 			  +" u="+this.veh[i].u
 			  +" v="+this.veh[i].v
 			  +" xCenterPix="+xCenterPix
@@ -1723,5 +1756,5 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 			 );
 	  }
       }
-  }
+    }
 }

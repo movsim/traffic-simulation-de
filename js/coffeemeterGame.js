@@ -8,16 +8,17 @@
 
 // space and time
 
-var timewarp=2;
+var timewarp=1;
 var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
 var scaleBg;      // pixel bg Img/m defined in draw()
-var fps=30; // frames per second (unchanged during runtime)
+var fps=20; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 var time=0;
 var itime=0;
     //!!! test relative motion
 var relObserver=true;
 var uObs=0;
+var speedEgoInit=20;
 
 
 
@@ -112,13 +113,13 @@ var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 var lenStraightBegin=150;
 var lenCurve=200; // each of the left and right curve making up the 'S'
-var lenStraightEnd=250;
-var maxAng=0.4; // maximum angle of the S bend (if <0, mirrored 'S')
+var lenStraightEnd=2050;
+var maxAng=0.; // maximum angle of the S bend (if <0, mirrored 'S')
 
 // for optical purposes both lanes and cars bigger than in reality
 
 var nLanes=3;
-var laneWidth=7;
+var laneWidth=10;
 var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
@@ -126,36 +127,40 @@ var truck_width=7;
 
 // derived quantities and functions
 
+var noCurves=(Math.abs(maxAng)<0.001);
 var lenMainroad=lenStraightBegin+2*lenCurve+lenStraightEnd;
 var curvature=maxAng/lenCurve; // positive if first curve is left curve
-
-// phys coords start road
-var xBegin=0.7*sizePhys; // portrait with aspect ratio 6:10 
-var yBegin=-sizePhys;    // road from -sizePhys to about lenMainroad-sizePhys
-
-// phys coords begin first curve
-var y1=yBegin+lenStraightBegin;
-
-// phys coords center of 'S'
-var y2=y1+Math.sin(maxAng)/curvature;
-
-// phys coords end of 'S'
-var y3=2*y2-y1;
 
 
 // road geometry in physical coordinates 
 // (norcmal CS, x=>toRght, y=>toTop )
 
+var u1=lenStraightBegin;
+var u2=lenStraightBegin+lenCurve;
+var u3=lenStraightBegin+2*lenCurve;
+
+// phys coords start road
+
+var xBegin=0.7*sizePhys; // portrait with aspect ratio 6:10 
+var yBegin=-sizePhys;    // road from -sizePhys to about lenMainroad-sizePhys
+
+// phys coords begin first curve
+
+var x1=xBegin;
+var y1=yBegin+lenStraightBegin;
+
+// phys coords center of 'S'
+
+var x2=(noCurves) ? x1 : x1-(1-Math.cos(maxAng))/curvature;
+var y2=(noCurves) ? y1+lenCurve : y1+Math.sin(maxAng)/curvature;
+
+// phys coords end of 'S'
+
+var x3=2*x2-x1; 
+var y3=2*y2-y1;
+
 function traj_x(u){ 
-    var u1=lenStraightBegin;
-    var u2=lenStraightBegin+lenCurve;
-    var u3=lenStraightBegin+2*lenCurve;
-
-    var x1=xBegin; //phys coords begin first curve
-    var x2=x1-(1-Math.cos(maxAng))/curvature; //center of 'S'
-    var x3=2*x2-x1; // end of 'S'
-
-    var x=(u<u1)
+    var x=(noCurves||(u<u1)) 
 	? xBegin : (u<u2)
 	? x1-(1-Math.cos(maxAng*(u-u1)/(u2-u1)))/curvature : (u<u3)
 	? x3+(1-Math.cos(maxAng*(u3-u)/(u3-u2)))/curvature : x3;
@@ -163,15 +168,8 @@ function traj_x(u){
 }
 
 function traj_y(u){ 
-    var u1=lenStraightBegin;
-    var u2=lenStraightBegin+lenCurve;
-    var u3=lenStraightBegin+2*lenCurve;
 
-    var y1=yBegin+lenStraightBegin;
-    var y2=y1+Math.sin(maxAng)/curvature;
-    var y3=2*y2-y1; // end of 'S'
-
-    var y=(u<u1)
+    var y=(noCurves||(u<u1))
 	? yBegin + u : (u<u2)
 	? y1+Math.sin(maxAng*(u-u1)/(u2-u1))/curvature : (u<u3)
 	? y3-Math.sin(maxAng*(u3-u)/(u3-u2))/curvature : y3+u-u3;
@@ -280,8 +278,7 @@ var egoControlRegion=new EgoControlRegion(xRelZero,yRelZero);
 // create ego vehicle and associated coffeemeter dynamics
 //#######################################################################
 
-var vLongInit=0;
-var egoVeh=new EgoVeh(vLongInit);
+var egoVeh=new EgoVeh(speedEgoInit);
 
 
 
@@ -330,7 +327,12 @@ function init(){
     // set ego vehicle
 
     var iEgo=mainroad.veh.length-2;  // first veh has i=0!
-    mainroad.veh[iEgo].id=1;         // (first) ego vehicle characterized by id=1
+    mainroad.veh[iEgo].id=1;         // ego vehicle characterized by id=1
+    mainroad.veh[iEgo].v=2;          // real lane v
+    mainroad.veh[iEgo].speed=speedEgoInit;
+    egoVeh=new EgoVeh(speedEgoInit); // "new" is necessary
+    coffeemeter.setLevelSurface();
+    //mainroad.writeVehiclesSimple();
 
 }
 

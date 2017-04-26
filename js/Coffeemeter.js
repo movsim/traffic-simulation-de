@@ -234,7 +234,13 @@ Coffeemeter.prototype.updateSurface=function(ax,ay,dt){
 
 
 
-
+Coffeemeter.prototype.setLevelSurface=function(){
+    this.x=0;
+    this.y=0;
+    this.dotx=0;
+    this.doty=0;
+    this.stains.fill(0); // fill stains array with zeros
+}
 
 
 //##############################################################
