@@ -243,12 +243,27 @@ function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
 	var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
 
 	if(accLagNew<-bSafeActual){return false;}
+
 	var dacc=accNew-acc + this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
 
 	if(log || (this.bSafe>24)){
 	  console.log("...dacc="+dacc);
 	  if(dacc>0){console.log("  positive MOBIL LC decision!");}
-	}	
+	}
+
+	if(dacc>0){
+	    console.log(
+		"positive MOBIL LC decision!",
+		"\n vrel=",parseFloat(vrel).toFixed(2),
+		" bSafeActual=",parseFloat(bSafeActual).toFixed(2),
+		" acc=",parseFloat(acc).toFixed(2),
+		" accNew=",parseFloat(accNew).toFixed(2),
+		" bBiasRight=",parseFloat(this.bBiasRight).toFixed(2),
+		" bThr=",parseFloat(this.bThr).toFixed(2)
+	    );
+	}
+
+
 	return (dacc>0);
     }
 }

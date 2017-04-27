@@ -19,7 +19,7 @@ var itime=0;
 // ego vehicle
 
 var relObserver=true;
-var ego_speedInit=20;
+var ego_speedInit=80./3.6;
 var ego_uInit=40;  // initial arclength position
 var ego_laneInit=2; // 0=leftmost
 var ego_yRelPosition=0.3; // fraction of canvas height where ego vehicle
@@ -44,20 +44,20 @@ var vc=25; // if vLong>vc, then steering can lead to accLat>bmax
 
 // model parameters of surrounding traffic
 
-var IDM_v0=30;
-var IDM_T=1.5;
-var IDM_s0=2;
+var IDM_v0=30;  // overridden by initialization
+var IDM_T=1.5;  // overridden by initialization
+var IDM_s0=2;   // all the rest used by initialization
 var IDM_a=1.0;
 var IDM_b=2;
-var IDMtruck_v0=22.23;
+var IDMtruck_v0=80./3.6;
 var IDMtruck_T=2;
 var IDMtruck_a=0.8;
 
 var MOBIL_bSafe=4;    // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0
 var MOBIL_bThr=0.2;
-var MOBIL_bBiasRight_car=-0.2;
-var MOBIL_bBiasRight_truck=0.1;
+var MOBIL_bBiasRight_car=0.;
+var MOBIL_bBiasRight_truck=0.2;
 
 var MOBIL_mandat_bSafe=6;
 var MOBIL_mandat_bSafeMax=20;
@@ -65,10 +65,10 @@ var MOBIL_mandat_bThr=0;
 var MOBIL_mandat_biasRight=20;
 
 
-// models
+// models (longModels attributed individually at initialization)
 
-var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
-var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
+//var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+//var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
 var LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
                          MOBIL_bThr, MOBIL_bBiasRight_car);
 var LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
@@ -99,7 +99,7 @@ var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 
 var vmin=0; // min speed for speed colormap (drawn in red)
-var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmax=140/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
@@ -322,12 +322,37 @@ function init(){
     // control possibility crucial for game!)
     // types: 0 translated into "car", 1 into "truck", 2 into "obstacle"
 
-    var types  =[0,    0,    1,    0,       2,   2,   2,   2,   2,   2];
-    var lengths=[6,    4,    14,   7,     5.5, 5.5,20.5,20.5, 5.5, 5.5];
-    var widths =[2.5,  2,    5,    3,       2,   3,   4,   4,   3,   2];
-    var longPos=[50,   60,   80,  80,     195, 200, 220, 240, 245, 250];
-    var lanesReal=[0, 1.8,    2,   0,    2.33,2.16,   2,   2,2.16,2.33];
-    var speeds =[20,   20,   20,   30,      0,   0,   0,   0,   0,   0];
+    var types  =[0,     1,    0,    0,];
+    var lengths=[6,    14,    5,    4,];
+    var widths =[2.5, 4.5,    3,  2.5,];
+    var longPos=[150, 100,   50,   30,];
+    var lanesReal=[1,   2,  1.1,    0,];
+    var speeds =[28,   22,   28,   44,];
+
+    // add obstacles (can extend arrays just by defining out-of-bounds
+    // elements)
+
+    var lenObstacles=[ 5.5,  5.5, 51,  5.5,  5.5];
+    var wObstacles=  [   2,    3,    4,    3,    2];
+    var uObstacles=  [ 595,  600,  650,  655,  660];
+    var vObstacles=  [-0.3, -0.2, -0.1, -0.2, -0.3];
+
+    var obstacleShift=-500;
+    for (var i=0; i<uObstacles.length; i++){uObstacles[i]+=obstacleShift;}
+
+
+
+    var nveh=types.length;
+    for (var i=0; i<uObstacles.length; i++){
+	types[nveh+i]=2;
+	lengths[nveh+i]=lenObstacles[i];
+	widths[nveh+i]=wObstacles[i];
+	longPos[nveh+i]=uObstacles[i];
+	lanesReal[nveh+i]=vObstacles[i];
+	speeds[nveh+i]=0;
+    }
+
+
 
     // add ego vehicle (can extend arrays just by defining out-of-bounds
     // elements) 
@@ -346,6 +371,35 @@ function init(){
 
     mainroad.initializeMicro(types,lengths,widths,
 			     longPos,lanesReal,speeds,iEgo);
+
+    // add models to non-obstacles and non-ego vehicles:
+    // common LC models for trucks,cars and individual CF models 
+
+    var v0Left=160./3.6;
+    var v0Middle=100./3.6;
+    var v0Right=80./3.6;
+
+    var TLeft=1.0
+    var TMiddle=1.2;
+    var TRight=1.8;
+
+    for(var i=0; i<mainroad.veh.length; i++){
+        if((mainroad.veh[i].type != "obstacle")
+	   &&(mainroad.veh[i].id != 1)){// otherwise no models defined
+
+            mainroad.veh[i].LCModel=(mainroad.veh[i].type == "car")
+	        ? LCModelCar : LCModelTruck;
+	    var v0=(mainroad.veh[i].lane==0) ? v0Left : 
+		(mainroad.veh[i].lane==1) ? v0Middle : v0Right;
+	    var T=(mainroad.veh[i].lane==0) ? TLeft : 
+		(mainroad.veh[i].lane==1) ? TMiddle : TRight;
+	    mainroad.veh[i].longModel=(mainroad.veh[i].type=="truck")
+		? new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b)
+		: new ACC(v0,T,IDM_s0,IDM_a,IDM_b);
+        }
+
+    }
+
 
     // defines interface to user and speedometer incl special model
     // ("new" is necessary), and  initializes/resets coffeemeter 
@@ -504,11 +558,11 @@ function update(){
     uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys;
 
 
-    // transfer effects from slider interaction 
-    // and changed mandatory states to the vehicles and models 
+    // !! update models =>mainroad.updateModelsOfAllVehicles 
+    // replaced by direct individual specification at initialization
 
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck); //!! test if needed
+    //mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+//				       LCModelCar,LCModelTruck);
 
  
     // do central simulation update of vehicles

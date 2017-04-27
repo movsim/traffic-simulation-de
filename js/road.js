@@ -114,16 +114,12 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
 	var vehLength=(vehType == "car") ? car_length:truck_length;
 	var vehWidth=(vehType == "car") ? car_width:truck_width;
-        //var longModel=(vehType=="car") ? longModelCar : longModelTruck;
-        //var LCModel=(vehType=="car") ? LCModelCar : LCModelTruck;
 
         // actually construct vehicles
 
 	this.veh[i]=new vehicle(vehLength, vehWidth,u,lane, 
 				0.8*speedInit,vehType);
 
-	//this.veh[i].longModel=longModel;
-	//this.veh[i].LCModel=LCModel;
 
 
     }
@@ -187,6 +183,27 @@ road.prototype.writeVehiclesSimple= function() {
 		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
 		    +"");
   }
+}
+
+
+//######################################################################
+// write truck info including LC
+//######################################################################
+
+road.prototype.writeTrucksLC= function() {
+    console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
+		" itime="+itime);
+    for(var i=0; i<this.veh.length; i++){if(this.veh[i].type=="truck"){
+	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
+		    +"  lane="+this.veh[i].lane
+		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
+		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
+		    +"  LCmodel.bBiasRight="
+		    +parseFloat(this.veh[i].LCModel.bBiasRight).toFixed(1)
+		    +"");
+    }}
 }
 
 /**
@@ -552,7 +569,7 @@ road.prototype.calcAccelerations=function(){
         // called in the top-level js; here only logging
 
 	if(this.veh[i].id==1){
-	    if(true){
+	    if(false){
 		console.log("in road: ego vehicle: u=",this.veh[i].u,
 			    " v=",this.veh[i].v,
 			    " speed_u=",this.veh[i].speed,
@@ -850,10 +867,13 @@ road.prototype.doChangesInDirection=function(toRight){
 
            // optionally change acceleration of the old follower
 
-           if(log){console.log("after lane change! veh "+i
-			       +" from lane "+ this.veh[i].laneOld
-			       +" to "+this.veh[i].lane+" ");
-		  }
+             if(true){
+		 console.log("change successfully initiated!",
+			     "\n vehicle ",i,
+			     " type ",this.veh[i].type,
+			     " from lane ",this.veh[i].laneOld,
+			     " to lane",this.veh[i].lane);
+	     }
 
            // update the local envionment implies 12 updates, 
            // better simply to update all ...
@@ -1207,7 +1227,7 @@ road.prototype.updateDensity=function(density){
 
 	    var vehNew=new vehicle(vehLength,vehWidth,uNew,laneNew,
 				    speedNew,vehType);
-	    //vehNew.longModel=(vehType=="car") ? longModelCar : longModelTruck;
+
 	    if(emptyLanes){vehNew.speed=longModelTruck.v0;}
 	    this.veh.splice(k,0,vehNew); // add vehicle at position k  (k=0 ... n-1)
 	}
@@ -1688,7 +1708,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     movingObs, uObs, xObs, yObs){
     if(false){
 	console.log("in road.drawVehicles:");
-	this.writeVehiclesSimple();
+	//this.writeVehiclesSimple();
+	this.writeTrucksLC();
     }
     var noRestriction=(typeof umin === 'undefined'); 
     var movingObserver=(typeof movingObs === 'undefined')
