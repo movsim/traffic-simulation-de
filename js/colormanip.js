@@ -80,7 +80,7 @@ function hslToRgb(h, s, l) {
  */
 
 function colormapSpeed(v, vmin, vmax, vehType, isEgo, time){
-    var dt_blink_ms=6000; // to see ego vehicle
+    var dt_blink_ms=1000; // to see ego vehicle
     var hue_vmin=10/360; // color wheel: 0=360=red
     var hue_vmax=270/360; 
 

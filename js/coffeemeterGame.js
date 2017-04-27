@@ -8,6 +8,8 @@
 
 // space and time
 
+var sizePhys=120;  // visible road section [m] 
+                   // (scale=min(canvas.width,height/sizePhys))
 var timewarp=1;
 var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
 var scaleBg;      // pixel bg Img/m defined in draw()
@@ -20,7 +22,7 @@ var itime=0;
 
 var relObserver=true;
 var ego_speedInit=80./3.6;
-var ego_uInit=40;  // initial arclength position
+var ego_uInit=240;  // initial arclength position
 var ego_laneInit=2; // 0=leftmost
 var ego_yRelPosition=0.3; // fraction of canvas height where ego vehicle
                           // is drawn (e.g., 0.3 => 30% of canvas height for
@@ -56,8 +58,8 @@ var IDMtruck_a=0.8;
 var MOBIL_bSafe=4;    // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0
 var MOBIL_bThr=0.2;
-var MOBIL_bBiasRight_car=0.;
-var MOBIL_bBiasRight_truck=0.2;
+var MOBIL_bBiasRight_car=0.2;
+var MOBIL_bBiasRight_truck=0.4;
 
 var MOBIL_mandat_bSafe=6;
 var MOBIL_mandat_bSafeMax=20;
@@ -113,7 +115,6 @@ var yMouseCanvas;
 // physical geometry settings [m]
 //#############################################################
 
-var sizePhys=120;  // visible road section [m] [scale=min(canvas.width,height/sizePhys)]
 var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
@@ -322,12 +323,12 @@ function init(){
     // control possibility crucial for game!)
     // types: 0 translated into "car", 1 into "truck", 2 into "obstacle"
 
-    var types  =[0,     1,    0,    0,];
-    var lengths=[6,    14,    5,    4,];
-    var widths =[2.5, 4.5,    3,  2.5,];
-    var longPos=[150, 100,   50,   30,];
-    var lanesReal=[1,   2,  1.1,    0,];
-    var speeds =[28,   22,   28,   44,];
+    var types  =[0,     1,    0,    0,    0,    0];
+    var lengths=[6,    14,    5,    4,    5,    5];
+    var widths =[2.5, 4.5,    3,  2.5,    3,    3];
+    var longPos=[350, 300,  250,  230,  150,    0];
+    var lanesReal=[1,   2,  1.1,    0,    0,    0];
+    var speeds =[28,   22,   28,   44,   44,   44];
 
     // add obstacles (can extend arrays just by defining out-of-bounds
     // elements)
@@ -337,7 +338,7 @@ function init(){
     var uObstacles=  [ 595,  600,  650,  655,  660];
     var vObstacles=  [-0.3, -0.2, -0.1, -0.2, -0.3];
 
-    var obstacleShift=-500;
+    var obstacleShift=200;
     for (var i=0; i<uObstacles.length; i++){uObstacles[i]+=obstacleShift;}
 
 

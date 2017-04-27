@@ -269,7 +269,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 
     // check
 
-    if(true){
+    if(false){
         console.log("road.initializeMicro: initialized with ", 
 		    this.veh.length," vehicles");
 	this.writeVehicles();
@@ -761,6 +761,18 @@ road.prototype.updateOrientation=function(){
 //######################################################################
 
 road.prototype.changeLanes=function(){
+    if(false){ //!!
+	this.writeVehicles();
+	var testLongTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
+	var testLongTruckIDM=new IDM(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
+	s= 85.7;  speed= 18.7;  speedLead= 15.7;  accLead= 0.7;
+	var testACC=testLongTruck.calcAcc(s,speed,speedLead,accLead);
+	var testIDM=testLongTruckIDM.calcAcc(s,speed,speedLead);
+	console.log("testLongTruck=",testLongTruck," testACC=",testACC);
+	console.log("testLongTruckIDM=",testLongTruck," testIDM=",testIDM);
+
+    }
+
     this.doChangesInDirection(1); // changes to right 
     this.doChangesInDirection(0); // changes to left 
 }
@@ -845,6 +857,33 @@ road.prototype.doChangesInDirection=function(toRight){
 
 	 var MOBILOK=this.veh[i].LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,log);
     
+         if(MOBILOK&&(this.veh[i].type=="truck")){//!!!
+	     var s=this.veh[iLead].u-this.veh[iLead].length-this.veh[i].u;
+	     var accLead=this.veh[iLead].acc;
+	     var speed=this.veh[i].speed;
+	     var speedLead=this.veh[iLead].speed;
+	     var accCalc=this.veh[i].longModel.calcAcc(
+		 s,speed,speedLead,accLead);
+	     console.log(
+		 "MOBILOK!change successfully initiated!",
+		 "\n  vehicle ",i,
+		 " type ",this.veh[i].type,
+		 " from lane ",this.veh[i].lane,
+		 " to lane",newLane,
+		 "\n  u=",parseFloat(this.veh[i].u).toFixed(1),
+		 " s=",parseFloat(s).toFixed(1),
+		 " speed=",parseFloat(speed).toFixed(1),
+		 " speedLead=",parseFloat(speedLead).toFixed(1),
+		 " accLead=",parseFloat(accLead).toFixed(1),
+		 " acc=",parseFloat(this.veh[i].acc).toFixed(1),
+		 " accCalc=",parseFloat(accCalc).toFixed(1),
+		 "\n  longModel=",this.veh[i].longModel,
+		 // "\n  veh[iLead]=",this.veh[iLead]
+		 ""
+	     );
+	     this.writeVehicles();
+
+	 }
     
     
 
@@ -865,16 +904,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	   this.veh[i].acc=accNew;
 	   this.veh[iLagNew].acc=accLagNew;
 
-           // optionally change acceleration of the old follower
-
-             if(true){
-		 console.log("change successfully initiated!",
-			     "\n vehicle ",i,
-			     " type ",this.veh[i].type,
-			     " from lane ",this.veh[i].laneOld,
-			     " to lane",this.veh[i].lane);
-	     }
-
+ 
            // update the local envionment implies 12 updates, 
            // better simply to update all ...
 	 
@@ -1765,8 +1795,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
 	      if((isEgo)||(isPerturbed)){
 		  ctx.strokeStyle="rgb(0,0,0)";
+		  ctx.strokeRect(-0.55*effLenPix, -0.55*effWPix, 
+			       1.1*effLenPix, 1.1*effWPix);
 		  ctx.strokeRect(-0.6*effLenPix, -0.6*effWPix, 
 			       1.2*effLenPix, 1.2*effWPix);
+		  ctx.strokeRect(-0.65*effLenPix, -0.65*effWPix, 
+			       1.3*effLenPix, 1.3*effWPix);
 		  ctx.strokeRect(-0.7*effLenPix, -0.7*effWPix, 
 			       1.4*effLenPix, 1.4*effWPix);
 	      }
