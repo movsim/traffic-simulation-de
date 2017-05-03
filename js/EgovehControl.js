@@ -19,15 +19,28 @@ function EgoVeh(vLongInit){
     this.vLat=0;           // vLat always=0 if not sliding!
     this.aLong=0;  // acceleration along vehicle axis
     this.aLat=0;  // acceleration perp to veh axis (right=positive)
+
     this.driveAngle=0;  // =atan(vLat/vLong) only !=0 if isSliding=true
-    this.isSliding=false;
+    this.isSliding=false; //driveAngle, sliding only relev. if latCtrlModel==2
+
+    this.speed_v=0; // only relevant if this.latCtrlModel==0 or 1
+    this.v=0;       // lateral pos only relev. if this.latCtrlModel==0 or 1
 
     // following are parameters of simplified ego model
 
-    this.vmax=190/3.6; // maximum speed of ego vehicle
+    this.latCtrlModel=2; // 0=direct pos control, 1=speed ctrl; 2=steering
+    this.vmax=190/3.6;   // maximum speed of ego vehicle
     this.bmax=9;  // max absolute acc (limit where sliding/ESP begins)
     this.amax=4;  // max long acceleration (if ego.vLong=0)
-    this.vc=25; // if vLong>vc, then steering can lead to accLat>bmax
+
+    this.sensLat0=0.2; // lat displacement sensitivity [1](latCtrlModel==0)
+                       //  sensLat0=1 => vehicle follows lateral mouse 1:1
+    this.sensLat1=20;  // max lateral speed [m/s] (latCtrlModel==1) 
+                       // if mouse pointer at the boundaries of canvas
+    this.vc=10;  // steering sensitivity [m/s] (latCtrlModel==2) 
+                       // (the lower vc, the higher): 
+                       // @vc, max steering (mouse pointer at canvas  
+                       // boundaries) leads to |accLat|>bmax
 }
 
 
@@ -43,6 +56,9 @@ EgoVeh.prototype.setSpeedLong=function(vLong){this.vLong=vLong;}
 
 trajectory curvature [1/m] (=road + (u,v) curvature) propto steering angle
 
+@param canvas: defines external framework: 
+               no ctrl if mouse pointer outside canvas
+@param scale: pixels/m
 @param egoCtrlRegion: defines "bullet point" of zero acceleration/steering
 @param isOutside: whether mouse pointer is outside of canvas 
                   (defined by myMouseOutHandler in the toplevel js)
@@ -54,7 +70,7 @@ trajectory curvature [1/m] (=road + (u,v) curvature) propto steering angle
 
 
 
-EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
+EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 				 xMouseCanvas,yMouseCanvas){
 
     // standard settings if mouse pointer outside of "control box"
@@ -62,7 +78,7 @@ EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
     var xPixZero=egoCtrlRegion.xRelZero*canvas.width;
     var yPixZero=egoCtrlRegion.yRelZero*canvas.height;
     this.aLong=0;
-    var curv=0; 
+    this.aLat=0;
  
     if(!isOutside){
 
@@ -73,20 +89,40 @@ EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
 	    ? - this.bmax*(yMouseCanvas-yPixZero) /(canvas.height-yPixZero)
 	    : this.amax*(1-this.vLong/this.vmax) *(yPixZero-yMouseCanvas)/yPixZero;
 
-        // lateral/steering accelerations perp to vehicle (not road!) axis:
-	// curvature is controlled; normalized such that
-	// aLat=bmax at this.vLong=vc and maximum mouse distance xMouseCanvas=canvas.width
+        // latCtrlModel==0: lateral control by direct positioning
 
-	curv=this.bmax/Math.pow(this.vc,2)*(xMouseCanvas-xPixZero)
-	    /(canvas.width-xPixZero);
+	if(this.latCtrlModel==0){
+	    this.v=this.sensLat0*(xMouseCanvas-xPixZero)/scale;
+            // !!! calculate speed_v, acc_v=aLat here
+	}
+
+        // latCtrlModel==1: lateral control by direct speed control
+
+	if(this.latCtrlModel==1){
+	    this.speed_v=this.sensLat1*(xMouseCanvas-xPixZero)
+		/(canvas.width-xPixZero);
+            // !!! calculate acc_v=aLat here
+	}
+
+
+        // latCtrlModel==2: lateral control by steering
+        // lateral/steering accelerations perp to vehicle (not road!) axis:
+	// curvature is controlled; 
+
+	if(this.latCtrlModel==2){
+	    var curv=this.bmax/Math.pow(this.vc,2)*(xMouseCanvas-xPixZero)
+		/(canvas.width-xPixZero);
+	    this.aLat=0.5*this.vLong*this.vLong*curv;
+	}
     }
 
-    this.aLat=0.5*this.vLong*this.vLong*curv; // unrestr lateral (veh axis) acceleration
+    // "ESP like" restrictions on accelerations 
+
     var accAbs=Math.sqrt(this.aLat*this.aLat+this.aLong*this.aLong);
     var factor=accAbs/this.bmax;
     if(factor>1){
 	console.log("myMouseMoveHandler: vehicle is sliding!");
-	curv /= factor; // both lateral and long acceleration reduced "ESP like"
+	curv /= factor; 
 	this.aLong /=factor; 
 	this.aLat /=factor; 
     }

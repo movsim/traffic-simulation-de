@@ -650,6 +650,7 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // calculate logical accelerations
     // acc_v=accel to logical increasing lane indices=acc to right
     // roadCurv>0 for left curves, therefore "+"
+    //!!! implement externalEgoVeh.latCtrlModel=1 and =0
 
     ego.acc=externalEgoVeh.aLong; // !! driveAngle |dvdt*laneWidth/speed|<<1
     var acc_v=externalEgoVeh.aLat+roadCurv*ego.speed; // [m/s^2]

@@ -598,7 +598,7 @@ function update(){
 	}
     }
 
-    egoVeh.update(canvas,egoControlRegion,isOutside,xMouseCanvas,yMouseCanvas);
+    egoVeh.update(canvas,scale,egoControlRegion,isOutside,xMouseCanvas,yMouseCanvas);
     coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
     
 
