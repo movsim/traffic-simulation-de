@@ -129,3 +129,26 @@ function displayEgoVehInfo(){
     document.getElementById("mouseMoveDisplay").innerHTML=displayText;
 }
 
+
+//#################################################################
+// html5 sliders callback routines
+//#################################################################
+
+// html5 sliders initialized in html file by "value" field of html5 input tag
+// oninput fires whenever value changed
+// onchange fires whenever value changed and mouse drag button released
+// slider*.value gives actual value (e.g. for use in html and sim js)
+
+
+// sizePhys (=scale) slider
+
+var slider_sizePhys = document.getElementById("slider_sizePhys");
+var slider_sizePhysVal = document.getElementById("slider_sizePhysVal");
+slider_sizePhys.oninput = function() {
+    console.log("in slider_sizePhys.oninput: this.value="
+		+ slider_sizePhys.value);
+    slider_sizePhysVal.innerHTML = this.value;
+}
+
+slider_sizePhysVal.innerHTML=slider_sizePhys.value;
+

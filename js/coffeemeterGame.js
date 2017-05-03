@@ -8,7 +8,7 @@
 
 // space and time
 
-var sizePhys=120;  // visible road section [m] 
+var sizePhys=slider_sizePhys.value;  // visible road section [m] 
                    // (scale=min(canvas.width,height/sizePhys))
 var timewarp=1;
 var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
@@ -119,10 +119,10 @@ var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
 
-var lenStraightBegin=150;
+var lenStraightBegin=400;
 var lenCurve=200; // each of the left and right curve making up the 'S'
 var lenStraightEnd=2050;
-var maxAng=0.; // maximum angle of the S bend (if <0, mirrored 'S')
+var maxAng=0.2; // maximum angle of the S bend (if <0, mirrored 'S')
 
 // for optical purposes both lanes and cars bigger than in reality
 
@@ -152,22 +152,13 @@ var u3=lenStraightBegin+2*lenCurve;
 var xBegin=0.7*sizePhys; // portrait with aspect ratio 6:10 
 var yBegin=-sizePhys;    // road from -sizePhys to about lenMainroad-sizePhys
 
-// phys coords begin first curve
 
-var x1=xBegin;
-var y1=yBegin+lenStraightBegin;
-
-// phys coords center of 'S'
-
-var x2=(noCurves) ? x1 : x1-(1-Math.cos(maxAng))/curvature;
-var y2=(noCurves) ? y1+lenCurve : y1+Math.sin(maxAng)/curvature;
-
-// phys coords end of 'S'
-
-var x3=2*x2-x1; 
-var y3=2*y2-y1;
 
 function traj_x(u){ 
+    var x1=xBegin; // phys coords begin first curve
+    var x2=(noCurves) ? x1 : x1-(1-Math.cos(maxAng))/curvature; // center of 'S'
+    var x3=2*x2-x1; // end of 'S'
+
     var x=(noCurves||(u<u1)) 
 	? xBegin : (u<u2)
 	? x1-(1-Math.cos(maxAng*(u-u1)/(u2-u1)))/curvature : (u<u3)
@@ -176,6 +167,9 @@ function traj_x(u){
 }
 
 function traj_y(u){ 
+    var y1=yBegin+lenStraightBegin;
+    var y2=(noCurves) ? y1+lenCurve : y1+Math.sin(maxAng)/curvature;
+    var y3=2*y2-y1;
 
     var y=(noCurves||(u<u1))
 	? yBegin + u : (u<u2)
@@ -552,12 +546,17 @@ function update(){
 //#################################################################
 
 
-    // update times
+    // update times and appearance
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys;
 
+    sizePhys=slider_sizePhys.value;
+    scale=Math.min(canvas.height,canvas.width)/sizePhys;
+    xBegin=0.7*sizePhys;
+    yBegin=-sizePhys;
+
+    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys;
 
     // !! update models =>mainroad.updateModelsOfAllVehicles 
     // replaced by direct individual specification at initialization
@@ -598,7 +597,8 @@ function update(){
 	}
     }
 
-    egoVeh.update(canvas,scale,egoControlRegion,isOutside,xMouseCanvas,yMouseCanvas);
+    egoVeh.update(canvas,scale,egoControlRegion,
+		  isOutside,xMouseCanvas,yMouseCanvas,dt);
     coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
     
 

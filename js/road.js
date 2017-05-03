@@ -644,27 +644,49 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // logical accelerations au=acc and av of the controlled vehicle 
     // in the road.veh array by the road curvature
 
-    var u=ego.u;
-    var roadCurv=this.get_curv(u);
+    var roadCurv=this.get_curv(ego.u);
+
+    // following assumes road essentially to North
+    // starting at x (East) coordinate x=0; 
+    // get_phi=PI/2 if road to North and smaller if East component
+
+    var xRoadAxis=this.traj_x(ego.u)-this.traj_x(0); 
+    var dotxRoadAxis=(0.5*Math.PI-this.get_phi(ego.u))*ego.speed; 
+
 
     // calculate logical accelerations
-    // acc_v=accel to logical increasing lane indices=acc to right
+    // accLat=accel to logical increasing lane indices=acc to right
     // roadCurv>0 for left curves, therefore "+"
     //!!! implement externalEgoVeh.latCtrlModel=1 and =0
 
     ego.acc=externalEgoVeh.aLong; // !! driveAngle |dvdt*laneWidth/speed|<<1
-    var acc_v=externalEgoVeh.aLat+roadCurv*ego.speed; // [m/s^2]
+    var acc_v=(externalEgoVeh.aLat+roadCurv*ego.speed*ego.speed)
+	/this.laneWidth; // [lanes/s^2]
+
+    // calculate longitudinal dynamics directly by ballistic update 
+
+    ego.u += Math.max(0,ego.speed*dt+0.5*ego.acc*dt*dt); // [m]
+    ego.speed=Math.max(ego.speed+ego.acc*dt, 0.);        // =vu [m/s]
 
     // calculate lateral dynamics directly by ballistic update 
     // Watch out: coordinate v has unit laneWidth, not m! 
 
-    ego.u += Math.max(0,ego.speed*dt+0.5*ego.acc*dt*dt);
-    var speed_v=ego.dvdt*this.laneWidth; // old lat speed [m/s]
-    ego.v += (speed_v*dt+0.5*acc_v*dt*dt)/this.laneWidth; // [laneWidth] 
+    if(externalEgoVeh.latCtrlModel==2){
+        ego.v += ego.dvdt*dt+0.5*acc_v*dt*dt;        // [lanes] 
+        ego.dvdt += acc_v*dt;
+    }
+    else{ // zero point at middle of road v=(nLanes-1)/2
+        ego.v=(this.nLanes-1)/2 + (externalEgoVeh.v-xRoadAxis)/this.laneWidth;
+        ego.dvdt=(externalEgoVeh.vv-dotxRoadAxis)/this.laneWidth;
+        //ego.dvdt=(externalEgoVeh.vv-0)/this.laneWidth;
+	if(true){
+	    console.log("road.updateEgoVeh: latCtrlModel=",
+			externalEgoVeh.latCtrlModel,
+			"ego.v=",ego.v,
+			" ego.dvdt=",ego.dvdt);
+	}
+    }
     ego.lane=Math.round(ego.v);
-    ego.speed=Math.max(ego.speed+ego.acc*dt, 0.);
-    speed_v += acc_v*dt;
-    ego.dvdt = speed_v/this.laneWidth;
 
 
     if(false){
@@ -678,7 +700,7 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
 		    " v[laneWidth]=",parseFloat(ego.v).toFixed(2),
 		    " lane=",ego.lane,
 		    "\n         speedLong=",parseFloat(ego.speed).toFixed(2),
-		    " speed_v=",parseFloat(speed_v).toFixed(2),
+		    " vv=",parseFloat(vv).toFixed(2),
 		    " dvdt=",parseFloat(ego.dvdt).toFixed(2)
 		   );
 	//this.writeVehiclesSimple();
