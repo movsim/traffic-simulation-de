@@ -640,6 +640,10 @@ function draw() {
 //##################################################
 
 function main_step() {
+    scale=Math.min(canvas.height,canvas.width)/sizePhys;
+xBegin=0.7*sizePhys; //!!! new resize() function!
+yBegin=-sizePhys;
+    console.log("main_step(): sizePhys=",sizePhys," scale=",scale);  
     draw();
     update();
 }

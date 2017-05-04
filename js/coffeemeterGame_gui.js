@@ -148,6 +148,7 @@ slider_sizePhys.oninput = function() {
     console.log("in slider_sizePhys.oninput: this.value="
 		+ slider_sizePhys.value);
     slider_sizePhysVal.innerHTML = this.value;
+    sizePhys=this.value; //!!! clean up
 }
 
 slider_sizePhysVal.innerHTML=slider_sizePhys.value;
