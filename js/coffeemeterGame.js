@@ -24,16 +24,15 @@ var relObserver=true;
 var ego_speedInit=80./3.6;
 var ego_uInit=240;  // initial arclength position
 var ego_laneInit=2; // 0=leftmost
-var ego_yRelPosition=0.3; // fraction of canvas height where ego vehicle
-                          // is drawn (e.g., 0.3 => 30% of canvas height for
-                          // back traffic)
-var uObs=0; // to be defined in init()
+var ego_yRelPosition=0.5; // fraction of canvas height where ego vehicle
+                          // is drawn (0=bottom, 1=top)
+var uObs=0; // to be defined in resize()
 
 
 
 // traffic flow
 
-var qIn=0;       // no additional inflowing vehicles; all done by initializeMicro
+var qIn=0;       // no addl inflowing vehicles; all done by initializeMicro
 
 // model parameters (or better: restraints) of ego vehicle 
 
@@ -59,7 +58,7 @@ var MOBIL_bSafe=4;    // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0
 var MOBIL_bThr=0.2;
 var MOBIL_bBiasRight_car=0.2;
-var MOBIL_bBiasRight_truck=0.4;
+var MOBIL_bBiasRight_truck=1.0;
 
 var MOBIL_mandat_bSafe=6;
 var MOBIL_mandat_bSafeMax=20;
@@ -100,8 +99,8 @@ var hasChanged=true; // whether window dimensions has changed (resp. design)
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 
-var vmin=0; // min speed for speed colormap (drawn in red)
-var vmax=140/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vminColormap=0; // min speed for speed colormap (drawn in red)
+var vmaxColormap=180/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
@@ -149,8 +148,8 @@ var u3=lenStraightBegin+2*lenCurve;
 
 // phys coords start road
 
-var xBegin=0.7*sizePhys; // portrait with aspect ratio 6:10 
-var yBegin=-sizePhys;    // road from -sizePhys to about lenMainroad-sizePhys
+var xBegin=0; // lateral coordinate [m] of road begin (set in resize())
+var yBegin=0; // long coordinate [m] of road begin (set in resize())
 
 
 
@@ -266,15 +265,19 @@ var coffeemeter=new Coffeemeter(cupImgBack,cupImgFront,
 //#######################################################################
 
 // myMouseMoveHandler(e):
-// mouse pos for zero x,y acc of ego vehicle  relative to canvas 
-// = e.offsetX/Y=e.clientX/Y-upper screen coord of canvas
+// mouse pos for zero x,y acc of ego vehicle ("bullet point")
+// bulletPointFixed=true => rel pos (xRelZero,yRelZero)
+// bulletPointFixed=false => bullet point at ego vehicle
 // x=toRight (aLat),y=ahead (aLong)
+
+var bulletPointFixed=false; // if fixed, at rel pos (xRelZero,yRelZero)
      
-var xRelZero=0.5; // zero steering at fraction xRelZero of canvas width
-var yRelZero=0.5; // zero acceleration at frac yRelZero of canvas height
+var xRelZero=0.5; // rel pos of bullet point if fixed (0=left,1=right)
+var yRelZero=0.4; // rel pos of bullet point if fixed (0=bottom,1=top)
 var xMouseCanvas; // calculated in myMouseMoveHandler(e)
 var yMouseCanvas;
-var egoControlRegion=new EgoControlRegion(xRelZero,yRelZero);
+var egoControlRegion=new EgoControlRegion(bulletPointFixed,xRelZero,yRelZero,
+					  ego_yRelPosition);
 
 //#######################################################################
 // create ego vehicle and associated coffeemeter dynamics
@@ -332,7 +335,7 @@ function init(){
     var uObstacles=  [ 595,  600,  650,  655,  660];
     var vObstacles=  [-0.3, -0.2, -0.1, -0.2, -0.3];
 
-    var obstacleShift=200;
+    var obstacleShift=500;
     for (var i=0; i<uObstacles.length; i++){uObstacles[i]+=obstacleShift;}
 
 
@@ -364,8 +367,9 @@ function init(){
     // introduces external traffic and ego vehicle to the road's veh array 
     // and also provides the ego vehicle  as external reference
 
-    mainroad.initializeMicro(types,lengths,widths,
+     mainroad.initializeMicro(types,lengths,widths,
 			     longPos,lanesReal,speeds,iEgo);
+
 
     // add models to non-obstacles and non-ego vehicles:
     // common LC models for trucks,cars and individual CF models 
@@ -375,8 +379,12 @@ function init(){
     var v0Right=80./3.6;
 
     var TLeft=1.0
-    var TMiddle=1.2;
+    var TMiddle=1.0;
     var TRight=1.8;
+
+    var aLeft=2.0
+    var aMiddle=1.5;
+    var aRight=1.0;
 
     for(var i=0; i<mainroad.veh.length; i++){
         if((mainroad.veh[i].type != "obstacle")
@@ -388,13 +396,26 @@ function init(){
 		(mainroad.veh[i].lane==1) ? v0Middle : v0Right;
 	    var T=(mainroad.veh[i].lane==0) ? TLeft : 
 		(mainroad.veh[i].lane==1) ? TMiddle : TRight;
+	    var a=(mainroad.veh[i].lane==0) ? aLeft : 
+		(mainroad.veh[i].lane==1) ? aMiddle : aRight;
 	    mainroad.veh[i].longModel=(mainroad.veh[i].type=="truck")
 		? new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b)
-		: new ACC(v0,T,IDM_s0,IDM_a,IDM_b);
+		: new ACC(v0,T,IDM_s0,a,IDM_b);
         }
 
     }
 
+    // rename non-ego vehicle IDs 
+    // for better and deteministic identification
+
+    var id=101;
+    for(var i=0; i<mainroad.veh.length; i++){
+        if((mainroad.veh[i].type != "obstacle")
+	   &&(mainroad.veh[i].id != 1)){// otherwise no id changed
+	    mainroad.veh[i].id=id;
+	    id++;
+	}
+    }
 
     // defines interface to user and speedometer incl special model
     // ("new" is necessary), and  initializes/resets coffeemeter 
@@ -402,14 +423,10 @@ function init(){
     egoVeh=new EgoVeh(ego_speedInit); 
     coffeemeter.setLevelSurface();
 
-    // initializes/resets observer: road arc length uObs 
-    // drawn at pixel coords (scale*xBegin, -scale*yBegin)
 
-    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys; 
+    mainroad.writeVehiclesSimple();
 
-    //mainroad.writeVehiclesSimple();
-
-}
+}//init
 
 
 
@@ -419,10 +436,16 @@ function drawMovingBackground(uObs){
 //##################################################
 
     var iLowerTile=Math.floor( (traj_y(uObs)-yBegin)/sizeBgPhys);
-    var iLeftTile=Math.floor( (traj_x(uObs)-xBegin)/sizeBgPhys);
+    var iLeftTile=Math.floor( (traj_x(0)-xBegin)/sizeBgPhys); 
 
-    var xLeftPix= scale*(iLeftTile*sizeBgPhys  + xBegin-traj_x(uObs));
-    var yTopPix =-scale*(iLowerTile*sizeBgPhys + yBegin-traj_y(uObs));
+  //!! change also call of mainroad.draw method 
+  // if x observer from moving to fixed!
+
+  //var xLeftPix= scale*(iLeftTile*sizeBgPhys  + xBegin-traj_x(uObs));//moving
+    var xLeftPix= scale*(iLeftTile*sizeBgPhys  + xBegin-traj_x(0));//fixed
+
+    var yTopPix =-scale*(iLowerTile*sizeBgPhys + yBegin-traj_y(uObs));//moving
+
 
     if(drawBackground&&(hasChanged||(itime<=2) || (itime==20) || relObserver 
 			|| (!drawRoad))){
@@ -505,7 +528,7 @@ function drawRuntimeVars(){
       drawColormap(0.86*canvas.width,
                    0.88*canvas.height,
                    0.1*canvas.width, 0.2*canvas.height,
-		   vmin,vmax,0,100/3.6);
+		   vminColormap,vmaxColormap,vminColormap,vmaxColormap);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
@@ -528,13 +551,7 @@ function respondToWindowChanges(){
     }
 
     if(hasChanged){
-	scale=Math.min(canvas.height,canvas.width)/sizePhys;
-	//scaleBg=scale*sizePhys/sizeBgPhys;
-        if(true){
-	  console.log("canvas has been resized: new dim ",
-		      canvas.width,"X",canvas.height,
-		      " sizePhys=",sizePhys," scale=",scale);
-	}
+	resize();
     }
 }
 
@@ -552,11 +569,7 @@ function update(){
     itime++;
 
     sizePhys=slider_sizePhys.value;
-    scale=Math.min(canvas.height,canvas.width)/sizePhys;
-    xBegin=0.7*sizePhys;
-    yBegin=-sizePhys;
-
-    uObs=mainroad.egoVeh.u-ego_yRelPosition*sizePhys;
+    resize();
 
     // !! update models =>mainroad.updateModelsOfAllVehicles 
     // replaced by direct individual specification at initialization
@@ -575,6 +588,10 @@ function update(){
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
 
+    egoVeh.update(canvas,scale,egoControlRegion,
+		  isOutside,xMouseCanvas,yMouseCanvas,dt);
+    coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
+ 
 
     // logging
     
@@ -597,10 +614,12 @@ function update(){
 	}
     }
 
-    egoVeh.update(canvas,scale,egoControlRegion,
-		  isOutside,xMouseCanvas,yMouseCanvas,dt);
-    coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
-    
+   
+    if(itime%50==0){
+    //if(false}{
+	mainroad.writeVehicleModels();
+    }
+
 
 }//update
 
@@ -616,13 +635,18 @@ function draw() {
     drawMovingBackground(uObs);
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    mainroad.draw(roadImg,scale,changedGeometry,
-		  relObserver,uObs,xBegin,yBegin); //!!
+
+    // !! xBegin+traj_x(uObs) if observer not moving in x direction, only in y
+    // change also drawMovingBackground accordingly
+
+    var xObsRel=xBegin+traj_x(uObs)-traj_x(0);
+    mainroad.draw(roadImg,scale,changedGeometry,relObserver,
+		  uObs,xObsRel,yBegin); //
 
     mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			  vmin, vmax,
-                          0,lenMainroad,relObserver,uObs,xBegin,yBegin);
+			  vminColormap,vmaxColormap,0,lenMainroad,relObserver,
+			  uObs,xObsRel,yBegin);
     displayEgoVehInfo();
     coffeemeter.draw(canvas);
     egoControlRegion.draw(canvas);
@@ -633,6 +657,27 @@ function draw() {
 }
 
 
+//##################################################
+// resize scale (if canvas dimension changed or scale slider moved)
+//##################################################
+
+function resize() { 
+    sizeBgPhys=1.2*sizePhys; // physical length [m] of the (square) bg image
+    scale=Math.min(canvas.height,canvas.width)/sizePhys;
+    xBegin=0.6*canvas.width/scale;
+    yBegin=-canvas.height/scale;
+    uObs=mainroad.egoVeh.u-ego_yRelPosition*canvas.height/scale;
+    draw();
+    if(false){
+	console.log("resize(): sizePhys=",sizePhys,
+		    " canvas.height=",canvas.height,
+		    " canvas.width=",canvas.width,
+		    " scale=",scale,
+		    " ego_yRelPosition=",ego_yRelPosition,
+		    " uObs-ego.u=",uObs-mainroad.egoVeh.u);
+    }
+
+}
 
 
 //##################################################
@@ -640,10 +685,6 @@ function draw() {
 //##################################################
 
 function main_step() {
-    scale=Math.min(canvas.height,canvas.width)/sizePhys;
-xBegin=0.7*sizePhys; //!!! new resize() function!
-yBegin=-sizePhys;
-    console.log("main_step(): sizePhys=",sizePhys," scale=",scale);  
     draw();
     update();
 }

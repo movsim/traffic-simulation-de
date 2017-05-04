@@ -90,10 +90,13 @@ trajectory curvature [1/m] (=road + (u,v) curvature) propto steering angle
 EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 				 xMouseCanvas,yMouseCanvas,dt){
 
+    // determine pixel bullet point relative to canvas
+
+    var xPixZero=egoCtrlRegion.get_xPixZero(canvas);
+    var yPixZero=egoCtrlRegion.get_yPixZero(canvas);
+
     // standard settings if mouse pointer outside of "control box"
 
-    var xPixZero=egoCtrlRegion.xRelZero*canvas.width;
-    var yPixZero=egoCtrlRegion.yRelZero*canvas.height;
     this.aLong=0;
     this.aLat=0;
  
@@ -176,7 +179,7 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 	this.aLong=0;
     }
  
-    if(true){
+    if(false){
 	console.log("\nEgoVeh.update:",
 		" t=",parseFloat(time).toFixed(2),
 		" aLat=",parseFloat(this.aLat).toFixed(2),
@@ -197,17 +200,36 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 
 //####################################################################
 // control region for accel/steering  as generic object function as road.js
+
+// position of "bullet point" = mouse pos for zero x,y acc of ego vehicle:
+// bulletPointFixed=true => rel pos (xRelZero,yRelZero)
+// bulletPointFixed=false => bullet point at ego vehicle
 //####################################################################
 
-function EgoControlRegion(xRelZero,yRelZero){
-    this.xRelZero=xRelZero; // mouse position for zero steering [canvas.width]
-    this.yRelZero=yRelZero; // mouse position for zero acceleration [c.height]
+function EgoControlRegion(bulletPointFixed,xRelZero,yRelZero,ego_yRel){
+    this.bulletPointFixed=bulletPointFixed;
+    this.xRelZero=xRelZero; // fixed: mouse pos for zero steering (0=left,1=right)
+    this.yRelZero=yRelZero; // fixed: mouse position for zero accel (0=bot,1=top)
+    this.ego_yRel=ego_yRel; // rel position of ego vehicle 
 }
 
-EgoControlRegion.prototype.draw=function(canvas){
+EgoControlRegion.prototype.get_xPixZero=function(canvas){
+    return (this.bulletPointFixed) ? this.xRelZero*canvas.width
+	: this.xRelZero*canvas.width; // !!! not yet done for not fixed!
+}
 
-    var xPixZero=this.xRelZero*canvas.width;
-    var yPixZero=this.yRelZero*canvas.height;
+EgoControlRegion.prototype.get_yPixZero=function(canvas){
+    return (this.bulletPointFixed) 
+	? (1-this.yRelZero)*canvas.height
+	: (1-this.ego_yRel)*canvas.height;
+}
+
+
+
+EgoControlRegion.prototype.draw=function(canvas){
+    var xPixZero=this.get_xPixZero(canvas);
+    var yPixZero=this.get_yPixZero(canvas);
+
     ctx = canvas.getContext("2d");
 
     ctx.setTransform(1,0,0,1,0,0);

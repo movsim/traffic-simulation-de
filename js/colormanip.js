@@ -75,11 +75,13 @@ function hslToRgb(h, s, l) {
  * @param   v: the actual speed
  * @param   vmin,vmax: speed range for color coding
  * @param   vehType: darker if vehType=="truck"
- * @param   isEgo: special color to mark ego-vehicle (if applicable)
+ * @param   isEgo (opt): special color to mark ego-vehicle (if applicable)
+ * @param   time (opt): only for making ego vehicles blink
+ * @param   isOpaque (opt): for drawing colormap itself if moving background
  * @return  Array           The RGB representation
  */
 
-function colormapSpeed(v, vmin, vmax, vehType, isEgo, time){
+function colormapSpeed(v, vmin, vmax, vehType, isEgo, time, isOpaque){
     var dt_blink_ms=1000; // to see ego vehicle
     var hue_vmin=10/360; // color wheel: 0=360=red
     var hue_vmax=270/360; 
@@ -111,6 +113,7 @@ function colormapSpeed(v, vmin, vmax, vehType, isEgo, time){
 	var lightsOn=( (Math.floor(1000*time))%dt_blink_ms<0.5*dt_blink_ms);
 	a=(lightsOn) ? 0.95 : 0.2;
     }
+    if(isOpaque){a=1;}
     var colStr="rgba("+r+","+g+","+b+","+a+")";
     return colStr;
 }
@@ -142,7 +145,7 @@ function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
 	var xLeft=0;
 	var yTop=i*hBox;
         var val=vminDisplay+i/(nvals-1)*(vmaxDisplay-vminDisplay);
-        ctx.fillStyle=colormapSpeed(val,vminMap,vmaxMap,"car",false,0);
+        ctx.fillStyle=colormapSpeed(val,vminMap,vmaxMap,"car",false,0,true);
         ctx.fillRect(xLeft,yTop,widthPix,hBox); 
     }
 

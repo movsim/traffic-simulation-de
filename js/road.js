@@ -187,6 +187,27 @@ road.prototype.writeVehiclesSimple= function() {
 
 
 //######################################################################
+// write vehicle model info
+//######################################################################
+
+road.prototype.writeVehicleModels= function() {
+    console.log("\nin road.writeVehicleModels(): nveh=",this.veh.length,
+		" itime="+itime);
+    for(var i=0; i<this.veh.length; i++){
+	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +"  id="+this.veh[i].id
+		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
+		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
+		    +"  v0="+parseFloat(this.veh[i].longModel.v0).toFixed(1)
+		    +"  T="+parseFloat(this.veh[i].longModel.T).toFixed(1)
+		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(1)
+		    +"");
+  }
+}
+
+
+//######################################################################
 // write truck info including LC
 //######################################################################
 
@@ -675,11 +696,11 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
         ego.v += ego.dvdt*dt+0.5*acc_v*dt*dt;        // [lanes] 
         ego.dvdt += acc_v*dt;
     }
-    else{ // zero point at middle of road v=(nLanes-1)/2
-        ego.v=(this.nLanes-1)/2 + (externalEgoVeh.v-xRoadAxis)/this.laneWidth;
+    else{ // zero point at right lane = starting lane v=(nLanes-1)
+        ego.v=(this.nLanes-1) + (externalEgoVeh.v-xRoadAxis)/this.laneWidth;
         ego.dvdt=(externalEgoVeh.vv-dotxRoadAxis)/this.laneWidth;
         //ego.dvdt=(externalEgoVeh.vv-0)/this.laneWidth;
-	if(true){
+	if(false){
 	    console.log("road.updateEgoVeh: latCtrlModel=",
 			externalEgoVeh.latCtrlModel,
 			"ego.v=",ego.v,
@@ -815,7 +836,9 @@ road.prototype.doChangesInDirection=function(toRight){
       //console.log("changeLanes: i=",i," outer loop");
   var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
   if( (newLane>=0)&&(newLane<this.nLanes)
-	&&(this.veh[i].dt_lastLC>this.waitTime)){
+      &&(this.veh[i].dt_lastLC>this.waitTime)
+      &&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime) //!! fact 0.2 ad hoc
+    ){
 
 
       var iLead=this.veh[i].iLead;
@@ -880,7 +903,10 @@ road.prototype.doChangesInDirection=function(toRight){
 
 	 var MOBILOK=this.veh[i].LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,log);
     
-         if(MOBILOK&&(this.veh[i].type=="truck")){//!!!
+
+         // only test output
+
+         if(MOBILOK&&(this.veh[i].id==103)){//!!
 	     var s=this.veh[iLead].u-this.veh[iLead].length-this.veh[i].u;
 	     var accLead=this.veh[iLead].acc;
 	     var speed=this.veh[i].speed;
@@ -889,7 +915,7 @@ road.prototype.doChangesInDirection=function(toRight){
 		 s,speed,speedLead,accLead);
 	     console.log(
 		 "MOBILOK!change successfully initiated!",
-		 "\n  vehicle ",i,
+		 "\n  vehicle id",this.veh[i].id,
 		 " type ",this.veh[i].type,
 		 " from lane ",this.veh[i].lane,
 		 " to lane",newLane,
@@ -901,7 +927,7 @@ road.prototype.doChangesInDirection=function(toRight){
 		 " acc=",parseFloat(this.veh[i].acc).toFixed(1),
 		 " accCalc=",parseFloat(accCalc).toFixed(1),
 		 "\n  longModel=",this.veh[i].longModel,
-		 // "\n  veh[iLead]=",this.veh[iLead]
+		 "\n  veh[iLead]=",this.veh[iLead],
 		 ""
 	     );
 	     this.writeVehicles();
@@ -910,7 +936,8 @@ road.prototype.doChangesInDirection=function(toRight){
     
     
 
-	 changeSuccessful=(this.veh[i].type != "obstacle")&&(sNew>0)&&(sLagNew>0)&&MOBILOK;
+	 changeSuccessful=(this.veh[i].type != "obstacle")
+	      &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 	 if(changeSuccessful){
 	 
              // do lane change in the direction toRight (left if toRight=0)
@@ -1648,7 +1675,7 @@ road.prototype.get_yPix=function(u,v,scale){
 @param roadImg:   image of a (small, straight) road element
 @param changed geometry: true if a resize event took place in parent
 @param movingObs: (optional) whether observer is moving, default=false 
-@param uObs:      (optional) location uObs is drawn at the physical
+@param uObs:      (optional) location uObs,vObs=0 is drawn at the physical
 @param xObs,yObs: position (xObs,yObs)=>xPix=scale*xObs, yPix=-scale*yObs,
                   all other positions relative to it
                   !Need to define (xObs,yObs) separately since other links

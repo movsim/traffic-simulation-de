@@ -145,10 +145,11 @@ function displayEgoVehInfo(){
 var slider_sizePhys = document.getElementById("slider_sizePhys");
 var slider_sizePhysVal = document.getElementById("slider_sizePhysVal");
 slider_sizePhys.oninput = function() {
-    console.log("in slider_sizePhys.oninput: this.value="
-		+ slider_sizePhys.value);
+    //console.log("in slider_sizePhys.oninput: this.value="
+//		+ slider_sizePhys.value);
     slider_sizePhysVal.innerHTML = this.value;
-    sizePhys=this.value; //!!! clean up
+    sizePhys=this.value;
+    resize();
 }
 
 slider_sizePhysVal.innerHTML=slider_sizePhys.value;
