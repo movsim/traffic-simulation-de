@@ -906,7 +906,7 @@ road.prototype.doChangesInDirection=function(toRight){
 
          // only test output
 
-         if(MOBILOK&&(this.veh[i].id==103)){//!!
+         if(MOBILOK&&(this.veh[i].id==107)){//!!
 	     var s=this.veh[iLead].u-this.veh[iLead].length-this.veh[i].u;
 	     var accLead=this.veh[iLead].acc;
 	     var speed=this.veh[i].speed;
@@ -925,7 +925,8 @@ road.prototype.doChangesInDirection=function(toRight){
 		 " speedLead=",parseFloat(speedLead).toFixed(1),
 		 " accLead=",parseFloat(accLead).toFixed(1),
 		 " acc=",parseFloat(this.veh[i].acc).toFixed(1),
-		 " accCalc=",parseFloat(accCalc).toFixed(1),
+		 " accNew=",parseFloat(accNew).toFixed(1),
+		 //" accCalc=",parseFloat(accCalc).toFixed(1),
 		 "\n  longModel=",this.veh[i].longModel,
 		 "\n  veh[iLead]=",this.veh[iLead],
 		 ""

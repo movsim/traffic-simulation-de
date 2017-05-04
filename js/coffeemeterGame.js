@@ -18,22 +18,18 @@ var dt=timewarp/fps;
 var time=0;
 var itime=0;
 
-// ego vehicle
+// observer
 
-var relObserver=true;
-var ego_speedInit=80./3.6;
-var ego_uInit=240;  // initial arclength position
-var ego_laneInit=2; // 0=leftmost
+var relObserver=true; // display road relative to observer u-position 
+var uObs=0; // u-position (along axis) of observer, to be defined in resize()
 var ego_yRelPosition=0.5; // fraction of canvas height where ego vehicle
                           // is drawn (0=bottom, 1=top)
-var uObs=0; // to be defined in resize()
 
 
 
 // traffic flow
 
 var qIn=0;       // no addl inflowing vehicles; all done by initializeMicro
-
 // model parameters (or better: restraints) of ego vehicle 
 
 var bmax=9;// maximum absolue acceleration (limit where sliding/ESP begins)
@@ -118,7 +114,7 @@ var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
 
-var lenStraightBegin=400;
+var lenStraightBegin=600;
 var lenCurve=200; // each of the left and right curve making up the 'S'
 var lenStraightEnd=2050;
 var maxAng=0.2; // maximum angle of the S bend (if <0, mirrored 'S')
@@ -283,7 +279,7 @@ var egoControlRegion=new EgoControlRegion(bulletPointFixed,xRelZero,yRelZero,
 // create ego vehicle and associated coffeemeter dynamics
 //#######################################################################
 
-var egoVeh=new EgoVeh(ego_speedInit);
+var egoVeh; //to be specified in init()
 
 
 
@@ -320,12 +316,30 @@ function init(){
     // control possibility crucial for game!)
     // types: 0 translated into "car", 1 into "truck", 2 into "obstacle"
 
-    var types  =[0,     1,    0,    0,    0,    0];
-    var lengths=[6,    14,    5,    4,    5,    5];
-    var widths =[2.5, 4.5,    3,  2.5,    3,    3];
-    var longPos=[350, 300,  250,  230,  150,    0];
-    var lanesReal=[1,   2,  1.1,    0,    0,    0];
-    var speeds =[28,   22,   28,   44,   44,   44];
+    var lanesReal=[  2,    2,    1,    1,    1,    0,    0,    0];
+    var types    =[  1,    1,    0,    0,    0,    0,    0,    0];
+    var lengths  =[ 14,   14,    6,    5,    5,    4,    5,    5];
+    var widths   =[4.5,  4.5,  2.5,    3,  2.5,  2.5,    3,    3];
+    var longPos  =[350,  250,  290,  260,  180,  240,  190,  140];
+    var speeds   =[ 22,   22,   32,   30,   30,   44,   44,   44];
+
+    // add ego vehicle (can extend arrays just by defining out-of-bounds
+    // elements) 
+
+    var ego_uInit=300;  // initial u-position (longPos=arclength along road axis)
+    var ego_speedInit=80./3.6;
+    var ego_laneInit=2; // 0=leftmost
+
+    var iEgo=types.length;
+    types[iEgo]=0;   //{car,truck,obstacle}
+    lengths[iEgo]=car_length;
+    widths[iEgo]=car_width;
+    longPos[iEgo]=ego_uInit;
+    lanesReal[iEgo]=ego_laneInit;
+    speeds[iEgo]=ego_speedInit;
+
+
+
 
     // add obstacles (can extend arrays just by defining out-of-bounds
     // elements)
@@ -352,17 +366,6 @@ function init(){
 
 
 
-    // add ego vehicle (can extend arrays just by defining out-of-bounds
-    // elements) 
-
-    var iEgo=types.length;
-    types[iEgo]=0;   //{car,truck,obstacle}
-    lengths[iEgo]=car_length;
-    widths[iEgo]=car_width;
-    longPos[iEgo]=ego_uInit;
-    lanesReal[iEgo]=ego_laneInit;
-    speeds[iEgo]=ego_speedInit;
-
 
     // introduces external traffic and ego vehicle to the road's veh array 
     // and also provides the ego vehicle  as external reference
@@ -375,7 +378,7 @@ function init(){
     // common LC models for trucks,cars and individual CF models 
 
     var v0Left=160./3.6;
-    var v0Middle=100./3.6;
+    var v0Middle=110./3.6;
     var v0Right=80./3.6;
 
     var TLeft=1.0
