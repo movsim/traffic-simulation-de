@@ -429,6 +429,40 @@ function init(){
 
     mainroad.writeVehiclesSimple();
 
+
+
+    //!!! test localStorage (a html5/js keyword) for highscores
+
+    if (typeof(Storage) !== "undefined") {
+	var scores =[];
+
+        // if coffeemeterGame_HighScores exists, get the stored scores 
+
+	if(localStorage.coffeemeterGame_HighScores){ //check existence
+	    scores = JSON.parse(localStorage.coffeemeterGame_HighScores);
+	}
+
+        // add new entry to scores array
+        // (scores empty if no coffeemeterGame_HighScores at the beginning)
+
+	scores.push({name:"Treibi",
+		     score:42+scores.length,
+		     date:new Date().valueOf()});
+	scores.sort(function(a,b){return a.score < b.score});
+	console.log("test localStorage:");
+	for(var i=0; i<scores.length; i++){
+	    console.log("name:",scores[i].name,
+			" score:",scores[i].score,
+			" date:",scores[i].date);
+	}
+
+        // save scores on the client machine at
+        //  localStorage.coffeemeterGame_HighScores
+
+	localStorage.coffeemeterGame_HighScores = JSON.stringify(scores); 
+    }
+
+
 }//init
 
 
