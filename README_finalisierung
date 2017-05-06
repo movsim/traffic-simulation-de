@@ -1,0 +1,160 @@
+(6mai17)
+
+letzte Schritte des CoffeemeterGames:
+
+
+1. Scoring Events
+==================
+
+Alle Events koennen gleichzeitig auftreten
+
+* Score Event 1: Coffeemeter schwappt ueber
+  Minus-Sekunden proportional zu aktuell neu uebergeschwappter Menge
+  Coffeemeter.excessNew. Richtig uebergeschwappter Kaffee entspr 5
+  Ruepelpunkten
+
+  Definiere excessNew des letzten
+  Zeitschritts (= lokale excess-Variable von
+  Coffeemeter.updateSurface) als class member, um 
+  darauf zugreifen und das Event triggern (excessNew>0) zu koennen
+
+* Score Event 2: Hintermann wird stark behindert, accLongLag<-2m/s^2: 
+  5 Ruepelpunkte fuer <-2m/s^2, weitere 5 fuer <-4 m/s^2
+
+* Score Event 3: Verlassen der Fahrbahn: 
+  Trigger: kontinuierlicher Spurlindex v<-0.5, >2.5
+  10 Ruepelpunkte und automatisch Bremsen mit -2 m/s^2  
+
+* Score Event 4: Crash gegen ein anderes Fahrzeug oder gegen
+  die Baustelle (auch passive Crashs): Game Over ohne Ranking
+
+* Score Event 5: Game Over: 
+  (i) Fahrzeug erreicht Ziel
+  (ii) Timeout ist erreicht 
+  (iii) Unfall (=Score Event 4)
+
+
+2. Anzeigetafel des Spielstandes incl Feedback zu Scoring Events
+================================================================
+
+* Anzeige Zeit, Ruepelpunkte, aktueller Score =100-Zeit-RuepelpunktePunkte
+
+* nach Verlassen der Strasse (Score Event 3): Weiterlaufen der
+  Zaehler, darunter Anzeige "Kehren Sie auf die Fahrbahn zurueck!"
+
+* nach erfolgreichem Game-Over-Signal: Simulation und 
+  obige Anzeige stoppt, darunter 
+  "Sie haben erfolgreich das Ziel erreicht!\n Ihr Ergebnis: <Ergebnis>
+  Punkte", weitere Anzeigen => Highscore-Liste
+
+* nach Timeout-Signal:  Simulation und Anzeige stoppt, 
+  darunter "Schneckenwarnung: Sie
+  waren zu langsam! Versuchen Sie es noch einmal", 
+  weitere Anzeigen => Highscore-Liste
+
+* nach Unfall: Simulation und Anzeige Stoppt, 
+  darunter "Game Over!<br>Sie sind aber unverletzt und koennen es nochmal
+  versuchen" 
+
+
+=> 1,2: "Scoring.js"
+
+  - Datenelemente:
+    time, bullyPoints, score, 
+    resultsString, messageString,
+    othersObstructed(boolean) => needed for "honk"
+    notOnRoad (boolean) => needed to decelerate ego vehicle
+    timeoutReached => needed for game control
+    crashHappened => needed for game control
+    
+  - resultsString: Anzeige Zeit, Ruepelpunkte, aktueller Score
+
+  - messageString: das, was unter der Anzeige kommt 
+    ("Kehren Sie auf die Fahrbahn zurueck!")
+
+  - Konstruktor: Verknuepfung mit DOM-Objekt (html div Element) der
+    Anzeige
+
+  - function update(road, coffeemeter) => updated alle Datenelemente
+
+  - function display() => Display auf DOM-Element
+
+
+3. Highscore-Liste
+==================
+
+* Events: Ende des Spiels bzw. Ergebnis in den Top Ten
+
+* Event "Top Ten"=>Ergebnisse eingeben: js-driven modal dialog box
+  "Gratulation! Sie haben ein Top-Ten Ergebnis erreicht!\nGeben Sie 
+  einen Namen ein"
+
+  https://www.w3schools.com/js/js_popup.asp
+  https://www.w3schools.com/js/tryit.asp?filename=tryjs_prompt
+  (der button onclick ist nur das Demo-Event, bei mir ist es
+  erfolgreiches Beenden des Spiels innerhalb der Top-Ten),
+
+  nach "OK" Anzeige der Highscores
+
+* Event Jede Art der Spielbeendung=Score Event 5:
+  => Button "Zeige Highscores" (automatisch 
+  nur bei Top-Ten gezeigt) und Button "Neues Spiel"
+
+* Ergebnisse holen/speichern: localStorage, in
+   coffeemeterGame.js => //!!! test localStorage 
+
+* Anzeige der Highscores: weitere Popup Box vom Typ Alert 
+  (ohne eigene Eingabe, nur auf OK druecken zum schliessen):
+  window.alert("sometext");
+
+
+=> Highscore.js, siehe coffeemeterGame.js => //!!! test localStorage
+
+ - Datenelemente:
+    
+   . Array von scoreRecords (name=..., score=..., time=)
+     wie in coffeemeterGame.js => !!!testLocalStorage
+   . die localStorage Elemente (wie Name des localStorage)
+
+ - Konstruktor: Verknuepfung mit Name des localStorage und 
+   html DOM-Element der Anzeige, Holen alter Highscores aus localStorage 
+
+ - function update(scoreRecord) (schliesst auch neues Speichern mit ein)
+
+ - function display()
+
+ - function deleteAllScores()  (v.A. in Testphase)
+
+
+
+4. Sound (wenn Zeit):
+=====================
+
+../demo_js/README_sound
+
+* Event 1: Beschleunigen a>-0.2 m/s^2: Motorgeraeusch mit variablem
+Pitch (realisiert durch recording speed) und Lautstaerke
+  - Pitch proportional Geschw. mit Saegezahn-Gang:
+    
+    function recSpeed(v){
+        var recmax=1.5;
+        return (v<7) ? recmax*v/7 : (v<14) ? recmax*v/14 : ...
+    }
+  - Lautstaerke proportional Leistung a+b*v*acc
+
+* Event 2: starkes Beschl., Bremsen oder Lenken mit
+  aAbs=|aLong*eu+aLat*ev| > 2 m/s^2: Quietschgeraeusch konst Pitch,
+  Lautstaerke propto aAbs (kann sich beim Beschl mit Motorgeraeusch
+  ueberlagern)
+
+* Event 3=Score Event 2: Hintermann wird stark behindert,
+  accLongLag<-2m/s^2: Hupen 
+
+* Event 4=Score Event 3: Verlassen der Fahrbahn: lautes Fahrgeraeusch wie auf
+  Kies/Holpern, Rumpeln etc 
+
+* Event 5=Score Event 4: Crash gegen ein anderes Fahrzeug oder gegen
+  die Baustelle: Crash-Geraeusch, ggf verschiedene Geraeushce, ggf 
+  Nachscheppern von abgesprungenen Reifenkappen etc. 
+
+
