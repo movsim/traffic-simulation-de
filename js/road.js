@@ -85,7 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
-    this.draw_nSegm=200;
+    this.draw_nSegm=100;
     this.draw_curvMax=0.01; // maximum assmued curvature
 
     this.draw_x=[];  // arrays defined in the draw(..) method
