@@ -5,17 +5,22 @@
 ######################################################################
  projection 3d physical coordinates => 2d pixel coordinates
  in the "pinhole model" giving [0,0] pixel coordinates 
- in shooting direction:
+ in shooting direction (perp to e1Sensor and e2Sensor)
 
- xPix=rPix.e1Sensor = (f*nPix/36mm)/|drParallel| * dr . e1Sensor
- yPix=rPix.e2Sensor = (f*nPix/36mm)/|drParallel| * dr . e2Sensor
+ xPix=rPix.e1Sensor = f*nPix/36mm * (dr . e1Sensor)/(dr . nShoot)
+ yPix=rPix.e2Sensor = f*nPix/36mm * (dr . e2Sensor)/(dr . nShoot)
  e2Sensor = nShoot X e1Sensor   ['.' = scalar product, 'X'=cross product]
 
  valid in arbitrary physical coordinates 
  and for all six camera degrees of freedom.
- Notice that projection onto the sensor edges e1Sensor,e2Sensor
+
+ Notice1:  projection onto the sensor edges e1Sensor,e2Sensor
  automatically selects the component of the distance vector 
  perpendicular to the shooting direction, so no need to calculate drPerp
+
+ Notice2: dr.nShoot=drParallel should be >0; otherwise object behind 
+ the camera
+
 ######################################################################
 
 @param dr=[dx,dy,dz]     3d-distance vector [m]: dr= r_object - r_camera
@@ -25,10 +30,8 @@
                          anticlockwise)
 @param f                 focal length [mm] for 24mmX36mm-film reference
 @param nPix              pixel number [pix] of the larger image side
-@return                  [pixelCoords of the projection,successFlag] 
-                         (pixelCoords set to [0,0] if there were 
-                         irregularities (successFlag=false)
-                         such as object too close or behind) 
+@return                  [xPix, yPix, successFlag]  (successFlag=false
+                         if object is too close or behind camera) 
 */
 
 //!! check if rotation->cosrotation,sinrotation significantly faster
@@ -74,7 +77,7 @@ function proj3d_coordPix(dr, nShoot, cosrot, sinrot, f, nPix){
     var drLen=Math.sqrt(dr[0]*dr[0]+dr[1]*dr[1]+dr[2]*dr[2]);
     if(drParLen/drLen<0.5){ // !!cos(angle)=drParLen/drLen, tan(angle)=36/2/f
  	//console.log("transform3d: dr=",dr," Warning: drParLen/drLen<=0.5");
-	return [[0,0],false];
+	return [0,0,false];
     }
 
 
@@ -114,8 +117,88 @@ function proj3d_coordPix(dr, nShoot, cosrot, sinrot, f, nPix){
 		    " yPix=",parseFloat(yPixRot).toFixed(0)
 		   );
     }
-    return [[xPixRot,yPixRot],true];
+    return [xPixRot,yPixRot,true];
 }// proj3d_coordPix
+
+
+
+/**
+######################################################################
+ inverse projection (xPix, yPix) -> dr=(dx,dy,dz=given) 
+ from 2d pixel coordinates to 3d object distance vector
+ assuming dz=z_object - z_camera is a given fixed value
+
+######################################################################
+
+@param xPix,yPix         pixel coords, xPix=yPix=0 in shooting direction
+@param dz                fixed vertical distance z_object-z_camera
+@param nShoot=[nx,ny,nz] shooting direction (need not to be normalized)
+@param rotation          rotation [rad] of the camera around its 
+                         shooting axis (0: landscape, pi/2: portrait rotated
+                         anticlockwise)
+@param f                 focal length [mm] for 24mmX36mm-film reference
+@param nPix              pixel number [pix] of the larger image side
+@return                  [horizontal distance vector dx,dy] 
+*/
+
+function proj3d_inverse(xPix, yPix, dz, nShoot, rotation, f, nPix){
+
+    //normalize shooting direction and direction of camera coordinate 1
+    // (in-place change of array reference nShoot but harmless)
+
+    var norm=Math.sqrt(nShoot[0]*nShoot[0]+nShoot[1]*nShoot[1]
+		       +nShoot[2]*nShoot[2]);
+    for(var i=0; i<3; i++){
+	nShoot[i]/=norm;
+    }
+
+
+    // calculate sensor edges of horizontally held camera 
+    // as in proj3d_coordPix !!! externalize as separate helper function!!
+
+
+    var normEdge1=Math.sqrt(nShoot[0]*nShoot[0]+nShoot[1]*nShoot[1]);
+    var e1Sensor=[nShoot[1]/normEdge1, -nShoot[0]/normEdge1, 0];
+
+    var e2Sensor=[]; 
+    e2Sensor[0]=nShoot[1]*e1Sensor[2] - nShoot[2]*e1Sensor[1];
+    e2Sensor[1]=nShoot[2]*e1Sensor[0] - nShoot[0]*e1Sensor[2];
+    e2Sensor[2]=nShoot[0]*e1Sensor[1] - nShoot[1]*e1Sensor[0];
+
+
+    // start bei rotating camera to horizontal such that 
+    // sensor edge e1 has no z component 
+
+    var cosrot=Math.cos(rotation);
+    var sinrot=Math.sin(rotation);
+    var xPixHoriz= cosrot*xPix-sinrot*yPix;
+    var yPixHoriz=+sinrot*xPix+cosrot*yPix;
+
+    // calculate coefficients of 2X2 eq system A (dx,dy)=b
+
+    var scale=f*nPix/36;
+
+    var a11=xPixHoriz*nShoot[0] - scale*e1Sensor[0];
+    var a12=xPixHoriz*nShoot[1] - scale*e1Sensor[1];
+    var a21=yPixHoriz*nShoot[0] - scale*e2Sensor[0];
+    var a22=yPixHoriz*nShoot[1] - scale*e2Sensor[1];
+
+    var b1=dz * (scale*e1Sensor[2] - xPixHoriz*nShoot[2]);
+    var b2=dz * (scale*e2Sensor[2] - yPixHoriz*nShoot[2]);
+
+    // solve linear system and return results
+
+    var dy=(a21*b1-a11*b2)/(a21*a12-a11*a22);
+    var dx=(b1-a12*dy)/a11;
+    return [dx,dy];
+
+
+}
+
+
+
+
+
 
 
 //######################################################################
@@ -227,9 +310,9 @@ function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot, cosrot,sinrot
     var projResults1=proj3d_coordPix(dr1loc,nShoot,cosrot,sinrot,f,screenSize);
     var projResults2=proj3d_coordPix(dr2loc,nShoot,cosrot,sinrot,f,screenSize);
 
-    var coordPix=projResults[0];
-    var coordPix1=projResults1[0];
-    var coordPix2=projResults2[0];
+    var coordPix=projResults;
+    var coordPix1=projResults1;
+    var coordPix2=projResults2;
 
     var affTraf00=1/nPix1 * (coordPix1[0]-coordPix[0])/eps;
     var affTraf01=1/nPix1 * (coordPix1[1]-coordPix[1])/eps;
@@ -300,9 +383,9 @@ function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f,
     var proj1     =proj3d_coordPix(dr1,nShoot,cosrot,sinrot,f,screenSize);
     var proj2     =proj3d_coordPix(dr2,nShoot,cosrot,sinrot,f,screenSize);
 
-    var screenPixCenter=projCenter[0];
-    var screenPix1=proj1[0];
-    var screenPix2=proj2[0];
+    var screenPixCenter=projCenter;
+    var screenPix1=proj1;
+    var screenPix2=proj2;
 
     var affTraf00=(screenPix1[0]-screenPixCenter[0]);
     var affTraf01=(screenPix1[1]-screenPixCenter[1]);
