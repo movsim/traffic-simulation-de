@@ -49,8 +49,8 @@ function proj3d_coordPix(dr, nShoot, cosrot, sinrot, f, nPix){
     // horizontal edge e1Sensor has no z coordinate) and rotate 
     // the camera later on by rotating the pixel coordinates
 
-    norm=Math.sqrt(nShoot[0]*nShoot[0]+nShoot[1]*nShoot[1]);
-    var e1Sensor=[nShoot[1]/norm, -nShoot[0]/norm, 0];
+    var normEdge1=Math.sqrt(nShoot[0]*nShoot[0]+nShoot[1]*nShoot[1]);
+    var e1Sensor=[nShoot[1]/normEdge1, -nShoot[0]/normEdge1, 0];
 
     // calculate vertical (yPixel) camera/sensor  edge  in the
     // direction of increasing yPix by the cross product 
