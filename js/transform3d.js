@@ -138,7 +138,7 @@ function proj3d_coordPix(dr, nShoot, cosrot, sinrot, f, nPix){
                          anticlockwise)
 @param f                 focal length [mm] for 24mmX36mm-film reference
 @param nPix              pixel number [pix] of the larger image side
-@return                  [horizontal distance vector dx,dy] 
+@return                  [distance vector dx,dy,dz] dz from input 
 */
 
 function proj3d_inverse(xPix, yPix, dz, nShoot, rotation, f, nPix){
@@ -190,7 +190,7 @@ function proj3d_inverse(xPix, yPix, dz, nShoot, rotation, f, nPix){
 
     var dy=(a21*b1-a11*b2)/(a21*a12-a11*a22);
     var dx=(b1-a12*dy)/a11;
-    return [dx,dy];
+    return [dx,dy,dz];
 
 
 }
@@ -280,8 +280,8 @@ function checkCorrectSensorEdge1(nShoot,e1SensorIn){
 */
  
 
-function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot, cosrot,sinrot,
-			 f, screenSize){
+function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot, 
+			      cosrot,sinrot, f, screenSize){
 
     // the two object edges in increasing xPix and yPix (=pix1,pix2) direction
     
@@ -300,13 +300,15 @@ function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot, cosrot,sinrot
     var dr1loc=[dr[0]+eps*e1[0], dr[1]+eps*e1[1], dr[2]+eps*e1[2]];
     var dr2loc=[dr[0]+eps*e2[0], dr[1]+eps*e2[1], dr[2]+eps*e2[2]];
 
+    //console.log("affineTransformImage: dr0=",dr0," dr1=",dr1," dr2=",dr2);
+
     // calculate coordPix -> translational part of transform
     // calculate coordPix[12] -> differential projections to get the 
     // non-translational elements of transform
 
-    //console.log("\nin affineTransform:");
 
     var projResults=proj3d_coordPix(dr, nShoot,cosrot,sinrot,f,screenSize);
+
     var projResults1=proj3d_coordPix(dr1loc,nShoot,cosrot,sinrot,f,screenSize);
     var projResults2=proj3d_coordPix(dr2loc,nShoot,cosrot,sinrot,f,screenSize);
 
@@ -318,7 +320,7 @@ function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot, cosrot,sinrot
     var affTraf01=1/nPix1 * (coordPix1[1]-coordPix[1])/eps;
     var affTraf10=1/nPix2 * (coordPix2[0]-coordPix[0])/eps;
     var affTraf11=1/nPix2 * (coordPix2[1]-coordPix[1])/eps;
-    var successFlag=projResults[1] && projResults1[1] && projResults2[1];
+    var successFlag=projResults[2] && projResults1[2] && projResults2[2];
 
     return [affTraf00,affTraf01,affTraf10,affTraf11,
 	    coordPix[0],coordPix[1],successFlag];
@@ -337,12 +339,14 @@ the left top cormer of the image but the center of the image
 
 @param dr         distance vector [dr0x,dr0y,dr0z] in physical units [m]
                   of center of surface to the camera
-@param e1         direction [e1x,e1y,e1z] of the physical surface edge
-                  corresponding to increasing x pixels 
-                  of the graphics commands (needs not to be normalized)
-@param e2         same for the surface edge corresp. to the y pixels
+@param e1         direction [e1x,e1y,e1z] of the first physical surface edge
+                  corresponds to "screen x" after affineTransform
+                  (needs not to be normalized)
+@param e2         same for the "screen y" coordinate after affineTransform
+                  (at present, order e1,e2 does not matter)
 @param scale      how many pixels of the graphics commands correspond
                   to one meter of the physical surface [Pixels/m]
+                  (set to 1 if pixel commands directly in meter)
 @param nShoot     shooting direction [nx,ny,nz] (need not to be normalized)
 @param rotation   rotation [rad] of the camera around its shooting axis
                   (0: landscape, pi/2: portrait rotated anticlockwise)
@@ -355,6 +359,8 @@ the left top cormer of the image but the center of the image
 
 function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f, 
 				 screenSize ){
+
+    //console.log("affineTransformGraphics: dr=",dr);
 
     // normalize the direction vectors e1 and e2
 
@@ -392,7 +398,7 @@ function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f,
     var affTraf10=(screenPix2[0]-screenPixCenter[0]);
     var affTraf11=(screenPix2[1]-screenPixCenter[1]);
 
-    var successFlag=projCenter[1] && proj1[1] && proj2[1];
+    var successFlag=projCenter[2] && proj1[2] && proj2[2];
 
 
     if(false){
