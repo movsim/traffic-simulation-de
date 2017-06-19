@@ -392,12 +392,18 @@ function drawU() {
 		    canvas.width,"X",canvas.height," refSizePix=",
 		    refSizePix," sizePhys=",sizePhys," scale=",scale,
 		    "\n straightLen=",straightLen,
-		    " mainRampOffset=",mainRampOffset,
-	            "\n trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
+		    " mainRampOffset=",mainRampOffset);
+      }
+
+      if(true){
+	  console.log("\n before canvas resize:\n",
+		      "mainroad.roadLen=",mainroad.roadLen,
+		      "onramp.roadLen=",onramp.roadLen,
+                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
 	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
 	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
 		   );
-      
       }
 
 
@@ -433,21 +439,38 @@ function drawU() {
       //rampRadius=4*arcRadius;
 
       //sizePhys=200; 
-//!!!
+
+      if(true){
+	  console.log("\n after canvas resize, before gridTrajectories:\n",
+		      "mainroad.roadLen=",mainroad.roadLen,
+		      "onramp.roadLen=",onramp.roadLen,
+                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
+	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
+	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
+		   );
+      }
+
+//!!!!
+	mainroad.roadLen=mainroadLenInit;
+	onramp.roadLen=rampLenInit;
+        onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
+
       mainroad.gridTrajectories(traj_xInit,traj_yInit);
       onramp.gridTrajectories(trajRamp_xInit,trajRamp_yInit);
 
       if(true){
-	console.log("after canvas resize: canvas dim ",
-		    canvas.width,"X",canvas.height," refSizePix=",
-		    refSizePix," sizePhys=",sizePhys," scale=",scale,
-		    "\n straightLen=",straightLen,
-		    " mainRampOffset=",mainRampOffset,
-	            "\n trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
+	  console.log("\n after canvas resize, after gridTrajectories:\n",
+		      "mainroad.roadLen=",mainroad.roadLen,
+		      "onramp.roadLen=",onramp.roadLen,
+                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
 	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
 	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
 		   );
       }
+
+
 
     }
 
@@ -641,20 +664,29 @@ function init() {
 //######################################################################
 
 function testDistort(){
-    console.log("onramp.init: entering test distortion");
+    console.log("in testDistort(): before distortion");
     console.log("mainroad.roadLen=",mainroad.roadLen,
                 " onramp.roadLen=",onramp.roadLen,
 		" mainRampOffset=",mainRampOffset);
+    if(true){
+	  console.log("\n before distortion:\n",
+                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
+	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
+	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
+		   );
+    }
+
     // do the distortions
 
-    var xUserMain=mainroad.traj_x(0.2*mainroad.roadLen)+20;
-    var yUserMain=mainroad.traj_y(0.2*mainroad.roadLen)-20;
+    var xUserMain=mainroad.traj_x(0.2*mainroad.roadLen)+0;
+    var yUserMain=mainroad.traj_y(0.2*mainroad.roadLen)-0;
     var xUserRamp=onramp.traj_x(0.4*onramp.roadLen)+0;
-    var yUserRamp=onramp.traj_y(0.4*onramp.roadLen)-40;
+    var yUserRamp=onramp.traj_y(0.4*onramp.roadLen)+100;
 
     var resMain=mainroad.testCRG(xUserMain,yUserMain);
     var resRamp=onramp.testCRG(xUserRamp,yUserRamp);
-    console.log("onramp.init: in test distortion:",
+    console.log("in testDistort:",
 		"\n  resMain=",resMain,
 		"\n  resRamp=",resRamp);
 
@@ -672,10 +704,18 @@ function testDistort(){
     onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
     mainRampOffset=mainroad.roadLen-straightLen+mergeLen-onramp.roadLen;
 
-    console.log("onramp.init: leaving test distortion");
+    console.log("after distortion");
     console.log("mainroad.roadLen=",mainroad.roadLen,
 		" onramp.roadLen=",onramp.roadLen,
 		" mainRampOffset=",mainRampOffset);
+    if(true){
+	  console.log("\n after distortion:\n",
+                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
+	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
+	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
+		   );
+    }
 
 }
  
@@ -685,7 +725,15 @@ function testDistort(){
 //##################################################
 
 function main_loop() {
-    //if(itime==10){testDistort();} //!!!
+    if(itime==10){ //!!!
+    //if(false){ //!!!
+    console.log("onramp.init: entering test distortion");
+    console.log("mainroad.roadLen=",mainroad.roadLen,
+                " onramp.roadLen=",onramp.roadLen,
+		" mainRampOffset=",mainRampOffset);
+
+	testDistort();
+    }
     drawU();
     updateU();
 }

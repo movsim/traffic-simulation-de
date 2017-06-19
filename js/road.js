@@ -136,17 +136,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // to allow manipulation
     //########################################################
  
-    // old 
-
-    var old=false;
-    if(old){
-        this.traj_x=traj_x;
-        this.traj_y=traj_y;
-    }
-
-    // new
-
-    //else{
     this.xtab=[];
     this.ytab=[];
     this.xtabOld=[]; // tables before begin of user-change action
@@ -167,9 +156,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.kernel=[];
     this.createKernel();
-  // end new
-  //}
-
+    // end transform functions kin road.cstr
 
 
     //!!! test code
