@@ -12,11 +12,15 @@
 *.out
 *.toc
 
+## Figure files
+*.fig
+
 ## generated files 
 *_ger.html
 *_ger.js
 *~
 int
+*.bak
 
 ## other files
 README_Responsinator
@@ -28,3 +32,4 @@ css_old
 trafficSimulationLocalVersion
 testNetwork
 js/save
+testfile
