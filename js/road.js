@@ -41,12 +41,12 @@ they are specially drawn and externally influenced from the main program
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	      densInitPerLane,speedInit,truckFracInit,isRing){
+
+    //console.log("1. in road cstr: traj_x(0)=",traj_x(0));
     this.roadID=roadID;
     this.roadLen=roadLen;
     this.laneWidth=laneWidth;
     this.nLanes=nLanes;
-    this.traj_x=traj_x;
-    this.traj_y=traj_y;
 
     var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
@@ -65,7 +65,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // model parameters
 
     this.MOBIL_bSafeMandat=4; // mandat LC and merging for v=v0
-    this.MOBIL_bSafeMax=17; //!!! mandat LC and merging for v=0
+    this.MOBIL_bSafeMax=17; //!! mandat LC and merging for v=0
 
     // default LC models for mandatory lane changes 
     // MOBIL(bSafe,bThr,bias)
@@ -85,7 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
-    this.draw_nSegm=100;
+    this.nSegm=100;//100   //!! number of road segm=nSegm+1, not only drawing
     this.draw_curvMax=0.01; // maximum assmued curvature
 
     this.draw_x=[];  // arrays defined in the draw(..) method
@@ -131,11 +131,176 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.egoVeh=new vehicle(0,0,0,0,0,"car");
 
-    //this.writeVehicles();
-}
+    //########################################################
+    // !!! (jun17) transform functions traj_x, traj_y into tables 
+    // to allow manipulation
+    //########################################################
+ 
+    // old 
+
+    var old=false;
+    if(old){
+        this.traj_x=traj_x;
+        this.traj_y=traj_y;
+    }
+
+    // new
+
+    //else{
+    this.xtab=[];
+    this.ytab=[];
+    this.xtabOld=[]; // tables before begin of user-change action
+    this.ytabOld=[];
+
+    this.gridTrajectories(traj_x,traj_y);
+
+
+    this.iPivot=0; // index of nearest element of a user mouse/touchdown
+                   // event in {0, ..., nSegm}
+    this.xPivot=0; // x coordinate of this event
+    this.yPivot=0; // y coordinate of this event
+
+    // helper array: normalized shift kernel, icKernel=center index of kernel
+    this.kernelWidth=0.10*this.roadLen;
+    this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
+    this.nKernel=2*this.icKernel+1; // uneven number
+
+    this.kernel=[];
+    this.createKernel();
+  // end new
+  //}
 
 
 
+    //!!! test code
+
+    if(false){
+
+        //(1) test code
+	if(false){
+	  console.log("\n(1)old roadLen=",this.roadLen);
+	  for (var i=0; i<=this.nSegm; i++){
+	    console.log("i=",i,
+			" xtab=",Math.round(this.xtab[i]),
+			" ytab=",Math.round(this.ytab[i]));
+	  }
+	  console.log("this.traj_x(0)=",this.traj_x(0));
+	  console.log("this.traj_x(this.roadLen)=",this.traj_x(this.roadLen));
+
+	  console.log("kernel:");
+	  for (var i=0; i<this.nKernel; i++){
+	      console.log("this.kernel[i]=",this.kernel[i]);
+	  }
+	}
+
+        //(2) test code
+
+	var xUserTest=this.xtab[this.nSegm/2]+20;//!!!
+	var yUserTest=this.ytab[this.nSegm/2]-20;
+	var res=this.testCRG(xUserTest,yUserTest);
+
+	if(true){
+	  console.log("\n(2) result testCRG: (xUserTest=",xUserTest,
+	  	    ", yUserTest=", yUserTest,"):");
+	  console.log("success=",res[0],
+		    " Delta x=",res[1],
+		    " Delta y=",res[2],
+		    " iPivot=",this.iPivot);
+	}
+
+        //(3) test code
+
+	this.doCRG(xUserTest,yUserTest);
+	if(false){
+	  console.log(" \n(3) after doCRG: xtab-xtabOld, ytab-ytabOld after user-drag:");
+	  for (var i=0; i<=this.nSegm; i++){
+	    console.log("i=",i,
+			" xtab-xtabOld=",
+			Math.round(this.xtab[i]-this.xtabOld[i]),
+			" ytab-ytabOld=",
+			Math.round(this.ytab[i]-this.ytabOld[i])
+		       );
+	  }
+	}
+
+
+
+        //(4) test code
+	//console.log("\n(4) before finishCRG();");
+	this.finishCRG();
+
+	if(false){
+	  console.log("\n(4) after finishCRG(): new roadLen=",this.roadLen);
+
+	  for (var i=0; i<=this.nSegm; i++){
+	    console.log("i=",i,
+			" new xtab=",Math.round(this.xtab[i]),
+			" new ytab=",Math.round(this.ytab[i]));
+	  }
+	}
+
+    } // end  test code
+
+} // cstr
+
+
+//######################################################################
+// helper function regrid internal x and y tables
+
+road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
+    for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
+ 	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
+ 	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
+	this.xtab[i]=this.xtabOld[i];
+	this.ytab[i]=this.ytabOld[i];
+     }
+
+    // internally chosen piecewise linear analytic traj functions
+    // this.traj_xy as approx of traj_xy
+
+    this.traj_x=function(u){
+        // restrict u to within roadLen
+	u=Math.min(this.roadLen-1e-6,Math.max(1e-6, u));
+	var iLower=Math.floor(this.nSegm*u/this.roadLen);
+	var rest=this.nSegm*u/this.roadLen-iLower;
+	//if((iLower<1)||(iLower+1>this.nSegm-1)){
+	//    console.log("this.traj_x: u=",u," roadLen=",this.roadLen,
+	//		" iLower=",iLower," rest=",rest);
+	//}
+	return (1-rest)*this.xtab[iLower]+rest*this.xtab[iLower+1];
+    }
+
+    this.traj_y=function(u){
+        // restrict u to within roadLen
+	u=Math.min(this.roadLen-1e-6,Math.max(1e-6, u));
+	var iLower=Math.floor(this.nSegm*u/this.roadLen);
+	var rest=this.nSegm*u/this.roadLen-iLower;
+	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iLower+1];
+    }
+
+    // test code
+
+    if(false){
+	var utab=[];
+	utab[0]=0;
+	console.log("road cstr: traj before and after gridding:");
+	for (var i=1; i<=this.nSegm; i++){
+            utab[i]=utab[i-1] + Math.sqrt(
+		Math.pow(this.xtab[i]-this.xtab[i-1],2)
+		    + Math.pow(this.ytab[i]-this.ytab[i-1],2)
+	    );
+	    console.log(
+		"i=",i,
+		" utabOld=",parseFloat(this.roadLen*i/this.nSegm).toFixed(1),
+		" utab=",parseFloat(utab[i]).toFixed(1),
+		" xtabOld=",parseFloat(this.xtabOld[i]).toFixed(1),
+		" xtab=",
+		parseFloat(this.traj_x(i*this.roadLen/this.nSegm)).toFixed(1),
+		""
+	    );
+	}
+    }
+} // gridTrajectories
 
 
 //######################################################################
@@ -226,6 +391,188 @@ road.prototype.writeTrucksLC= function() {
 		    +"");
     }}
 }
+
+
+
+/**
+#############################################################
+(jun17) !!!test whether user initiated a change of road geometry (CRG)
+#############################################################
+
+triggered by a mousedown or touchdown (first touch)
+event with corresp phys coordinates 
+at or near a road element 
+
+@param:  xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
+@return: array [success,Deltax,Deltay]
+         Deltax/y gives distance vecto trigger point - nearest road element
+@internally set: iPivot=index of this element, xPivot=xUser, yPivot=yUser
+*/
+
+road.prototype.testCRG=function(xUser,yUser){
+    var dist_crit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
+    var dist_min=1000000;
+    for(var i=0; i<=this.nSegm; i++){
+	var dist=Math.pow(xUser-this.xtab[i],2) + Math.pow(yUser-this.ytab[i],2);
+	if(dist<dist_min){
+	    dist_min=dist;
+	    this.iPivot=i;
+	    this.xPivot=xUser;
+	    this.yPivot=yUser;
+	}
+    }
+    dist_min=Math.sqrt(dist_min);
+    var success=(dist_min<=dist_crit);
+
+    console.log("road.testCRG: dist_min=",dist_min," dist_crit=",dist_crit);
+
+    if(success){
+	console.log("new CRG event initiated!",
+		    " dist_min=",Math.round(dist_min),
+		    " iPivot=",this.iPivot,
+		    " xPivot=",Math.round(this.xPivot),
+		    " yPivot=",Math.round(this.yPivot)
+		   )
+    }
+    return[success,
+	   this.xPivot-this.xtab[this.iPivot],
+	   this.yPivot-this.ytab[this.iPivot]];
+}
+
+
+
+/**
+#############################################################
+(jun17) "drag" road at pivot according to user interaction
+#############################################################
+
+called as long as mouse is down/screen touched and this.testCRG(..)[1]=true
+width of the affected region=>this.kernelWidth
+@param:  xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
+@return: void; road segments are moved acording to changes in xtab, ytab
+*/
+
+road.prototype.doCRG=function(xUser,yUser){
+    var iPiv=this.iPivot; // making code easier to read/write
+    var ic=this.icKernel; 
+    var imin=Math.max(iPiv-ic, 0);
+    var imax=Math.min(iPiv+ic, this.nSegm);
+    var deltaX=xUser-this.xtabOld[iPiv];
+    var deltaY=yUser-this.ytabOld[iPiv];
+    for (var i=imin; i<=imax; i++){
+	this.xtab[i]=this.xtabOld[i]+deltaX*this.kernel[i-iPiv+ic];
+	this.ytab[i]=this.ytabOld[i]+deltaY*this.kernel[i-iPiv+ic];
+    }
+}
+
+
+// helper function for the kernel
+
+road.prototype.createKernel=function(){
+    var dphi=0.5*Math.PI/this.icKernel;
+    this.kernel[this.icKernel]=1;
+    for (var di=1; di<=this.icKernel; di++){
+	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),2);
+	this.kernel[this.icKernel-di]=this.kernel[this.icKernel+di];
+    }
+}
+
+/**
+#############################################################
+(jun17) do final cleanup after dragging interaction has finished
+#############################################################
+at the beginning, xtab[], ytab[] are changed according to user action
+ but no longer equidistant => scale distorted when calling traj_xy(u) 
+at the end, this.roadLen, xtab[], ytab[] changed and made equidistant
+*/
+
+road.prototype.finishCRG=function(){
+    console.log("in finishCRG()");
+    // calculate new road length and changed u-coordinate waypoints
+    // based on present xtab[],ytab[]
+
+    var newRoadLen=0;
+    var chdUPoints=[];
+    chdUPoints[0]=0;
+    for (var i=1; i<=this.nSegm; i++){
+	chdUPoints[i]=chdUPoints[i-1]
+	    + Math.sqrt(
+		Math.pow(this.xtab[i]-this.xtab[i-1],2)
+		    + Math.pow(this.ytab[i]-this.ytab[i-1],2)
+	    );
+    }
+    var newRoadLen=chdUPoints[this.nSegm];
+
+    // re-segmentate the road to equal-length road segments
+    // (no in-line change of xtab,ytab since traj_xy depends on them)
+ 
+    var xtabNew=[];
+    var ytabNew=[];
+    var iUpper=1;
+
+    // first and last point: iNew=i
+
+    xtabNew[0]=this.xtab[0];
+    ytabNew[0]=this.ytab[0];
+    xtabNew[this.nSegm]=this.xtab[this.nSegm];
+    ytabNew[this.nSegm]=this.ytab[this.nSegm];
+
+    for (var inew=1; inew<this.nSegm; inew++){
+	var unew=inew*newRoadLen/this.nSegm;
+	while(chdUPoints[iUpper]<unew){iUpper++;}
+	var du=chdUPoints[iUpper]-chdUPoints[iUpper-1];
+	var rest=(unew-chdUPoints[iUpper-1])/du; // in [0,1]
+	xtabNew[inew]=(1-rest)*this.xtab[iUpper-1]+rest*this.xtab[iUpper];
+	ytabNew[inew]=(1-rest)*this.ytab[iUpper-1]+rest*this.ytab[iUpper];
+
+ 	if(false){
+	    var drnew=Math.sqrt(Math.pow(xtabNew[inew]-xtabNew[inew-1],2)
+				+ Math.pow(ytabNew[inew]-ytabNew[inew-1],2));
+	    console.log("inew=",inew," iUpper=",iUpper,
+			" rest=",rest,
+			" xtabNew[inew]=",xtabNew[inew],
+			" ytabNew[inew]=",ytabNew[inew],
+			" \nTest: drnew=dunew=sqrt(...)=",drnew
+		       )
+	}
+    }
+
+
+    if(true){
+	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
+	console.log(" xytabOld: before drag")
+	console.log(" xytab: after dragging action, distorted");
+	console.log(" xytabnew: after dragging action, corrected");
+	console.log("this.roadLen=",this.roadLen," newRoadLen=",newRoadLen);
+	for (var i=0; i<=this.nSegm; i++){
+	    console.log("i=",i,
+			" xytabOld=",Math.round(this.xtabOld[i]),
+			"",Math.round(this.ytabOld[i]),
+			" xytab=",Math.round(this.xtab[i]),
+			"",Math.round(this.ytab[i]),
+			" xytabNew=",Math.round(xtabNew[i]),
+			"",Math.round(ytabNew[i]),
+			" du=",parseFloat(chdUPoints[i]-chdUPoints[Math.max(i-1,0)]).toFixed(2),
+			" duNew=",parseFloat(newRoadLen/this.nSegm).toFixed(2)
+		       );
+	}
+    }
+
+
+    // transfer to xtab,ytab => local functions this.traj_xy redefined
+
+    for (var i=0; i<=this.nSegm; i++){
+
+	this.xtab[i]=xtabNew[i];
+	this.ytab[i]=ytabNew[i];
+	this.xtabOld[i]=xtabNew[i];
+	this.ytabOld[i]=ytabNew[i];
+    }
+    this.roadLen=newRoadLen;
+} // road.prototype.finishCRG
+
+
+
 
 /**
 #############################################################
@@ -564,7 +911,7 @@ road.prototype.calcAccelerations=function(){
     for(var i=0; i<this.veh.length; i++){
 	var speed=this.veh[i].speed;
 	var iLead= this.veh[i].iLead;
-	if(iLead==-100){console.log("should not happen!! nveh=",this.veh.length," iLead=",iLead);}
+	if(iLead==-100){console.log(" should not happen!! nveh=",this.veh.length," iLead=",iLead);}
 	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
 	var speedLead=this.veh[iLead].speed;;
 	var accLead=this.veh[iLead].acc;
@@ -637,7 +984,7 @@ road.prototype.calcAccelerations=function(){
            using the old lateral speed_v=dvdt*laneWidth
          - the lane (for logic),
          - the lane changing rate dvdt [lanes/s] and lat speed speed_v [m/s]
-         - the long speed "speed" [m/s] using the new long acceleration
+         - the long speed " speed" [m/s] using the new long acceleration
 */
 
 road.prototype.updateEgoVeh=function(externalEgoVeh){
@@ -1700,8 +2047,8 @@ road.prototype.draw=function(roadImg,scale,changedGeometry,
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*this.laneWidth;
 
-    var factor=1+this.nLanes*this.laneWidth*this.draw_curvMax; // "stitch factor"
-    var lSegm=this.roadLen/this.draw_nSegm;
+    var factor=1+this.nLanes*this.laneWidth*this.draw_curvMax; // " stitch factor"
+    var lSegm=this.roadLen/this.nSegm;
 
     // lookup table only at beginning or after rescaling => 
     // now condition in calling program
@@ -1709,8 +2056,8 @@ road.prototype.draw=function(roadImg,scale,changedGeometry,
     if(changedGeometry){
     //if(Math.abs(scale-this.draw_scaleOld)>smallVal){
 	this.draw_scaleOld=scale;
-        for (var iSegm=0; iSegm<this.draw_nSegm; iSegm++){
-	  var u=this.roadLen*(iSegm+0.5)/this.draw_nSegm;
+        for (var iSegm=0; iSegm<this.nSegm; iSegm++){
+	  var u=this.roadLen*(iSegm+0.5)/this.nSegm;
 	  this.draw_x[iSegm]=this.traj_x(u); 
 	  this.draw_y[iSegm]=this.traj_y(u);
 	  this.draw_phi[iSegm]=this.get_phi(u);
@@ -1728,7 +2075,7 @@ road.prototype.draw=function(roadImg,scale,changedGeometry,
 
     // actual drawing routine
 
-    for (var iSegm=0; iSegm<this.draw_nSegm; iSegm++){
+    for (var iSegm=0; iSegm<this.nSegm; iSegm++){
 	var cosphi=this.draw_cosphi[iSegm];
 	var sinphi=this.draw_sinphi[iSegm];
 	var lSegmPix=scale*factor*lSegm;

@@ -547,7 +547,7 @@ function drawRuntimeVars(){
 		 timeStr_ylb-0.2*textsize);
 
     
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
@@ -644,7 +644,7 @@ function update(){
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){
 	    if(mainroad.veh[i].speed<0){
-		console.log("speed "+mainroad.veh[i].speed
+		console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
 	    }

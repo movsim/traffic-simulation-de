@@ -110,9 +110,9 @@ function myClickHandler() {
 
 function displayEgoVehInfo(){
 
-    coordsText="Zeit: "+parseFloat(time).toFixed(1)+"s"
-	+" a<sub>long</sub>="+parseFloat(egoVeh.aLong).toFixed(1)+"m/s<sup>2</sup>"
-	+" a<sub>lat</sub>="+parseFloat(egoVeh.aLat).toFixed(2)+"m/s<sup>2</sup>"
+    coordsText="Zeit: "+parseFloat(time).toFixed(1)+" s"
+	+" a<sub>long</sub>="+parseFloat(egoVeh.aLong).toFixed(1)+" m/s<sup>2</sup>"
+	+" a<sub>lat</sub>="+parseFloat(egoVeh.aLat).toFixed(2)+" m/s<sup>2</sup>"
  	+" Richtung="+parseFloat(180/Math.PI*egoVeh.driveAngle).toFixed(0)+" Grad.";
     var displayText=coordsText;
     if(isStopped){displayText += "Weiter mit Mausklick oder Tastendruck";}

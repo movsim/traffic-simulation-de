@@ -592,7 +592,7 @@ function drawU() {
 
     
     
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
@@ -702,21 +702,7 @@ function init() {
     rampImg.src=ramp_srcFile;
 
 
-    // apply externally functions of mouseMove events  to initialize sliders settings
-
-    change_timewarpSliderPos(timewarp);
-    //change_scaleSliderPos(scale);
-    change_truckFracSliderPos(truckFrac);
-    change_qInSliderPos(qInInit);
-    change_fracOffSliderPos(fracOffInit);
-
-    change_IDM_v0SliderPos(IDM_v0);
-    change_IDM_TSliderPos(IDM_T);
-   // change_IDM_s0SliderPos(IDM_s0);
-    change_IDM_aSliderPos(IDM_a);
-    //change_IDM_bSliderPos(IDM_b);
-
-
+ 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
     // thread starts with "var myRun=init();" or "myRun=init();" (below)

@@ -170,7 +170,7 @@ function change_timewarp(xSlider){
     timewarp=timewarp_min
 	+(timewarp_max-timewarp_min)*xSlider/sliderWidth; 
     dt=timewarp/fps;
-    //console.log("change_timewarp(xSlider): xSlider=",xSlider," scale=",scale," sliderWidth=",sliderWidth," canvas.width=",canvas.width);
+    //console.log("change_timewarp(xSlider): xSlider=",xSlider," scale=",scale,"sliderWidth=",sliderWidth," canvas.width=",canvas.width);
 }
 function get_timewarp(){return timewarp;}
 

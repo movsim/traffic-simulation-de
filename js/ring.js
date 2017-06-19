@@ -247,7 +247,7 @@ function drawRing() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
 
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;;
     var scaleStr_width=7*textsize;
@@ -356,20 +356,6 @@ function init() {
 	: road3lanes_srcFile;
 
 
-    // apply externally functions of mouseMove events  
-    // to initialize sliders settings
-
-    change_timewarpSliderPos(timewarp);
-    change_densitySliderPos(density);
-    //change_scaleSliderPos(scale);
-    change_truckFracSliderPos(truckFrac);
-
-    change_IDM_v0SliderPos(IDM_v0);
-    change_IDM_TSliderPos(IDM_T);
-    change_IDM_s0SliderPos(IDM_s0);
-    change_IDM_aSliderPos(IDM_a);
-    change_IDM_bSliderPos(IDM_b);
-
 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
@@ -400,7 +386,7 @@ function main_loop() {
 
  
  var myRun=init(); //if start with ring road: init, starts thread "main_loop" 
-// var myRun; // starts with empty canvas; can be started with "start" button
+// var myRun; // starts with empty canvas; can be started with " start" button
 // init(); //[w/o var]: starts as well but not controllable by start/stop button (no ref)
 // myRun=init(); // selber Effekt wie "var myRun=init();" 
 // (aber einmal "var"=guter Stil, geht aber implizit auch ohne: Def erstes Mal, dann ref) 

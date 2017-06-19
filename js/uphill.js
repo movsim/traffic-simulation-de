@@ -204,7 +204,7 @@ function updateU(){
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){
 	    if(mainroad.veh[i].speed<0){
-		console.log("speed "+mainroad.veh[i].speed
+		console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
 	    }
@@ -373,7 +373,7 @@ function drawU() {
 
     
     
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
@@ -480,21 +480,7 @@ function init() {
     rampImg.src=ramp_srcFile;
 
 
-    // apply externally functions of mouseMove events  
-    // to initialize sliders settings defined in *_gui.js 
-
-    change_timewarpSliderPos(timewarp);
-    change_truckFracSliderPos(truckFrac);
-    change_qInSliderPos(qInInit);
-    change_speedLSliderPos(speedLInit);
-    change_IDM_v0UpSliderPos(IDM_v0Up);
-
-    change_IDM_v0SliderPos(IDM_v0);
-    change_IDM_TSliderPos(IDM_T);
-    //change_IDM_s0SliderPos(IDM_s0);
-    change_IDM_aSliderPos(IDM_a);
-    //change_IDM_bSliderPos(IDM_b);
-
+ 
 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
@@ -524,7 +510,7 @@ function main_loop() {
 
  
  var myRun=init(); //if start with uphill: init, starts thread "main_loop" 
-// var myRun; // starts with empty canvas; can be started with "start" button
+// var myRun; // starts with empty canvas; can be started with " start" button
 // init(); //[w/o var]: starts as well but not controllable by start/stop button (no ref)
 // myRun=init(); // selber Effekt wie "var myRun=init();" 
 // (aber einmal "var"=guter Stil, geht aber implizit auch ohne: Def erstes Mal, dann ref) 

@@ -226,7 +226,7 @@ Coffeemeter.prototype.updateSurface=function(ax,ay,dt){
     if(false){
 	for(var istain=0; istain<this.nStains; istain++){
 	    //this.stains[istain]=0.1*(1+istain); //!!!
-	    console.log("stains[",istain,"]=",this.stains[istain]);
+	    console.log(" stains[",istain,"]=",this.stains[istain]);
 	}
     }
 

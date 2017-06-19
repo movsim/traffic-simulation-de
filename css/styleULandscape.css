@@ -120,9 +120,9 @@ TR{
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
   top: 32vmin;
-  height: 13vmin;
+  height: 18vmin;
   left: 40vmin;  /* calc( 24vw - 23vmin);*/
-  width: 49vmin;
+  width: 43vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
 }

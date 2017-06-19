@@ -340,9 +340,9 @@ the left top cormer of the image but the center of the image
 @param dr         distance vector [dr0x,dr0y,dr0z] in physical units [m]
                   of center of surface to the camera
 @param e1         direction [e1x,e1y,e1z] of the first physical surface edge
-                  corresponds to "screen x" after affineTransform
+                  corresponds to " screen x" after affineTransform
                   (needs not to be normalized)
-@param e2         same for the "screen y" coordinate after affineTransform
+@param e2         same for the " screen y" coordinate after affineTransform
                   (at present, order e1,e2 does not matter)
 @param scale      how many pixels of the graphics commands correspond
                   to one meter of the physical surface [Pixels/m]
@@ -406,7 +406,7 @@ function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f,
 		    " scale=",scale," screenSize=",screenSize);
 	console.log("e1=",e1," e2=",e2);
 	console.log("dr1=",dr1," dr2=",dr2);
-	console.log("screenPixCenter=",screenPixCenter,
+	console.log(" screenPixCenter=",screenPixCenter,
 		    "\n screenPix1=",screenPix1,
 		    "\n screenPix2=",screenPix2);
 	aff=[affTraf00,affTraf01,affTraf10,affTraf11,

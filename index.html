@@ -85,33 +85,32 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 <!-- !! ">Density<", not "> Density <" etc because of engl2ger. bash-->
 
+<tr>
+  <td>Density/lane</td>
+  <td> <input id="slider_density" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_densityVal"></div> </td>
+</tr>
 
 <tr>
-<td>Density</td>
-<td> <div id="track_density"> <div id="slider_density"></div></div></td>
-<td> <div id="valueField_density"></div>
+  <td>Truck Perc</td>
+  <td> <input id="slider_truckFrac" type="range" 
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_truckFracVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Max Accel a</td>
+  <td> <input id="slider_IDM_a" type="range" 
+              min="0.3" max="4" step="0.1"></td>
+  <td> <div id="slider_IDM_aVal"></div> </td>
 </tr>
 
 
 <tr>
-<td>Truck Fraction</td>
-<td> <div id="track_truckFrac"> <div id="slider_truckFrac"></div></div></td>
-<td> <div id="valueField_truckFrac"></div>
-</tr>
-
-
-<tr>
-<td> Max Accel a</td>
-<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
-<td> <div id="valueField_IDM_a"></div>
-</tr>
-
-<tr>
-<td> Lane Chg </td>
-<td> to be </td>
-<td> implemented  </td>
-<!--<td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
-<td> <div id="valueField_IDM_a"></div>-->
+  <td> Lane Chg </td>
+  <td> to be </td>
+  <td> implemented  </td>
 </tr>
 
 </table>
@@ -125,44 +124,47 @@
 
 <div id="sliders2">
 <table border="0" cellspacing="1" cellpadding="0">
-<tr>
-<td>Timewarp</td>
-<td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
-<td> <div id="valueField_timewarp"></div>
-</tr>
+
+<!-- !! ">Timewarp<", not "> Timewarp <" etc because of engl2ger. bash-->
 
 <tr>
-<td> Max Speed v</sub>0</sub> </td>
-<td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
-<td> <div id="valueField_IDM_v0"></div>
-</tr>
-
-<tr>
-<td> Time Gap T</td>
-<td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
-<td> <div id="valueField_IDM_T"></div>
-</tr>
-
-<tr>
-<td> Min Gap s</sub>0</sub> </td>
-<td> <div id="track_IDM_s0"> <div id="slider_IDM_s0"></div></div></td>
-<td> <div id="valueField_IDM_s0"></div>
-</tr>
-
-<tr>
-<td> Comf Decel b</td>
-<td> <div id="track_IDM_b"> <div id="slider_IDM_b"></div></div></td>
-<td> <div id="valueField_IDM_b"></div>
+  <td>Timewarp</td>
+  <td> <input id="slider_timewarp" type="range" 
+              min="0.2" max="20" step="0.1"></td>
+  <td> <div id="slider_timewarpVal"></div> </td>
 </tr>
 
 
-<!--
 <tr>
-<td>Scale</td>
-<td> <div id="track_scale"> <div id="slider_scale"></div></div></td>
-<td> <div id="valueField_scale"></div>
+  <td>Max Speed v</sub>0</td>
+  <td> <input id="slider_IDM_v0" type="range" 
+              min="20" max="160" step="1"></td>
+  <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
--->
+
+<tr>
+  <td>Time Gap T</td>
+  <td> <input id="slider_IDM_T" type="range" 
+              min="0.6" max="3" step="0.1"></td>
+  <td> <div id="slider_IDM_TVal"></div> </td>
+</tr>
+
+
+<tr>
+  <td>Min Gap s</sub>0</td>
+  <td> <input id="slider_IDM_s0" type="range" 
+              min="0.5" max="5" step="0.1"></td>
+  <td> <div id="slider_IDM_s0Val"></div> </td>
+</tr>
+
+<tr>
+  <td>Comf Decel b</sub>0</td>
+  <td> <input id="slider_IDM_b" type="range" 
+              min="0.5" max="5" step="0.1"></td>
+  <td> <div id="slider_IDM_bVal"></div> </td>
+</tr>
+
+
 
 </table>
 </div>

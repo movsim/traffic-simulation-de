@@ -88,35 +88,56 @@
 <div id="sliders1">
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 <!-- !! ">Timewarp<", not "> Timewarp <" etc because of engl2ger. bash-->
+<tr>
+  <td>Timewarp</td>
+  <td> <input id="slider_timewarp" type="range" 
+              min="0.2" max="20" step="0.1"></td>
+  <td> <div id="slider_timewarpVal"></div> </td>
+</tr>
 
+<!-- responsive design: deactivated for direct manipulation -->
+<!--
+<tr>
+  <td>Scale</td>
+  <td> <input id="slider_scale" type="range" 
+              min="0.6" max="5" step="0.01"></td>
+  <td> <div id="slider_scaleVal"></div> </td>
+</tr>
+-->
 
 <tr>
-<td> Truck Fraction</td>
-<td> <div id="track_truckFrac"> <div id="slider_truckFrac"></div></div></td>
-<td> <div id="valueField_truckFrac"></div>
+  <td>Truck Perc</td>
+  <td> <input id="slider_truckFrac" type="range" 
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_truckFracVal"></div> </td>
 </tr>
 
 <tr>
-<td> Inflow</td>
-<td> <div id="track_qIn"> <div id="slider_qIn"></div></div></td>
-<td> <div id="valueField_qIn"></div>
+  <td>Inflow</td>
+  <td> <input id="slider_qIn" type="range" 
+              min="0" max="2400" step="10"></td>
+  <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+
+<tr>
+<td> <font color="red"> <b>Uphill Truck</b> </font></td>
+  <td> <input id="slider_IDM_v0Up" type="range" 
+              min="20" max="80" step="10"></td>
+  <td> <div id="slider_IDM_v0UpVal"></div> </td>
 </tr>
 
 <tr>
-<td> Speed Limit</td>
-<td> <div id="track_speedL"> <div id="slider_speedL"></div></div></td>
-<td> <div id="valueField_speedL"></div>
+  <td> <font color="red"> <b>Speed</b> </font></td>
 </tr>
-
-<tr>
- <td> <font color="red"><b>Uphill Truck Speed</b> </td>
- <td> <div id="track_IDM_v0Up"> <div id="slider_IDM_v0Up"></div></div></td>
- <td> <div id="valueField_IDM_v0Up" style="color:red; font-weight:bold;"></div>
-</tr>
+</table>
+</div>
 
 
 </table>
 </div>
+
+
 
 <!-- ################################################# -->
 <!-- Sliders 2: Main model parameters and specific controls-->
@@ -125,29 +146,25 @@
 <div id="sliders2">
 <table border="0" cellspacing="1" cellpadding="0">
 
-
 <tr>
- <td>Timewarp</td>
- <td> <div id="track_timewarp"> <div id="slider_timewarp"></div></div></td>
- <td> <div id="valueField_timewarp"></div>
+  <td>Max Speed v</sub>0</td>
+  <td> <input id="slider_IDM_v0" type="range" 
+              min="20" max="160" step="1"></td>
+  <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
 
 <tr>
- <td> Max Speed v<sub>0</sub></td>
- <td> <div id="track_IDM_v0"> <div id="slider_IDM_v0"></div></div></td>
- <td> <div id="valueField_IDM_v0"></div>
+  <td>Time Gap T</td>
+  <td> <input id="slider_IDM_T" type="range" 
+              min="0.6" max="3" step="0.1"></td>
+  <td> <div id="slider_IDM_TVal"></div> </td>
 </tr>
 
 <tr>
- <td> Time Gap T</td>
- <td> <div id="track_IDM_T"> <div id="slider_IDM_T"></div></div></td>
- <td> <div id="valueField_IDM_T"></div>
-</tr>
-
-<tr>
- <td> Max Acceleration a</td>
- <td> <div id="track_IDM_a"> <div id="slider_IDM_a"></div></div></td>
- <td> <div id="valueField_IDM_a"></div>
+  <td>Max Accel a</td>
+  <td> <input id="slider_IDM_a" type="range" 
+              min="0.3" max="4" step="0.1"></td>
+  <td> <div id="slider_IDM_aVal"></div> </td>
 </tr>
 
 

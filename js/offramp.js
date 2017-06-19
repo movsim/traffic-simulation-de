@@ -22,7 +22,8 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // physical geometry settings [m]
 
 var mainroadLen=700;
-var nLanes=3;
+var nLanes_main=3;
+var nLanes_rmp=1;
 var laneWidth=7;
 var laneWidthRamp=5;
 
@@ -139,7 +140,7 @@ function trajOff_x(u){ // physical coordinates
 
 function trajOff_y(u){ // physical coordinates
     	var yDivergeBegin=traj_y(mainOffOffset)
-	    -0.5*laneWidth*(mainroad.nLanes+offramp.nLanes)-0.02*laneWidth;
+	    -0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 	return (u<taperLen)
             ? yDivergeBegin+laneWidth-laneWidth*u/taperLen: (u<divergeLen)
 	    ? yDivergeBegin
@@ -164,9 +165,9 @@ updateModels();
 var isRing=0;  // 0: false; 1: true
 duTactical=150; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1,mainroadLen,laneWidth, nLanes,traj_x,traj_y,
+var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
-var offramp=new road(2,offLen,laneWidthRamp,1,trajOff_x,trajOff_y,
+var offramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajOff_x,trajOff_y,
 		     0.1*densityInit,speedInit,truckFracInit,isRing);
 
 var offrampIDs=[2];
@@ -312,7 +313,7 @@ function drawU() {
       // update geometric properties
 
       arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
       mainOffOffset=mainroadLen-straightLen;
@@ -393,7 +394,7 @@ function drawU() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
 		 timeStr_ylb-0.2*textsize);
 
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
@@ -456,9 +457,9 @@ function init() {
 	// init road image(s)
 
     roadImg = new Image();
-    roadImg.src=(nLanes==1)
+    roadImg.src=(nLanes_main==1)
 	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
+	: (nLanes_main==2) ? road2lanes_srcFile
 	: road3lanes_srcFile;
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
@@ -467,18 +468,7 @@ function init() {
     // apply externally functions of mouseMove events  to initialize sliders settings
 
     console.log("timewarp=",timewarp);
-    change_timewarpSliderPos(timewarp);
-    //change_scaleSliderPos(scale); // responsive
-    change_truckFracSliderPos(truckFrac);
-    change_qInSliderPos(qInInit);
-    change_fracOffSliderPos(fracOffInit);
-
-    change_IDM_v0SliderPos(IDM_v0);
-    change_IDM_TSliderPos(IDM_T);
-    change_IDM_s0SliderPos(IDM_s0);
-    change_IDM_aSliderPos(IDM_a);
-    change_IDM_bSliderPos(IDM_b);
-
+ 
 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds

@@ -91,6 +91,15 @@ var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
 
+// !!! speedlimit signs
+var srcFileIndexOld=8;
+var srcFileIndex=8;
+var sign_free_srcFile='figs/sign_free_282_small.png'; 
+var sign_speedlimit_srcFiles = [];
+for (var i=0; i<13; i++){
+    sign_speedlimit_srcFiles[i]="figs/Tempo"+i+"0.png";
+}
+sign_speedlimit_srcFiles[13]=sign_free_srcFile;
 
 
 //#################################
@@ -216,7 +225,7 @@ function updateU(){
     // to the vehicles and their models (all cars and trucks share
     // the same model) 
 
-    if(false){
+    if(true){
 	console.log("longModelCar.speedlimit="+longModelCar.speedlimit
 		    +" longModelCar.v0="+longModelCar.v0
 		    +" longModelTruck.speedlimit="+longModelTruck.speedlimit
@@ -245,7 +254,7 @@ function updateU(){
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){
 	    if(mainroad.veh[i].speed<0){
-		console.log("speed "+mainroad.veh[i].speed
+		console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
 	    }
@@ -361,9 +370,28 @@ function drawU() {
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
 
+    // (4a) !!! implement varying speed-limit signs! -> uphill as template
 
+    var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
+    var srcFileIndex=Math.min(speedlimit_kmh/10,13);
+    if( (srcFileIndex !=srcFileIndexOld)||hasChanged||(itime<=1) ){
+	srcFileIndexOld=srcFileIndex;
+	speedlimitImg.src=sign_speedlimit_srcFiles[srcFileIndex];
+	console.log("speedlimitImg.src=",speedlimitImg.src);
+
+	var sizeSignPix=0.12*refSizePix;
+	var vOffset=-1.8*nLanes*laneWidth; // in v direction, pos if right
+
+	var xPix=mainroad.get_xPix(0.16*mainroadLen,vOffset,scale);
+	var yPix=mainroad.get_yPix(0.16*mainroadLen,vOffset,scale);
+	xPix -= 0.5*sizeSignPix; // center of sign
+	yPix -= 0.5*sizeSignPix;
+	ctx.setTransform(1,0,0,1,0,0); 
+	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
+    }
 
     // (5) draw some running-time vars
+
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
@@ -385,7 +413,7 @@ function drawU() {
 
     
    
-    var scaleStr="scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
@@ -473,6 +501,11 @@ function init() {
     obstacleImg = new Image();
     obstacleImg.src = obstacle_srcFile;
 
+    signFreeImg = new Image();
+    signFreeImg.src = sign_free_srcFile;
+    speedlimitImg = new Image();
+    speedlimitImg.src=sign_speedlimit_srcFiles[srcFileIndexOld]; // speed 80
+
 	// init road image(s)
 
     roadImg = new Image();
@@ -484,20 +517,7 @@ function init() {
     rampImg.src=ramp_srcFile;
 
 
-    // apply externally functions of mouseMove events  
-    // to initialize sliders settings defined in *_gui.js 
-
-    change_timewarpSliderPos(timewarp);
-    change_truckFracSliderPos(truckFrac);
-    change_qInSliderPos(qInInit);
-    change_speedLSliderPos(speedLInit);
-
-    change_IDM_v0SliderPos(IDM_v0);
-    change_IDM_TSliderPos(IDM_T);
-    change_IDM_s0SliderPos(IDM_s0);
-    change_IDM_aSliderPos(IDM_a);
-    change_IDM_bSliderPos(IDM_b);
-
+ 
 
     // starts simulation thread "main_loop" (defined below) 
     // with update time interval 1000/fps milliseconds
@@ -527,7 +547,7 @@ function main_loop() {
 
  
  var myRun=init(); //if start with roadworks: init, starts thread "main_loop" 
-// var myRun; // starts with empty canvas; can be started with "start" button
+// var myRun; // starts with empty canvas; can be started with " start" button
 // init(); //[w/o var]: starts as well but not controllable by start/stop button (no ref)
 // myRun=init(); // selber Effekt wie "var myRun=init();" 
 // (aber einmal "var"=guter Stil, geht aber implizit auch ohne: Def erstes Mal, dann ref) 

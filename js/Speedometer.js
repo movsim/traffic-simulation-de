@@ -2,7 +2,7 @@
 speedometer display. Uses an external image of a speedometer without needle
 and draws the needle/pointer according to the speed parameter
 for other speedometer background images, the first 4 lines of the draw 
-method after "settings that need to be adapted..." need to be changed
+method after " settings that need to be adapted..." need to be changed
 
 Positions and size relative to canvas.width, canvas.height, and
 min(canvas.width, canvas.height), respectively. Since canvas not properly
@@ -27,8 +27,8 @@ function Speedometer(speedoImg,speedMax,sizeRel,
     this.yRel=yRel;
     this.aspectImg=speedoImg.naturalWidth/speedoImg.naturalHeight;
     if(false){
-	console.log("speedoImg.naturalWidth=",speedoImg.naturalWidth,
-		    "speedoImg.naturalHeight=",speedoImg.naturalHeight);
+	console.log(" speedoImg.naturalWidth=",speedoImg.naturalWidth,
+		    " speedoImg.naturalHeight=",speedoImg.naturalHeight);
     }
 }
 
