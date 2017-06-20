@@ -22,13 +22,13 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 // fixed at initialization; relevant for actual simulation
 
-var mainroadLenInit=800; //!!!
+var mainroadLenInit=800;
 var nLanes_main=3;
 var nLanes_onramp=1;
 var laneWidth=7;
 var laneWidthRamp=5;
 
-var rampLenInit=240; //!!!
+var rampLenInit=240; 
 var mergeLen=120;
 var taperLen=60;
 
@@ -418,27 +418,13 @@ function drawU() {
       sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLenInit-arcLen);  // one straight segment
-      mainRampOffset=mainroad.roadLen-straightLen+mergeLen-onramp.roadLen;
+     // mainRampOffset=mainroad.roadLen-straightLen+mergeLen-onramp.roadLen;
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       scale=refSizePix/sizePhys; 
 
       // !!!update gridded road trajectories (revert any user-dragged shifts)
-
-
-// variable depending on aspect ratio: only relevant for graphics
-
-      //straightLen=0.34*mainroadLenInit;      // straight segments of U
-      mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
-      //arcLen=mainroadLenInit-2*straightLen; // length of half-circe arc of U
-      //arcRadius=arcLen/Math.PI;
-      //center_xPhys=85; // only IC!! later not relevant!
-      //center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
-
-      //rampRadius=4*arcRadius;
-
-      //sizePhys=200; 
 
       if(true){
 	  console.log("\n after canvas resize, before gridTrajectories:\n",
@@ -451,12 +437,14 @@ function drawU() {
 		   );
       }
 
-//!!!!
-	mainroad.roadLen=mainroadLenInit;
-	onramp.roadLen=rampLenInit;
-        onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
 
-      mainroad.gridTrajectories(traj_xInit,traj_yInit);
+      mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
+
+      mainroad.roadLen=mainroadLenInit;
+      onramp.roadLen=rampLenInit;
+      onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
+
+      mainroad.gridTrajectories(traj_xInit,traj_yInit); //!!!!
       onramp.gridTrajectories(trajRamp_xInit,trajRamp_yInit);
 
       if(true){
@@ -493,7 +481,6 @@ function drawU() {
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
-
 
     // (3) draw mainroad and ramp
     // (always drawn; changedGeometry only triggers building a new lookup table)
@@ -680,7 +667,7 @@ function testDistort(){
     // do the distortions
 
     var xUserMain=mainroad.traj_x(0.2*mainroad.roadLen)+0;
-    var yUserMain=mainroad.traj_y(0.2*mainroad.roadLen)-0;
+    var yUserMain=mainroad.traj_y(0.2*mainroad.roadLen)-30;
     var xUserRamp=onramp.traj_x(0.4*onramp.roadLen)+0;
     var yUserRamp=onramp.traj_y(0.4*onramp.roadLen)+100;
 
@@ -693,8 +680,11 @@ function testDistort(){
     mainroad.doCRG(xUserMain,yUserMain);
     onramp.doCRG(xUserRamp,yUserRamp);
 
-    mainroad.finishCRG(xUserMain,yUserMain);
-    onramp.finishCRG(xUserRamp,yUserRamp);
+    mainroad.finishCRG();
+    onramp.finishCRG();
+
+    // background not always drawn; roads are!
+    ctx.drawImage(background,0,0,canvas.width,canvas.height);
 
     // handle dependencies on merge///
 
@@ -734,8 +724,8 @@ function main_loop() {
 
 	testDistort();
     }
-    drawU();
     updateU();
+    drawU();
 }
  
 

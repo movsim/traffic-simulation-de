@@ -317,10 +317,20 @@ function drawU() {
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
       mainOffOffset=mainroadLen-straightLen;
+
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.35*arcRadius; // ypixel downwards=> physical center <0
-
       scale=refSizePix/sizePhys; 
+ 
+      // !!!!
+      // update gridded road trajectories (revert any user-dragged shifts)
+      // only if hasChanged
+      mainroad.roadLen=mainroadLen;
+      offramp.roadLen=offLen;
+      mainroad.gridTrajectories(traj_x,traj_y);
+      offramp.gridTrajectories(trajOff_x,trajOff_y);
+
+
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",
@@ -329,8 +339,6 @@ function drawU() {
 		    " mainOffOffset=",mainOffOffset);
       }
     }
-
-
 
 
 
@@ -484,6 +492,26 @@ function init() {
 //##################################################
 
 function main_loop() {
+
+    //!!! distortion
+
+    //if(false){
+    if(itime==10){ //!!! test with zero distortion, just gridding
+	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
+	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-30;
+	var xUserOff=offramp.traj_x(0.4*offramp.roadLen)+0;
+	var yUserOff=offramp.traj_y(0.4*offramp.roadLen)-30;
+	mainroad.testCRG(xUserMain,yUserMain);
+	mainroad.doCRG(xUserMain,yUserMain);
+	mainroad.finishCRG();
+	offramp.testCRG(xUserOff,yUserOff);
+	offramp.doCRG(xUserOff,yUserOff);
+	offramp.finishCRG();
+        // since road not redrawn generally, this here necessary
+	ctx.drawImage(background,0,0,canvas.width,canvas.height);
+        offramp.draw(rampImg,scale,true);
+	mainroad.draw(roadImg,scale,true); 
+    }
     drawU();
     updateU();
     //mainroad.writeVehicles(); // for debugging

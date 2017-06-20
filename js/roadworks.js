@@ -326,8 +326,17 @@ function drawU() {
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-
       scale=refSizePix/sizePhys; 
+
+      // !!!!
+      // update gridded road trajectories (revert any user-dragged shifts)
+      // inside if(hasChanged) block
+
+      mainroad.roadLen=mainroadLen;
+      mainroad.gridTrajectories(traj_x,traj_y);
+
+
+
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",
@@ -533,6 +542,22 @@ function init() {
 //##################################################
 
 function main_loop() {
+
+    //!!! distortion
+
+    //if(false){
+    if(itime==10){ //!!! test with zero distortion, just gridding
+	var xUserMain=mainroad.traj_x(0.50*mainroad.roadLen)+110;
+	var yUserMain=mainroad.traj_y(0.50*mainroad.roadLen)-20;
+	mainroad.testCRG(xUserMain,yUserMain);
+	mainroad.doCRG(xUserMain,yUserMain);
+	mainroad.finishCRG();
+        // since road not redrawn generally, this here necessary
+	ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	mainroad.draw(roadImg,scale,true); 
+    }
+
+
     drawU();
     updateU();
     //mainroad.writeVehicles(); // for debugging

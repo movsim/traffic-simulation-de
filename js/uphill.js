@@ -276,6 +276,15 @@ function drawU() {
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
 
       scale=refSizePix/sizePhys; 
+
+      // !!!!
+      // update gridded road trajectories (revert any user-dragged shifts)
+      // inside if(hasChanged) block
+
+      mainroad.roadLen=mainroadLen;
+      mainroad.gridTrajectories(traj_x,traj_y);
+
+
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",

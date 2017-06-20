@@ -502,6 +502,17 @@ function drawU() {
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
 
       scale=refSizePix/sizePhys; 
+
+      // !!!!
+      // update gridded road trajectories (revert any user-dragged shifts)
+      // inside if(hasChanged) block
+
+
+      mainroad.roadLen=mainroadLen;
+      deviation.roadLen=lDev;
+      mainroad.gridTrajectories(traj_x,traj_y);
+      deviation.gridTrajectories(trajDeviation_x,trajDeviation_y);
+
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",
@@ -717,6 +728,31 @@ function init() {
 //##################################################
 
 function main_loop() {
+    //!!! distortion
+
+    //if(false){
+    if(itime==10){ //!!! test with zero distortion, just gridding
+	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
+	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-0;
+	var xUserDev=deviation.traj_x(0.5*deviation.roadLen)+70;
+	var yUserDev=deviation.traj_y(0.5*deviation.roadLen)-0;
+	mainroad.testCRG(xUserMain,yUserMain);
+	mainroad.doCRG(xUserMain,yUserMain);
+	mainroad.finishCRG();
+	deviation.testCRG(xUserDev,yUserDev);
+	deviation.doCRG(xUserDev,yUserDev);
+	deviation.finishCRG();
+	var xUserDev=deviation.traj_x(0.7*deviation.roadLen)-70;
+	var yUserDev=deviation.traj_y(0.7*deviation.roadLen)-0;
+	deviation.testCRG(xUserDev,yUserDev);
+	deviation.doCRG(xUserDev,yUserDev);
+	deviation.finishCRG();
+        // since road not redrawn generally, this here necessary
+	ctx.drawImage(background,0,0,canvas.width,canvas.height);
+        deviation.draw(rampImg,scale,true);
+	mainroad.draw(roadImg,scale,true); 
+    }
+
     drawU();
     updateU();
     //mainroad.writeVehicles(); // for debugging

@@ -141,7 +141,9 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.xtabOld=[]; // tables before begin of user-change action
     this.ytabOld=[];
 
-    this.gridTrajectories(traj_x,traj_y);
+    //this.traj_x=traj_x; // old
+    //this.traj_y=traj_y; // old
+    this.gridTrajectories(traj_x,traj_y); // new
 
 
     this.iPivot=0; // index of nearest element of a user mouse/touchdown

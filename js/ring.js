@@ -181,6 +181,7 @@ function drawRing() {
     // canvas_resize(canvas,aspectRatio)
 
     hasChanged=canvas_resize(canvas,0.96); 
+    //hasChanged=true; //!!
     if(hasChanged){
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
 
@@ -371,9 +372,24 @@ function init() {
 //##################################################
 
 function main_loop() {
-    drawRing();
+
+    //!!! distortion
+
+    //if(false){
+    if(itime==10){ //!!! test with zero distortion, just gridding
+	var xUserMain=mainroad.traj_x(0.8*mainroad.roadLen)+0;
+	var yUserMain=mainroad.traj_y(0.8*mainroad.roadLen)-30;
+	mainroad.testCRG(xUserMain,yUserMain); // necessary!
+	mainroad.doCRG(xUserMain,yUserMain);
+	mainroad.finishCRG();
+        // since road not redrawn generally, this here necessary
+	ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	mainroad.draw(roadImg,scale,true); //!!!
+    }
+
     updateRing();
-    //mainroad.writeVehicles(); // for debugging
+    drawRing();
+   //mainroad.writeVehicles(); // for debugging
 }
 
 
