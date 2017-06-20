@@ -1,10 +1,13 @@
 
+
+
 // general comments: ring.js, offramp.js (responsive design)
 
 //#############################################################
 // Initial settings
 //#############################################################
 
+var scenarioString="OnRamp";
 
 // graphical settings
 
@@ -715,8 +718,8 @@ function testDistort(){
 //##################################################
 
 function main_loop() {
-    if(itime==10){ //!!!
-    //if(false){ //!!!
+    //if(itime==10){ //!!!
+    if(false){ //!!!
     console.log("onramp.init: entering test distortion");
     console.log("mainroad.roadLen=",mainroad.roadLen,
                 " onramp.roadLen=",onramp.roadLen,

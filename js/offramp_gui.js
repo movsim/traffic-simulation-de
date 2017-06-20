@@ -2,28 +2,6 @@
 // GUI: Only defines interface; actual start of sim thread in onramp.js
 //#############################################
 
-//#############################################
-// ACHTUNG BUG bei DYN_WEB.Event.domReady( function()..)
-// Auch wenn diese Fkt nicht aufgerufen wird, produziert sie extrem
-// boesartige Fehler, wenn die entspr html Elemeente
-// (z.B. <div id="track_density"><div id="valueField_density">)
-// nicht defiiert sind: Dann DOS bei allen im gui.js NACHFOLGENDEN Slidern
-// deshalb separate gui fuer jedes html noetig
-// das generelle "gui.js" bietet Sammlung fuer alles und ist Referenz
-
-// ACHTUNG weiterer BUG: die sliderWidth wird zwar optisch dem responsive
-// design angepasst, der Knopf laesst sich aber immer bis zur anfaengl. Weite 
-// bewegen, also nicht zum Ende bei Vergroesserung, 
-// darueber hinaus bei Verkleinerung 
-//#############################################
-
-
-// geometry of sliders; only nonzero initialization; 
-// will be overridden in update method of main js file if hasChanged=true
-
-var sliderWidth=100; // max value reached if slider at sliderWidth
-
-
 // controlled contents of sliders
 
 var timewarpInit=6;

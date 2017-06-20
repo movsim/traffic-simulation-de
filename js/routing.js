@@ -7,6 +7,8 @@
 // Initial settings
 //#############################################################
 
+var scenarioString="Deviation";
+
 // graphical settings
 
 var hasChanged=true; // window dimensions have changed (responsive design)

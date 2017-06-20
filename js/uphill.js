@@ -6,6 +6,8 @@
 // Initial settings
 //#############################################################
 
+var scenarioString="Uphill";
+
 // graphical settings
 
 var hasChanged=true; // window dimensions have changed (responsive design)

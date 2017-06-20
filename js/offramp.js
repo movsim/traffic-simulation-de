@@ -7,6 +7,8 @@
 // Initial settings
 //#############################################################
 
+var scenarioString="OffRamp";
+
 // graphical settings
 
 
@@ -324,7 +326,7 @@ function drawU() {
  
       // !!!!
       // update gridded road trajectories (revert any user-dragged shifts)
-      // only if hasChanged
+      // inside if(hasChanged) block
       mainroad.roadLen=mainroadLen;
       offramp.roadLen=offLen;
       mainroad.gridTrajectories(traj_x,traj_y);

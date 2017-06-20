@@ -394,7 +394,8 @@ at or near a road element
 
 @param:  xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
 @return: array [success,Deltax,Deltay]
-         Deltax/y gives distance vecto trigger point - nearest road element
+         Deltax/y gives distance vecto trigger point - nearest road element,
+         dist_min=sqrt(Deltax^2+Deltay^2)
 @internally set: iPivot=index of this element, xPivot=xUser, yPivot=yUser
 */
 
@@ -423,7 +424,7 @@ road.prototype.testCRG=function(xUser,yUser){
 		    " yPivot=",Math.round(this.yPivot)
 		   )
     }
-    return[success,
+    return[success,dist_min,
 	   this.xPivot-this.xtab[this.iPivot],
 	   this.yPivot-this.ytab[this.iPivot]];
 }
@@ -527,7 +528,7 @@ road.prototype.finishCRG=function(){
     }
 
 
-    if(true){
+    if(false){
 	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
 	console.log(" xytabOld: before drag")
 	console.log(" xytab: after dragging action, distorted");
