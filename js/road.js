@@ -85,6 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
+    console.log("before defining this.nSegm=100");
     this.nSegm=100;//100   //!! number of road segm=nSegm+1, not only drawing
     this.draw_curvMax=0.01; // maximum assmued curvature
 
@@ -141,10 +142,32 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.xtabOld=[]; // tables before begin of user-change action
     this.ytabOld=[];
 
-    //this.traj_x=traj_x; // old
-    //this.traj_y=traj_y; // old
-    this.gridTrajectories(traj_x,traj_y); // new
+    //initializes tables tab_x, tab_y, defines this.traj_xy
+    //  and then re-samples them (the error by resampling is OK 
+    // since initialization with smooth curves)
 
+    console.log("cstr before gridTrajectories: traj_x(-1)=",traj_x(-1),
+		" traj_x(this.roadLen+1)=",traj_x(this.roadLen+1));
+    console.log("                     traj_y(-1)=",traj_y(-1),
+		" traj_y(this.roadLen+1)=",traj_y(this.roadLen+1));
+
+    this.gridTrajectories(traj_x,traj_y); 
+
+    console.log("after gridTrajectories: this.traj_x(-1)=",this.traj_x(-1),
+		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
+    console.log("                     this.traj_y(-1)=",this.traj_y(-1),
+		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
+
+    this.update_nSegm_tabxy();
+
+    console.log("after update_nSegm_tabxy: this.traj_x(-1)=",this.traj_x(-1),
+		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
+    console.log("                     this.traj_y(-1)=",this.traj_y(-1),
+		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
+
+ 
+
+    // defines the variables for user-driven change in road geometry
 
     this.iPivot=0; // index of nearest element of a user mouse/touchdown
                    // event in {0, ..., nSegm}
@@ -152,6 +175,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.yPivot=0; // y coordinate of this event
 
     // helper array: normalized shift kernel, icKernel=center index of kernel
+
     this.kernelWidth=0.10*this.roadLen;
     this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
     this.nKernel=2*this.icKernel+1; // uneven number
@@ -234,7 +258,9 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
 
 //######################################################################
-// helper function regrid internal x and y tables
+// helper function regrid internal x and y tables and redefine 
+// this.traj_x, this.traj_y (in a save way, also for u<0, u>roadLen defined)
+//######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
@@ -249,27 +275,33 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 
     this.traj_x=function(u){
         // restrict u to within roadLen
-	u=Math.min(this.roadLen-1e-6,Math.max(1e-6, u));
-	var iLower=Math.floor(this.nSegm*u/this.roadLen);
+	u=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
+	var iLower=Math.max(Math.floor(this.nSegm*u/this.roadLen), 0);
+	var iUpper=Math.min(iLower+1, this.nSegm);
 	var rest=this.nSegm*u/this.roadLen-iLower;
-	//if((iLower<1)||(iLower+1>this.nSegm-1)){
-	//    console.log("this.traj_x: u=",u," roadLen=",this.roadLen,
-	//		" iLower=",iLower," rest=",rest);
-	//}
-	return (1-rest)*this.xtab[iLower]+rest*this.xtab[iLower+1];
+	if((u<2)||(u>this.roadLen-2)){
+	    console.log("in road.gridTrajectories def this.traj_x: u=",u,
+			" roadLen=",this.roadLen, " this.nSegm=",this.nSegm,
+			" iLower=",iLower," iUpper=",iUpper,
+			" this.xtab[iLower]=",this.xtab[iLower],
+			" this.xtab[iUpper]=",this.xtab[iUpper]);
+	}
+
+	return (1-rest)*this.xtab[iLower]+rest*this.xtab[iUpper];
     }
 
     this.traj_y=function(u){
         // restrict u to within roadLen
-	u=Math.min(this.roadLen-1e-6,Math.max(1e-6, u));
-	var iLower=Math.floor(this.nSegm*u/this.roadLen);
+	u=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
+	var iLower=Math.max(Math.floor(this.nSegm*u/this.roadLen), 0);
+	var iUpper=Math.min(iLower+1, this.nSegm);
 	var rest=this.nSegm*u/this.roadLen-iLower;
-	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iLower+1];
+	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iUpper];
     }
 
     // test code
 
-    if(false){
+    if(true){
 	var utab=[];
 	utab[0]=0;
 	console.log("road cstr: traj before and after gridding:");
@@ -289,8 +321,49 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 	    );
 	}
     }
-} // gridTrajectories
+} // grid/regridTrajectories
 
+//######################################################################
+// helper function to update number of road segments 
+// and re-sample xtab, ytab
+//######################################################################
+
+// needs already existing number nSegm of segments, e.g., that at construcion
+// and a first gridding such that internal this.traj_x, this.traj_y defined
+
+road.prototype.update_nSegm_tabxy=function(){
+
+    var nSegm_per_rad=10; // nSegm_per_phi segments for each radian of curves
+    var nSegm_per_m=0.1; // nSegm_per_len segments for each m in roadLen
+
+    var phiabsCum=0;
+    var phiOld=this.get_phi(0);
+    for (var i=0; i<this.nSegm; i++){
+	var phi=this.get_phi((i+0.5)*this.roadLen/this.nSegm);
+	phiabsCum += Math.abs(phi-phiOld);
+	console.log("arg get_phi=",(i+0.5)*this.roadLen/this.nSegm);
+	console.log("phi=",phi," phiabsCum=",phiabsCum);
+	phiOld=phi;
+    }
+    var nSegmNew=nSegm_per_rad*phiabsCum + nSegm_per_m*this.roadLen;
+    console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
+		" nSegm=",this.nSegm," nSegmNew=",nSegmNew);
+
+    //re-sample (=first part of this.gridTrajectories)
+    // notice that this.traj_xy depends on xtab => two for loops
+
+    for(var i=0; i<=nSegmNew; i++){ // nSegmNew+1 elements
+ 	this.xtabOld[i]=this.traj_x(i*this.roadLen/nSegmNew);
+ 	this.ytabOld[i]=this.traj_y(i*this.roadLen/nSegmNew);
+    }
+
+    for(var i=0; i<=nSegmNew; i++){
+	this.xtab[i]=this.xtabOld[i];
+	this.ytab[i]=this.ytabOld[i];
+    }
+
+    this.nSegm=nSegmNew;
+}
 
 //######################################################################
 // write vehicle info
@@ -471,13 +544,16 @@ road.prototype.createKernel=function(){
 #############################################################
 (jun17) do final cleanup after dragging interaction has finished
 #############################################################
-at the beginning, xtab[], ytab[] are changed according to user action
- but no longer equidistant => scale distorted when calling traj_xy(u) 
-at the end, this.roadLen, xtab[], ytab[] changed and made equidistant
+
+by doCRG,  xtab[], ytab[] are changed according to user action
+but no longer equidistant => scale is distorted and traj_xy(u) no longer 
+correct. finishCRG resamples the tabs to make them equidistant and also
+changes the number of segments if new curvature is added/removed
 */
 
 road.prototype.finishCRG=function(){
     console.log("in finishCRG()");
+
     // calculate new road length and changed u-coordinate waypoints
     // based on present xtab[],ytab[]
 
@@ -527,6 +603,11 @@ road.prototype.finishCRG=function(){
 	}
     }
 
+    // change number of segments and re-sample again (this also makes road smoother)
+
+    this.update_nSegm_tabxy();
+
+    // test output
 
     if(false){
 	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
@@ -1947,8 +2028,22 @@ road.prototype.get_phi=function(u){
     var du=0.1;
     var dx=this.traj_x(u+du)-this.traj_x(u-du);
     var dy=this.traj_y(u+du)-this.traj_y(u-du);
+    if((Math.abs(dx)<smallVal)&&(Math.abs(dy)<smallVal)){
+	console.log("road.get_phi: error: cannot determine heading of two identical points"); return 0;
+    }
     var phi=(Math.abs(dx)<smallVal) ? 0.5*Math.PI : Math.atan(dy/dx);
     if( (dx<0) || ((Math.abs(dx)<smallVal)&&(dy<0))){phi+=Math.PI;}
+    if(false){
+      if( (u<2)||(u>this.roadLen-2) || !((phi>-10)||(phi<10))){
+	console.log("road.get_phi: u=",u," u+du=",u+du,
+		    " this.traj_x(u+du)=",this.traj_x(u+du),
+		    " this.traj_y(u+du)=",this.traj_y(u+du),
+		    " this.traj_x(u-du)=",this.traj_x(u-du),
+		    " this.traj_y(u-du)=",this.traj_y(u-du),
+		    " dx=",dx," dy=",dy," phi=",phi);
+      }
+    }
+
     return phi;
 }
 
