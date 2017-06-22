@@ -85,8 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
-    console.log("before defining this.nSegm=100");
-    this.nSegm=100;//100   //!! number of road segm=nSegm+1, not only drawing
+    this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
     this.draw_curvMax=0.01; // maximum assmued curvature
 
     this.draw_x=[];  // arrays defined in the draw(..) method
@@ -146,10 +145,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     //  and then re-samples them (the error by resampling is OK 
     // since initialization with smooth curves)
 
-    console.log("cstr before gridTrajectories: traj_x(-1)=",traj_x(-1),
-		" traj_x(this.roadLen+1)=",traj_x(this.roadLen+1));
-    console.log("                     traj_y(-1)=",traj_y(-1),
-		" traj_y(this.roadLen+1)=",traj_y(this.roadLen+1));
 
     this.gridTrajectories(traj_x,traj_y); 
 
@@ -263,6 +258,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
+    console.log("in road.gridTrajectories: this.nSegm=",this.nSegm);
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
@@ -275,11 +271,12 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 
     this.traj_x=function(u){
         // restrict u to within roadLen
-	u=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
-	var iLower=Math.max(Math.floor(this.nSegm*u/this.roadLen), 0);
+	var uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
+	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
 	var iUpper=Math.min(iLower+1, this.nSegm);
-	var rest=this.nSegm*u/this.roadLen-iLower;
-	if((u<2)||(u>this.roadLen-2)){
+	var rest=this.nSegm*uLoc/this.roadLen-iLower;
+	if(false){
+	//if((uLoc<2)||(uLoc>this.roadLen-2)){
 	    console.log("in road.gridTrajectories def this.traj_x: u=",u,
 			" roadLen=",this.roadLen, " this.nSegm=",this.nSegm,
 			" iLower=",iLower," iUpper=",iUpper,
@@ -292,16 +289,24 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 
     this.traj_y=function(u){
         // restrict u to within roadLen
-	u=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
-	var iLower=Math.max(Math.floor(this.nSegm*u/this.roadLen), 0);
+	uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
+	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
 	var iUpper=Math.min(iLower+1, this.nSegm);
-	var rest=this.nSegm*u/this.roadLen-iLower;
+	var rest=this.nSegm*uLoc/this.roadLen-iLower;
 	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iUpper];
     }
 
     // test code
 
-    if(true){
+    console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
+		" this.xtab[0]=",this.xtab[0],
+		" this.xtab[1]=",this.xtab[1],
+		" this.traj_x(0)=",this.traj_x(0),
+		" this.xtab[this.nSegm]=",this.xtab[this.nSegm],
+		" this.traj_x(this.roadLen)=",this.traj_x(this.roadLen)
+	       );
+
+    if(false){
 	var utab=[];
 	utab[0]=0;
 	console.log("road cstr: traj before and after gridding:");
@@ -332,7 +337,9 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 // and a first gridding such that internal this.traj_x, this.traj_y defined
 
 road.prototype.update_nSegm_tabxy=function(){
-
+    console.log("begin road.update_nSegm_tabxy: this.nSegm=",this.nSegm,
+		" this.traj_y(0)=",this.traj_y(0),
+		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen));
     var nSegm_per_rad=10; // nSegm_per_phi segments for each radian of curves
     var nSegm_per_m=0.1; // nSegm_per_len segments for each m in roadLen
 
@@ -341,13 +348,12 @@ road.prototype.update_nSegm_tabxy=function(){
     for (var i=0; i<this.nSegm; i++){
 	var phi=this.get_phi((i+0.5)*this.roadLen/this.nSegm);
 	phiabsCum += Math.abs(phi-phiOld);
-	console.log("arg get_phi=",(i+0.5)*this.roadLen/this.nSegm);
-	console.log("phi=",phi," phiabsCum=",phiabsCum);
 	phiOld=phi;
     }
-    var nSegmNew=nSegm_per_rad*phiabsCum + nSegm_per_m*this.roadLen;
+    var nSegmNew=Math.round(nSegm_per_rad*phiabsCum
+			    + nSegm_per_m*this.roadLen);
     console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
-		" nSegm=",this.nSegm," nSegmNew=",nSegmNew);
+		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
 
     //re-sample (=first part of this.gridTrajectories)
     // notice that this.traj_xy depends on xtab => two for loops
@@ -363,6 +369,11 @@ road.prototype.update_nSegm_tabxy=function(){
     }
 
     this.nSegm=nSegmNew;
+    console.log("end road.update_nSegm_tabxy: new this.nSegm=",this.nSegm,
+		" this.traj_y(0)=",this.traj_y(0),
+		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen)
+	       );
+
 }
 
 //######################################################################
@@ -557,7 +568,6 @@ road.prototype.finishCRG=function(){
     // calculate new road length and changed u-coordinate waypoints
     // based on present xtab[],ytab[]
 
-    var newRoadLen=0;
     var chdUPoints=[];
     chdUPoints[0]=0;
     for (var i=1; i<=this.nSegm; i++){
@@ -567,7 +577,8 @@ road.prototype.finishCRG=function(){
 		    + Math.pow(this.ytab[i]-this.ytab[i-1],2)
 	    );
     }
-    var newRoadLen=chdUPoints[this.nSegm];
+    this.roadLen=chdUPoints[this.nSegm];
+
 
     // re-segmentate the road to equal-length road segments
     // (no in-line change of xtab,ytab since traj_xy depends on them)
@@ -584,7 +595,7 @@ road.prototype.finishCRG=function(){
     ytabNew[this.nSegm]=this.ytab[this.nSegm];
 
     for (var inew=1; inew<this.nSegm; inew++){
-	var unew=inew*newRoadLen/this.nSegm;
+	var unew=inew*this.roadLen/this.nSegm;
 	while(chdUPoints[iUpper]<unew){iUpper++;}
 	var du=chdUPoints[iUpper]-chdUPoints[iUpper-1];
 	var rest=(unew-chdUPoints[iUpper-1])/du; // in [0,1]
@@ -603,33 +614,6 @@ road.prototype.finishCRG=function(){
 	}
     }
 
-    // change number of segments and re-sample again (this also makes road smoother)
-
-    this.update_nSegm_tabxy();
-
-    // test output
-
-    if(false){
-	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
-	console.log(" xytabOld: before drag")
-	console.log(" xytab: after dragging action, distorted");
-	console.log(" xytabnew: after dragging action, corrected");
-	console.log("this.roadLen=",this.roadLen," newRoadLen=",newRoadLen);
-	for (var i=0; i<=this.nSegm; i++){
-	    console.log("i=",i,
-			" xytabOld=",Math.round(this.xtabOld[i]),
-			"",Math.round(this.ytabOld[i]),
-			" xytab=",Math.round(this.xtab[i]),
-			"",Math.round(this.ytab[i]),
-			" xytabNew=",Math.round(xtabNew[i]),
-			"",Math.round(ytabNew[i]),
-			" du=",parseFloat(chdUPoints[i]-chdUPoints[Math.max(i-1,0)]).toFixed(2),
-			" duNew=",parseFloat(newRoadLen/this.nSegm).toFixed(2)
-		       );
-	}
-    }
-
-
     // transfer to xtab,ytab => local functions this.traj_xy redefined
 
     for (var i=0; i<=this.nSegm; i++){
@@ -639,11 +623,106 @@ road.prototype.finishCRG=function(){
 	this.xtabOld[i]=xtabNew[i];
 	this.ytabOld[i]=ytabNew[i];
     }
-    this.roadLen=newRoadLen;
+
+    // change number of segments and re-sample again 
+    // (this also makes road smoother)
+
+    this.update_nSegm_tabxy(); // needs updated this.xytab for traj_xy!! 
+
+    // make road smoother (just a test; apply selectively later !!!
+
+    this.smooth();
+
+    // test output
+
+    if(false){
+	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
+	console.log(" xytabOld: before drag")
+	console.log(" xytab: after dragging action, distorted");
+	console.log(" xytabnew: after dragging action, corrected");
+	console.log("new roadLen=this.roadLen=",this.roadLen);
+	for (var i=0; i<=this.nSegm; i++){
+	    console.log("i=",i,
+			" xytabOld=",Math.round(this.xtabOld[i]),
+			"",Math.round(this.ytabOld[i]),
+			" xytab=",Math.round(this.xtab[i]),
+			"",Math.round(this.ytab[i]),
+			" xytabNew=",Math.round(xtabNew[i]),
+			"",Math.round(ytabNew[i]),
+			" du=",parseFloat(chdUPoints[i]-chdUPoints[Math.max(i-1,0)]).toFixed(2),
+			" duNew=",parseFloat(this.roadLen/this.nSegm).toFixed(2)
+		       );
+	}
+    }
+
+
 } // road.prototype.finishCRG
 
 
+/**
+#############################################################
+(jun17) Smooth road
+#############################################################
+needed when user brought in too much sharp/abrupt curves
+*/
 
+road.prototype.smooth=function(){
+    var n=this.nSegm;
+    var xtabNew=[];
+    var ytabNew=[];
+    for (var i=0; i<=n; i++){
+	xtabNew[i]=0;
+	ytabNew[i]=0;
+    }
+
+
+    // middle points: full kernel
+
+    var ic=this.icKernel;
+    var norm=0;
+    for (var j=-(ic-1); j<ic-1; j++){
+	norm += this.kernel[ic+j];
+    }
+    //console.log("center smoothing: ic=",ic," norm=",norm);
+
+    for(var i=ic-1; i<=n-(ic-1); i++){
+	for(var j=-(ic-1); j<ic-1; j++){
+	    xtabNew[i]+=this.kernel[ic+j]/norm * this.xtab[i+j];
+	    ytabNew[i]+=this.kernel[ic+j]/norm * this.ytab[i+j];
+	}
+    }
+
+
+    // boundary points: only center part of kernel
+
+    for(var i=0; i<ic-1; i++){
+	norm=0;
+	for (var j=-i; j<=i; j++){norm+= this.kernel[ic+j];}
+	//console.log("boundary points: i=",i," norm=",norm);
+	for (var j=-i; j<=i; j++){
+	    xtabNew[i]+=this.kernel[ic+j]/norm * this.xtab[i+j];
+	    xtabNew[n-i]+=this.kernel[ic+j]/norm * this.xtab[n-i+j];
+	    ytabNew[i]+=this.kernel[ic+j]/norm * this.ytab[i+j];
+	    ytabNew[n-i]+=this.kernel[ic+j]/norm * this.ytab[n-i+j];
+
+	}
+    }
+
+    // bring smoothed info into xytab
+    if(false){
+        console.log("leaving road.smooth: n=this.nSegm=",n);
+        for(var i=0; i<=n; i++){
+	    console.log("i=",i," xtabOld=",this.xtab[i]," xtabNew=",xtabNew[i]);
+	}
+    }
+
+
+    for (var i=0; i<n; i++){
+	this.xtab[i]=xtabNew[i];
+	this.ytab[i]=ytabNew[i];
+    }
+
+} // road.smooth()
 
 /**
 #############################################################
