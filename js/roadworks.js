@@ -354,11 +354,6 @@ function drawU() {
 
 
 
-    //mainroad.updateOrientation(); // update heading of all vehicles rel. to road axis
-                                  // (for some reason, strange rotations at beginning)
-
-
-
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
     // "%20-or condition"
@@ -563,7 +558,7 @@ function init() {
 
 function main_loop() {
 
-    changedRoadGeometry=false;
+
     //!!! distortion
 
     //if(false){
@@ -579,6 +574,8 @@ function main_loop() {
 
     drawU();
     updateU();
+    changedRoadGeometry=false;
+
     //mainroad.writeVehicles(); // for debugging
 }
  

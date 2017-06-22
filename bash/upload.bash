@@ -49,7 +49,7 @@ for proj in $projects; do
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done
 
-js_files="canvasresize.js colormanip.js dw_slider.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js "
+js_files="canvasresize.js colormanip.js dw_slider.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js canvas_gui.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_gui.js ${proj}_ger.js ${proj}_gui_ger.js";
