@@ -170,6 +170,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.yPivot=0; // y coordinate of this event
 
     // helper array: normalized shift kernel, icKernel=center index of kernel
+    // kernel width this.icKernel set at beginning, 
+    // not changed with regridding!
 
     this.kernelWidth=0.10*this.roadLen;
     this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
@@ -565,6 +567,11 @@ changes the number of segments if new curvature is added/removed
 road.prototype.finishCRG=function(){
     console.log("in finishCRG()");
 
+    // first smooth locally since afterwards (after resampling)
+    // this.iPivot no longer valid
+
+    this.smoothLocally(this.iPivot, Math.round(0.5*this.icKernel));
+
     // calculate new road length and changed u-coordinate waypoints
     // based on present xtab[],ytab[]
 
@@ -629,9 +636,6 @@ road.prototype.finishCRG=function(){
 
     this.update_nSegm_tabxy(); // needs updated this.xytab for traj_xy!! 
 
-    // make road smoother (just a test; apply selectively later !!!
-
-    this.smooth();
 
     // test output
 
@@ -657,6 +661,83 @@ road.prototype.finishCRG=function(){
 
 
 } // road.prototype.finishCRG
+
+
+/**
+#############################################################
+(jun17) locally smooth road
+#############################################################
+needed when user brought in too much sharp/abrupt curves
+smoothes with maxiumum half-width iWidth 
+(total number of points 2*iWidth+1) centered at index iCenter
+
+*/
+road.prototype.smoothLocally=function(iCenter, iWidth){
+    console.log("in road.smoothLocally: iCenter=",iCenter," iWidth=",iWidth);
+    var xtabNew=[];
+    var ytabNew=[];
+    for (var i=0; i<=this.nSegm; i++){
+	xtabNew[i]=0;
+	ytabNew[i]=0;
+    }
+
+    var imin=Math.max(1, iCenter-iWidth);
+    var imax=Math.min(this.nSegm-1, iCenter+iWidth);
+    var iw=Math.min(iCenter-imin, imax-iCenter); // <=iWidth
+
+    // apply smoothing to xytabNew
+
+    for (var i=iCenter-iw; i<=iCenter+iw; i++){
+	var distCenter=Math.abs((i-iCenter));
+
+        //var iwLoc=Math.max(0, iw-distCenter);
+	var iwLoc=iw;
+
+	var iwLimit=Math.min(i, this.nSegm-i);
+	iwLoc=Math.min(iwLoc, iwLimit);
+
+        // smooth with moving averages
+
+	var nSmooth=2*iwLoc+1;
+	console.log("smoothLocally: i=",i," iCenter=",iCenter," iWidth=",iWidth,
+		    " iw=",iw," iwLoc=",iwLoc," nSmooth=",nSmooth);
+
+        // generate triang kernel
+	var kern=[];
+	var norm=0;
+	for(var j=0; j<=2*iwLoc; j++){
+	    norm += 1 - Math.abs(j+0.-iwLoc)/iwLoc;
+	}
+	for(var j=0; j<=2*iwLoc; j++){
+	    kern[j]=(1-Math.abs(j+0.-iwLoc)/iwLoc)/norm;
+	}
+	if(iwLoc==0){
+	    xtabNew[i]=this.xtab[i];
+	    ytabNew[i]=this.ytab[i];
+	}
+	else{
+	  for(var j=-iwLoc; j<=iwLoc; j++){
+	    //xtabNew[i] += this.xtab[i+j]/nSmooth;
+	    //ytabNew[i] += this.ytab[i+j]/nSmooth;
+	    xtabNew[i] += this.xtab[i+j] * kern[iwLoc+j];
+	    ytabNew[i] += this.ytab[i+j] * kern[iwLoc+j];
+
+	  }
+	}
+	if(true){console.log("smoothLocally: i=",i,
+		    " xtabNew[i]=",xtabNew[i],
+		    " this.xtab[i]=",this.xtab[i]);
+		 }
+    }
+
+    // copy to this.xytab
+
+    for (var i=iCenter-iw; i<=iCenter+iw; i++){
+	this.xtab[i]=xtabNew[i];
+	this.ytab[i]=ytabNew[i];
+    }
+
+} // road.smoothLocally
 
 
 /**
