@@ -98,10 +98,12 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -489,12 +491,12 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    onramp.draw(rampImg,scale,changedGeometry,
+    onramp.draw(rampImg,rampImg,scale,changedGeometry,
 		movingObserver,0, 
 		center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
 		center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0)); 
 
-    mainroad.draw(roadImg,scale,changedGeometry,
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
 
 // center_xPhys, center_yPhys
@@ -633,11 +635,20 @@ function init() {
 
     // init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes_main==1)
-	? road1lane_srcFile
-	: (nLanes_main==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWith_srcFile
+	: (nLanes_main==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+    roadImg2 = new Image();
+    roadImg2.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWithout_srcFile
+	: (nLanes_main==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
@@ -649,84 +660,13 @@ function init() {
 } // end init()
 
 
-//######################################################################
-//!!! (jun17) test code user-distorted road (in the thread itself!)
-//######################################################################
 
-function testDistort(){
-    console.log("in testDistort(): before distortion");
-    console.log("mainroad.roadLen=",mainroad.roadLen,
-                " onramp.roadLen=",onramp.roadLen,
-		" mainRampOffset=",mainRampOffset);
-    if(true){
-	  console.log("\n before distortion:\n",
-                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
-	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
-	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
-		   );
-    }
-
-    // do the distortions
-
-    var xUserMain=mainroad.traj_x(0.2*mainroad.roadLen)+0;
-    var yUserMain=mainroad.traj_y(0.2*mainroad.roadLen)-30;
-    var xUserRamp=onramp.traj_x(0.4*onramp.roadLen)+0;
-    var yUserRamp=onramp.traj_y(0.4*onramp.roadLen)+100;
-
-    var resMain=mainroad.testCRG(xUserMain,yUserMain);
-    var resRamp=onramp.testCRG(xUserRamp,yUserRamp);
-    console.log("in testDistort:",
-		"\n  resMain=",resMain,
-		"\n  resRamp=",resRamp);
-
-    mainroad.doCRG(xUserMain,yUserMain);
-    onramp.doCRG(xUserRamp,yUserRamp);
-
-    mainroad.finishCRG();
-    onramp.finishCRG();
-
-    // background not always drawn; roads are!
-    ctx.drawImage(background,0,0,canvas.width,canvas.height);
-
-    // handle dependencies on merge///
-
-    //!! not yet shift of endpoints treated!
-    //!!! not yet change of screen handled' only in one aspect correct!
-
-    onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
-    mainRampOffset=mainroad.roadLen-straightLen+mergeLen-onramp.roadLen;
-
-    console.log("after distortion");
-    console.log("mainroad.roadLen=",mainroad.roadLen,
-		" onramp.roadLen=",onramp.roadLen,
-		" mainRampOffset=",mainRampOffset);
-    if(true){
-	  console.log("\n after distortion:\n",
-                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
-	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
-	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
-		   );
-    }
-
-}
- 
 
 //##################################################
 // Running function of the sim thread (triggered by setInterval)
 //##################################################
 
 function main_loop() {
-    //if(itime==10){ //!!!
-    if(false){ //!!!
-    console.log("onramp.init: entering test distortion");
-    console.log("mainroad.roadLen=",mainroad.roadLen,
-                " onramp.roadLen=",onramp.roadLen,
-		" mainRampOffset=",mainRampOffset);
-
-	testDistort();
-    }
     updateU();
     drawU();
 }

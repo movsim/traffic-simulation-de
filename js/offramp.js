@@ -89,10 +89,14 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -374,8 +378,8 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1); 
-    offramp.draw(rampImg,scale,changedGeometry);
-    mainroad.draw(roadImg,scale,changedGeometry);
+    offramp.draw(rampImg,rampImg,scale,changedGeometry);
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
     offramp.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
@@ -466,11 +470,20 @@ function init() {
 
 	// init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes_main==1)
-	? road1lane_srcFile
-	: (nLanes_main==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWith_srcFile
+	: (nLanes_main==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+    roadImg2 = new Image();
+    roadImg2.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWithout_srcFile
+	: (nLanes_main==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
@@ -511,8 +524,8 @@ function main_loop() {
 	offramp.finishCRG();
         // since road not redrawn generally, this here necessary
 	ctx.drawImage(background,0,0,canvas.width,canvas.height);
-        offramp.draw(rampImg,scale,true);
-	mainroad.draw(roadImg,scale,true); 
+        offramp.draw(rampImg,rampImg,scale,true);
+	mainroad.draw(roadImg1,roadImg2,scale,true); 
     }
     drawU();
     updateU();

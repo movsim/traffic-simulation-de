@@ -67,11 +67,20 @@
 <!-- ############################################## -->
 
 <div id="contents">
-  <canvas id="canvas_ring" width="700" height="700">
-    You are probably using a very ancient web browser (or an Internet Explorer) 
-    not supporting html5 canvas. Please switch to another browser for
-    running this simulation.
+  <canvas id="canvas_ring" width="700" height="700"
+          onmousemove="getCoordinatesDoDragging(event)"
+          onmouseout="cancelActivities(event)"
+          onclick="canvasClickCallback(event)"
+          onmousedown="pickRoadOrVehicle(event)"
+          onmouseup="finishDistortOrDropVehicle()" 
+          style="border:1px solid #d3d3d3;">
+   >
+
+   <!-- on[cC]lick,onmousedown,onmousemove,onmouseover,no onmousedragged-->
+
+    Your browser does not support the HTML5 canvas tag.
   </canvas>
+
 
 </div>
 
@@ -225,6 +234,7 @@
 <script src="js/canvasresize.js" type="text/javascript"></script>
 
 <script src="js/ring_gui.js"></script>  
+<script src="js/canvas_gui.js"></script> 
 <script src="js/colormanip.js"></script> 
 
 <script src="js/models.js"></script> 

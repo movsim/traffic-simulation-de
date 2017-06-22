@@ -14,7 +14,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-
+var changedRoadGeometry; // true only if used-driven geometry changes finished
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
@@ -85,10 +85,14 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -362,18 +366,20 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || false || (!drawRoad)){ 
+	if(hasChanged||(itime<=1) || changedRoadGeometry || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
 
 
     // (3) draw mainroad
-    // (always drawn; changedGeometry only triggers building a new lookup table)
+    // (always drawn; but changedGeometry=true necessary
+    // if changed (it triggers building a new lookup table). 
+    // Otherwise, road drawn at old position
 
     
-     var changedGeometry=hasChanged||(itime<=1); 
-     mainroad.draw(roadImg,scale,changedGeometry);
+     var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
+     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
  
@@ -385,7 +391,9 @@ function drawU() {
 
     var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
     var srcFileIndex=Math.min(speedlimit_kmh/10,13);
-    if( (srcFileIndex !=srcFileIndexOld)||hasChanged||(itime<=1) ){
+    if( (srcFileIndex !=srcFileIndexOld)||hasChanged
+	||changedRoadGeometry || (itime<=1) ){
+
 	srcFileIndexOld=srcFileIndex;
 	speedlimitImg.src=sign_speedlimit_srcFiles[srcFileIndex];
 	console.log("speedlimitImg.src=",speedlimitImg.src);
@@ -398,6 +406,7 @@ function drawU() {
 	xPix -= 0.5*sizeSignPix; // center of sign
 	yPix -= 0.5*sizeSignPix;
 	ctx.setTransform(1,0,0,1,0,0); 
+	console.log("roadworks.draw: before drawing speedlimitImg");
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 
@@ -519,11 +528,20 @@ function init() {
 
 	// init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes==1)
-	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWith_srcFile
+	: (nLanes==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+    roadImg2 = new Image();
+    roadImg2.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWithout_srcFile
+	: (nLanes==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
@@ -545,6 +563,7 @@ function init() {
 
 function main_loop() {
 
+    changedRoadGeometry=false;
     //!!! distortion
 
     //if(false){
@@ -554,9 +573,7 @@ function main_loop() {
 	mainroad.testCRG(xUserMain,yUserMain);
 	mainroad.doCRG(xUserMain,yUserMain);
 	mainroad.finishCRG();
-        // since road not redrawn generally, this here necessary
-	ctx.drawImage(background,0,0,canvas.width,canvas.height);
-	mainroad.draw(roadImg,scale,true); 
+	changedRoadGeometry=true; // need to redraw background, new road, speed limits..
     }
 
 

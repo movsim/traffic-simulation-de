@@ -571,20 +571,128 @@ road.prototype.testCRG=function(xUser,yUser){
 
 called as long as mouse is down/screen touched and this.testCRG(..)[1]=true
 width of the affected region=>this.kernelWidth
-@param:  xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
-@return: void; road segments are moved acording to changes in xtab, ytab
+
+if called with 5 parameters, a change of road geometry near the merge
+is only possible parallel to the other road "mergeRoad"
+
+@param  xUser,yUser: phys. coordinates corresp 
+        to mousedown/touchdown event
+@param  mergeRoad (optional):  other road with common merge/diverge
+@param  uMerge (optional): position (own road) of beginning merge or diverge 
+        before the change
+@param  mergeLen: length of merge/diverge section of ramp
+@return void; road segments are moved acording to changes in xtab, ytab
 */
 
-road.prototype.doCRG=function(xUser,yUser){
+road.prototype.doCRG=function(xUser,yUser,mergeRoad,uMerge,mergeLen){
+
+    var considerMergeRoad=!(typeof mergeRoad === 'undefined');
+
     var iPiv=this.iPivot; // making code easier to read/write
     var ic=this.icKernel; 
-    var imin=Math.max(iPiv-ic, 0);
-    var imax=Math.min(iPiv+ic, this.nSegm);
-    var deltaX=xUser-this.xtabOld[iPiv];
-    var deltaY=yUser-this.ytabOld[iPiv];
+    var imin=(this.isRing) ? iPiv-ic : Math.max(iPiv-ic, 0);
+    var imax=(this.isRing) ? iPiv+ic : Math.min(iPiv+ic, this.nSegm);
+    var deltaXmax=xUser-this.xtabOld[iPiv];
+    var deltaYmax=yUser-this.ytabOld[iPiv];
+    var deltaX=[];
+    var deltaY=[];
     for (var i=imin; i<=imax; i++){
-	this.xtab[i]=this.xtabOld[i]+deltaX*this.kernel[i-iPiv+ic];
-	this.ytab[i]=this.ytabOld[i]+deltaY*this.kernel[i-iPiv+ic];
+	deltaX[i]=deltaXmax*this.kernel[i-iPiv+ic];
+	deltaY[i]=deltaYmax*this.kernel[i-iPiv+ic];
+    }
+
+
+// block for considering mergeRoad
+    var inflLen=40; // max distance from merge for influence
+
+    if(considerMergeRoad){
+
+	for (var i=imin; i<=imax; i++){
+	    var u=i*this.roadLen/this.nSegm;
+
+            // test for influence and influence acordingly
+
+	    if((u>uMerge-inflLen)&&(u<uMerge+mergeLen+inflLen)){
+		var urelBeg=(uMerge-u)/inflLen;
+		var urelEnd=(u-uMerge-mergeLen)/inflLen;
+		var approachFact=(u<uMerge)
+		    ? Math.pow(Math.sin(0.5*Math.PI*urelBeg),2)
+		    : (u>uMerge+mergeLen)
+		    ? Math.pow(Math.sin(0.5*Math.PI*urelEnd),2) : 0;
+
+                // find nearest target point and determine 
+                // tangential and normal unit vectors
+
+		var uOther=this.getNearestUof(mergeRoad,u);
+		var phiOther=mergeRoad.get_phi(uOther);
+		var e=[]; // tangential target unit vector
+		e[0]=Math.cos(phiOther); 
+		e[1]=Math.sin(phiOther); 
+
+		var deltaXold=deltaX[i];
+		var deltaYold=deltaY[i];
+
+                // correction deltaR_corr=approachFact*deltaR
+                // +(1-approachFact)*(deltaR.e)*e
+
+		var deltaR_dot_e=deltaXold*e[0]+deltaYold*e[1];
+		deltaX[i] = approachFact * deltaXold
+		       +(1-approachFact) * deltaR_dot_e * e[0];
+		deltaY[i] = approachFact * deltaYold
+		       +(1-approachFact) * deltaR_dot_e * e[1];
+	    }
+	}
+    }
+
+    // special case if the influence region is near the end => onramp
+    // shift merging region
+
+    if(considerMergeRoad&&(this.nSegm-imax<0.05*this.nSegm)){
+	console.log("doCRG: in special case !");
+	var iminOn=Math.round(this.nSegm*uMerge/this.roadLen);
+	imin=Math.min(imin, iminOn);
+	imax=this.nSegm;
+	for (var i=iminOn; i<=this.nSegm; i++){
+
+	    var u=i*this.roadLen/this.nSegm;
+	    var uOther=this.getNearestUof(mergeRoad,u);
+	    var phiOther=mergeRoad.get_phi(uOther);
+	    var e=[];
+	    e[0]=Math.cos(phiOther);
+	    e[1]=Math.sin(phiOther);
+	    var deltaR_dot_e=deltaXmax*e[0]+deltaYmax*e[1];
+	    deltaX[i] =deltaR_dot_e * e[0];
+	    deltaY[i] =deltaR_dot_e * e[1];
+	}
+    }
+
+
+    for (var i=imin; i<=imax; i++){
+	var itab=i;
+	if(isRing){
+	    if(i<0){itab+=this.nSegm+1;}
+	    if(i>this.nSegm){itab-=(this.nSegm+1);}
+	}
+
+	//console.log("end of road.doCRG: i=",i," itab=",itab,
+	//	    " imax=",imax," nSegm=",this.nSegm,
+	//	    " deltaX[i]=",deltaX[i]," deltaY[i]=",deltaY[i]);
+	this.xtab[itab]=this.xtabOld[itab]+deltaX[i];
+	this.ytab[itab]=this.ytabOld[itab]+deltaY[i];
+    }
+} // end doCRG
+
+
+
+
+
+ // detect the fucking NaN's 
+
+road.prototype.testForNaN=function(){ // detect the fucking NaN's 
+    for(var i=0; i<this.nSegm; i++){
+	if(isNaN(this.xtab[i]) ||isNaN(this.ytab[i])){
+	    console.log("!!! i=",i," NaN's in xtab or ytab!!");
+	}
     }
 }
 
@@ -2244,23 +2352,14 @@ road.prototype.get_phi=function(u){
     var smallVal=0.0000001;
 
     var du=0.1;
-    var dx=this.traj_x(u+du)-this.traj_x(u-du);
-    var dy=this.traj_y(u+du)-this.traj_y(u-du);
+    var uLoc=Math.max(du, Math.min(this.roadLen-du,u));
+    var dx=this.traj_x(uLoc+du)-this.traj_x(uLoc-du);
+    var dy=this.traj_y(uLoc+du)-this.traj_y(uLoc-du);
     if((Math.abs(dx)<smallVal)&&(Math.abs(dy)<smallVal)){
 	console.log("road.get_phi: error: cannot determine heading of two identical points"); return 0;
     }
     var phi=(Math.abs(dx)<smallVal) ? 0.5*Math.PI : Math.atan(dy/dx);
     if( (dx<0) || ((Math.abs(dx)<smallVal)&&(dy<0))){phi+=Math.PI;}
-    if(false){
-      if( (u<2)||(u>this.roadLen-2) || !((phi>-10)||(phi<10))){
-	console.log("road.get_phi: u=",u," u+du=",u+du,
-		    " this.traj_x(u+du)=",this.traj_x(u+du),
-		    " this.traj_y(u+du)=",this.traj_y(u+du),
-		    " this.traj_x(u-du)=",this.traj_x(u-du),
-		    " this.traj_y(u-du)=",this.traj_y(u-du),
-		    " dx=",dx," dy=",dy," phi=",phi);
-      }
-    }
 
     return phi;
 }
@@ -2323,7 +2422,7 @@ road.prototype.get_yPix=function(u,v,scale){
 
 /**
 @param scale:     physical road coordinbates => pixels, [scale]=pixels/m
-@param roadImg:   image of a (small, straight) road element
+@param roadImg1:   image of a (small, straight) road element
 @param changed geometry: true if a resize event took place in parent
 @param movingObs: (optional) whether observer is moving, default=false 
 @param uObs:      (optional) location uObs,vObs=0 is drawn at the physical
@@ -2336,7 +2435,7 @@ road.prototype.get_yPix=function(u,v,scale){
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-road.prototype.draw=function(roadImg,scale,changedGeometry,
+road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 			     movingObs,uObs,xObs,yObs){
 
     var movingObserver=(typeof movingObs === 'undefined')
@@ -2378,6 +2477,10 @@ road.prototype.draw=function(roadImg,scale,changedGeometry,
 
     // actual drawing routine
 
+    var duLine=15; // distance between two middle-lane lines
+    var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
+    nSegmLine=Math.max(2, nSegmLine);
+
     for (var iSegm=0; iSegm<this.nSegm; iSegm++){
 	var cosphi=this.draw_cosphi[iSegm];
 	var sinphi=this.draw_sinphi[iSegm];
@@ -2389,6 +2492,7 @@ road.prototype.draw=function(roadImg,scale,changedGeometry,
 
 
 	ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
+	var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
 	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 	if(false){
 	  console.log("road.draw: iSegm="+iSegm+

@@ -28,7 +28,7 @@ var center_xPhys=135; // !! only IC!
 var center_yPhys=-180; // !! only IC! ypixel downwards=> physical center <0
 
 var mainroadLen=1200;
-var nLanes=3;
+var nLanes_main=3;
 var laneWidth=7;
 var laneWidthRamp=5;
 
@@ -47,7 +47,7 @@ var lTaper=15;                    // for both merge/diverge parts
 var lParallel=60;                // length parallel to mainroad before merg.
 
 // length of deviation
-var lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes+1)+lParallel
+var lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes_main+1)+lParallel
     +rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); 
 
 // difference between first diverge and first merge point in mainroad coords
@@ -72,7 +72,7 @@ console.log(" deviation properties: length lDev="+lDev
 
 var uBeginRoadworks=straightLen+0.9*arcLen;
 var uEndRoadworks=uBeginRoadworks+0.2*arcLen;
-var laneRoadwork=nLanes-1;  // 0=left, nLanes-1=righyt
+var laneRoadwork=nLanes_main-1;  // 0=left, nLanes_main-1=righyt
 var lenRoadworkElement=10;
 
 
@@ -114,10 +114,14 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 //var background_srcFile='figs/backgroundGrass.jpg'; //800 x 800
@@ -164,7 +168,7 @@ function trajDeviation_x(u){ // physical coordinates
 
     var u1=lrampDev; // end of diverg. section
     var x1=traj_x(u1+umainDiverge);
-    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
+    var y1=traj_y(u1)+0.5*laneWidth*(nLanes_main+1); // nLanes_main: main; nLanes_mainDev=1
 
     var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
     var x2=x1-rDev*salpha;
@@ -175,7 +179,7 @@ function trajDeviation_x(u){ // physical coordinates
     var y3=y2-rDev*calpha;
 
 
-    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes_main+1); // end 1st straight
     var x4=x3;
 
     var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
@@ -209,7 +213,7 @@ function trajDeviation_y(u){ // physical coordinates
     var salpha=Math.sin(alpha);
 
     var u1=lrampDev; // end of diverg. section
-    var y1=traj_y(u1)+0.5*laneWidth*(nLanes+1); // nLanes: main; nLanesDev=1
+    var y1=traj_y(u1)+0.5*laneWidth*(nLanes_main+1); // nLanes_main: main; nLanes_mainDev=1
 
     var u2=u1+rDev*alpha;  //  end first right-curve, begin left curve
     var y2=y1+rDev*(1-calpha);
@@ -217,7 +221,7 @@ function trajDeviation_y(u){ // physical coordinates
     var u3=u2+rDev*(0.5*Math.PI+alpha); // begin first straight sect perp main
     var y3=y2-rDev*calpha;
 
-    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes+1); // end 1st straight
+    var u4=u3+2*(arcRadius+y3-y1)+laneWidth*(nLanes_main+1); // end 1st straight
     var y4=y3+u3-u4;
 
     var u5=u4+rDev*0.5*Math.PI; // begin second straight sect parall main
@@ -271,7 +275,7 @@ updateModels();
 var isRing=0;  // 0: false; 1: true
 duTactical=150; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1,mainroadLen,laneWidth,nLanes,traj_x,traj_y,
+var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit,speedInit,truckFracInit,isRing);
 var deviation=new road(2,lDev,laneWidthRamp,1,trajDeviation_x,trajDeviation_y,
 		       0.1*densityInit,speedInit,truckFracInit,isRing);
@@ -478,7 +482,7 @@ function drawU() {
       // update geometric properties
 
       arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-      sizePhys=2.3*arcRadius + 2*nLanes*laneWidth;
+      sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
 
@@ -486,7 +490,7 @@ function drawU() {
       // see "geometry of deviation road" for explanation 
 	umainDiverge=0.65*straightLen-0.15*arcLen;
       //umainDiverge=0.55*straightLen+0.2*arcLen;// main coord where diverge zone ends
-      lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes+1)+lParallel
+      lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes_main+1)+lParallel
         + rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); // length of deviation
       dumainDivergeMerge=arcLen-lrampDev
         + lParallel+ 2*(straightLen-umainDiverge);
@@ -570,10 +574,10 @@ function drawU() {
     var changedGeometry=hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
-    deviation.draw(rampImg,scale,changedGeometry);
+    deviation.draw(rampImg,rampImg,scale,changedGeometry);
     deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
-    mainroad.draw(roadImg,scale,changedGeometry);
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
@@ -706,11 +710,20 @@ function init() {
 
 	// init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes==1)
-	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWith_srcFile
+	: (nLanes_main==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+    roadImg2 = new Image();
+    roadImg2.src=(nLanes_main==1)
+	? road1lanes_srcFile
+	: (nLanes_main==2) ? road2lanesWithout_srcFile
+	: (nLanes_main==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
@@ -751,8 +764,8 @@ function main_loop() {
 	deviation.finishCRG();
         // since road not redrawn generally, this here necessary
 	ctx.drawImage(background,0,0,canvas.width,canvas.height);
-        deviation.draw(rampImg,scale,true);
-	mainroad.draw(roadImg,scale,true); 
+        deviation.draw(rampImg,rampImg,scale,true);
+	mainroad.draw(roadImg1,roadImg2,scale,true); 
     }
 
     drawU();

@@ -188,7 +188,7 @@ var background = new Image();
 var carImg = new Image();
 var truckImg = new Image();
 var obstacleImg = new Image();
-var roadImg = new Image();
+var roadImg1 = new Image();
 
 //background.src ='figs/backgroundGrassTest.jpg';
 background.src ='figs/backgroundGrass.jpg';
@@ -197,10 +197,10 @@ carImg.src='figs/blackCarCropped.gif';
 truckImg.src='figs/truck1Small.png';
 obstacleImg.src='figs/obstacleImg.png';
 
-roadImg.src=
-    (nLanes==1) ? 'figs/oneLaneRoadRealisticCropped.png' :
-    (nLanes==2) ? 'figs/twoLanesRoadRealisticCropped.png' :
-    'figs/threeLanesRoadRealisticCropped.png';
+roadImg1.src=
+    (nLanes==1) ? 'figs/road1lanesCrop.png' :
+    (nLanes==2) ? 'figs/road2lanesCropWith.png' :
+    'figs/road3lanesCropWith.png';
 
 
 
@@ -677,7 +677,7 @@ function draw() {
     // change also drawMovingBackground accordingly
 
     var xObsRel=xBegin+traj_x(uObs)-traj_x(0);
-    mainroad.draw(roadImg,scale,changedGeometry,relObserver,
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,relObserver,
 		  uObs,xObsRel,yBegin); //
 
     mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)

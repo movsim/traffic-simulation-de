@@ -94,11 +94,11 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var road4lanes_srcFile='figs/fourLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -410,12 +410,12 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=hasChanged||(itime<=1)||true; 
-    onramp.draw(rampImg,scale,changedGeometry,
+    onramp.draw(rampImg,rampImg,scale,changedGeometry,
 		movingObserver,0, 
 		center_xPhys-traj_x(uObs)+trajRamp_x(0),
 		center_yPhys-traj_y(uObs)+trajRamp_y(0)); 
 
-    mainroad.draw(roadImg,scale,changedGeometry,
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
 
 // center_xPhys, center_yPhys
@@ -554,12 +554,12 @@ function init() {
 
     // init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes==1)
-	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
-	: (nLanes==3) ? road3lanes_srcFile
-	: road4lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWith_srcFile
+	: (nLanes==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 

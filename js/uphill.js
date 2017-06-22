@@ -72,10 +72,14 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 //var obstacle_srcFile='figs/obstacleImg.png';
-var road1lane_srcFile='figs/oneLaneRoadRealisticCropped.png';
-var road2lanes_srcFile='figs/twoLanesRoadRealisticCropped.png';
-var road3lanes_srcFile='figs/threeLanesRoadRealisticCropped.png';
-var ramp_srcFile='figs/oneLaneRoadRealisticCropped.png';
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -320,7 +324,7 @@ function drawU() {
 
     
      var changedGeometry=hasChanged||(itime<=1); 
-     mainroad.draw(roadImg,scale,changedGeometry);
+     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
  
@@ -482,11 +486,21 @@ function init() {
 
 	// init road image(s)
 
-    roadImg = new Image();
-    roadImg.src=(nLanes==1)
-	? road1lane_srcFile
-	: (nLanes==2) ? road2lanes_srcFile
-	: road3lanes_srcFile;
+    roadImg1 = new Image();
+    roadImg1.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWith_srcFile
+	: (nLanes==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+    roadImg2 = new Image();
+    roadImg2.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWithout_srcFile
+	: (nLanes==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
+
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
