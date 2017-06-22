@@ -339,9 +339,11 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 // and a first gridding such that internal this.traj_x, this.traj_y defined
 
 road.prototype.update_nSegm_tabxy=function(){
-    console.log("begin road.update_nSegm_tabxy: this.nSegm=",this.nSegm,
-		" this.traj_y(0)=",this.traj_y(0),
-		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen));
+
+    //console.log("begin road.update_nSegm_tabxy: this.nSegm=",this.nSegm,
+    //		" this.traj_y(0)=",this.traj_y(0),
+    //		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen));
+
     var nSegm_per_rad=10; // nSegm_per_phi segments for each radian of curves
     var nSegm_per_m=0.1; // nSegm_per_len segments for each m in roadLen
 
@@ -371,10 +373,12 @@ road.prototype.update_nSegm_tabxy=function(){
     }
 
     this.nSegm=nSegmNew;
-    console.log("end road.update_nSegm_tabxy: new this.nSegm=",this.nSegm,
+    if(false){
+        console.log("end road.update_nSegm_tabxy: new this.nSegm=",this.nSegm,
 		" this.traj_y(0)=",this.traj_y(0),
 		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen)
 	       );
+    }
 
 }
 
@@ -468,6 +472,49 @@ road.prototype.writeTrucksLC= function() {
 }
 
 
+/**
+#############################################################
+(jun17) get nearest longitudinal coordinate of another road for a given 
+longitudinal coordinate u of the road calling this method
+#############################################################
+
+
+@param  otherRoad: the road to get the nearest longitudinal coordinate from
+@param  u: longitudinal coordinate of the calling road
+@return the longitudinal coordinate of the other road nearest to u
+*/
+road.prototype.getNearestUof=function(otherRoad, u){
+    var dist2_min=1e9;
+    var xOwn=this.traj_x(u);
+    var yOwn=this.traj_y(u);
+    var uReturn=0;
+    var duOther=otherRoad.roadLen/otherRoad.nSegm;
+    for(var i=0; i<=otherRoad.nSegm; i++){
+	var uOther=i*duOther;
+	var dist2=Math.pow(xOwn-otherRoad.xtab[i],2) + Math.pow(yOwn-otherRoad.ytab[i],2);
+	if(false){console.log("getNearestUof:",
+		    "  xOwn=",xOwn," otherRoad.xtab=",otherRoad.xtab[i],
+		    "  yOwn=",yOwn," otherRoad.ytab=",otherRoad.ytab[i],
+		    " dist2=",dist2," dist2_min=",dist2_min," uReturn=",uReturn
+		   );
+		 }
+	if(dist2<dist2_min){
+	    dist2_min=dist2;
+	    uReturn=uOther;
+	}
+    }
+    if(true){
+	console.log("end road.getNearestUof: u=",u,
+		    " this.roadLen=",this.roadLen,
+		    " otherRoad.roadLen=",otherRoad.roadLen,
+		    " xOwn=",xOwn, " yOwn=",yOwn,
+		    " uReturn=",uReturn," dist=",Math.sqrt(dist2));
+    }
+    return uReturn;
+}
+
+
+
 
 /**
 #############################################################
@@ -478,8 +525,8 @@ triggered by a mousedown or touchdown (first touch)
 event with corresp phys coordinates 
 at or near a road element 
 
-@param:  xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
-@return: array [success,Deltax,Deltay]
+@param   xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
+@return  array [success,Deltax,Deltay]
          Deltax/y gives distance vecto trigger point - nearest road element,
          dist_min=sqrt(Deltax^2+Deltay^2)
 @internally set: iPivot=index of this element, xPivot=xUser, yPivot=yUser
@@ -487,17 +534,17 @@ at or near a road element
 
 road.prototype.testCRG=function(xUser,yUser){
     var dist_crit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
-    var dist_min=1000000;
+    var dist2_min=1e9;
     for(var i=0; i<=this.nSegm; i++){
-	var dist=Math.pow(xUser-this.xtab[i],2) + Math.pow(yUser-this.ytab[i],2);
-	if(dist<dist_min){
-	    dist_min=dist;
+	var dist2=Math.pow(xUser-this.xtab[i],2) + Math.pow(yUser-this.ytab[i],2);
+	if(dist2<dist2_min){
+	    dist2_min=dist2;
 	    this.iPivot=i;
 	    this.xPivot=xUser;
 	    this.yPivot=yUser;
 	}
     }
-    dist_min=Math.sqrt(dist_min);
+    var dist_min=Math.sqrt(dist2_min);
     var success=(dist_min<=dist_crit);
 
     console.log("road.testCRG: dist_min=",dist_min," dist_crit=",dist_crit);
@@ -670,10 +717,10 @@ road.prototype.finishCRG=function(){
 needed when user brought in too much sharp/abrupt curves
 smoothes with maxiumum half-width iWidth 
 (total number of points 2*iWidth+1) centered at index iCenter
-
 */
+
 road.prototype.smoothLocally=function(iCenter, iWidth){
-    console.log("in road.smoothLocally: iCenter=",iCenter," iWidth=",iWidth);
+    //console.log("in road.smoothLocally: iCenter=",iCenter," iWidth=",iWidth);
     var xtabNew=[];
     var ytabNew=[];
     for (var i=0; i<=this.nSegm; i++){
@@ -699,10 +746,12 @@ road.prototype.smoothLocally=function(iCenter, iWidth){
         // smooth with moving averages
 
 	var nSmooth=2*iwLoc+1;
-	console.log("smoothLocally: i=",i," iCenter=",iCenter," iWidth=",iWidth,
-		    " iw=",iw," iwLoc=",iwLoc," nSmooth=",nSmooth);
+	//console.log("smoothLocally: i=",i," iCenter=",iCenter," iWidth=",iWidth,
+	//	    " iw=",iw," iwLoc=",iwLoc," nSmooth=",nSmooth);
+
 
         // generate triang kernel
+
 	var kern=[];
 	var norm=0;
 	for(var j=0; j<=2*iwLoc; j++){
@@ -716,19 +765,28 @@ road.prototype.smoothLocally=function(iCenter, iWidth){
 	    ytabNew[i]=this.ytab[i];
 	}
 	else{
-	  for(var j=-iwLoc; j<=iwLoc; j++){
-	    //xtabNew[i] += this.xtab[i+j]/nSmooth;
-	    //ytabNew[i] += this.ytab[i+j]/nSmooth;
-	    xtabNew[i] += this.xtab[i+j] * kern[iwLoc+j];
-	    ytabNew[i] += this.ytab[i+j] * kern[iwLoc+j];
-
-	  }
+	    for(var j=-iwLoc; j<=iwLoc; j++){
+	        xtabNew[i] += this.xtab[i+j] * kern[iwLoc+j];
+	        ytabNew[i] += this.ytab[i+j] * kern[iwLoc+j];
+	    }
 	}
-	if(true){console.log("smoothLocally: i=",i,
+	if(false){console.log("smoothLocally: i=",i,
 		    " xtabNew[i]=",xtabNew[i],
 		    " this.xtab[i]=",this.xtab[i]);
 		 }
     }
+
+    // test if successful
+
+    for (var i=iCenter-iw; i<=iCenter+iw; i++){
+	if(isNaN(xtabNew[i]) || isNaN(ytabNew[i])){
+	    console.log("road.SmoothLocally: i=",i," iCenter=",iCenter, 
+			"iw=",iw,": xtabNew[i] or ytabNew[i] are NaN's!"
+			+"\ndoing nothing");
+	    return;
+	}
+    }
+
 
     // copy to this.xytab
 
