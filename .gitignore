@@ -21,6 +21,7 @@
 *~
 int
 *.bak
+trafficSimulationLocalVersion*
 
 ## other files
 README_Responsinator
