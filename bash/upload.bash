@@ -19,6 +19,7 @@ $startDir/bash/engl2ger.bash
 projects="ring onramp onrampHOT offramp roadworks uphill routing"
 targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 # targetDir="$startDir/trafficSimulationLocalVersion"
+
 cd $startDir
 
 echo "preparingtarget Directory $targetDir"
@@ -45,6 +46,8 @@ for proj in $projects; do
       htmlfile="index.html";
       htmlfile_ger="index_ger.html";
   fi
+
+
   echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done

@@ -13,7 +13,7 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing"
+projects="ring onramp onrampHOT offramp roadworks uphill routing"
 #projects="ring"
 
 cd $startDir
@@ -31,7 +31,7 @@ cd $startDir
 
 
 
-htmlfiles=""
+htmlfilesGer=""
 
 cp js/redirect.js js/redirect_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
@@ -50,19 +50,19 @@ for proj in $projects; do
   fi
   echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
 
+
   # backup
 
-if(false){
-  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
-  htmlfiles="$htmlfiles $htmlfile_ger"
-  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
-  if test -f js/${proj}_gui_ger.js; then cp js/${proj}_gui_ger.js $backupdir/js; fi
-}
+#  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
+#  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
+#  if test -f js/${proj}_gui_ger.js; then cp js/${proj}_gui_ger.js $backupdir/js; fi
+
 
 
 
   # copy engl->ger files and do project-specific replacements
 
+  htmlfilesGer="$htmlfilesGer $htmlfile_ger"
   cp $htmlfile $htmlfile_ger
   cp js/${proj}.js js/${proj}_ger.js
   cp js/${proj}_gui.js  js/${proj}_gui_ger.js
@@ -79,7 +79,7 @@ done
 
 echo "changing engl->german strings in some files ..."
 
-for file in $htmlfiles; do
+for file in $htmlfilesGer; do
 
 
   perl -i -p -e 's/\>Ringroad\</>Ringstrasse</g' $file
