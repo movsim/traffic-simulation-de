@@ -16,6 +16,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
+var changedRoadGeometry; //!!! true only if user-driven geometry changes
 
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
@@ -31,7 +32,6 @@ var laneWidthRamp=5;
 
 var offLen=250;
 var divergeLen=100;
-var mainOffOffset=410; // =mainroadLen-straightLen;
 var taperLen=40;
 
 
@@ -39,6 +39,7 @@ var taperLen=40;
 // variable depending on aspect ratio: only relevant for graphics
 
 var straightLen=0.34*mainroadLen;      // straight segments of U
+var mainOffOffset=mainroadLen-straightLen;
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
 var arcRadius=arcLen/Math.PI;
 var center_xPhys=95; // only IC!!
@@ -322,15 +323,14 @@ function drawU() {
       sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
+
+      //!!!  hasChanged revert any user-dragged shifts!
       mainOffOffset=mainroadLen-straightLen;
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.35*arcRadius; // ypixel downwards=> physical center <0
       scale=refSizePix/sizePhys; 
  
-      // !!!!
-      // update gridded road trajectories (revert any user-dragged shifts)
-      // inside if(hasChanged) block
       mainroad.roadLen=mainroadLen;
       offramp.roadLen=offLen;
       mainroad.gridTrajectories(traj_x,traj_y);
@@ -366,7 +366,8 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || (itime==20) || false || (!drawRoad)){ 
+	if(changedRoadGeometry||hasChanged||(itime<=1) 
+	   || (itime==20) || false || (!drawRoad)){
 
          ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -377,7 +378,7 @@ function drawU() {
     // and vehicles (directly after frawing resp road or separately, depends)
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    var changedGeometry=hasChanged||(itime<=1); 
+    var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
     offramp.draw(rampImg,rampImg,scale,changedGeometry);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
@@ -510,8 +511,8 @@ function main_loop() {
 
     //!!! distortion
 
-    //if(false){
-    if(itime==10){ //!!! test with zero distortion, just gridding
+    if(false){
+    //if(itime==10){ //!!! test with zero distortion, just gridding
 	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
 	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-30;
 	var xUserOff=offramp.traj_x(0.4*offramp.roadLen)+0;
@@ -529,6 +530,7 @@ function main_loop() {
     }
     drawU();
     updateU();
+    changedRoadGeometry=false;
     //mainroad.writeVehicles(); // for debugging
 }
  

@@ -393,25 +393,6 @@ function drawU() {
 
     //if(false){
     if(hasChanged){
-      if(true){
-	console.log("before canvas resize: canvas dim ",
-		    canvas.width,"X",canvas.height," refSizePix=",
-		    refSizePix," sizePhys=",sizePhys," scale=",scale,
-		    "\n straightLen=",straightLen,
-		    " mainRampOffset=",mainRampOffset);
-      }
-
-      if(true){
-	  console.log("\n before canvas resize:\n",
-		      "mainroad.roadLen=",mainroad.roadLen,
-		      "onramp.roadLen=",onramp.roadLen,
-                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
-	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
-	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
-		   );
-      }
-
 
       // update sliderWidth in *_gui.js; 
 
@@ -424,25 +405,12 @@ function drawU() {
       sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLenInit-arcLen);  // one straight segment
-     // mainRampOffset=mainroad.roadLen-straightLen+mergeLen-onramp.roadLen;
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       scale=refSizePix/sizePhys; 
 
-      // !!!update gridded road trajectories (revert any user-dragged shifts)
-
-      if(true){
-	  console.log("\n after canvas resize, before gridTrajectories:\n",
-		      "mainroad.roadLen=",mainroad.roadLen,
-		      "onramp.roadLen=",onramp.roadLen,
-                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
-	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
-	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
-		   );
-      }
-
+      // !!! if hasChanged revert any user-dragged shifts!
 
       mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
 

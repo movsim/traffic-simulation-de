@@ -63,7 +63,13 @@
 <!-- ############################################## -->
 
 <div id="contents">
-  <canvas id="canvas_roadworks" width="800" height="600">
+  <canvas id="canvas_roadworks" width="800" height="600"
+          onmousemove="getCoordinatesDoDragging(event)"
+          onmouseout="cancelActivities(event)"
+          onclick="canvasClickCallback(event)"
+          onmousedown="pickRoadOrVehicle(event)"
+          onmouseup="finishDistortOrDropVehicle()" 
+          style="border:1px solid #d3d3d3;">
     You are probably using a very ancient web browser (or an Internet Explorer) 
     not supporting html5 canvas. Please switch to another browser for
     running this simulation.
@@ -219,6 +225,7 @@
 <!-- specific scripts; position after def of canvas! -->
 
 <script src="js/roadworks_gui.js"></script> 
+<script src="js/canvas_gui.js"></script> 
 <script src="js/colormanip.js"></script>
 <script src="js/models.js"></script> 
 <script src="js/vehicle.js"></script>

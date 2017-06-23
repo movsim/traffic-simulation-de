@@ -396,6 +396,7 @@ function main_loop() {
 
     if(false){
     //if(itime==10){ //!!! test with zero distortion, just gridding
+
 	var xUserMain=mainroad.traj_x(0.8*mainroad.roadLen)+0;
 	var yUserMain=mainroad.traj_y(0.8*mainroad.roadLen)-30;
 	mainroad.testCRG(xUserMain,yUserMain); // necessary!

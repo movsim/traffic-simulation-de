@@ -503,7 +503,7 @@ road.prototype.getNearestUof=function(otherRoad, u){
 	    uReturn=uOther;
 	}
     }
-    if(true){
+    if(false){
 	console.log("end road.getNearestUof: u=",u,
 		    " this.roadLen=",this.roadLen,
 		    " otherRoad.roadLen=",otherRoad.roadLen,
@@ -572,21 +572,23 @@ road.prototype.testCRG=function(xUser,yUser){
 called as long as mouse is down/screen touched and this.testCRG(..)[1]=true
 width of the affected region=>this.kernelWidth
 
-if called with 5 parameters, a change of road geometry near the merge
-is only possible parallel to the other road "mergeRoad"
+if called with 5 parameters, a change of road geometry near the common 
+section of the other road "otherRoad" 
+(where it is parallel for merging/diverging) 
+is only possible parallel to the "otherRoad"
 
 @param  xUser,yUser: phys. coordinates corresp 
         to mousedown/touchdown event
-@param  mergeRoad (optional):  other road with common merge/diverge
-@param  uMerge (optional): position (own road) of beginning merge or diverge 
+@param  otherRoad (optional):  other road with common merge/diverge
+@param  uBegin (optional): position (own road) of beginning merge or diverge 
         before the change
-@param  mergeLen: length of merge/diverge section of ramp
+@param  commonLen: length of common merge/diverge section 
 @return void; road segments are moved acording to changes in xtab, ytab
 */
 
-road.prototype.doCRG=function(xUser,yUser,mergeRoad,uMerge,mergeLen){
+road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
 
-    var considerMergeRoad=!(typeof mergeRoad === 'undefined');
+    var considerMergeRoad=!(typeof otherRoad === 'undefined');
 
     var iPiv=this.iPivot; // making code easier to read/write
     var ic=this.icKernel; 
@@ -602,7 +604,7 @@ road.prototype.doCRG=function(xUser,yUser,mergeRoad,uMerge,mergeLen){
     }
 
 
-// block for considering mergeRoad
+// block for considering otherRoad
     var inflLen=40; // max distance from merge for influence
 
     if(considerMergeRoad){
@@ -612,19 +614,19 @@ road.prototype.doCRG=function(xUser,yUser,mergeRoad,uMerge,mergeLen){
 
             // test for influence and influence acordingly
 
-	    if((u>uMerge-inflLen)&&(u<uMerge+mergeLen+inflLen)){
-		var urelBeg=(uMerge-u)/inflLen;
-		var urelEnd=(u-uMerge-mergeLen)/inflLen;
-		var approachFact=(u<uMerge)
+	    if((u>uBegin-inflLen)&&(u<uBegin+commonLen+inflLen)){
+		var urelBeg=(uBegin-u)/inflLen;
+		var urelEnd=(u-uBegin-commonLen)/inflLen;
+		var approachFact=(u<uBegin)
 		    ? Math.pow(Math.sin(0.5*Math.PI*urelBeg),2)
-		    : (u>uMerge+mergeLen)
+		    : (u>uBegin+commonLen)
 		    ? Math.pow(Math.sin(0.5*Math.PI*urelEnd),2) : 0;
 
                 // find nearest target point and determine 
                 // tangential and normal unit vectors
 
-		var uOther=this.getNearestUof(mergeRoad,u);
-		var phiOther=mergeRoad.get_phi(uOther);
+		var uOther=this.getNearestUof(otherRoad,u);
+		var phiOther=otherRoad.get_phi(uOther);
 		var e=[]; // tangential target unit vector
 		e[0]=Math.cos(phiOther); 
 		e[1]=Math.sin(phiOther); 
@@ -649,14 +651,14 @@ road.prototype.doCRG=function(xUser,yUser,mergeRoad,uMerge,mergeLen){
 
     if(considerMergeRoad&&(this.nSegm-imax<0.05*this.nSegm)){
 	console.log("doCRG: in special case !");
-	var iminOn=Math.round(this.nSegm*uMerge/this.roadLen);
+	var iminOn=Math.round(this.nSegm*uBegin/this.roadLen);
 	imin=Math.min(imin, iminOn);
 	imax=this.nSegm;
 	for (var i=iminOn; i<=this.nSegm; i++){
 
 	    var u=i*this.roadLen/this.nSegm;
-	    var uOther=this.getNearestUof(mergeRoad,u);
-	    var phiOther=mergeRoad.get_phi(uOther);
+	    var uOther=this.getNearestUof(otherRoad,u);
+	    var phiOther=otherRoad.get_phi(uOther);
 	    var e=[];
 	    e[0]=Math.cos(phiOther);
 	    e[1]=Math.sin(phiOther);
@@ -1725,8 +1727,8 @@ strategic/tactical lane-change behaviour of the drivers
 @param newRoad: the road to which to merge or diverge
 @param offset:  difference[m] in the arclength coordinate u 
                 between new and old road
-@param ustart:  start[m] of the merging/diverging zone in old-road coordinates
-@param uend:    end[m] of the merging/diverging zone in old-road coordinates
+@param uBegin:  begin[m] of the merging/diverging zone in old-road coordinates
+@param uEnd:    end[m] of the merging/diverging zone in old-road coordinates
                 Notice: If merge, exclude virtual vehicle pos from u-range!
 @param isMerge: if true, merge; otherwise diverge. 
 @param toRight: direction of the merge/diverge. 
@@ -1734,21 +1736,21 @@ strategic/tactical lane-change behaviour of the drivers
 @return:        void. Both roads are affected!
 */
 
-road.prototype.mergeDiverge=function(newRoad,offset,uStart,uEnd,isMerge,toRight){
+road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,isMerge,toRight){
 
     var log=false;
     if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
 
     // (1) get neighbourhood
 
-    var uNewStart=uStart+offset;
+    var uNewStart=uBegin+offset;
     var uNewEnd=uEnd+offset;
     var padding=50; // additional visibility  on target road before/after
     var originLane=(toRight) ? this.nLanes-1 : 0;
     var targetLane=(toRight) ? 0 : newRoad.nLanes-1;
 
      // getTargetNeighbourhood also sets this.iOffset, newRoad.iOffset
-    var originVehicles=this.getTargetNeighbourhood(uStart, uEnd, originLane);
+    var originVehicles=this.getTargetNeighbourhood(uBegin, uEnd, originLane);
 
     var targetVehicles=newRoad.getTargetNeighbourhood(
 	uNewStart-padding, uNewEnd+padding, targetLane);

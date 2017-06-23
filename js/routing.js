@@ -15,6 +15,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
+var changedRoadGeometry; //!!! true only if user-driven geometry changes
 
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
@@ -39,11 +40,11 @@ var arcRadius=arcLen/Math.PI;
 
 // geometry of deviation road
 
-var umainDiverge=0.4*straightLen; // main coord where diverge zone ends
+var umainDiverge=0.65*straightLen-0.15*arcLen; // main coord where diverge zone ends
 var rDev=30;                       // radius of curves on deviation route
 var alpha=0.2*Math.PI;             // heading change of first right-curve
 var lrampDev=150;            // length of off/onramp section of deviation
-var lTaper=15;                    // for both merge/diverge parts
+var taperLen=15;                    // for both merge/diverge parts
 var lParallel=60;                // length parallel to mainroad before merg.
 
 // length of deviation
@@ -240,7 +241,7 @@ function trajDeviation_y(u){ // physical coordinates
     var y9=y8;
 
 
-    return (u<lTaper) ? y1-0.6*laneWidth*(1-u/lTaper)
+    return (u<taperLen) ? y1-0.6*laneWidth*(1-u/taperLen)
         : (u<u1) ? y1
 	: (u<u2) ? y1+rDev*(1-Math.cos((u-u1)/rDev))
 	: (u<u3) ? y3+rDev*Math.sin((u3-u)/rDev)
@@ -249,8 +250,8 @@ function trajDeviation_y(u){ // physical coordinates
 	: (u<u6) ? y5
 	: (u<u7) ? y6 + rDev*(1-Math.cos((u-u6)/rDev))
 	: (u<u8) ? y8 - rDev*(1-Math.cos((u8-u)/rDev))
-        : (u<u8+lrampDev-lTaper) ? y8 
-	: y8+0.6*laneWidth*((u-u8-lrampDev+lTaper)/lTaper)
+        : (u<u8+lrampDev-taperLen) ? y8 
+	: y8+0.6*laneWidth*((u-u8-lrampDev+taperLen)/taperLen)
 }
 
 // IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
@@ -298,7 +299,7 @@ deviation.LCModelMandatoryLeft=LCModelMandatoryLeft;
 // add standing virtual vehicle at the end of onramp (1 lane)
 //#########################################################
 
-var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*lTaper, 0, 0, "obstacle");
+var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*taperLen, 0, 0, "obstacle");
 var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
@@ -408,18 +409,21 @@ function updateU(){
     deviation.updateSpeedPositions();
     deviation.updateBCdown();
 
+    var du_antic=20; //shift anticipation decision point upstream by du_antic
+
+    // umainDiverge, umainMerge updated in canvas_gui.handleDependencies
+    // taperLen,lrampDev,du_antic constant
+
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    var du_antic=20; //shift anticipation decision point upstream by du_antic
-
     mainroad.mergeDiverge(deviation,-umainDiverge,
-			  umainDiverge+lTaper,
+			  umainDiverge+taperLen,
 			  umainDiverge+lrampDev-du_antic,
 			  false,true);
-    deviation.mergeDiverge(mainroad, umainMerge-(lDev-lrampDev),
-			   lDev-lrampDev, 
-			   lDev-lTaper, 
+    deviation.mergeDiverge(mainroad, umainMerge-(deviation.roadLen-lrampDev),
+			   deviation.roadLen-lrampDev, 
+			   deviation.roadLen-taperLen, 
 			   true,false);
  
 
@@ -488,8 +492,10 @@ function drawU() {
 
       // update geometric properties of deviation; 
       // see "geometry of deviation road" for explanation 
-	umainDiverge=0.65*straightLen-0.15*arcLen;
-      //umainDiverge=0.55*straightLen+0.2*arcLen;// main coord where diverge zone ends
+      // !!! revert any user-made changes
+
+      umainDiverge=0.65*straightLen-0.15*arcLen;
+
       lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes_main+1)+lParallel
         + rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); // length of deviation
       dumainDivergeMerge=arcLen-lrampDev
@@ -559,7 +565,8 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || (itime==20) || false || (!drawRoad)){ 
+	if(changedRoadGeometry ||hasChanged
+	   ||(itime<=1) || (itime==20) || false || (!drawRoad)){
 	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -571,7 +578,7 @@ function drawU() {
     //!!! sometimes road elements are moved as though they were vehicles
     // check/debug with omitting drawing of the road (changedGeometry=false)!
     
-    var changedGeometry=hasChanged||(itime<=1); 
+    var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
     deviation.draw(rampImg,rampImg,scale,changedGeometry);
@@ -745,8 +752,9 @@ function init() {
 function main_loop() {
     //!!! distortion
 
-    //if(false){
-    if(itime==10){ //!!! test with zero distortion, just gridding
+    if(false){
+    //if(itime==10){ //!!! test with zero distortion, just gridding
+	changedRoadGeometry=true;
 	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
 	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-0;
 	var xUserDev=deviation.traj_x(0.5*deviation.roadLen)+70;
@@ -770,6 +778,7 @@ function main_loop() {
 
     drawU();
     updateU();
+    changedRoadGeometry=false;
     //mainroad.writeVehicles(); // for debugging
 }
  
