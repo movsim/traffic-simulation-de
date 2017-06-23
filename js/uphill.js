@@ -337,7 +337,8 @@ function drawU() {
     // (4a) draw traffic signs
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
-    if(hasChanged||banButtonClicked||(itime<=1) || (itime==20) ){
+    if(changedRoadGeometry||hasChanged||banButtonClicked
+       ||(itime<=1) || (itime==20) ){
 
 	banButtonClicked=false;
 	var sizeSignPix=0.1*refSizePix;

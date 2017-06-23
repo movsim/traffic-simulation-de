@@ -17,8 +17,8 @@ $startDir/bash/engl2ger.bash
 #############################################
 
 projects="ring onramp onrampHOT offramp roadworks uphill routing"
-# targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
-targetDir="$startDir/trafficSimulationLocalVersion"
+targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
+# targetDir="$startDir/trafficSimulationLocalVersion"
 cd $startDir
 
 echo "preparingtarget Directory $targetDir"

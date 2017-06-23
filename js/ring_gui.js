@@ -33,6 +33,19 @@ var IDM_a=IDM_aInit;
 var IDM_bInit=3;
 var IDM_b=IDM_bInit;
 
+//!!! new sliders
+
+var MOBIL_bThrInit=0.4;
+var MOBIL_bThr=MOBIL_bThrInit;
+
+var MOBIL_bBiasRight_carInit=0.05;
+var MOBIL_bBiasRight_car=MOBIL_bBiasRight_carInit;
+
+var MOBIL_bBiasRight_truckInit=0.2;
+var MOBIL_bBiasRight_truck=MOBIL_bBiasRight_truckInit;
+
+
+// fixed
 
 var speedlimit_truck=80/3.6
 var factor_v0_truck=0.7;
@@ -230,5 +243,47 @@ slider_IDM_b.oninput = function() {
 }
 
 
+
+// MOBIL_bThr slider
+
+var slider_MOBIL_bThr = document.getElementById('slider_MOBIL_bThr');
+var slider_MOBIL_bThrVal = document.getElementById("slider_MOBIL_bThrVal");
+slider_MOBIL_bThr.value=MOBIL_bThrInit;
+slider_MOBIL_bThrVal.innerHTML=MOBIL_bThrInit+" m/s<sup>2</sup>";
+
+slider_MOBIL_bThr.oninput = function() {
+    slider_MOBIL_bThrVal.innerHTML = this.value+" m/s<sup>2</sup>";
+    MOBIL_bThr=parseFloat(this.value);
+    updateModels();
+}
+
+
+// MOBIL_bBiasRight_car slider
+
+var slider_MOBIL_bBiasRight_car = document.getElementById('slider_MOBIL_bBiasRight_car');
+var slider_MOBIL_bBiasRight_carVal = document.getElementById("slider_MOBIL_bBiasRight_carVal");
+slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_carInit;
+slider_MOBIL_bBiasRight_carVal.innerHTML=MOBIL_bBiasRight_carInit+" m/s<sup>2</sup>";
+
+slider_MOBIL_bBiasRight_car.oninput = function() {
+    slider_MOBIL_bBiasRight_carVal.innerHTML = this.value+" m/s<sup>2</sup>";
+    MOBIL_bBiasRight_car=parseFloat(this.value);
+    updateModels();
+}
+
+
+
+// MOBIL_bBiasRight_truck slider
+
+var slider_MOBIL_bBiasRight_truck = document.getElementById('slider_MOBIL_bBiasRight_truck');
+var slider_MOBIL_bBiasRight_truckVal = document.getElementById("slider_MOBIL_bBiasRight_truckVal");
+slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truckInit;
+slider_MOBIL_bBiasRight_truckVal.innerHTML=MOBIL_bBiasRight_truckInit+" m/s<sup>2</sup>";
+
+slider_MOBIL_bBiasRight_truck.oninput = function() {
+    slider_MOBIL_bBiasRight_truckVal.innerHTML = this.value+" m/s<sup>2</sup>";
+    MOBIL_bBiasRight_truck=parseFloat(this.value);
+    updateModels();
+}
 
 

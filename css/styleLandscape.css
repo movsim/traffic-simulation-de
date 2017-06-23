@@ -126,9 +126,9 @@ TR{
 #sliders1{ /* table elements relevant for font size */
   position: absolute;
   top: 48vmin;
-  height: 17vmin;
+  height: 20vmin;
   left: 15vmin;  /* calc( 24vw - 23vmin);*/
-  width: 58vmin;
+  width: 62vmin;
   background-color: rgba(255,255,255,0.4);
   z-index: 2; /* the higher the integer, the more on top */
 }

@@ -47,9 +47,10 @@ var truck_width=7;
 
 var MOBIL_bSafe=4;
 var MOBIL_bSafeMax=17;
-var MOBIL_bThr=0.4;
-var MOBIL_bBiasRight_car=0.05; 
-var MOBIL_bBiasRight_truck=0.2; 
+
+//var MOBIL_bThr=0.4;    => now in sliders, gui
+//var MOBIL_bBiasRight_car=0.05; 
+//var MOBIL_bBiasRight_truck=0.2; 
 var dt_LC=4; // duration of a lane change
 
 // simulation initial conditions settings
