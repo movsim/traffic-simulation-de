@@ -102,8 +102,10 @@ var obstacle_srcFile='figs/obstacleImg.png';
 var road1lanes_srcFile='figs/road1lanesCrop.png';
 var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
 var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
 var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
 var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
 var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
@@ -411,7 +413,6 @@ function drawU() {
       scale=refSizePix/sizePhys; 
 
       // !!! if hasChanged revert any user-dragged shifts!
-
       mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
 
       mainroad.roadLen=mainroadLenInit;
@@ -422,7 +423,7 @@ function drawU() {
       onramp.gridTrajectories(trajRamp_xInit,trajRamp_yInit);
 
       if(true){
-	  console.log("\n after canvas resize, after gridTrajectories:\n",
+	  console.log("\n after local canvas resize, after gridTrajectories:\n",
 		      "mainroad.roadLen=",mainroad.roadLen,
 		      "onramp.roadLen=",onramp.roadLen,
                     " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
