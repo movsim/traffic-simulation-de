@@ -22,15 +22,17 @@ cd $startDir
 # (1) copy the English files to German targets
 #############################################
 
-backupdir="backup`date +20%y_%m_%d`"
-if test -d $backupdir; 
-  then echo "notice: backupdir already exists"; 
-  else mkdir $backupdir; mkdir $backupdir/js
-fi
-htmlfiles=""
-jsfiles="js/redirect_ger.js"
+#backupdir="backup`date +20%y_%m_%d`"
+#if test -d $backupdir; 
+#  then echo "notice: backupdir already exists"; 
+#  else mkdir $backupdir; mkdir $backupdir/js
+#fi
+#cp js/redirect_ger.js $backupdir/js
 
-cp js/redirect_ger.js $backupdir/js
+
+
+htmlfiles=""
+
 cp js/redirect.js js/redirect_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
 
@@ -50,11 +52,12 @@ for proj in $projects; do
 
   # backup
 
+if(false){
   if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
   htmlfiles="$htmlfiles $htmlfile_ger"
   if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
   if test -f js/${proj}_gui_ger.js; then cp js/${proj}_gui_ger.js $backupdir/js; fi
-  jsfiles="$jsfiles js/${proj}_ger.js js/${proj}_gui_ger.js"
+}
 
 
 
@@ -93,18 +96,25 @@ for file in $htmlfiles; do
   perl -i -p -e 's/\>Disturb Traffic\</>St&ouml;re Verkehr</g' $file
   perl -i -p -e 's/\>Timewarp\</>Zeitraffer</g' $file
   perl -i -p -e 's/\>Density\</>Dichte</g' $file
+  perl -i -p -e 's/\>Density\/lane\</>Dichte\/Spur</g' $file
   perl -i -p -e 's/\>Scale\</>Skala</g' $file
 
   perl -i -p -e 's/Truck Fraction/LKW-Anteil/g' $file
+  perl -i -p -e 's/Truck Perc/LKW-Anteil/g' $file
+  perl -i -p -e 's/LC Threshold/Wechselschwelle/g' $file
+  perl -i -p -e 's/Right Bias Cars/Rechtsfahren PKW/g' $file
+  perl -i -p -e 's/Right Bias Trucks/Rechtsfahren LKW/g' $file
   perl -i -p -e 's/Inflow/Hauptzufluss/g' $file
   perl -i -p -e 's/Onramp Flow/Rampenzufluss/g' $file
   perl -i -p -e 's/Offramp Use/Anteil abfahrend/g' $file
   perl -i -p -e 's/Deviation Use/Anteil Umleitung/g' $file
   perl -i -p -e 's/Max Speed/Wunschgeschw./g' $file
   perl -i -p -e 's/Speed Limit/Tempolimit/g' $file
-  perl -i -p -e 's/Uphill Truck Speed/V(LKW) \@Steigung/g' $file
-  perl -i -p -e 's/Time Gap/Zeitluecke/g' $file
-  perl -i -p -e 's/Min Gap/Mindestluecke/g' $file
+  perl -i -p -e 's/Uphill Truck Speed/V<sub>0<\/sub>\(LKW\) \@Steigung/g' $file
+  perl -i -p -e 's/Uphill Truck/V<sub>0<\/sub>\(LKW\) \@Steigung/g' $file
+  perl -i -p -e 's/\>Speed\<//g' $file
+  perl -i -p -e 's/Time Gap/Zeitl&uuml;cke/g' $file
+  perl -i -p -e 's/Min Gap/Mindestl&uuml;cke/g' $file
   perl -i -p -e 's/Max Acceleration/Max Beschleun/g' $file
   perl -i -p -e 's/Max Accel/Max Beschl/g' $file
   perl -i -p -e 's/Comf Deceleration/Komfort Verzoeg/g' $file
@@ -117,6 +127,8 @@ done
 #############################################
 # change js files (incl link targets in redirect.js)
 #############################################
+
+jsfiles="js/redirect_ger.js js/${proj}_ger.js js/${proj}_gui_ger.js"
 
 for file in "$jsfiles"; do
   perl -i -p -e 's/times\"/fach\"/g' $file
@@ -133,8 +145,8 @@ for file in "$jsfiles"; do
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
 
-perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW Ueberholverbot/g' uphill_ger.html js/uphill_gui_ger.js
-perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW Ueberholverbot auf\"/g' js/uphill_gui_ger.js
+perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html js/uphill_gui_ger.js
+perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_gui_ger.js
 
 cd $wd
 

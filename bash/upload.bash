@@ -77,7 +77,7 @@ echo "packing target in a zip file for allowing the users local runs ..."
 zip -r $targetDir.zip $targetDir
 echo "created $targetDir.zip"
 
-
+ 
 #############################################
 # (4) test uploaded package locally in browser
 #############################################

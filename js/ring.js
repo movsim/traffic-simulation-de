@@ -304,11 +304,13 @@ function drawRing() {
 		 genVarStr_ylb-0.2*textsize);
     */
 
-    // (6) draw the speed colormap
+    // (6) draw the speed colormap (text size propto widthPix
 
+    // drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
+    //		    vminMap, vmaxMap, vminDisplay, vmaxDisplay)
     drawColormap(scale*(center_xPhys-0.03*roadRadius), 
                 -scale*(center_yPhys+0.50*roadRadius), 
-		 scale*50, scale*50,
+		 scale*35, scale*45,
 		 vmin,vmax,0,100/3.6);
 
 
