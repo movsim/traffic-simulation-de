@@ -237,7 +237,7 @@ function drawRing() {
 
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
 
 
     // draw some running-time vars
@@ -356,8 +356,9 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();  // only pro forma (no obstacles here)
-    obstacleImg.src = obstacle_srcFile;
+    obstacleImgs = [];
+    obstacleImgs[0]=new Image();  // only pro forma (no obstacles here)
+    obstacleImgs[0].src = obstacle_srcFile;
 
     // init road image(s)
 

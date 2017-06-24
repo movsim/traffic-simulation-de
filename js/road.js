@@ -2550,6 +2550,8 @@ veh.id=1:                ego vehicle
 veh.id=10,11, (max 99):  disturbed vehicles 
 veh.id>=100:             normal vehicles
 
+@param carImg, truckImg: one veh image per type
+@param obstacleImgs: array [standard black bar, construction vehs]
 @param scale: translates physical coordinbates into pixel:[scale]=pixels/m
 @param speedmin,speedmax: speed range [m/s] for the colormap 
        (red=slow,blue=fast)
@@ -2567,9 +2569,14 @@ veh.id>=100:             normal vehicles
 @return draw into graphics context ctx (defined in calling routine)
 */
 
+//road.prototype.drawVehicles=function(carImg, truckImg, obstacleImgs, scale,
+//				     speedmin,speedmax,umin,umax,
+//				     movingObs, uObs, xObs, yObs){
+
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
+
     if(false){
 	console.log("in road.drawVehicles:");
 	//this.writeVehiclesSimple();
@@ -2603,11 +2610,18 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           // special corrections for image obstacles 
           // (depends on image and orientation)
 
+	  var obstacleImgIndex=this.veh[i].id % obstacleImgs.length;
+
 	  if(type=="obstacle"){
+	      //console.log("obstacle id=",this.veh[i].id);
+
 	      vCenterPhys -=0.3*this.laneWidth;
-	      if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)) 
-		  phiVeh-=Math.PI;
-              phiVeh -=0.2;
+	      if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){ 
+		  phiVeh-=Math.PI;}
+	      if(obstacleImgIndex!=0){ // index 0: black bar for ramp ends, OK
+		  phiVeh -=0.2;
+		  vCenterPhys -=0.3*this.laneWidth;
+	      }
           } 
 
           var cphiRoad=Math.cos(phiRoad);
@@ -2621,8 +2635,16 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
           // (1) draw vehicles as images
 
-          vehImg=(type=="car") ? carImg : (type=="truck") ? truckImg : obstacleImg;
-          ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, xCenterPix, yCenterPix);
+	  var obstacleImg;
+	  if(type=="obstacle"){
+	      obstacleImg=obstacleImgs[obstacleImgIndex];
+	  }
+
+          vehImg=(type=="car")
+	      ? carImg : (type=="truck")
+	      ? truckImg : obstacleImg;
+          ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
+			   xCenterPix, yCenterPix);
           ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
 			vehLenPix,vehWidthPix);
 

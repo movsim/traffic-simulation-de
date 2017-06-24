@@ -86,7 +86,7 @@ var ramp_srcFile='figs/road1lanesCrop.png';
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
 //var sign_uphill_srcFile='figs/uphill12_small.gif'; 
-var sign_uphill_srcFile='figs/Steigung4.svg'; 
+var sign_uphill_srcFile='figs/Zeichen_Steigung4.svg'; 
 var sign_free_srcFile='figs/sign_free_282_small.png'; 
 var sign_truckOvertakingBan_srcFile='figs/truckOvertakingBan_small.gif'; 
 
@@ -334,7 +334,7 @@ function drawU() {
  
     // (4) draw vehicles (obstacleImg here empty, only needed for interface)
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin, vmax);
 
     // (4a) draw traffic signs
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
@@ -478,8 +478,9 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    //obstacleImg.src = obstacle_srcFile;
+    obstacleImgs=[];
+    obstacleImgs[0] = new Image();
+    //obstacleImg[0].src = obstacle_srcFile;
 
     signUphillImg = new Image();
     signUphillImg.src = sign_uphill_srcFile;

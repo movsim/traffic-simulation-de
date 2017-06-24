@@ -583,15 +583,15 @@ function drawU() {
     //var changedGeometry=false; 
 
     deviation.draw(rampImg,rampImg,scale,changedGeometry);
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax,
 			   0,lrampDev);
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax,
 			   lDev-lrampDev, lDev);
 
 
@@ -713,8 +713,9 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    obstacleImg.src = obstacle_srcFile;
+    obstacleImgs=[];
+    obstacleImgs[0] = new Image();
+    obstacleImgs[0].src = obstacle_srcFile;
 
 	// init road image(s)
 

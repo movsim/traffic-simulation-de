@@ -88,7 +88,14 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
 //var obstacle_srcFile='figs/obstacleImg.png';
-var obstacle_srcFile='figs/constructionVeh04.png';
+//var obstacle_srcFile='figs/constructionVeh04.png';
+var obstacle_srcFiles = [];
+obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
+for (var i=1; i<10; i++){ //!!!
+    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
+    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
+}
+
 var road1lanes_srcFile='figs/road1lanesCrop.png';
 var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
 var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
@@ -101,7 +108,6 @@ var ramp_srcFile='figs/road1lanesCrop.png';
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
 
-// !!! speedlimit signs
 var srcFileIndexOld=8;
 var srcFileIndex=8;
 var sign_free_srcFile='figs/sign_free_282_small.png'; 
@@ -182,11 +188,16 @@ var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
 for (var ir=0; ir<nr; ir++){
     var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
-    var virtualStandingVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
+    var virtualVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
 					u,laneRoadwork, 0, "obstacle");
-     virtualStandingVeh.longModel=longModelObstacle;
-     virtualStandingVeh.LCModel=LCModelObstacle;
-     mainroad.veh.push(virtualStandingVeh); // append; prepend=unshift
+
+    // avoid that an obstacle id is a multiple of the number of obstacle 
+    // img srcfiles since then the "black bar" for end-onramp is drawn
+    if(virtualVeh.id%obstacle_srcFiles.length==0){virtualVeh.id+=1;}
+
+    virtualVeh.longModel=longModelObstacle;
+    virtualVeh.LCModel=LCModelObstacle;
+    mainroad.veh.push(virtualVeh); // append; prepend=unshift
 }
 
 // put roadwork obstacles at right place and let vehicles get context of them 
@@ -338,9 +349,6 @@ function drawU() {
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       scale=refSizePix/sizePhys; 
 
-      // !!!!
-      // update gridded road trajectories (revert any user-dragged shifts)
-      // inside if(hasChanged) block
 
       mainroad.roadLen=mainroadLen;
       mainroad.gridTrajectories(traj_x,traj_y);
@@ -383,10 +391,11 @@ function drawU() {
 
  
     // (4) draw vehicles
+//!!!
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin, vmax);
+    //mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin, vmax);
-
-    // (4a) !!! implement varying speed-limit signs! -> uphill as template
+    // (4a) implement varying speed-limit signs! -> uphill as template
 
     var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
     var srcFileIndex=Math.min(speedlimit_kmh/10,13);
@@ -517,9 +526,12 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    obstacleImg.src = obstacle_srcFile;
-
+    obstacleImgs = [];
+    for (var i=0; i<obstacle_srcFiles.length; i++){
+	obstacleImgs[i]=new Image();
+	obstacleImgs[i].src = obstacle_srcFiles[i];
+    }
+    obstacleImg=obstacleImgs[1]; //!!! test sim speed
     signFreeImg = new Image();
     signFreeImg.src = sign_free_srcFile;
     speedlimitImg = new Image();
@@ -561,20 +573,6 @@ function init() {
 //##################################################
 
 function main_loop() {
-
-
-    //!!! distortion
-
-    if(false){
-    //if(itime==10){ //!!! test with zero distortion, just gridding
-	var xUserMain=mainroad.traj_x(0.50*mainroad.roadLen)+110;
-	var yUserMain=mainroad.traj_y(0.50*mainroad.roadLen)-20;
-	mainroad.testCRG(xUserMain,yUserMain);
-	mainroad.doCRG(xUserMain,yUserMain);
-	mainroad.finishCRG();
-	changedRoadGeometry=true; // need to redraw background, new road, speed limits..
-    }
-
 
     drawU();
     updateU();

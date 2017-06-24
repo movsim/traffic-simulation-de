@@ -474,14 +474,14 @@ function drawU() {
  
     // (4) draw vehicles
 
-    onramp.drawVehicles(carImg,truckImg,obstacleImg,scale,
+    onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin,vmax,0,onramp.roadLen,
 			movingObserver,0,
 			center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
 			center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0));
 
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin, vmax,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
@@ -603,8 +603,9 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    obstacleImg.src = obstacle_srcFile;
+    obstacleImgs = [];
+    obstacleImgs[0]=new Image();
+    obstacleImgs[0].src = obstacle_srcFile;
 
     // init road image(s)
 

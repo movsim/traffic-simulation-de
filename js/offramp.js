@@ -383,8 +383,8 @@ function drawU() {
     offramp.draw(rampImg,rampImg,scale,changedGeometry);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
-    offramp.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    offramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
 
 
 
@@ -468,8 +468,9 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
-    obstacleImg = new Image();
-    obstacleImg.src = obstacle_srcFile;
+    obstacleImgs=[];
+    obstacleImgs[0] = new Image();
+    obstacleImgs[0].src = obstacle_srcFile;
 
 	// init road image(s)
 
