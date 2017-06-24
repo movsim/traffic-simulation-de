@@ -90,7 +90,7 @@
   <canvas id="canvas_ring" width="700" height="700"
           onmousemove="getCoordinatesDoDragging(event)"
           onmouseout="cancelActivities(event)"
-          onclick="canvasClickCallback(event)"
+          onclick="slowDownClickedVeh(event)"
           onmousedown="pickRoadOrVehicle(event)"
           onmouseup="finishDistortOrDropVehicle()" 
           style="border:1px solid #d3d3d3;">

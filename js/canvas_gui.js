@@ -1,6 +1,6 @@
 
 //###############################################################
-// canvas onmousemove callback
+// mouse and touch event callbacks
 //###############################################################
 /*
           onmousemove="getCoordinatesDoDragging(event)"
@@ -12,14 +12,16 @@
 
 var xPixLeft, yPixTop;
 var xPixMouse, yPixMouse;
-var xMouse, yMouse;
+var xUser, yUser;
+var xUserDown, yUserDown; // physical coordinates at (first) mousedown event
 var mousedown=false; // true if onmousedown event fired, but not yet onmouseup
 var vehDragging=false; // true if mousedown and a depot vehicle is nearest
 var roadDragging=false; // true if mousedown and a road is nearest
 
 var draggedVehicle;
 var draggedRoad; 
-
+var distminDrag=0.8;  // drag function if dragged more [m]; otherwise click
+var distDrag=0; // physical distance[m] of the dragging
 
 //#####################################################
 // canvas onmousemove callback
@@ -29,43 +31,49 @@ function getCoordinatesDoDragging(event){
 
     //console.log("onmousemove: in getCoordinatesDoDragging: mousedown=",mousedown);
 
-    // mouse position in client window pixel coordinates
+    // mouse position in client window pixel and physical coordinates
 
     var rect = canvas.getBoundingClientRect();
     xPixLeft=rect.left;
     yPixTop=rect.top;
     xPixMouse = event.clientX-xPixLeft; 
     yPixMouse = event.clientY-yPixTop; 
-    xMouse=xPixMouse/scale;   //scale from main js onramp.js etc
-    yMouse=-yPixMouse/scale;   //scale from main js onramp.js etc
+    xUser=xPixMouse/scale;   //scale from main js onramp.js etc
+    yUser=-yPixMouse/scale;   //scale from main js onramp.js etc
 
-    //showPhysicalCoords(xMouse,yMouse);
+    //showPhysicalCoords(xUser,yUser);
 
    // do actions
    // booleans mousedown, vehDragging, roadDragging 
    // controlled by onmousedown and onmouseup or corr touch events
 
-    if(mousedown){ // boolean mousedown, vehDragging, roadDragging  and 
-	if(vehDragging){
-	    dragVehicle(xMouse,yMouse);
-	}
-	if(roadDragging){
-	    dragRoad(xMouse,yMouse);
+    if(mousedown){ // boolean mousedown, vehDragging, roadDragging
+	distDrag=Math.sqrt(Math.pow(xUser-xUserDown,2)
+			   + Math.pow(yUser-yUserDown,2));
+
+	if(distDrag>distminDrag){ // do no dragging actions if only click
+	    if(vehDragging){
+	        dragVehicle(xUser,yUser);
+	    }
+	    if(roadDragging){
+	        dragRoad(xUser,yUser);
+	    }
 	}
     }
+    else{distDrag=0;}
 }
 
-function showPhysicalCoords(xMouse,yMouse){
-    //console.log("in showPhysicalCoords: xMouse=",xMouse," yMouse=",yMouse);
+function showPhysicalCoords(xUser,yUser){
+    //console.log("in showPhysicalCoords: xUser=",xUser," yUser=",yUser);
     //console.log("in showPhysicalCoords");
 }
 
-function dragVehicle(xMouse,yMouse){
-    //console.log("in dragVehicle: xMouse=",xMouse," yMouse=",yMouse);
+function dragVehicle(xUser,yUser){
+    //console.log("in dragVehicle: xUser=",xUser," yUser=",yUser);
     //console.log("in dragVehicle");
 }
 
-function dragRoad(xMouse,yMouse){
+function dragRoad(xUser,yUser){
     console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
 
     changedRoadGeometry=true; // if true, new backgr, new road drawn
@@ -74,7 +82,7 @@ function dragRoad(xMouse,yMouse){
 
     if((scenarioString=="Ring") || (scenarioString=="RoadWorks")
        || (scenarioString=="Uphill")){ 
-	draggedRoad.doCRG(xMouse,yMouse);
+	draggedRoad.doCRG(xUser,yUser);
     }
       
     // "network scenarios
@@ -98,7 +106,7 @@ function dragRoad(xMouse,yMouse){
 
         // draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,commonLen)
 
-	draggedRoad.doCRG(xMouse,yMouse,otherRoad,uBegin,mergeLen);
+	draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,mergeLen);
     }
 
     else if(scenarioString=="OffRamp"){ // divergeLen constant
@@ -117,7 +125,7 @@ function dragRoad(xMouse,yMouse){
 
         // draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,commonLen)
 
-	draggedRoad.doCRG(xMouse,yMouse,otherRoad,uBegin,divergeLen);
+	draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,divergeLen);
 
 
     }
@@ -171,10 +179,10 @@ function dragRoad(xMouse,yMouse){
        // draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,commonLen)
 
 	if(isNearDiverge){
-	    draggedRoad.doCRG(xMouse,yMouse,otherRoad,uBeginDiverge,lrampDev);
+	    draggedRoad.doCRG(xUser,yUser,otherRoad,uBeginDiverge,lrampDev);
 	}
 	else{
-	    draggedRoad.doCRG(xMouse,yMouse,otherRoad,uBeginMerge,lrampDev);
+	    draggedRoad.doCRG(xUser,yUser,otherRoad,uBeginMerge,lrampDev);
 	}
 
     }
@@ -212,9 +220,78 @@ function cancelLastRoadAction(){
 // canvas onclick callback
 //#####################################################
 
-function canvasClickCallback(event){
-    //console.log("in canvasClickCallback");
+function slowDownClickedVeh(event){
+
+    // mouse position in client window pixel and physical coordinates
+
+    var rect = canvas.getBoundingClientRect();
+    xPixLeft=rect.left;
+    yPixTop=rect.top;
+    xPixMouse = event.clientX-xPixLeft; 
+    yPixMouse = event.clientY-yPixTop; 
+    xUser=xPixMouse/scale;   //scale from main js onramp.js etc
+    yUser=-yPixMouse/scale;   //scale from main js onramp.js etc
+
+
+    if(distDrag<distminDrag){
+	slowDownVehNearestTo(xUser,yUser);
+    }
 }
+
+
+//#####################################################
+// helper function for onclick and touched(?) events
+//#####################################################
+
+// id<100:              special vehicles
+// id=1:                ego vehicle
+// id=10,11, (max 99):  disturbed vehicles 
+// id>=100:             normal vehicles if type != "obstacle"
+
+function slowDownVehNearestTo(xUser,yUser){
+
+    var speedReduce=10;
+
+    // find nearest vehicle of the nearest road of the simulation
+
+    var isNetworkScenario=((scenarioString=="OnRamp")
+			   ||(scenarioString=="OffRamp")||
+			   (scenarioString=="Deviation"));
+
+    // all scenarios have a mainroad
+
+    var findResults1=mainroad.findNearestVehTo(xUser,yUser);
+    var success1=findResults1[0];
+
+    // default for road2 (not defined)
+
+    var findResults2;
+    var success2=false;
+
+    if(isNetworkScenario){
+        var road2=(scenarioString=="OnRamp") ? onramp
+ 	    :(scenarioString=="OffRamp") ? offramp
+	    : deviation;
+	findResults2=road2.findNearestVehTo(xUser,yUser);
+	success2=findResults2[0];
+    }
+
+    if((!success1)&&(!success2)){
+	console.log("slowDownClickedVeh: no suitable vehicle found!");
+	return;
+    }
+
+    // findResults=[successFlag, pickedVeh, minDist]
+
+    var vehPerturbed=(!success1) ? findResults2[1]
+	: (!success2) ? findResults1[1]
+	: (findResults1[2]<findResults2[2]) ? findResults1[1] 
+	: findResults2[1];
+
+    vehPerturbed.id=10;  // to distinguish it by color
+    vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
+}
+
 
 
 //#####################################################
@@ -225,6 +302,13 @@ function pickRoadOrVehicle(event){
     //console.log("onmousedown: in pickRoadOrVehicle");
 
     mousedown=true;
+    var rect = canvas.getBoundingClientRect();
+    xPixLeft=rect.left;
+    yPixTop=rect.top;
+    xPixMouse = event.clientX-xPixLeft; 
+    yPixMouse = event.clientY-yPixTop; 
+    xUserDown=xPixMouse/scale;   //scale from main js onramp.js etc
+    yUserDown=-yPixMouse/scale;   //scale from main js onramp.js etc
 
     // test whether a road is picked for dragging
     // road.testCRG returns [success, dist_min, dist_x, dist_y]
@@ -233,17 +317,17 @@ function pickRoadOrVehicle(event){
     // for "OnRamp", "OffRamp", "Deviation" alse second road may be draggedRoad=
     // otherwise, no second road and default testSecond reflects this
 
-    var testMain=mainroad.testCRG(xMouse, yMouse); 
+    var testMain=mainroad.testCRG(xUser, yUser); 
     var testSecond=[false,1e6,1e6,1e6];
 
     if(scenarioString=="OnRamp"){
-	testSecond=onramp.testCRG(xMouse, yMouse);
+	testSecond=onramp.testCRG(xUser, yUser);
     }
     if(scenarioString=="OffRamp"){
-	testSecond=offramp.testCRG(xMouse, yMouse);
+	testSecond=offramp.testCRG(xUser, yUser);
     }
     if(scenarioString=="Deviation"){
-	testSecond=deviation.testCRG(xMouse, yMouse);
+	testSecond=deviation.testCRG(xUser, yUser);
     }
     var success=(testMain[0] || testSecond[0]); 
     if(success){
@@ -274,7 +358,7 @@ function finishDistortOrDropVehicle(){
 //		" vehDragging=",vehDragging);
     mousedown=false;
  
-    if(roadDragging){
+    if(roadDragging&&(distDrag>distminDrag)){
         changedRoadGeometry=true; // if true, new backgr, new road drawn
 	roadDragging=false;
 	//console.log(" before draggedRoad.finishCRG()");
@@ -282,7 +366,7 @@ function finishDistortOrDropVehicle(){
 
 	handleDependencies();
     }
-    if(vehDragging){
+    if(vehDragging&&(distDrag>distminDrag)){
 	vehDragging=false;
     }
 }

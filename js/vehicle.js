@@ -1,5 +1,9 @@
 
-// type = "car" or "truck"
+// types: 0="car", 1="truck", 2="obstacle"
+// id<100:              special vehicles
+// id=1:                ego vehicle
+// id=10,11, (max 99):  disturbed vehicles 
+// id>=100:             normal vehicles if type != "obstacle"
 
 function vehicle(length, width, u, lane, speed, type){
     this.length=length; // car length[m]

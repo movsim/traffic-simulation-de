@@ -515,6 +515,40 @@ road.prototype.getNearestUof=function(otherRoad, u){
 
 
 
+/**
+#############################################################
+(jun17) get nearest vehicle to an external physical position
+#############################################################
+
+
+@param  xUser,yUser: the external physical position
+@return [success flag, the nearest vehicle which is no obstacle, dist_min]
+*/
+road.prototype.findNearestVehTo=function(xUser,yUser){
+    var dist2_min=1e9;
+    var vehReturn
+    var success=false;
+    for(var i=0; i<this.veh.length; i++){
+	var u=this.veh[i].u;
+	var dist2=Math.pow(xUser-this.traj_x(u),2)
+	    + Math.pow(yUser-this.traj_y(u),2);
+	if( (dist2<dist2_min) && (this.veh[i].type!="obstacle")){
+	    success=true;
+	    dist2_min=dist2;
+	    vehReturn=this.veh[i];
+	}
+    }
+    if(false){
+	console.log("end road.getNearestVehTo:",
+		    " xUser=",xUser, " yUser=",yUser,
+		    " i=",i,
+                    " dist_min=",Math.sqrt(dist2_min)  );
+    }
+    return [success,vehReturn,Math.sqrt(dist2_min)];
+}
+
+
+
 
 /**
 #############################################################
@@ -2291,54 +2325,47 @@ road.prototype.updateLastLCtimes=function(dt){
 
 
 //######################################################################
-// disturb externally a vehicle
+// perturb externally a vehicle
 //######################################################################
 /**
-reduces the speed of the normal vehicle that is nearest 
-(in the upstream direction) to the location relLocation*roadLen 
+reduces the speed of the selected vehicle i
 by an amount of speedReduce.
-Notice that the same vehicle may be disturbed several times (if not wished,
-change "this.veh[i].id>=10" to "this.veh[i].id>=100" below)
+Notice that the same vehicle may be disturbed several times 
 
 // id<100:              special vehicles
 // id=1:                ego vehicle
 // id=10,11, (max 99):  disturbed vehicles 
 // id>=100:             normal vehicles if type != "obstacle"
 
-@param relLocation: picks vehicle nearest to arclength u=relLocation*roadLen
+@param i:           the picked veh index
 @param speedReduce: speed reduction [m/s]
 
 @return this.veh[iPicked].speed reduced
+!!! NOT USED at the moment!
 */
 
-road.prototype.disturbOneVehicle=function(relLocation,speedReduce){
-    if(false){
-	console.log("in road.disturbOneVehicle\n");
+
+road.prototype.perturbOneVehicle=function(i,speedReduce){
+    if(true){
+	console.log("\nin road.perturbOneVehicle: iveh=",i);
     }
 
     // select veh to be perturbed (must not be an ego vehicle)
     // give up as a bad job if veh.id=1 two times in a row
     // (may be because the only mainroad vehicle is an ego vehicle)
-    var success=false;
-    var uPick=relLocation*this.roadLen;
-    var iPick=-1;
-    for (var i=0; (i<this.veh.length)&&(!success); i++){
-        if((this.veh[i].u<=uPick) && (this.veh[i].id>=10)
-	   && (this.veh[i].type != "obstacle")){
-	       iPick=i;
-	       success=true;
-	}
-    }
+
+    var findResults=this.findNearestVehTo(xUser,yUser);
+    var success=findResults[0];
+    var vehPerturbed=findResults[1];
     if(!success){
-	console.log("road.disturbOneVehicle: found no suitable"+
-		    " normal vehicle upstream of u="+uPick+" to disturb");
+	console.log("road.perturbOneVehicle: found no suitable"+
+		    " normal vehicle to slow down");
     }
     else{
-	this.veh[iPick].id=10;
-	this.veh[iPick].speed=Math.max(0.,this.veh[iPick].speed-speedReduce);
-     
+	vehPerturbed.id=10;  // to distinguish it by color
+	vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
     }
-}// disturbOneVehicle
+}// perturbOneVehicle
 
 
 //######################################################################
