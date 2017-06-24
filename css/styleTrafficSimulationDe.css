@@ -286,7 +286,7 @@ TR{
 
 ul { margin-left: 2vmin; padding: 0vmin; }
 
-ul.noindent {   /* then in html <ul class="noindent">...</ul>
+ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
     margin-left: 5px;
     margin-right: 0px;
     padding-left: 10px;

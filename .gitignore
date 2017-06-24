@@ -22,6 +22,7 @@
 int
 *.bak
 trafficSimulationLocalVersion*
+*screenshot*
 
 ## other files
 README_Responsinator
