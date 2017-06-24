@@ -1,0 +1,434 @@
+/* (217-6-24) new style file covering all aspects 
+(no pun intended) except sliders
+in the new exhibition format (including mobile)
+
+old version: stylePortrait_2017_06.css, styleLandscape_2017_06.css, styleResponsive.css, 
+sliders_2017_06.css and all the other
+style files (depending on ring or U), except styleUPortrait.css, styleLandscape.css
+
+new version: only stylePortrait.css, styleLandscape.css, sliders.css
+for all html files 
+*/
+
+
+/* media queries: 
+https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
+
+example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
+operator "or" = ","
+boolean variables:
+(min-width: 700px)
+handheld
+(orientation: landscape)
+(monochrome)
+(color)
+(min-aspect-ratio: 1/1)  horiz/vertical
+limits: 
+*/
+
+/*#############################################################
+ big landscape:   (min-width: 720px)  and (min-aspect-ratio: 6/5) 
+ small landscape: (max-width: 719px)  and (min-aspect-ratio: 6/5) 
+ big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
+ small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
+ATTENTION!! no space before pixels! 
+#############################################################*/
+
+
+
+/*#############################################################*/
+/* basic settings for all aspect ratios */
+/*#############################################################*/
+
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+
+/* <h2>, <h3> not used in the main sim page but in some help pages */
+
+ h2{
+     font-family: courier, sans-serif;
+     font-size: 2.5vmin;
+     font-weight: bold;
+     color: #556;
+     padding-top:0px;
+ }
+
+ h3{ 
+     font-family: sans-serif;
+     font-size: 1.9vmin; 
+     font-weight: bold;
+     font-style: italic;
+     color: #556;
+     padding-top:0px;
+ }
+
+/* standard: white */
+
+#container{
+    margin: 0em auto;
+    width: 98vw;
+    text-align: left;
+    background-color: #FFFFFF;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+    border-width: 0;
+}
+
+
+/* general links */
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+
+/* (9)-(11): layout of tables for info boxes */ 
+
+table.infoTable {
+   border: 3px ridge rgb(130,130,130);
+   border-spacing: 4px; 
+   border-collapse: collapse; 
+   padding: 1px;
+   background-color: rgba(255,255,255,0.4);
+}
+table.infoTable td {
+   border: 3px ridge rgb(130,130,130);
+}
+
+
+/*#############################################################*/
+/* basic settings for landscape formats */
+/*#############################################################*/
+
+
+@media all and  (min-aspect-ratio: 6/5){
+
+/* (1) the title */
+
+#header{
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
+}
+
+/* title image */
+
+img.title{
+  max-height: 5vmin;
+}
+
+
+/* (2) the simulation canvas */
+
+#contents{
+  position: absolute;
+  left:   0vw;
+  top:   5vmin;
+  height: 95vmin;
+  width:  120vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (2a) position of the copyright: left bottom of simCanvas */
+
+#impressum{ 
+  position: absolute;
+  bottom: 0vmin;
+  height: 2vmin;
+  left: 0vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+/* (2b) position of the stop sign: right top of simCanvas */
+#startStopDiv{
+  position: absolute;
+  top: 7vmin;
+  height: 8vmin;
+  left: 111vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (3) position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   1vmin;
+  right:   1vw;
+  width:  20vmin; /* no height */
+  z-index: 2;
+}
+
+
+/* (4) the field for selecting the scenarios; if all in one row or several rows
+is left to the html. Notice: 
+leave buttons layout as is; css offers only very simplistic customization */
+
+#scenarios{
+  position: absolute;
+  top:     8vmin;
+  height:  20vmin;
+  left: 121vmin;
+  width: 50vmin;
+  z-index: 2;
+}
+
+button{
+  font-size: calc(2.0vmin + 0.01vw);
+  width: 15vmin;
+}
+
+
+
+
+/* (5) text layout of sliders: tables override general text spec) */
+
+
+TH{                    /* th not used at the moment */
+  font-size: 2.6vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+TR{
+  font-size:1.8vmin; 
+  color: #000000;
+}
+
+
+/* (5a) sliders 1: traffic flow and general variables (or all) */
+/* Notice: table elements relevant for font size */
+
+#sliders1{ 
+  position: absolute;
+  top: 22vmin;
+  height: 20vmin;
+  left: 121vmin;
+  width: calc(50vmin+3vw);
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (5b) sliders 2: longitudinal driving behaviour (if not all in sliders1) */
+
+#sliders2{ 
+  position: absolute;
+  top: 45vmin;
+  height: 20vmin;
+  left: 121vmin;
+  width: 55vmin;
+  background-color: rgba(0,40,255,0.10);
+  z-index: 2;
+}
+
+
+/* (5c) sliders 3: LC behaviour (if not all in sliders1)*/
+
+#sliders3{ 
+  position: absolute;
+  top: 65vmin;
+  height: 20vmin;
+  left: 121vmin;
+  width: 55vmin;
+  background-color: rgba(0,40,255,0.10);
+  z-index: 2;
+}
+
+
+/* (6) infotext div-box  (no pos info, just below the sliders*/
+
+ul { margin-left: 2vmin; padding: 0vmin; }
+
+ul.noindent {   /* then in html <ul class="noindent">...</ul>
+    margin-left: 5px;
+    margin-right: 0px;
+    padding-left: 10px;
+    padding-right: 0px;
+}
+
+#infotext{
+  border:1px solid black;
+  width: 45vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  height: 30vmin;
+  text-align: left;
+  padding-top: 0vmin;
+  padding-left: 1vmin;
+  padding-right: 4vmin;
+  background-color: rgba(0,40,255,0.0);
+}
+
+/* (7) position/size of the colorbox */
+
+#colorBox{
+  position: absolute;
+  top:   79vmin;
+  left: 103vmin;
+  width:  15vmin; /* no height */
+  z-index: 2;
+}
+
+
+
+
+/* (9)-(11): image layout for "text arts" title images */ 
+
+img.infoBlock{
+    /*max-width: 90%;*/
+    max-width: 16vw;
+    max-height: 3vh;
+}
+
+
+/* (9) former model navigation frame  */
+
+#infoModels{
+  position: absolute;
+  top:   8vmin;
+  height:  20vmin;
+  left:   85vw;
+  width:  13vw;
+  z-index: 2;
+}
+
+/* (10) position of the block describing the scenarios */
+
+#infoScenarios{
+  position: absolute;
+  top:   34vmin;
+  height:  30vmin;
+  left:   85vw;
+  width:  13vw;
+  /*background-color: #AAFFAA;*/
+}
+
+/* (11) position of the general link fields (often outside main area) */
+ 
+#infoLinks{
+  position: absolute;
+  top:   85vmin;
+  height:  30vmin;
+  left:   85vw;
+  width:  13vw;
+}
+
+} /* end @media filter landscape normal */
+
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
+    width: 20vmin;
+    height: 2.8vmin;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
+    height: 2.8vmin; 
+    width: 1.5vmin;
+}
+
+
+button{
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(14vmin + 3vw );
+ /* height:    calc(3.5vmin + 1vw);*/
+}
+
+TR{
+  font-size:2.8vmin; 
+  color: #000000;
+}
+
+
+/* (3a) */
+
+#scenarios{
+  left: calc(80.5vw - 14vmin); /* left border: 84vw*/
+  width: calc(14vmin + 3vw );
+}
+
+/* (7a) */
+
+#sliders2{
+  bottom: 1.5vmin;
+  height: 21vmin;
+  width: 60vmin;
+}
+
+/* (10a) */
+
+#infoScenarios{
+  top: 40vmin;
+}
+
+/* (11a) */
+
+#infoLinks{
+  top: 100vmin;
+}
+
+} /* end @media filter landscape handheld */
+
+
+/*#########################################################*/
+/* addl settings if handheld and nearly square */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-aspect-ratio: 3/2) and (max-height: 599px){
+
+/* (7b) */
+
+#sliders2{
+  top: calc(100vh + 1vmin);
+  left: 24vmin;
+}
+}

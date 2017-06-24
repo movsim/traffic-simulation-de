@@ -1,0 +1,293 @@
+
+/* medi queries: 
+https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
+
+example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
+operator "or" = ","
+boolean variables:
+(min-width: 700px)
+handheld
+(orientation: landscape)
+(monochrome)
+(color)
+(min-aspect-ratio: 1/1)  horiz/vertical
+limits: 
+*/
+
+/*#############################################################
+ big landscape:   (min-width: 720px)  and (min-aspect-ratio: 6/5) 
+ small landscape: (max-width: 719px)  and (min-aspect-ratio: 6/5) 
+ big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
+ small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
+ATTENTION!! no space before pixels! 
+#############################################################*/
+
+
+@media all and  (min-aspect-ratio: 6/5){
+
+/* (1) the title */
+
+#header{
+  position: absolute;
+  top: 0vmin;
+  height: 7vh;
+  left: calc( 15vw + 15vmin);
+  width: 40vw; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
+}
+
+/* title image */
+
+img.title{
+  max-height: 7vh;
+}
+
+
+/* (2) the simulation canvas */
+
+#contents{
+  position: absolute;
+  top:   6vmin;
+  bottom: 0vmin;
+  left:   0vw;
+  width:  84vw;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (3) the buttons field for selecting the scenarios (bigscreen in landscape)*/
+/* leave buttons layout as is; css offers only very simplistic customization */
+
+#scenarios{
+  position: absolute;
+  top:     10vmin;
+  height:  50vmin;
+  left: calc(84vw - 20vmin);
+  width: 20vmin;
+  z-index: 2;
+}
+
+button{
+  font-size: calc(2.0vmin + 0.15vw);
+  width: 17vmin;
+}
+
+
+
+/* (4) position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   1vmin;
+  right:   1vw;
+  width:  20vmin; /* no height */
+  z-index: 2;
+}
+
+
+/* (5) position of the copyright: left bottom of simCanvas */
+
+#impressum{ 
+  position: absolute;
+  bottom: 0vmin;
+  height: 2vmin;
+  left: 0vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+
+
+
+/* (6)-(8) text layout of sliders: tables override general text spec) */
+
+TH{
+  font-size: 2.6vmin;
+  font-weight: bold; 
+  color: #404060;   /* text color */
+
+}
+
+TR{
+  font-size:2.1vmin; 
+  color: #000000;
+}
+
+
+/* (6) most important sliders: demand variables such as Qin percTruck 
+/* and most important model parameters and action variables (speedlimit)*/
+
+#sliders1{ /* table elements relevant for font size */
+  position: absolute;
+  top: 48vmin;
+  height: 20vmin;
+  left: 15vmin;  /* calc( 24vw - 23vmin);*/
+  width: 62vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (7) less important sliders; potentially dropped */
+
+#sliders2{ 
+  position: absolute;
+  bottom: 1vmin;
+  height: 15vmin;
+  right:  15.0vw;
+  width:  52vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 2;
+
+}
+
+/* (8) even less important: generally outside of main screen  */
+
+#sliders3{ 
+  position: absolute;
+  top: 17vmin;
+  left: 50vw;
+  width: 33vw;
+  height: 7.5vmin;
+  background-color: rgba(255,255,255,0.4);
+  z-index: 0;
+}
+
+
+
+/* (9)-(11): define white space below sim in portrait mode */
+/* cover simulation "grass" if needed */
+
+
+#footWhiteSpace{
+  position: absolute;
+  top: 0vw;
+  height: 0vh;
+  left: 0vw;
+  width: 0vw;
+  background-color: white;
+  z-index: 1;
+}
+
+
+
+/* (9)-(11): image layout for "text arts" title images */ 
+
+img.infoBlock{
+    /*max-width: 90%;*/
+    max-width: 16vw;
+    max-height: 3vh;
+}
+
+
+/* (9) former model navigation frame  */
+
+#infoModels{
+  position: absolute;
+  top:   8vmin;
+  height:  20vmin;
+  left:   85vw;
+  width:  13vw;
+  z-index: 2;
+}
+
+/* (10) position of the block describing the scenarios */
+
+#infoScenarios{
+  position: absolute;
+  top:   34vmin;
+  height:  30vmin;
+  left:   85vw;
+  width:  13vw;
+  /*background-color: #AAFFAA;*/
+}
+
+/* (11) position of the general link fields (often outside main area) */
+ 
+#infoLinks{
+  position: absolute;
+  top:   85vmin;
+  height:  30vmin;
+  left:   85vw;
+  width:  13vw;
+}
+
+} /* end @media filter landscape normal */
+
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+
+div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
+    width: 20vmin;
+    height: 2.8vmin;
+}
+
+div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
+    height: 2.8vmin; 
+    width: 1.5vmin;
+}
+
+
+button{
+  font-size: calc(2.4vmin + 0.3vw);
+  width:    calc(14vmin + 3vw );
+ /* height:    calc(3.5vmin + 1vw);*/
+}
+
+TR{
+  font-size:2.8vmin; 
+  color: #000000;
+}
+
+
+/* (3a) */
+
+#scenarios{
+  left: calc(80.5vw - 14vmin); /* left border: 84vw*/
+  width: calc(14vmin + 3vw );
+}
+
+/* (7a) */
+
+#sliders2{
+  bottom: 1.5vmin;
+  height: 21vmin;
+  width: 60vmin;
+}
+
+/* (10a) */
+
+#infoScenarios{
+  top: 40vmin;
+}
+
+/* (11a) */
+
+#infoLinks{
+  top: 100vmin;
+}
+
+} /* end @media filter landscape handheld */
+
+
+/*#########################################################*/
+/* addl settings if handheld and nearly square */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-aspect-ratio: 3/2) and (max-height: 599px){
+
+/* (7b) */
+
+#sliders2{
+  top: calc(100vh + 1vmin);
+  left: 24vmin;
+}
+}

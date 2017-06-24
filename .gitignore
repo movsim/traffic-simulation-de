@@ -12,8 +12,8 @@
 *.out
 *.toc
 
-## Figure files
-*.fig
+## Figure files (no longer)
+#*.fig
 
 ## generated files 
 *_ger.html
