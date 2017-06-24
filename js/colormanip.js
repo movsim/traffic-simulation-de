@@ -128,10 +128,10 @@ function colormapSpeed(v, vmin, vmax, vehType, isEgo, time, isOpaque){
 */
 
 
-function drawColormap(xCenterPix, yCenterPix, widthPix, heightPix,
+function displayColormap(xCenterPix, yCenterPix, widthPix, heightPix,
 		      vminMap, vmaxMap, vminDisplay, vmaxDisplay){
 
-    //console.log("drawColormap: widthPix=",widthPix);
+    //console.log("displayColormap: widthPix=",widthPix);
     ctx.setTransform(1,0,0,1,xCenterPix-0.5*widthPix,
 		     yCenterPix-0.5*heightPix); 
 

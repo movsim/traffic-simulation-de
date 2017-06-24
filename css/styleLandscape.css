@@ -1,5 +1,16 @@
+/* (217-6-24) new style file covering all aspects of landscape 
+in the new exhibition format (including mobile)
 
-/* medi queries: 
+old version: stylePortrait_2017_06.css, styleLandscape_2017_06.css, 
+sliders_2017_06.css and all the other
+style files (depending on ring or U), except styleUPortrait.css, styleLandscape.css
+
+new version: only stylePortrait.css, styleLandscape.css, sliders.css
+for all html files 
+*/
+
+
+/* media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
 
 example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
@@ -21,6 +32,106 @@ limits:
  small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
 ATTENTION!! no space before pixels! 
 #############################################################*/
+
+
+
+/*#############################################################*/
+/* basic settings for all */
+/*#############################################################*/
+
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+
+/* <h2>, <h3> not used in the main sim page but in some help pages */
+
+ h2{
+     font-family: courier, sans-serif;
+     font-size: 2.5vmin;
+     font-weight: bold;
+     color: #556;
+     padding-top:0px;
+ }
+
+ h3{ 
+     font-family: sans-serif;
+     font-size: 1.9vmin; 
+     font-weight: bold;
+     font-style: italic;
+     color: #556;
+     padding-top:0px;
+ }
+
+/* standard: white */
+
+#container{
+    margin: 0em auto;
+    width: 98vw;
+    text-align: left;
+    background-color: #FFFFFF;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+    border-width: 0;
+}
+
+
+/* general links */
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+
+/* (9)-(11): layout of tables for info boxes */ 
+
+table.infoTable {
+   border: 3px ridge rgb(130,130,130);
+   border-spacing: 4px; 
+   border-collapse: collapse; 
+   padding: 1px;
+   background-color: rgba(255,255,255,0.4);
+}
+table.infoTable td {
+   border: 3px ridge rgb(130,130,130);
+}
+
+
+/*#############################################################*/
+/* basic settings for all */
+/*#############################################################*/
 
 
 @media all and  (min-aspect-ratio: 6/5){

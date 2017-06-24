@@ -562,7 +562,7 @@ function drawRuntimeVars(){
   
     // (6) draw the speed colormap
 
-      drawColormap(0.86*canvas.width,
+      displayColormap(0.86*canvas.width,
                    0.88*canvas.height,
                    0.1*canvas.width, 0.2*canvas.height,
 		   vminColormap,vmaxColormap,vminColormap,vmaxColormap);

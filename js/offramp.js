@@ -18,6 +18,7 @@ var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 var changedRoadGeometry; //!!! true only if user-driven geometry changes
 
+var drawColormap=false;
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
@@ -387,7 +388,7 @@ function drawU() {
 
 
 
-    // (4) draw some running-time vars
+    // (4)(5) draw some running-time vars
 
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
@@ -409,6 +410,7 @@ function drawU() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
 		 timeStr_ylb-0.2*textsize);
 
+/*
     var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=8*textsize;
     var scaleStr_ylb=timeStr_ylb;
@@ -420,12 +422,12 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
-    
+    */
 
 
     // (6) draw the speed colormap
 
-    drawColormap(0.22*refSizePix,
+    if(drawColormap) displayColormap(0.22*refSizePix,
                  0.43*refSizePix,
                  0.1*refSizePix, 0.2*refSizePix,
 		 vmin,vmax,0,100/3.6);

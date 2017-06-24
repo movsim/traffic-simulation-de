@@ -563,7 +563,7 @@ function drawU() {
 
     // (6) draw the speed colormap
 
-      drawColormap(0.22*refSizePix,
+      displayColormap(0.22*refSizePix,
                    0.43*refSizePix,
                    0.1*refSizePix, 0.2*refSizePix,
 		   vmin,vmax,0,100/3.6);

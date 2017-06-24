@@ -98,11 +98,13 @@ function myStartStopFunction(){
 
     if(isStopped){
 	isStopped=false;
-	document.getElementById('startStop').innerHTML="Stop";
+	//document.getElementById('startStop').innerHTML="Stop";
+	document.getElementById('startStop').src="figs/buttonStop3_small.png";
 	myRun=init();
     }
     else{
-	document.getElementById('startStop').innerHTML="Resume";
+	//document.getElementById('startStop').innerHTML="Resume";
+	document.getElementById('startStop').src="figs/buttonGo_small.png";
 	isStopped=true;
     }
     

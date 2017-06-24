@@ -17,6 +17,7 @@ var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 var changedRoadGeometry; //!!! true only if user-driven geometry changes
 
+var drawColormap=true;
 var vmin=0; // min speed for speed colormap (drawn in red)
 var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
@@ -84,7 +85,8 @@ var ramp_srcFile='figs/road1lanesCrop.png';
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
-var sign_uphill_srcFile='figs/uphill12_small.gif'; 
+//var sign_uphill_srcFile='figs/uphill12_small.gif'; 
+var sign_uphill_srcFile='figs/Steigung4.svg'; 
 var sign_free_srcFile='figs/sign_free_282_small.png'; 
 var sign_truckOvertakingBan_srcFile='figs/truckOvertakingBan_small.gif'; 
 
@@ -447,11 +449,12 @@ function drawU() {
 
     // (6) draw the speed colormap
 
-    drawColormap(0.22*refSizePix,
+    if(drawColormap){
+      displayColormap(0.22*refSizePix,
                  0.43*refSizePix,
                  0.1*refSizePix, 0.2*refSizePix,
 		 vmin,vmax,0,100/3.6);
-
+      } 
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
