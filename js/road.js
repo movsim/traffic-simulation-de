@@ -2373,7 +2373,7 @@ road.prototype.perturbOneVehicle=function(i,speedReduce){
 //######################################################################
 /**
 @param u=actual arclength for which to get direction
-@return direction (heading) of the road (0=East, pi/2=North etc)
+@return direction (heading) of the road in [0,2*pi] (0=East, pi/2=North etc)
 */
 
 road.prototype.get_phi=function(u){
@@ -2590,14 +2590,26 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
 
           // v increasing from left to right, 0 @ road center
+          // roadworks as images: shift a little bit to the boundary
 
           var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
-
+ 
           var phiRoad=this.get_phi(uCenterPhys);
-          var phiVehRel=(this.veh[i].speed<0.001) 
+          var phiVehRel=(this.veh[i].speed<0.1) 
 	      ? 0
 	      : -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
           var phiVeh=phiRoad + phiVehRel;
+
+          // special corrections for image obstacles 
+          // (depends on image and orientation)
+
+	  if(type=="obstacle"){
+	      vCenterPhys -=0.3*this.laneWidth;
+	      if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)) 
+		  phiVeh-=Math.PI;
+              phiVeh -=0.2;
+          } 
+
           var cphiRoad=Math.cos(phiRoad);
           var sphiRoad=Math.sin(phiRoad);
           var cphiVeh=Math.cos(phiVeh);

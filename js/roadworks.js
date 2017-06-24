@@ -12,7 +12,7 @@ var scenarioString="RoadWorks";
 
 var hasChanged=true; // window dimensions have changed (responsive design)
 
-var drawBackground=false; // if false, default unicolor background
+var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 var changedRoadGeometry; // true only if used-driven geometry changes finished
 
@@ -37,7 +37,8 @@ var laneWidth=7;
 var uBeginRoadworks=450;
 var uEndRoadworks=550;
 var laneRoadwork=0;  // 0=left
-var lenRoadworkElement=10;
+var lenRoadworkElement=16;
+var wRoadworkElement=12;
 
 var straightLen=0.34*mainroadLen;      // straight segments of U
 var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
@@ -86,7 +87,8 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
-var obstacle_srcFile='figs/obstacleImg.png';
+//var obstacle_srcFile='figs/obstacleImg.png';
+var obstacle_srcFile='figs/constructionVeh04.png';
 var road1lanes_srcFile='figs/road1lanesCrop.png';
 var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
 var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
@@ -180,7 +182,7 @@ var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
 for (var ir=0; ir<nr; ir++){
     var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
-    var virtualStandingVeh=new vehicle(lenRoadworkElement, laneWidth, 
+    var virtualStandingVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
 					u,laneRoadwork, 0, "obstacle");
      virtualStandingVeh.longModel=longModelObstacle;
      virtualStandingVeh.LCModel=LCModelObstacle;
