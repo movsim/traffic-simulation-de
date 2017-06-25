@@ -588,9 +588,6 @@ function init() {
     canvas = document.getElementById("canvas_onramp"); 
     ctx = canvas.getContext("2d");
  
-    width  = canvas.width;   // pixel coordinates (DOS)
-    height = canvas.height;  // DOS
-
 
     // init background image
 

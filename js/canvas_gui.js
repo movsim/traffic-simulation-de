@@ -10,6 +10,15 @@
           onmouseup="finishDistortionOrDropVehicle()"
 */
 
+// types: 0="car", 1="truck", 2="obstacle"
+// id<100:              special vehicles
+// id=1:                ego vehicle
+// id=10,11, ..49       disturbed vehicles 
+// id=50..99            depot vehicles/obstacles
+// id>=100:             normal vehicles and obstacles
+
+
+
 var xPixLeft, yPixTop;
 var xPixMouse, yPixMouse;
 var xUser, yUser;
@@ -242,11 +251,6 @@ function slowDownClickedVeh(event){
 //#####################################################
 // helper function for onclick and touched(?) events
 //#####################################################
-
-// id<100:              special vehicles
-// id=1:                ego vehicle
-// id=10,11, (max 99):  disturbed vehicles 
-// id>=100:             normal vehicles if type != "obstacle"
 
 function slowDownVehNearestTo(xUser,yUser){
 

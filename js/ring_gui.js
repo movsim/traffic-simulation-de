@@ -100,7 +100,7 @@ function myStartStopFunction(){
 	isStopped=false;
 	//document.getElementById('startStop').innerHTML="Stop";
 	document.getElementById('startStop').src="figs/buttonStop3_small.png";
-	myRun=init();
+	myRun=setInterval(main_loop, 1000/fps);
     }
     else{
 	//document.getElementById('startStop').innerHTML="Resume";

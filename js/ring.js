@@ -68,37 +68,6 @@ var truckFracToleratedMismatch=0.02;
 
 
 
-//####################################################################
-// image file settings
-//####################################################################
-
-
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var obstacle_srcFile='figs/obstacleImg.png';
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-
-// Notice: set drawBackground=false if no bg wanted
- var background_srcFile='figs/backgroundGrass.jpg'; 
-
-
-
-
-//#################################
-// Global graphics specification
-//#################################
-
-var canvas;
-var ctx;  // graphics context
- 
-var background;
- 
 
 
 //###############################################################
@@ -137,6 +106,81 @@ var iveh=Math.floor(relPosPerturb*mainroad.veh.length);
 iveh=Math.max(0, Math.min(iveh,mainroad.veh.length)); 
 mainroad.veh[iveh].speed=speedInitPerturb;
 
+//####################################################################
+// Global graphics specification and image file settings
+//####################################################################
+
+var canvas = document.getElementById("canvas_ring"); 
+var ctx = canvas.getContext("2d"); // graphics context
+
+
+// Notice: set drawBackground=false if no bg wanted
+var background_srcFile='figs/backgroundGrass.jpg'; 
+
+var car_srcFile='figs/blackCarCropped.gif';
+var truck_srcFile='figs/truck1Small.png';
+
+var obstacle_srcFiles = [];
+obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
+for (var i=1; i<10; i++){ //!!!
+    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
+    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
+}
+
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+
+
+
+// init background image
+
+var background = new Image();
+background.src =background_srcFile;
+ 
+
+// init vehicle image(s)
+
+carImg = new Image();
+carImg.src = car_srcFile;
+truckImg = new Image();
+truckImg.src = truck_srcFile;
+
+obstacleImgs = []; // only in the depot
+for (var i=0; i<obstacle_srcFiles.length; i++){
+    obstacleImgs[i]=new Image();
+    obstacleImgs[i].src = obstacle_srcFiles[i];
+}
+
+
+// init road image(s)
+
+roadImg1 = new Image();
+roadImg1.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWith_srcFile
+	: (nLanes==3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+roadImg2 = new Image();
+roadImg2.src=(nLanes==1)
+	? road1lanes_srcFile
+	: (nLanes==2) ? road2lanesWithout_srcFile
+	: (nLanes==3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
+//!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz)
+
+var depot=new vehicleDepot(obstacleImgs.length,3,
+			   center_xPhys+1.5*roadRadius,-roadRadius,
+			   20,20,false);
+
+
+
 
 //############################################
 // run-time specification and functions
@@ -148,11 +192,13 @@ var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
+
+
 //############################################
 function updateRing(){
 //############################################
 
-    // update times
+// update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
@@ -195,12 +241,8 @@ function drawRing() {
     //hasChanged=true; //!!
     if(hasChanged){
         console.log(" new canvas size ",canvas.width,"x",canvas.height);
-
-        // update sliderWidth in *_gui.js; 
-
-        var css_track_vmin=15; // take from sliders.css 
-        sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
-
+	//depot.setDepotPositions(canvas);
+ 
     }
 
     // (0) reposition physical x center coordinate as response
@@ -238,6 +280,10 @@ function drawRing() {
     // (4) draw vehicles
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
+
+    // (5) draw depot vehicles
+
+    depot.draw(obstacleImgs,scale,canvas);
 
 
     // draw some running-time vars
@@ -317,72 +363,6 @@ function drawRing() {
 }
  
 
-//############################################
-// initialization function of the simulation thread
-// THIS function does all the things; everything else only functions
-// ultimately called by init()
-// activation of init: 
-// (i) automatically when loading the simulation ("var myRun=init();" below) 
-// (ii) when pressing the start button defined in onramp_gui.js ("myRun=init();")
-// "var ..." Actually does something; 
-// function keyword [function fname(..)] defines only
-//############################################
-
-// in init() definition no "var" (otherwise local to init())
-// "init()" since first scenario=onramp. 
-// Called at the end of this script and in *_gui.js (corresp. sim button)
-
-function init() {
-
-    // get overall dimensions from parent html page
-    // "canvas_ring" defined in ring.html
-
-    canvas = document.getElementById("canvas_ring"); 
-    ctx = canvas.getContext("2d");
-
-    width  = canvas.width;  // pixel coordinates
-    height = canvas.height;
-
-
-    // init background image
-
-    background = new Image();
-    background.src =background_srcFile;
- 
-
-    // init vehicle image(s)
-
-    carImg = new Image();
-    carImg.src = car_srcFile;
-    truckImg = new Image();
-    truckImg.src = truck_srcFile;
-    obstacleImgs = [];
-    obstacleImgs[0]=new Image();  // only pro forma (no obstacles here)
-    obstacleImgs[0].src = obstacle_srcFile;
-
-    // init road image(s)
-
-    roadImg1 = new Image();
-    roadImg1.src=(nLanes==1)
-	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWith_srcFile
-	: (nLanes==3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
-    roadImg2 = new Image();
-    roadImg2.src=(nLanes==1)
-	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWithout_srcFile
-	: (nLanes==3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
-
-
-
-    // starts simulation thread "main_loop" (defined below) 
-
-    return setInterval(main_loop, 1000/fps); 
-
-} // end init()
 
 
 //##################################################
@@ -393,22 +373,21 @@ function main_loop() {
 
     updateRing();
     drawRing();
-    changedRoadGeometry=false;//!!!
+    changedRoadGeometry=false;
    //mainroad.writeVehicles(); // for debugging
 }
 
 
-//##################################################
-// Actual start of the simulation thread
-// (also started from gui.js "Ring Road" button) 
-// everything w/o function keyword [function f(..)]" actually does something, not only def
-//##################################################
-// init() ends with return setInterval(main_loop,1000/fps);
 
- 
- var myRun=init(); //if start with ring road: init, starts thread "main_loop" 
-// var myRun; // starts with empty canvas; can be started with " start" button
-// init(); //[w/o var]: starts as well but not controllable by start/stop button (no ref)
-// myRun=init(); // selber Effekt wie "var myRun=init();" 
-// (aber einmal "var"=guter Stil, geht aber implizit auch ohne: Def erstes Mal, dann ref) 
+ //############################################
+// start the simulation thread
+// THIS function does all the things; everything else 
+// only functions/definitions
+// triggers:
+// (i) automatically when loading the simulation ("var myRun=init();" below) 
+// (ii) when pressing the start button defined in onramp_gui.js
+//  ("myRun=setInterval(main_loop, 1000/fps);")
+//############################################
+
+ var myRun=setInterval(main_loop, 1000/fps); 
 

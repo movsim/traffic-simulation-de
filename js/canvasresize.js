@@ -41,7 +41,6 @@ function canvas_resize(canvas,limAspectRatio){
 	       );
 
 
-
     }	
 
 

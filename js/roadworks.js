@@ -87,8 +87,7 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
-//var obstacle_srcFile='figs/obstacleImg.png';
-//var obstacle_srcFile='figs/constructionVeh04.png';
+
 var obstacle_srcFiles = [];
 obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
 for (var i=1; i<10; i++){ //!!!
@@ -526,12 +525,13 @@ function init() {
     carImg.src = car_srcFile;
     truckImg = new Image();
     truckImg.src = truck_srcFile;
+
     obstacleImgs = [];
     for (var i=0; i<obstacle_srcFiles.length; i++){
 	obstacleImgs[i]=new Image();
 	obstacleImgs[i].src = obstacle_srcFiles[i];
     }
-    obstacleImg=obstacleImgs[1]; //!!! test sim speed
+
     signFreeImg = new Image();
     signFreeImg.src = sign_free_srcFile;
     speedlimitImg = new Image();
