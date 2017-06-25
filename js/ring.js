@@ -173,11 +173,12 @@ roadImg2.src=(nLanes==1)
 	: (nLanes==3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
-//!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz)
+//!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
+// alignedHoriz,containsObstacles)
 
 var depot=new vehicleDepot(obstacleImgs.length,10,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
-			   20,20,false);
+			   20,20,false,true);
 
 
 

@@ -524,20 +524,25 @@ road.prototype.getNearestUof=function(otherRoad, u){
 
 
 @param  xUser,yUser: the external physical position
+@param  filterFun: (optional) restrict search to filterFun(veh)=true
 @return [success flag, the nearest vehicle which is no obstacle, dist_min]
 */
-road.prototype.findNearestVehTo=function(xUser,yUser){
+road.prototype.findNearestVehTo=function(xUser,yUser,conditionFun){
     var dist2_min=1e9;
-    var vehReturn
+    var vehReturn;
     var success=false;
     for(var i=0; i<this.veh.length; i++){
-	var u=this.veh[i].u;
-	var dist2=Math.pow(xUser-this.traj_x(u),2)
-	    + Math.pow(yUser-this.traj_y(u),2);
-	if( (dist2<dist2_min) && (this.veh[i].type!="obstacle")){
-	    success=true;
-	    dist2_min=dist2;
-	    vehReturn=this.veh[i];
+	var filterPassed=(typeof conditionFun === 'undefined')
+	    ? true : conditionFun(this.veh[i]);
+	if(filterPassed){
+	    var u=this.veh[i].u;
+	    var dist2=Math.pow(xUser-this.traj_x(u),2)
+	        + Math.pow(yUser-this.traj_y(u),2);
+	    if( (dist2<dist2_min) && (this.veh[i].type!="obstacle")){
+	        success=true;
+	        dist2_min=dist2;
+	        vehReturn=this.veh[i];
+	    }
 	}
     }
     if(false){
@@ -548,6 +553,32 @@ road.prototype.findNearestVehTo=function(xUser,yUser){
     }
     return [success,vehReturn,Math.sqrt(dist2_min)];
 }
+/**
+
+
+#############################################################
+(jun17) find nearest leader at position u on a given lane
+#############################################################
+
+
+@param  xUser,yUser: the external physical position
+@return [success flag, the nearest vehicle which is no obstacle, dist_min]
+*/
+road.prototype.findLeaderAt=function(u,lane){
+    var success=false;
+    var i=0;
+    var iLead;
+    while ((i<this.veh.length) && (this.veh[i].u<u)){
+	if(this.veh[i].lane==lane){
+	    success=true;
+	    iLead=i;
+	}
+	i++;
+    }
+   return [success,iLead];
+}
+
+
 
 /**
 #############################################################
@@ -584,7 +615,7 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
     var vPhys=sign_v*dist; // v parallel to distance vector
     var vLanes=vPhys/(this.laneWidth) +0.5*(this.nLanes-1);
 
-    if(false){
+    if(true){
 	console.log("end road.findNearestDistanceTo:",
 		    " roadID=",this.roadID,
 		    " xUser=",xUser, " yUser=",yUser,
@@ -633,9 +664,9 @@ road.prototype.testCRG=function(xUser,yUser){
     var success=(dist_min<=dist_crit);
 
     console.log("road.testCRG: dist_min=",dist_min," dist_crit=",dist_crit);
-
+    console.log("road.testCRG: this=",this);
     if(success){
-	console.log("new CRG event initiated!",
+	console.log("road.testCRG: new CRG event initiated!",
 		    " dist_min=",Math.round(dist_min),
 		    " iPivot=",this.iPivot,
 		    " xPivot=",Math.round(this.xPivot),
@@ -1654,6 +1685,8 @@ road.prototype.changeLanes=function(){
 
 
 
+
+
 road.prototype.doChangesInDirection=function(toRight){
   var log=false;
   //changeSuccessful=0; //return value; initially false
@@ -1798,7 +1831,6 @@ road.prototype.doChangesInDirection=function(toRight){
   //return changeSuccessful;
 }
 
-//END NEW 25.06.2016
 
 //######################################################################
 // functionality for merging and diverging to another road. 
@@ -1986,6 +2018,70 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,isMerge,toRight)
 
 }// end mergeDiverge
 
+
+
+//#########################################################
+// drop an external depot vehicle to the road
+//#########################################################
+/**
+The dropped vehicle has the type of a vehicleDepot.veh element.
+It is converted to a road.veh element and dropped just 1m behind the 
+leading vehicle corresponding to the drop position u. 
+following vehicles are ignored; a crash may happen!
+Typically used for dropping obstacles as onmouseup callback => canvas_gui
+
+@param depotVehicle: the depot vehicle of type vehicleDepot.veh[i]
+@param u:            longitudinal road coordinate of dropping point
+@param v:            dropped on the lane nearest v
+
+@return:             void. the road "this" has one more vehicle.
+*/
+
+
+road.prototype.dropDepotVehicle=function(depotVehicle, u, v){
+    console.log("in road.dropDepotVehicle: u=",u," v=",v," this.nLanes=",this.nLanes);
+    var leadGap=1; // drop just leadGap behind rear bumper of leader
+    var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
+    var findResult=this.findLeaderAt(u, lane);  // [success,iLead]
+    var uDrop=u; // OK if no leader <=> findResult[0]=false
+    if(findResult[0]){
+	var iLead=findResult[1];
+	uDrop=this.veh[iLead].u+this.veh[iLead].length+leadGap;
+    }
+
+    // construct road vehicle from depot vehicle
+
+    var roadVehicle=new vehicle(depotVehicle.lVeh,depotVehicle.wVeh,
+				u, lane, 0, depotVehicle.type); 
+    roadVehicle.id=depotVehicle.id; // controls the vehicle image
+
+    // insert vehicle (array position does not matter since sorted anyway)
+    this.veh.push(roadVehicle);
+    console.log("road.dropDepotVehicle: dropped vehicle at uDrop=",u,
+		" lane=",lane);
+}
+
+
+//#########################################################
+// pick an external depot vehicle to move it elsewhere or return
+// it to the depot
+//#########################################################
+/**
+the reverse process of dropping above
+@param xUser,yUser:  physical coordinates corresponding to click/touch
+
+@return:             [success, convertedDepotVehicle]
+                     if success, the road "this" has one vehicle less
+*/
+
+
+road.prototype.pickDepotVehicle=function(xUser, yUser){
+
+    console.log("in road.pickDepotVehicle: xUser=",xUser," yUser=",yUser);
+    var isDepotVeh=function(veh){return ((veh.id>=50)&&(veh.id<100))};
+    var findResult=this.findNearestVehTo(xUser,yUser,isDepotVeh);
+    console.log("in road.pickDepotVehicle: findResult=",findResult);
+}
 
 
 
@@ -2375,49 +2471,6 @@ road.prototype.updateLastLCtimes=function(dt){
 }
 
 
-//######################################################################
-// perturb externally a vehicle
-//######################################################################
-/**
-reduces the speed of the selected vehicle i
-by an amount of speedReduce.
-Notice that the same vehicle may be disturbed several times 
-
-// id<100:              special vehicles
-// id=1:                ego vehicle
-// id=10,11, (max 99):  disturbed vehicles 
-// id>=100:             normal vehicles if type != "obstacle"
-
-@param i:           the picked veh index
-@param speedReduce: speed reduction [m/s]
-
-@return this.veh[iPicked].speed reduced
-!!! NOT USED at the moment!
-*/
- 
-
-road.prototype.perturbOneVehicle=function(i,speedReduce){
-    if(true){
-	console.log("\nin road.perturbOneVehicle: iveh=",i);
-    }
-
-    // select veh to be perturbed (must not be an ego vehicle)
-    // give up as a bad job if veh.id=1 two times in a row
-    // (may be because the only mainroad vehicle is an ego vehicle)
-
-    var findResults=this.findNearestVehTo(xUser,yUser);
-    var success=findResults[0];
-    var vehPerturbed=findResults[1];
-    if(!success){
-	console.log("road.perturbOneVehicle: found no suitable"+
-		    " normal vehicle to slow down");
-    }
-    else{
-	vehPerturbed.id=10;  // to distinguish it by color
-	vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
-    }
-}// perturbOneVehicle
-
 
 //######################################################################
 // get direction of road at arclength u
@@ -2666,12 +2719,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	  if(type=="obstacle"){
 	      //console.log("obstacle id=",this.veh[i].id);
 
-	      vCenterPhys -=0.3*this.laneWidth;
+
 	      if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){ 
 		  phiVeh-=Math.PI;}
 	      if(obstacleImgIndex!=0){ // index 0: black bar for ramp ends, OK
 		  phiVeh -=0.2;
-		  vCenterPhys -=0.3*this.laneWidth;
+		  vCenterPhys -=0.1*this.laneWidth;
 	      }
           } 
 

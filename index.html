@@ -88,11 +88,12 @@
 
 <div id="contents">
   <canvas id="canvas_ring" width="700" height="700"
+          onmouseenter="defineSecondaryRoad(event)"
           onmousemove="getCoordinatesDoDragging(event)"
-          onmouseout="cancelActivities(event)"
-          onclick="slowDownClickedVeh(event)"
           onmousedown="pickRoadOrVehicle(event)"
           onmouseup="finishDistortOrDropVehicle()" 
+          onclick="slowDownClickedVeh(event)"
+          onmouseout="cancelActivities(event)"
           style="border:1px solid #d3d3d3;">
    >
 

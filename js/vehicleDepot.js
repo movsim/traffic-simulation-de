@@ -41,7 +41,8 @@ vehicleDepot object constructor
 
 
 
-function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz){
+function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
+		      alignedHoriz, containsObstacles){
     this.nveh=nveh; // generally not imageArray.length
 
     this.xDepot=xDepot;
@@ -49,7 +50,7 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz){
     this.lVeh=lVeh;
     this.wVeh=wVeh;
     this.alignedHoriz=alignedHoriz;
-
+    this.containsObstacles=containsObstacles;
     this.gapRel=-0.1; // lateral gap [veh width] between the vehicles in the depot
 
     // determine vehicle id and image number
@@ -70,6 +71,9 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz){
 	}
 	this.veh[i]={id:        idmin+i, 
 		     imgNumber: imgNmbr,
+		     type:      (containsObstacles) ? "obstacle" : "car",
+		     lVeh:      this.lVeh,
+		     wVeh:      this.wVeh,
 		     inDepot:   true,
 		     x:         xVehDepot, 
 		     y:         yVehDepot, 
