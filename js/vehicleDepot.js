@@ -83,26 +83,15 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz){
 }// end cstr
 
 
-// update physical positions after resizing etc
-
-/*vehicleDepot.prototype.setDepotPositions=function(canvas){
-    this.xPixDepot=this.xDepot*canvas.width; // center of depot
-    this.yPixDepot=(1-this.yDepot)*canvas.height;
-    var smallerDim=Math.min(canvas.width,canvas.height);
-    this.dxPix=(this.wVeh*(1+this.gapRel))*smallerDim;
-    this.dyPix=this.dxPix;
-    this.lPix=this.lVeh*smallerDim; // vehicle length in pixels
-    this.wPix=this.wVeh*smallerDim;
-}
-*/
-
 
 //######################################################################
 // draw depot into canvas
 //######################################################################
 
-/**
 
+/**
+@param obstacleImgs: array of obstacle/construction/normal images to be drawn
+@param scale: drPix/drPhys  [Pix/m]
 @return draw into graphics context ctx (defined by canvas)
 */
 
@@ -136,4 +125,63 @@ vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
 
 
 
+//######################################################################
+// pick depot vehicles by user action
+//######################################################################
 
+
+/**
+@param  xUser,yUser: the external physical position
+@param  distCrit:    only if the distance to the nearest veh in the depot
+                     is less than distCrit, the operation is successful
+@return [successFlag, thePickedVeh]
+*/
+
+
+vehicleDepot.prototype.pickVehicle=function(xUser,yUser,distCrit){
+    var dist2_min=1e9;
+    var dist2_crit=distCrit*distCrit;
+    var vehReturn
+    var success=false;
+    for(var i=0; i<this.veh.length; i++){
+	if(this.veh[i].inDepot){
+	    var dist2=Math.pow(xUser-this.veh[i].x,2)
+		+ Math.pow(yUser-this.veh[i].y,2);
+	    if( (dist2<dist2_crit) && (dist2<dist2_min)){
+		success=true;
+		dist2_min=dist2;
+		vehReturn=this.veh[i];
+	    }
+	}
+    }
+
+    return[success,vehReturn]
+}
+ 
+
+/*####################################################################
+bring back dragged vehicle to depot if dropped too far from a road
+####################################################################*/
+
+
+vehicleDepot.prototype.zoomBackVehicle=function(){
+    var isActive=false;
+    var displacementPerCall=10; // zooms back as attached to a rubber band
+    for(var i=0; i<this.veh.length; i++){
+	if(this.veh[i].inDepot){
+	    var dx=this.veh[i].xDepot-this.veh[i].x;
+	    var dy=this.veh[i].yDepot-this.veh[i].y;
+	    var dist=Math.sqrt(dx*dx+dy*dy);
+	    if(dist<displacementPerCall){
+		this.veh[i].x=this.veh[i].xDepot;
+		this.veh[i].y=this.veh[i].yDepot;
+	    }
+	    else{
+		isActive=true; // need to zoom further back in next call
+		this.veh[i].x += displacementPerCall*dx/dist;
+		this.veh[i].y += displacementPerCall*dy/dist;
+	    }
+	}
+    }
+    return(isActive);
+}

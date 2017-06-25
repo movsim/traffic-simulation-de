@@ -26,8 +26,9 @@ var xUserDown, yUserDown; // physical coordinates at (first) mousedown event
 var mousedown=false; // true if onmousedown event fired, but not yet onmouseup
 var vehDragging=false; // true if mousedown and a depot vehicle is nearest
 var roadDragging=false; // true if mousedown and a road is nearest
+var depotVehZoomBack=false; // =true after unsuccessful drop
 
-var draggedVehicle;
+var draggedVehicle; // from vehicleDepot; among others phys. Pos x,y
 var draggedRoad; 
 var distminDrag=0.8;  // drag function if dragged more [m]; otherwise click
 var distDrag=0; // physical distance[m] of the dragging
@@ -57,6 +58,9 @@ function getCoordinatesDoDragging(event){
    // controlled by onmousedown and onmouseup or corr touch events
 
     if(mousedown){ // boolean mousedown, vehDragging, roadDragging
+
+        userCanvasManip=true; // if true, new backgr, new road drawn
+
 	distDrag=Math.sqrt(Math.pow(xUser-xUserDown,2)
 			   + Math.pow(yUser-yUserDown,2));
 
@@ -69,7 +73,7 @@ function getCoordinatesDoDragging(event){
 	    }
 	}
     }
-    else{distDrag=0;}
+    else{distDrag=0;} // if mouse is up, nothing is dragged
 }
 
 function showPhysicalCoords(xUser,yUser){
@@ -79,13 +83,14 @@ function showPhysicalCoords(xUser,yUser){
 
 function dragVehicle(xUser,yUser){
     //console.log("in dragVehicle: xUser=",xUser," yUser=",yUser);
-    //console.log("in dragVehicle");
+    draggedVehicle.x=xUser;
+    draggedVehicle.y=yUser;
 }
 
 function dragRoad(xUser,yUser){
     console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
 
-    changedRoadGeometry=true; // if true, new backgr, new road drawn
+    userCanvasManip=true; // if true, new backgr, new road drawn
 
     // "one-road" scenarios
 
@@ -198,23 +203,6 @@ function dragRoad(xUser,yUser){
 
 }
 
-
-//#####################################################
-// canvas onmouseout callback
-//#####################################################
-
-function cancelActivities(event){
-    //console.log("in cancelActivities");
-    mousedown=false;
-    if(vehDragging){
-	vehDragging=false;
-	bringVehBackToDepot();
-    }
-    if(roadDragging){
-	roadDragging=false;
-	cancelLastRoadAction();
-    }
-}
 
 function bringVehBackToDepot(){
     //console.log("in bringVehBackToDepot");
@@ -347,10 +335,21 @@ function pickRoadOrVehicle(event){
 
     else{ 
 	roadDragging=false;
-	console.log("implement picking a depot obstacle");
+	var pickResults=depot.pickVehicle(xUser, yUser, 10);
+	if(pickResults[0]){
+	    draggedVehicle=pickResults[1];
+	    vehDragging=true;
+	    console.log("picked depot vehicle ",draggedVehicle);
+	}
     }
     console.log("end pick: mousedown=",mousedown);
+
+// independently from roadDragging or vehDragging state do 
+// not zoom back if mouse is pressed 
 }
+
+
+
 
 //#####################################################
 // canvas onmouseup callback
@@ -363,15 +362,33 @@ function finishDistortOrDropVehicle(){
     mousedown=false;
  
     if(roadDragging&&(distDrag>distminDrag)){
-        changedRoadGeometry=true; // if true, new backgr, new road drawn
+        userCanvasManip=true; // if true, new backgr, new road drawn
 	roadDragging=false;
 	//console.log(" before draggedRoad.finishCRG()");
 	draggedRoad.finishCRG();
 
 	handleDependencies();
     }
-    if(vehDragging&&(distDrag>distminDrag)){
+    if(vehDragging){
+        userCanvasManip=true; // if true, new backgr, new road drawn
 	vehDragging=false;
+        // [dist,uReturn,vLanes]
+	var dropResults=mainroad.findNearestDistanceTo(xUser, yUser);
+
+        // unsuccessful drop: initiate zoom back to depot
+        // depotVehZoomBack is true if further zooms are needed
+        // (called also in main.update)
+
+	if(dropResults[0]>10){ 
+	    console.log("canvas_gui.onmouseup: drop failed; initiated zoom back!!! ");
+	    depotVehZoomBack=depot.zoomBackVehicle();
+	}
+
+       // successful drop: integrate draggedVehicle to the road vehicles
+	else{
+	    depotVehZoomBack=false;
+	    console.log("implement dropping of depot vehicle");
+	}
     }
 }
 
@@ -433,3 +450,25 @@ function handleDependencies(){
     }
 
 }
+
+
+
+//#####################################################
+// canvas onmouseout callback
+//#####################################################
+
+function cancelActivities(event){
+    //console.log("in cancelActivities");
+    mousedown=false;
+    if(vehDragging){
+	vehDragging=false;
+	bringVehBackToDepot();
+    }
+    if(roadDragging){
+	roadDragging=false;
+	cancelLastRoadAction();
+    }
+}
+
+
+

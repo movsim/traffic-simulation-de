@@ -549,7 +549,56 @@ road.prototype.findNearestVehTo=function(xUser,yUser){
     return [success,vehReturn,Math.sqrt(dist2_min)];
 }
 
+/**
+#############################################################
+(jun17) get nearest distance of the road axis (center)
+ to an external physical position
+@return [distance in m, u in m, v in lanes ]
+#############################################################
+*/
 
+road.prototype.findNearestDistanceTo=function(xUser,yUser){
+    var dist2_min=1e9;
+    var uReturn,dxReturn,dyReturn;
+    for(var i=0; i<=this.nSegm; i++){
+	var u=i*this.roadLen/this.nSegm;
+	var dx=xUser-this.traj_x(u);
+	var dy=yUser-this.traj_y(u);
+	var dist2=dx*dx+dy*dy;
+	if(dist2<dist2_min){
+	    dist2_min=dist2;
+	    uReturn=u;
+	    dxReturn=dx;
+	    dyReturn=dy;
+	    //console.log("road.findNearestDistanceTo: u=",u,
+	//		" dist2_min=",dist2_min);
+	}
+    }
+
+    // determine sign of v: positive if (-cosphi,sinphi).dr>0
+
+    var phiNorm=this.get_phi(uReturn)-0.5*Math.PI; // angle in v direction
+    var sign_v=(Math.cos(phiNorm)*dxReturn 
+		+Math.sin(phiNorm)*dyReturn > 0) ? 1 : -1;
+    var dist=Math.sqrt(dist2_min);
+    var vPhys=sign_v*dist; // v parallel to distance vector
+    var vLanes=vPhys/(this.laneWidth) +0.5*(this.nLanes-1);
+
+    if(false){
+	console.log("end road.findNearestDistanceTo:",
+		    " roadID=",this.roadID,
+		    " xUser=",xUser, " yUser=",yUser,
+		    " dxReturn=",dxReturn,
+		    " dyReturn=",dyReturn,
+		    " dist=",dist,
+		    " uReturn=",uReturn,
+		    " phiNorm=",phiNorm,
+		    " vPhys=",vPhys,
+		    " vLanes=",vLanes
+		   );
+    }
+    return [dist,uReturn,vLanes];
+}
 
 
 /**

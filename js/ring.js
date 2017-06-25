@@ -17,7 +17,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var changedRoadGeometry; //!!! true only if user-driven geometry changes
+var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin=0; // min speed for speed colormap (drawn in red)
@@ -175,7 +175,7 @@ roadImg2.src=(nLanes==1)
 
 //!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,alignedHoriz)
 
-var depot=new vehicleDepot(obstacleImgs.length,3,
+var depot=new vehicleDepot(obstacleImgs.length,10,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   20,20,false);
 
@@ -221,6 +221,15 @@ function updateRing(){
     mainroad.changeLanes();         
     mainroad.updateSpeedPositions();
     //mainroad.writeVehicles();
+
+    if(depotVehZoomBack){
+	console.log("ring: depotVehZoomBack=true!!! ");
+	var res=depot.zoomBackVehicle();
+	depotVehZoomBack=res;
+	userCanvasManip=true;
+    }
+
+
 }
 
 
@@ -265,7 +274,7 @@ function drawRing() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || (itime==20) || changedRoadGeometry 
+	if(hasChanged||(itime<=1) || (itime==20) || userCanvasManip 
 	   || (!drawRoad)){
             ctx.drawImage(background,0,0,canvas.width,canvas.height);
 	}
@@ -273,7 +282,7 @@ function drawRing() {
 
     // (3) draw ring road
  
-    var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1);
+    var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
@@ -373,7 +382,7 @@ function main_loop() {
 
     updateRing();
     drawRing();
-    changedRoadGeometry=false;
+    userCanvasManip=false;
    //mainroad.writeVehicles(); // for debugging
 }
 

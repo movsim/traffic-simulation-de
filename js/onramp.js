@@ -15,7 +15,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var changedRoadGeometry; //!!! true only if user-driven geometry changes
+var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin=0; // min speed for speed colormap (drawn in red)
@@ -452,7 +452,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=2) || (itime==20) || changedRoadGeometry 
+	if(hasChanged||(itime<=2) || (itime==20) || userCanvasManip 
 	   || movingObserver || (!drawRoad)){
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -461,7 +461,7 @@ function drawU() {
     // (3) draw mainroad and ramp
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1)||true; 
+    var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
     onramp.draw(rampImg,rampImg,scale,changedGeometry,
 		movingObserver,0, 
 		center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),

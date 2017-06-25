@@ -14,7 +14,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=false; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var changedRoadGeometry; // true only if used-driven geometry changes finished
+var userCanvasManip; // true only if used-driven geometry changes finished
 
 var drawColormap=false;
 var vmin=0; // min speed for speed colormap (drawn in red)
@@ -363,7 +363,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || changedRoadGeometry || (!drawRoad)){ 
+	if(hasChanged||(itime<=1) || userCanvasManip || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -375,7 +375,7 @@ function drawU() {
     // Otherwise, road drawn at old position
 
     
-     var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
+     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
      mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
@@ -389,7 +389,7 @@ function drawU() {
     var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
     var srcFileIndex=Math.min(speedlimit_kmh/10,13);
     if( (srcFileIndex !=srcFileIndexOld)||hasChanged
-	||changedRoadGeometry || (itime<=1) ){
+	||userCanvasManip || (itime<=1) ){
 
 	srcFileIndexOld=srcFileIndex;
 	speedlimitImg.src=sign_speedlimit_srcFiles[srcFileIndex];
@@ -570,13 +570,13 @@ function main_loop() {
 	mainroad.testCRG(xUserMain,yUserMain);
 	mainroad.doCRG(xUserMain,yUserMain);
 	mainroad.finishCRG();
-	changedRoadGeometry=true; // need to redraw background, new road, speed limits..
+	userCanvasManip=true; // need to redraw background, new road, speed limits..
     }
 
 
     drawU();
     updateU();
-    changedRoadGeometry=false;
+    userCanvasManip=false;
 
     //mainroad.writeVehicles(); // for debugging
 }

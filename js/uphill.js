@@ -15,7 +15,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var changedRoadGeometry; //!!! true only if user-driven geometry changes
+var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=true;
 var vmin=0; // min speed for speed colormap (drawn in red)
@@ -316,7 +316,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(changedRoadGeometry||hasChanged||banButtonClicked
+	if(userCanvasManip||hasChanged||banButtonClicked
 	   ||(itime<=1) || (itime==20) || false || (!drawRoad)){
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -327,7 +327,7 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     
-     var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
+     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
      mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
@@ -339,7 +339,7 @@ function drawU() {
     // (4a) draw traffic signs
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
-    if(changedRoadGeometry||hasChanged||banButtonClicked
+    if(userCanvasManip||hasChanged||banButtonClicked
        ||(itime<=1) || (itime==20) ){
 
 	banButtonClicked=false;
@@ -530,7 +530,7 @@ function init() {
 function main_loop() {
     drawU();
     updateU();
-    changedRoadGeometry=false;
+    userCanvasManip=false;
 
     //mainroad.writeVehicles(); // for debugging
 }

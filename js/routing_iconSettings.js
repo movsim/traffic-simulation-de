@@ -15,7 +15,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=false; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var changedRoadGeometry; //!!! true only if user-driven geometry changes
+var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin=0; // min speed for speed colormap (drawn in red)
@@ -566,7 +566,7 @@ function drawU() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(changedRoadGeometry ||hasChanged
+	if(userCanvasManip ||hasChanged
 	   ||(itime<=1) || (itime==20) || false || (!drawRoad)){
 	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -579,7 +579,7 @@ function drawU() {
     //!!! sometimes road elements are moved as though they were vehicles
     // check/debug with omitting drawing of the road (changedGeometry=false)!
     
-    var changedGeometry=changedRoadGeometry || hasChanged||(itime<=1); 
+    var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
     deviation.draw(rampImg,rampImg,scale,changedGeometry);
@@ -755,7 +755,7 @@ function main_loop() {
 
     if(false){
     //if(itime==10){ //!!! test with zero distortion, just gridding
-	changedRoadGeometry=true;
+	userCanvasManip=true;
 	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
 	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-0;
 	var xUserDev=deviation.traj_x(0.5*deviation.roadLen)+70;
@@ -779,7 +779,7 @@ function main_loop() {
 
     drawU();
     updateU();
-    changedRoadGeometry=false;
+    userCanvasManip=false;
     //mainroad.writeVehicles(); // for debugging
 }
  
