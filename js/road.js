@@ -534,11 +534,14 @@ road.prototype.findNearestVehTo=function(xUser,yUser,conditionFun){
     for(var i=0; i<this.veh.length; i++){
 	var filterPassed=(typeof conditionFun === 'undefined')
 	    ? true : conditionFun(this.veh[i]);
+	//console.log("road.findNearestVehTo: i=",i,
+	//	    " conditionFun=",conditionFun,
+	//	    " conditionFun(this.veh[i])=",conditionFun(this.veh[i]));
 	if(filterPassed){
 	    var u=this.veh[i].u;
 	    var dist2=Math.pow(xUser-this.traj_x(u),2)
 	        + Math.pow(yUser-this.traj_y(u),2);
-	    if( (dist2<dist2_min) && (this.veh[i].type!="obstacle")){
+	    if(dist2<dist2_min){
 	        success=true;
 	        dist2_min=dist2;
 	        vehReturn=this.veh[i];
@@ -649,7 +652,7 @@ at or near a road element
 */
 
 road.prototype.testCRG=function(xUser,yUser){
-    var dist_crit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
+    var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
     var dist2_min=1e9;
     for(var i=0; i<=this.nSegm; i++){
 	var dist2=Math.pow(xUser-this.xtab[i],2) + Math.pow(yUser-this.ytab[i],2);
@@ -661,9 +664,9 @@ road.prototype.testCRG=function(xUser,yUser){
 	}
     }
     var dist_min=Math.sqrt(dist2_min);
-    var success=(dist_min<=dist_crit);
+    var success=(dist_min<=distCrit);
 
-    console.log("road.testCRG: dist_min=",dist_min," dist_crit=",dist_crit);
+    console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
     console.log("road.testCRG: this=",this);
     if(success){
 	console.log("road.testCRG: new CRG event initiated!",
@@ -2075,12 +2078,23 @@ the reverse process of dropping above
 */
 
 
-road.prototype.pickDepotVehicle=function(xUser, yUser){
+road.prototype.pickSpecialVehicle=function(xUser, yUser){
 
-    console.log("in road.pickDepotVehicle: xUser=",xUser," yUser=",yUser);
-    var isDepotVeh=function(veh){return ((veh.id>=50)&&(veh.id<100))};
-    var findResult=this.findNearestVehTo(xUser,yUser,isDepotVeh);
-    console.log("in road.pickDepotVehicle: findResult=",findResult);
+    var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
+    console.log("in road.pickSpecialVehicle: xUser=",xUser,
+		" yUser=",yUser," distCrit=",distCrit);
+    //this.writeVehiclesSimple();
+    function isDepotVeh(veh){return ((veh.id>=50)&&(veh.id<100))};
+    //var isDepotVeh=function(veh){return true;};
+    // findresults=[success,vehReturn,dist]
+    //var findResults=this.findNearestVehTo(xUser,yUser,function(veh){return ((veh.id>=50)&&(veh.id<100))});
+    var findResults=this.findNearestVehTo(xUser,yUser,isDepotVeh);
+    console.log("road.pickSpecialVehicle: findResults=",findResults);
+    if( (!findResults[0]) || (findResults[2]>distCrit)){
+	findResults=[false,'undefined',1e8];
+    }
+    console.log("in road.pickSpecialVehicle: findResult=",findResults);
+    return findResults;// [success,vehReturn,dist]
 }
 
 

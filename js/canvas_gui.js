@@ -27,15 +27,16 @@ var xUserDown, yUserDown; // physical coordinates at (first) mousedown event
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 
 var depotVehDragged=false; //true if a depot vehicle is <distmin at mousedown
-var specVehDragged=false; //true if a special road vehicle <distmin  "  "
-var roadVehSelected=false; //true if none of the above and 
+var specRoadObjDragged=false; //true if a special road vehicle <distmin  "  "
+var roadVehSelected=false; // NOW NOT USED true if none of the above and 
                            // nearest normal vehicle has distDrag<crit " " 
 var roadDragged=false; // true if none of the above and distRoad<crit   " "
 
 
 var depotVehZoomBack=false; // =true after unsuccessful drop
 
-var draggedVehicle; // from vehicleDepot; among others phys. Pos x,y
+var depotVehicle; // from vehicleDepot; among others phys. Pos x,y
+var specialRoadObject; // obstacles, traffic lights, user-driven vehs
 var distDragCrit=0.8;  // drag function if dragged more [m]; otherwise click
 var distDrag=0; // physical distance[m] of the dragging
 
@@ -74,7 +75,7 @@ function defineSecondaryRoad(event){
 /* priorities (at most one action initiated at a given time):
 
 (1) pick/drag depot vehicle: depotVehDragged=true
-(2) pick/drag special road vehicle: specVehDragged=true
+(2) pick/drag special road vehicle: specRoadObjDragged=true
 (3) drag on road less than crit and then mouse up: roadVehSelected=true
 (4) drag on road more than crit: roadDragged=true
 
@@ -83,40 +84,85 @@ function defineSecondaryRoad(event){
 //!!! change order to match priorities! introduce roadVehSelected!!
 
 function pickRoadOrVehicle(event){
-    console.log("onmousedown: in pickRoadOrVehicle");
+    console.log("\nonmousedown: entering pickRoadOrVehicle");
+    console.log(" depotVehDragged=",depotVehDragged,
+		" specRoadObjDragged=",specRoadObjDragged,
+		" roadVehSelected=",roadVehSelected,
+		" roadDragged=",roadDragged);
 
     mousedown=true;
     xUserDown=xUser;
     yUserDown=yUser;
 
-    // test whether a road is picked for dragging
-    // road.testCRG returns [success, dist_min, dist_x, dist_y]
-
-    var testMain=mainroad.testCRG(xUser, yUser); 
-    var testSecond=[false,1e6,1e6,1e6];
-    if(isNetworkScenario){
-	testSecond=secondaryRoad.testCRG(xUser, yUser);
-    }
-    var success=(testMain[0] || testSecond[0]); 
-    if(success){
-	depotVehDragged=false;
-	roadDragged=true;
-	draggedRoad=(testMain[1]<testSecond[1]) ? mainroad : secondaryRoad;
-    }
-
-    // otherwise, test whether a vehicle (obstacle) is picked from the depot
-    // (NOTE: error if no depot in main to make sure it will be defined)
-
-    else{ 
+    // (1) pick/drag depot vehicle: test for depotVehDragged
+    // depot.pickVehicle returns [successFlag, thePickedDepotVeh]
+ 
+    console.log("  (1) test for depot vehicle");
+    var distCrit=10;
+    var pickResults=depot.pickVehicle(xUser, yUser, distCrit);
+    if(pickResults[0]){
+	console.log("  (1) picked a depot vehicle");
+	depotVehicle=pickResults[1];
+	depotVehDragged=true;
+	specRoadObjDragged=false;
+	roadVehSelected=false;
 	roadDragged=false;
-	var pickResults=depot.pickVehicle(xUser, yUser, 10);
-	if(pickResults[0]){
-	    draggedVehicle=pickResults[1];
-	    depotVehDragged=true;
-	    console.log("picked depot vehicle ",draggedVehicle);
-	}
+	return;
     }
-}
+
+    // (2) pick/drag special road object
+    // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist]
+    // !!!TODO: do it also on secondary road in network scenarios! =>(4)
+    // !!!TODO: convert the road object to a depot vehicle
+
+    console.log("  (2) test for special road object");
+    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // distCrit by road
+    if(pickResults[0]){
+	console.log("  (2) picked a special road object");
+	specialRoadObject=pickResults[1];
+	console.log("TODO: convert the road object to a depot vehicle and zoom back");
+	depotVehDragged=false;
+	specRoadObjDragged=true;
+	roadVehSelected=false;
+	roadDragged=false;
+	return;
+    }
+
+
+    // (3) pick normal road vehicle to slowing it down: 
+    // handled onclick (=onmouseup) by this.slowDownClickedVeh(event)
+    // only if distDrag<distDragCrit at this time
+
+    console.log("  (3) pick normal road vehicle later at onclick",
+		" if distDrag<distDragCrit");
+
+
+    // (4) pick a road section to change road geometry (CRG) by dragging it
+    // road.testCRG returns [success,Deltax,Deltay]
+    // handled in onmousemove+onmousedown and onmouseup events only if 
+    // distDrag>distDragCrit at this time
+
+    console.log("  (4) test for a road section nearby");
+
+    var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
+    var pickResults2=[false,1e6,1e6,1e6];
+    if(isNetworkScenario){
+	pickResults2=secondaryRoad.testCRG(xUser, yUser);
+    }
+    var success=(pickResults1[0] || pickResults2[0]); 
+    if(success){
+        console.log("  (4) picked a road section for dragging",
+		    " as soon as distDrag>distDragCrit");
+
+	draggedRoad=(pickResults1[1]<pickResults2[1])
+	    ? mainroad : secondaryRoad;
+	depotVehDragged=false;
+	specRoadObjDragged=false;
+	roadVehSelected=false;
+	roadDragged=true;
+    }
+
+} // canvas onmousedown: pickRoadOrVehicle
 
 
 
@@ -213,20 +259,20 @@ function finishDistortOrDropVehicle(){
         // depotVehZoomBack is true if further zooms are needed
         // (called also in main.update)
 
-	var dist_crit=0.6*(mainroad.nLanes * mainroad.laneWidth);
+	var distCrit=0.6*(mainroad.nLanes * mainroad.laneWidth);
 
-	if(dropInfo[0]>dist_crit){ 
+	if(dropInfo[0]>distCrit){ 
 	    console.log(" drop failed! dist=",dropInfo[0],
-			" dist_crit=",dist_crit," initiate zoom back... ");
+			" distCrit=",distCrit," initiate zoom back... ");
 	    depotVehZoomBack=depot.zoomBackVehicle();
 	}
 
-       // successful drop: integrate draggedVehicle to the road vehicles
+       // successful drop: integrate depotVehicle to the road vehicles
 	else{
 	    depotVehZoomBack=false;
-	    draggedVehicle.inDepot=false;
+	    depotVehicle.inDepot=false;
 	    console.log("in dropping of depot vehicle");
-	    mainroad.dropDepotVehicle(draggedVehicle, dropInfo[1], 
+	    mainroad.dropDepotVehicle(depotVehicle, dropInfo[1], 
 				      dropInfo[2]);
 	}
     }
@@ -239,6 +285,7 @@ function finishDistortOrDropVehicle(){
 //#####################################################
 
 function slowDownClickedVeh(event){
+    console.log("onclick: in slowDownClickedVeh");
 
     // mouse position in client window pixel and physical coordinates
 
@@ -270,7 +317,7 @@ function cancelActivities(event){
     //console.log("in cancelActivities");
     mousedown=false;
     depotVehDragged=false;
-    specVehDragged=false;
+    specRoadObjDragged=false;
     roadVehSelected=false;
     roadDragged=false;
     depotVehZoomBack=true;
@@ -355,8 +402,8 @@ function handleDependencies(){
 
 function dragVehicle(xUser,yUser){
     //console.log("in dragVehicle: xUser=",xUser," yUser=",yUser);
-    draggedVehicle.x=xUser;
-    draggedVehicle.y=yUser;
+    depotVehicle.x=xUser;
+    depotVehicle.y=yUser;
 }
 
 function dragRoad(xUser,yUser){
