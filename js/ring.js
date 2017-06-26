@@ -119,6 +119,8 @@ var background_srcFile='figs/backgroundGrass.jpg';
 
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
+var traffLightGreen_srcFile='figs/trafficLightGreen_affine.png';
+var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
 
 var obstacle_srcFiles = [];
 obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
@@ -150,7 +152,14 @@ carImg.src = car_srcFile;
 truckImg = new Image();
 truckImg.src = truck_srcFile;
 
-obstacleImgs = []; // only in the depot
+// init special objects images
+
+traffLightRedImg = new Image();
+traffLightRedImg.src=traffLightRed_srcFile;
+traffLightGreenImg = new Image();
+traffLightGreenImg.src=traffLightGreen_srcFile;
+
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<obstacle_srcFiles.length; i++){
     obstacleImgs[i]=new Image();
     obstacleImgs[i].src = obstacle_srcFiles[i];
@@ -177,10 +186,13 @@ roadImg2.src=(nLanes==1)
 // alignedHoriz,containsObstacles)
 
 var depot=new vehicleDepot(obstacleImgs.length,10,
+//var depot=new vehicleDepot(4,9,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   20,20,false,true);
 
+//!!! test: add traffic lights
 
+mainroad.addTrafficLight(101,60,"green",traffLightRedImg,traffLightGreenImg);
 
 
 //############################################
@@ -215,6 +227,8 @@ function updateRing(){
     mainroad.updateDensity(density);
 
 
+
+
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
@@ -222,6 +236,13 @@ function updateRing(){
     mainroad.changeLanes();         
     mainroad.updateSpeedPositions();
     //mainroad.writeVehicles();
+
+    if(itime%50==0){//!!!!!!!!!!!!!!!
+	var newstate=(itime%100==0) ? "red" : "green";
+	console.log("in mainroad.changeLights: newstate=",newstate);
+	mainroad.changeLights(101,newstate);
+    }
+					  
 
     if(depotVehZoomBack){
 	console.log("ring: depotVehZoomBack=true!!! ");

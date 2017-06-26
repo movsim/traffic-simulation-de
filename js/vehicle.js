@@ -1,10 +1,12 @@
-
-// types: 0="car", 1="truck", 2="obstacle"
-// id<100:              special vehicles
+// types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
+// id's defined mainly in vehicle.js and vehicleDepot.js
+// id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
 // id=50..99            depot vehicles/obstacles
-// id>=100:             normal vehicles and obstacles
+// id=100..199          traffic lights
+// id>=200:             normal vehicles and obstacles
+
 
 function vehicle(length, width, u, lane, speed, type){
     this.length=length; // car length[m]
@@ -16,7 +18,7 @@ function vehicle(length, width, u, lane, speed, type){
     this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
     this.speed=speed;
     this.type=type;
-    this.id=Math.floor(100000*Math.random()+100); // ids 0-99 special purpose
+    this.id=Math.floor(100000*Math.random()+200); // ids 0-199 special purpose
     //console.log("vehicle cstr: this.id=",this.id);
 
     this.route=[]; // route=sequence of road IDs (optional)

@@ -12,12 +12,15 @@ obstacle image number by
 Img-number=max(1,vehID%obstacleImgs.length)
 
 
-// types: 0="car", 1="truck", 2="obstacle"
-// id<100:              special vehicles
+special vehicles:
+// types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
+// id's defined mainly in vehicle.js and vehicleDepot.js
+// id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
 // id=50..99            depot vehicles/obstacles
-// id>=100:             normal vehicles and obstacles
+// id=100..199          traffic lights
+// id>=200:             normal vehicles and obstacles
 
 #############################################################*/
 
@@ -59,6 +62,7 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
 		    " an image array of length>=2"); }
     this.veh=[];
     var idmin=50; // see top of this file
+    var idminTL=100; // see top of this file
     while(idmin%nImgs!=0){idmin++;}
     for(var i=0; i<nveh; i++){
 	var imgNmbr=(nImgs==1) ? 0 : Math.max(1,i%nImgs);
@@ -80,7 +84,10 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
 		     xDepot:    xVehDepot, 
 		     yDepot:    yVehDepot
 		    };
-	console.log("in vehicleDepot cstr: i=",i,
+
+        // ad hoc introduce 2 TL at the beginning (quick hack!!!)
+	if(i<2){this.veh[i].id=100+i;}
+	console.log("in vehicleDepot cstr: nImgs=",nImgs," i=",i,
 		    "\n   this.veh[i]=",this.veh[i]);
     }
 
@@ -114,7 +121,8 @@ vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
 	    var yPixVeh=-scale*this.veh[i].y;
 	    ctx.setTransform(1,0,0,1,xPixVeh,yPixVeh);
 	    if(false){console.log(
-		"in vehicleDepot.draw: i=",i,
+		"in vehicleDepot.draw: i=",i,"imgNr=",nr,
+		" img=",obstacleImgs[nr],
 		" xPixVeh=",xPixVeh,
 		" yPixVeh=",yPixVeh,
 		" wPix=",lPix,
