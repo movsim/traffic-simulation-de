@@ -26,7 +26,7 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
-// physical geometry settings
+// physical geometry settings [m]
 
 var sizePhys=290;    //responsive design  
 var center_xPhys=139;
@@ -71,7 +71,7 @@ var truckFracToleratedMismatch=0.02;
 
 
 //###############################################################
-// physical (m) road and vehicles  specification
+// physical road and vehicles  specification
 //###############################################################
 
     // define road geometry as parametric functions of arclength u
@@ -186,7 +186,6 @@ roadImg2.src=(nLanes===1)
 // alignedHoriz,containsObstacles)
 
 var depot=new vehicleDepot(obstacleImgs.length,10,
-//var depot=new vehicleDepot(4,9,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   20,20,false,true);
 
@@ -204,8 +203,6 @@ var time=0;
 var itime=0;
 var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
-
-
 
 
 //############################################
@@ -247,6 +244,7 @@ function updateRing(){
     }
 					  
 
+    //!!!
     if(depotVehZoomBack){
 	console.log("ring: depotVehZoomBack=true!!! ");
 	var res=depot.zoomBackVehicle();
@@ -255,7 +253,7 @@ function updateRing(){
     }
 
 
-}
+}  // updateRing
 
 
 
@@ -309,7 +307,7 @@ function drawRing() {
  
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     // (4) draw vehicles
 
@@ -320,7 +318,7 @@ function drawRing() {
     depot.draw(obstacleImgs,scale,canvas);
 
 
-    // draw some running-time vars
+    // (6) draw some running-time vars
 
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;

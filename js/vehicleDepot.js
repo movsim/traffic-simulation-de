@@ -46,6 +46,9 @@ vehicleDepot object constructor
 
 function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
 		      alignedHoriz, containsObstacles){
+
+    console.log("vehicleDepot cstr: xDepot=",xDepot," yDepot=",yDepot);
+
     this.nveh=nveh; // generally not imageArray.length
 
     this.xDepot=xDepot;

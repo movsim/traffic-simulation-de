@@ -23,9 +23,10 @@ var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 // physical geometry settings [m]
-// sizePhys=physical dimension; should be of the order of vertical extension
 
-// fixed at initialization; relevant for actual simulation
+var sizePhys=200;  // typical physical linear dimension for scaling 
+var center_xPhys=85; // only IC!! later not relevant!
+var center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
 
 var mainroadLenInit=800;
 var nLanes_main=3;
@@ -43,13 +44,8 @@ var straightLen=0.34*mainroadLenInit;      // straight segments of U
 var mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
 var arcLen=mainroadLenInit-2*straightLen; // length of half-circe arc of U
 var arcRadius=arcLen/Math.PI;
-var center_xPhys=85; // only IC!! later not relevant!
-var center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
 
 var rampRadius=4*arcRadius;
-
-var sizePhys=200;  // typical physical linear dimension for scaling 
-
 
 
 // specification of vehicle and traffic  properties
@@ -92,49 +88,16 @@ var relPosPerturb=0.8;
 var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes
 
 
-//############################################################################
-// image file settings
-//############################################################################
-
-
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var obstacle_srcFile='figs/obstacleImg.png';
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-var ramp_srcFile='figs/road1lanesCrop.png';
-
-// Notice: set drawBackground=false if no bg wanted
-var background_srcFile='figs/backgroundGrass.jpg'; 
-
-
-
-//#################################
-// Global graphics specification
-//#################################
-
-var canvas;
-var ctx;  // graphics context
- 
-var background;
- 
-
 
 
 //###############################################################
-// physical (m) road, vehicle and model specification
+// physical road and vehicles  specification
 //###############################################################
 
-// IDM_v0 etc and updateModels() with actions  "longModelCar=new ACC(..)" etc
-// defined in gui.js
-
-    // (1) define road geometry as parametric functions of arclength u
+    // define road geometry as parametric functions of arclength u
     // (physical coordinates!)
+
+
 
 function traj_xInit(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -181,6 +144,8 @@ function trajRamp_yInit(u){ // physical coordinates
 
 
 console.log("main: trajRamp_xInit(rampLenInit)=",trajRamp_xInit(rampLenInit));
+
+
 
 var longModelCar;
 var longModelTruck;
@@ -245,6 +210,97 @@ if(false){
 	}
 	console.log("\n");
 }
+
+
+
+//####################################################################
+// Global graphics specification and image file settings
+//####################################################################
+
+var canvas = document.getElementById("canvas_onramp"); 
+var ctx = canvas.getContext("2d"); // graphics context
+
+// Notice: set drawBackground=false if no bg wanted
+var background_srcFile='figs/backgroundGrass.jpg'; 
+
+
+var car_srcFile='figs/blackCarCropped.gif';
+var truck_srcFile='figs/truck1Small.png';
+var traffLightGreen_srcFile='figs/trafficLightGreen_affine.png';
+var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
+
+var obstacle_srcFiles = [];
+obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
+for (var i=1; i<10; i++){ //!!!
+    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
+    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
+}
+
+var road1lanes_srcFile='figs/road1lanesCrop.png';
+var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
+var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
+var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
+var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
+var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
+var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+var ramp_srcFile='figs/road1lanesCrop.png';
+
+
+// init background image
+
+background = new Image();
+background.src =background_srcFile;
+
+// init vehicle image(s)
+
+carImg = new Image();
+carImg.src = car_srcFile;
+truckImg = new Image();
+truckImg.src = truck_srcFile;
+
+// init special objects images
+
+traffLightRedImg = new Image();
+traffLightRedImg.src=traffLightRed_srcFile;
+traffLightGreenImg = new Image();
+traffLightGreenImg.src=traffLightGreen_srcFile;
+
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
+for (var i=0; i<obstacle_srcFiles.length; i++){
+    obstacleImgs[i]=new Image();
+    obstacleImgs[i].src = obstacle_srcFiles[i];
+}
+
+
+// init road image(s)
+
+roadImg1 = new Image();
+roadImg1.src=(nLanes_main===1)
+	? road1lanes_srcFile
+	: (nLanes_main===2) ? road2lanesWith_srcFile
+	: (nLanes_main===3) ? road3lanesWith_srcFile
+	: road4lanesWith_srcFile;
+
+roadImg2 = new Image();
+roadImg2.src=(nLanes_main===1)
+	? road1lanes_srcFile
+	: (nLanes_main===2) ? road2lanesWithout_srcFile
+	: (nLanes_main===3) ? road3lanesWithout_srcFile
+	: road4lanesWithout_srcFile;
+
+rampImg = new Image();
+rampImg.src=ramp_srcFile;
+
+
+
+//!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
+// alignedHoriz,containsObstacles)
+
+var smallerDimPix=Math.min(canvas.width,canvas.height);
+var depot=new vehicleDepot(obstacleImgs.length, 10,
+			   0.7*smallerDimPix/scale,
+			   -0.5*smallerDimPix/scale,
+			   20,20,true,true);
 
 
 
@@ -319,44 +375,19 @@ function updateU(){
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    if(false){
-    console.log("\nbefore onramp.mergeDiverge:",
-		" onramp.roadLen=", onramp.roadLen,
-		" mainroad.roadLen=", mainroad.roadLen,
-		" mainRampOffset=", mainRampOffset);
-	console.log("  onramp.traj_x(onramp.roadLen)=",
-		onramp.traj_x(onramp.roadLen));
-	console.log("  mainroad.traj_x(onramp.roadLen+mainRampOffset)=",
-		mainroad.traj_x(onramp.roadLen+mainRampOffset));
-        console.log("  trajRamp__xInit(onramp.roadLen)=",
-		trajRamp_xInit(onramp.roadLen));
-        console.log("  traj_xInit(onramp.roadLen+mainRampOffset)=",
-	        traj_xInit(onramp.roadLen+mainRampOffset));
-    }
 
     onramp.mergeDiverge(mainroad,mainRampOffset,
 			onramp.roadLen-mergeLen,onramp.roadLen,true,false);
 
-    //logging
 
-    if(false){
-        console.log("\nafter updateU: itime="+itime+" mainroad.nveh="+mainroad.nveh);
-	for(var i=0; i<mainroad.veh.length; i++){
-	    console.log("i="+i+" mainroad.veh[i].u="+mainroad.veh[i].u
-			+" mainroad.veh[i].v="+mainroad.veh[i].v
-			+" mainroad.veh[i].lane="+mainroad.veh[i].lane
-			+" mainroad.veh[i].laneOld="+mainroad.veh[i].laneOld);
-	}
-        console.log("\nonramp.nveh="+onramp.nveh);
-	for(var i=0; i<onramp.veh.length; i++){
-	    console.log("i="+i
-			+" onramp.veh[i].type="+onramp.veh[i].type
-			+" onramp.veh[i].u="+onramp.veh[i].u
-			+" onramp.veh[i].v="+onramp.veh[i].v
-			+" onramp.veh[i].speed="+onramp.veh[i].speed);
-	}
-	console.log("\n");
+    //!!!
+    if(depotVehZoomBack){
+	console.log("ring: depotVehZoomBack=true!!! ");
+	var res=depot.zoomBackVehicle();
+	depotVehZoomBack=res;
+	userCanvasManip=true;
     }
+
 
 }//updateU
 
@@ -466,11 +497,13 @@ function drawU() {
 		movingObserver,0, 
 		center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
 		center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0)); 
+    onramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
-// center_xPhys, center_yPhys
+
  
     // (4) draw vehicles
 
@@ -485,9 +518,12 @@ function drawU() {
 			  vmin, vmax,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
+    // (5) !!! draw depot vehicles
+
+    depot.draw(obstacleImgs,scale,canvas);
 
 
-    // (5) draw some running-time vars
+    // (6) draw some running-time vars
 
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
@@ -579,60 +615,6 @@ function drawU() {
 
 
 
-
-function init() {
-
-    // get overall dimensions from parent html page
-    // "canvas_onramp" defined in onramp.html
-
-    canvas = document.getElementById("canvas_onramp"); 
-    ctx = canvas.getContext("2d");
- 
-
-    // init background image
-
-    background = new Image();
-    background.src =background_srcFile;
-
-    // init vehicle image(s)
-
-    carImg = new Image();
-    carImg.src = car_srcFile;
-    truckImg = new Image();
-    truckImg.src = truck_srcFile;
-    obstacleImgs = [];
-    obstacleImgs[0]=new Image();
-    obstacleImgs[0].src = obstacle_srcFile;
-
-    // init road image(s)
-
-    roadImg1 = new Image();
-    roadImg1.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWith_srcFile
-	: (nLanes_main===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
-    roadImg2 = new Image();
-    roadImg2.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWithout_srcFile
-	: (nLanes_main===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
-
-    rampImg = new Image();
-    rampImg.src=ramp_srcFile;
-
-
-    // starts simulation thread "main_loop" (defined below) 
-    // with update time interval 1000/fps milliseconds
-
-    return setInterval(main_loop, 1000/fps); 
-} // end init()
-
-
-
-
 //##################################################
 // Running function of the sim thread (triggered by setInterval)
 //##################################################
@@ -640,14 +622,21 @@ function init() {
 function main_loop() {
     updateU();
     drawU();
+    userCanvasManip=false;
 }
  
 
-//##################################################
-// Actual start of the simulation thread
-// (also started from gui.js "Onramp" button) 
-//##################################################
+ //############################################
+// start the simulation thread
+// THIS function does all the things; everything else 
+// only functions/definitions
+// triggers:
+// (i) automatically when loading the simulation 
+// (ii) when pressing the start button defined in onramp_gui.js
+//  ("myRun=setInterval(main_loop, 1000/fps);")
+//############################################
 
- 
- var myRun=init(); //if start with onramp: init, starts thread "main_loop" 
+console.log("first main execution");
+showInfo();
+var myRun=setInterval(main_loop, 1000/fps);
 

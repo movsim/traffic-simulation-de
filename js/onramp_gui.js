@@ -46,6 +46,10 @@ var factor_a_truck=0.8;
 var factor_T_truck=1.2;
 
 
+//#########################################################
+// helper function
+//#########################################################
+
 function updateModels(){
     var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedlimit_truck);
     var T_truck=factor_T_truck*IDM_T;
@@ -61,12 +65,6 @@ function updateModels(){
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
 }
 
-
-// general info on threads:
-
-// thread starts with "var myRun=init();" or "myRun=init();"
-// in init() at end: setInterval(main_loop, 1000/fps);
-// thread stops with "clearInterval(myRun);" 
 
 
 //################################################################
@@ -85,31 +83,50 @@ function myStartStopFunction(){
     clearInterval(myRun);
     console.log("in myStartStopFunction: isStopped=",isStopped);
 
+    //!!!
     if(isStopped){
 	isStopped=false;
-	document.getElementById('startStop').innerHTML="Stop";
-	myRun=init();
+	document.getElementById('startStop').src="figs/buttonStop3_small.png";
+	myRun=setInterval(main_loop, 1000/fps);
     }
     else{
-	document.getElementById('startStop').innerHTML="Resume";
+	document.getElementById('startStop').src="figs/buttonGo_small.png";
 	isStopped=true;
     }
 }
 
-//#########################################################
-// Disturb button (triggered by "onclick" callback in html file)
-//#########################################################
 
-function disturbOneVehicle(relLocation,speedReduce){
-    mainroad.disturbOneVehicle(relLocation,speedReduce);
+
+/*#########################################################
+ info button callback
+#########################################################
+
+jquery needed to fill div with external html (script in header)
+$('#infotext') equals document.getElementById('infotext')
+but document.getElementById('infotext').load('info_ring.html'); does not work
+*/
+
+var infoLevel=0;
+var nLevels=4;
+function showInfo(){ 
+    console.log("infoLevel=",infoLevel);
+    //var infopanel=document.getElementById('infotext');
+    if(infoLevel===0){$('#infotext').load('info_gui.html');}
+    else if(infoLevel===1){$('#infotext').load('info_onramp.html');}
+    else if(infoLevel===2){$('#infotext').load('info_IDM.html');}
+    else if(infoLevel===3){$('#infotext').load('info_MOBIL.html');}
+    infoLevel++; infoLevel=(infoLevel%nLevels);
 }
 
 
 
+
 //#############################################
-// Timewarp slider (names 'slider_timewarp' etc defined in html file)
-// (also define formatting in sliders.css!)
+// sliders
+// names 'slider_timewarp' etc defined in html file 
+// and formatted in sliders.css
 //#############################################
+
 
 // timewarp slider
 
@@ -208,6 +225,7 @@ slider_IDM_T.oninput = function() {
     updateModels();
 }
 
+/*
 // IDM_s0 slider
 
 var slider_IDM_s0 = document.getElementById('slider_IDM_s0');
@@ -220,7 +238,7 @@ slider_IDM_s0.oninput = function() {
     IDM_s0=parseFloat(this.value);
     updateModels();
 }
-
+*/
 
 // IDM_a slider
 
@@ -235,6 +253,7 @@ slider_IDM_a.oninput = function() {
     updateModels();
 }
 
+/*
 // IDM_b slider
 
 var slider_IDM_b = document.getElementById('slider_IDM_b');
@@ -248,6 +267,6 @@ slider_IDM_b.oninput = function() {
     updateModels();
 }
 
-
+*/
 
 

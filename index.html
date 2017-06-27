@@ -13,12 +13,6 @@
             src="http://code.jquery.com/jquery-1.5.1.min.js">
     </script>
 
-<!-- old
-    <link href="css/sliders_2017_06.css" rel="stylesheet" type="text/css" />
-    <link href="css/styleResponsive.css" rel="stylesheet" type="text/css"/>
-    <link href="css/styleLandscape_2017_06.css" rel="stylesheet" type="text/css"/>
-    <link href="css/stylePortrait_2017_06.css" rel="stylesheet" type="text/css"/>
--->
 
     <title>Microsimulation of Traffic Flow</title> 
 </head>
@@ -40,7 +34,6 @@
 
 <div id="header"> 
   <img class="title" src="figs/title.png"  width="100%"/>
-  <!--<center>Microsimulation of Traffic Flow: html5 Version</center>-->
 </div> 
 
 
@@ -59,20 +52,24 @@
      src="figs/infoBlue.png" onclick="showInfo()"/>
 </div>
 
+
+
 <div id="scenarios">
 <center>
  <br>
-<img width="14%" src="figs/iconRing_small.jpg" onclick="myRedirectRing()"/>
-<img width="16%" src="figs/iconOnrampFig_small.png" onclick="myRedirectOnramp()"/>
-<img width="16%" src="figs/iconOfframpFig_small.png" onclick="myRedirectOfframp()"/>
-<img width="15%" src="figs/iconRoadworksFig_small.png" onclick="myRedirectRoadworks()"/>
-<img width="15%" src="figs/iconUphillFig_small.png" onclick="myRedirectUphill()"/>
-<img width="16%" src="figs/iconRoutingFig_small.png" onclick="myRedirectRouting()"/>
-
-
+<img width="14%" src="figs/iconRing_small.jpg" 
+                 onclick="myRedirectRing()"/>
+<img width="16%" src="figs/iconOnrampFig_small.png" 
+                 onclick="myRedirectOnramp()"/>
+<img width="16%" src="figs/iconOfframpFig_small.png" 
+                 onclick="myRedirectOfframp()"/>
+<img width="15%" src="figs/iconRoadworksFig_small.png" 
+                 onclick="myRedirectRoadworks()"/>
+<img width="15%" src="figs/iconUphillFig_small.png" 
+                 onclick="myRedirectUphill()"/>
+<img width="16%" src="figs/iconRoutingFig_small.png" 
+                 onclick="myRedirectRouting()"/>
 </center>
-
-
 </div> 
 
 
@@ -89,15 +86,12 @@
           onclick="influenceClickedVeh(event)"
           onmouseout="cancelActivities(event)"
           style="border:1px solid #d3d3d3;">
-   >
-
-   <!-- on[cC]lick,onmousedown,onmousemove,onmouseover,no onmousedragged-->
-
-    Your browser does not support the HTML5 canvas tag.
+  
+     Your browser does not support the HTML5 canvas tag.
   </canvas>
-
-
 </div>
+
+
 
 <!-- ################################################# -->
 <!-- Copyright/impressum                               -->
@@ -227,8 +221,8 @@
 </div>
 
 
-</div>
 </center>
+</div>   <!-- id="sliders1">-->
 
 
 
@@ -257,24 +251,6 @@
 </center>
 </div>
 
-<!-- ############################################## -->
-<!-- here comes the former navigation*.html frame   -->
-<!-- ############################################## -->
-<!--white space below sim if portrait-->
-
-<!--
-<div id="footWhiteSpace"> </div> 
-<div id="infoModels"> 
-<img src="figs/colormap.png" width="80%"/>
-<link data-wi-src="infoModels.html" /></div>
-<div id="infoScenarios"> <link data-wi-src="infoScenarios.html" /></div>
-<div id="infoLinks"> <link data-wi-src="infoLinks.html" /></div>
--->
-
-<!-- ############################################## -->
-<!-- end former navigation*.html frame   -->
-<!-- ############################################## -->
-
 
 </div> <!-- end outer container -->
 
@@ -298,7 +274,7 @@
 <script src="js/road.js"></script>
 <script src="js/ring.js"></script>
 
-<script src="wm-html-include/wm-html-include.js"> </script>
+<!-- <script src="wm-html-include/wm-html-include.js"> </script>-->
 
 </body>
 </html>

@@ -735,7 +735,7 @@ road.prototype.changeTrafficLight=function(id,state){
 	if(pickedTL.state==="green"){
 	    for(var i=0; i<this.veh.length; i++){
 		if(this.veh[i].id===id){
-		    this.veh.splice(i, nLanes); // nLanes red TL removed
+		    this.veh.splice(i, this.nLanes); // nLanes red TL removed
 		}
 	    }
 	}
