@@ -53,6 +53,11 @@ var factor_a_truck=0.8;
 var factor_T_truck=1.2;
 
 
+
+//#########################################################
+// helper function
+//#########################################################
+
 function updateModels(){
     var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedlimit_truck);
     var T_truck=factor_T_truck*IDM_T;
@@ -69,13 +74,6 @@ function updateModels(){
 }
 
 
-//#########################################################
-// Disturb button (triggered by "onclick" callback in html file)
-//#########################################################
-
-function disturbOneVehicle(relLocation,speedReduce){
-    mainroad.disturbOneVehicle(relLocation,speedReduce);
-}
 
 
 
@@ -109,6 +107,29 @@ function myStartStopFunction(){
     }
     
 }
+
+/*#########################################################
+ info button callback
+#########################################################
+
+jquery needed to fill div with external html (script in header)
+$('#infotext') equals document.getElementById('infotext')
+but document.getElementById('infotext').load('info_ring.html'); does not work
+*/
+
+var infoLevel=0;
+var nLevels=4;
+function showInfo(){ 
+    console.log("infoLevel=",infoLevel);
+    //var infopanel=document.getElementById('infotext');
+    if(infoLevel===0){$('#infotext').load('info_gui.html');}
+    else if(infoLevel===1){$('#infotext').load('info_ring.html');}
+    else if(infoLevel===2){$('#infotext').load('info_IDM.html');}
+    else if(infoLevel===3){$('#infotext').load('info_MOBIL.html');}
+    infoLevel++; infoLevel=(infoLevel%nLevels);
+}
+
+
 
 
 //#############################################

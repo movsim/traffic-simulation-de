@@ -419,10 +419,12 @@ function main_loop() {
 // THIS function does all the things; everything else 
 // only functions/definitions
 // triggers:
-// (i) automatically when loading the simulation ("var myRun=init();" below) 
+// (i) automatically when loading the simulation 
 // (ii) when pressing the start button defined in onramp_gui.js
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
- var myRun=setInterval(main_loop, 1000/fps); 
+console.log("first main execution");
+showInfo();
+var myRun=setInterval(main_loop, 1000/fps); 
 

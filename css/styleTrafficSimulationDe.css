@@ -55,20 +55,28 @@ body{
 
 /* <h2>, <h3> not used in the main sim page but in some help pages */
 
- h2{
-     font-family: courier, sans-serif;
-     font-size: 2.5vmin;
+ h1{
+     font-family: helvetica, sans-serif;
+     font-size: 2.6vmin;
      font-weight: bold;
-     color: #556;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h2{
+     font-family: helvetica, sans-serif;
+     font-size: 2.4vmin;
+     font-weight: bold;
+     color: #446;
      padding-top:0px;
  }
 
  h3{ 
      font-family: sans-serif;
-     font-size: 1.9vmin; 
+     font-size: 2.2vmin; 
      font-weight: bold;
      font-style: italic;
-     color: #556;
+     color: #446;
      padding-top:0px;
  }
 
@@ -184,8 +192,10 @@ img.title{
   z-index: 1; /* the higher the integer, the more on top */
 }
 
-/* (2b) position of the stop sign: right top of simCanvas */
-#startStopDiv{
+
+/* (2b) position of the info button: right top of simCanvas */
+
+#infoDiv{
   position: absolute;
   top: 7vmin;
   height: 8vmin;
@@ -194,6 +204,16 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2c) position of the start/stop sign: just to the left of info button */
+
+#startStopDiv{
+  position: absolute;
+  top: 7vmin;
+  height: 8vmin;
+  left: 101vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
 /* (3) position of the flags for language selection: right top of simCanvas */
 
@@ -230,8 +250,8 @@ button{
 /* (5) text layout of sliders: tables override general text spec) */
 
 
-TH{                    /* th not used at the moment */
-  font-size: 2.6vmin;
+TH{                    /* only used in infotext */
+  font-size: 2.2vmin;
   font-weight: bold; 
   color: #404060;      /* text color */
 
@@ -239,7 +259,8 @@ TH{                    /* th not used at the moment */
 
 TR{
   font-size:1.8vmin; 
-  color: #000000;
+  font-weight: bold; 
+  color: #404060;
 }
 
 
@@ -295,13 +316,14 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #infotext{
   border:1px solid black;
-  width: 45vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 30vmin;
+  width: 50vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  height: 26vmin;
   text-align: left;
   padding-top: 0vmin;
-  padding-left: 1vmin;
-  padding-right: 4vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
   background-color: rgba(0,40,255,0.0);
+  overflow:auto;
 }
 
 /* (7) position/size of the colorbox */

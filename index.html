@@ -9,7 +9,9 @@
 
     <link href="css/sliders.css" rel="stylesheet" type="text/css" />
     <link href="css/styleTrafficSimulationDe.css" rel="stylesheet" type="text/css"/>
-
+    <script type="text/javascript" 
+            src="http://code.jquery.com/jquery-1.5.1.min.js">
+    </script>
 
 <!-- old
     <link href="css/sliders_2017_06.css" rel="stylesheet" type="text/css" />
@@ -53,28 +55,20 @@
      src="figs/buttonStop3_small.png" onclick="myStartStopFunction()"/>
 </div>
 
+<div id="infoDiv"><img width="100%" 
+     src="figs/infoBlue.png" onclick="showInfo()"/>
+</div>
+
 <div id="scenarios">
 <center>
  <br>
 <img width="14%" src="figs/iconRing_small.jpg" onclick="myRedirectRing()"/>
 <img width="16%" src="figs/iconOnrampFig_small.png" onclick="myRedirectOnramp()"/>
 <img width="16%" src="figs/iconOfframpFig_small.png" onclick="myRedirectOfframp()"/>
-<img width="16%" src="figs/iconRoadworksFig_small.png" onclick="myRedirectRoadworks()"/>
-<img width="16%" src="figs/iconUphillFig_small.png" onclick="myRedirectUphill()"/>
+<img width="15%" src="figs/iconRoadworksFig_small.png" onclick="myRedirectRoadworks()"/>
+<img width="15%" src="figs/iconUphillFig_small.png" onclick="myRedirectUphill()"/>
 <img width="16%" src="figs/iconRoutingFig_small.png" onclick="myRedirectRouting()"/>
 
-<!--  <button onclick="disturbOneVehicle(0.9,10)">Disturb Traffic</button>
-  <button id="startStop" onclick="myStartStopFunction()">Stop</button>
--->
-
-<!--
-  <button onclick="myRedirectRing()">Ringroad</button>
-  <button onclick="myRedirectOnramp()">Onramp</button>
-  <button onclick="myRedirectOfframp()">Offramp</button>
-  <button onclick="myRedirectRoadworks()">RoadWorks</button>
-  <button onclick="myRedirectUphill()">Uphill</button>
-  <button onclick="myRedirectRouting()">Routing</button>
--->
 
 </center>
 
@@ -225,17 +219,11 @@
 
 
 <!-- ############################################## -->
-<!-- info-text inside sliders1-div
+<!-- info-text inside sliders1-div (filled by showInfo())
 <!-- ############################################## -->
 
 <br>
 <div id="infotext">
-<ul>
-<li> change the road geometry by dragging</li>
-<li> click onto the road to disturb traffic flow</li>
-<li> drag obstacles from the depot to create new bottlenecks </li>
-</ul>
-text outside
 </div>
 
 
