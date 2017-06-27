@@ -526,17 +526,17 @@ function init() {
 	// init road image(s)
 
     roadImg1 = new Image();
-    roadImg1.src=(nLanes==1)
+    roadImg1.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWith_srcFile
-	: (nLanes==3) ? road3lanesWith_srcFile
+	: (nLanes===2) ? road2lanesWith_srcFile
+	: (nLanes===3) ? road3lanesWith_srcFile
 	: road4lanesWith_srcFile;
 
     roadImg2 = new Image();
-    roadImg2.src=(nLanes==1)
+    roadImg2.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWithout_srcFile
-	: (nLanes==3) ? road3lanesWithout_srcFile
+	: (nLanes===2) ? road2lanesWithout_srcFile
+	: (nLanes===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
     rampImg = new Image();
@@ -564,7 +564,7 @@ function main_loop() {
     //!!! distortion
 
     if(false){
-    //if(itime==10){ //!!! test with zero distortion, just gridding
+    //if(itime===10){ //!!! test with zero distortion, just gridding
 	var xUserMain=mainroad.traj_x(0.50*mainroad.roadLen)+110;
 	var yUserMain=mainroad.traj_y(0.50*mainroad.roadLen)-20;
 	mainroad.testCRG(xUserMain,yUserMain);

@@ -169,17 +169,17 @@ for (var i=0; i<obstacle_srcFiles.length; i++){
 // init road image(s)
 
 roadImg1 = new Image();
-roadImg1.src=(nLanes==1)
+roadImg1.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWith_srcFile
-	: (nLanes==3) ? road3lanesWith_srcFile
+	: (nLanes===2) ? road2lanesWith_srcFile
+	: (nLanes===3) ? road3lanesWith_srcFile
 	: road4lanesWith_srcFile;
 
 roadImg2 = new Image();
-roadImg2.src=(nLanes==1)
+roadImg2.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWithout_srcFile
-	: (nLanes==3) ? road3lanesWithout_srcFile
+	: (nLanes===2) ? road2lanesWithout_srcFile
+	: (nLanes===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
 //!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
@@ -192,7 +192,8 @@ var depot=new vehicleDepot(obstacleImgs.length,10,
 
 //!!! test: add traffic lights
 
-mainroad.addTrafficLight(101,60,"green",traffLightRedImg,traffLightGreenImg);
+//mainroad.addTrafficLight(101,60,"green");
+//mainroad.addTrafficLight(102,240,"red");
 
 
 //############################################
@@ -237,10 +238,12 @@ function updateRing(){
     mainroad.updateSpeedPositions();
     //mainroad.writeVehicles();
 
-    if(itime%50==0){//!!!!!!!!!!!!!!!
-	var newstate=(itime%100==0) ? "red" : "green";
-	console.log("in mainroad.changeLights: newstate=",newstate);
-	mainroad.changeLights(101,newstate);
+    if(false){//!!!
+    //if(itime%50===0){//!!!
+	var newstate=(itime%100===0) ? "green" : "red";
+	console.log("in mainroad.changeTrafficLight: newstate=",newstate);
+	mainroad.changeTrafficLight(101);
+	mainroad.changeTrafficLight(102);
     }
 					  
 
@@ -296,17 +299,17 @@ function drawRing() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || (itime==20) || userCanvasManip 
+	if(hasChanged||(itime<=1) || (itime===20) || userCanvasManip 
 	   || (!drawRoad)){
             ctx.drawImage(background,0,0,canvas.width,canvas.height);
 	}
     }
 
-    // (3) draw ring road
+    // (3) draw road and possibly traffic lights afterwards (before vehs)
  
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);
 
     // (4) draw vehicles
 
@@ -405,6 +408,7 @@ function main_loop() {
     updateRing();
     drawRing();
     userCanvasManip=false;
+   //console.log("mainroad.veh.length=",mainroad.veh.length);
    //mainroad.writeVehicles(); // for debugging
 }
 

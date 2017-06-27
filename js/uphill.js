@@ -317,7 +317,7 @@ function drawU() {
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(userCanvasManip||hasChanged||banButtonClicked
-	   ||(itime<=1) || (itime==20) || false || (!drawRoad)){
+	   ||(itime<=1) || (itime===20) || false || (!drawRoad)){
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -340,7 +340,7 @@ function drawU() {
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
     if(userCanvasManip||hasChanged||banButtonClicked
-       ||(itime<=1) || (itime==20) ){
+       ||(itime<=1) || (itime===20) ){
 
 	banButtonClicked=false;
 	var sizeSignPix=0.1*refSizePix;
@@ -494,17 +494,17 @@ function init() {
 	// init road image(s)
 
     roadImg1 = new Image();
-    roadImg1.src=(nLanes==1)
+    roadImg1.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWith_srcFile
-	: (nLanes==3) ? road3lanesWith_srcFile
+	: (nLanes===2) ? road2lanesWith_srcFile
+	: (nLanes===3) ? road3lanesWith_srcFile
 	: road4lanesWith_srcFile;
 
     roadImg2 = new Image();
-    roadImg2.src=(nLanes==1)
+    roadImg2.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWithout_srcFile
-	: (nLanes==3) ? road3lanesWithout_srcFile
+	: (nLanes===2) ? road2lanesWithout_srcFile
+	: (nLanes===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
 

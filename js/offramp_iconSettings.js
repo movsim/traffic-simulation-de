@@ -368,7 +368,7 @@ function drawU() {
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(userCanvasManip||hasChanged||(itime<=1) 
-	   || (itime==20) || false || (!drawRoad)){
+	   || (itime===20) || false || (!drawRoad)){
 
          ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
@@ -474,17 +474,17 @@ function init() {
 	// init road image(s)
 
     roadImg1 = new Image();
-    roadImg1.src=(nLanes_main==1)
+    roadImg1.src=(nLanes_main===1)
 	? road1lanes_srcFile
-	: (nLanes_main==2) ? road2lanesWith_srcFile
-	: (nLanes_main==3) ? road3lanesWith_srcFile
+	: (nLanes_main===2) ? road2lanesWith_srcFile
+	: (nLanes_main===3) ? road3lanesWith_srcFile
 	: road4lanesWith_srcFile;
 
     roadImg2 = new Image();
-    roadImg2.src=(nLanes_main==1)
+    roadImg2.src=(nLanes_main===1)
 	? road1lanes_srcFile
-	: (nLanes_main==2) ? road2lanesWithout_srcFile
-	: (nLanes_main==3) ? road3lanesWithout_srcFile
+	: (nLanes_main===2) ? road2lanesWithout_srcFile
+	: (nLanes_main===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
     rampImg = new Image();
@@ -514,7 +514,7 @@ function main_loop() {
     //!!! distortion
 
     if(false){
-    //if(itime==10){ //!!! test with zero distortion, just gridding
+    //if(itime===10){ //!!! test with zero distortion, just gridding
 	var xUserMain=mainroad.traj_x(0.4*mainroad.roadLen)+0;
 	var yUserMain=mainroad.traj_y(0.4*mainroad.roadLen)-30;
 	var xUserOff=offramp.traj_x(0.4*offramp.roadLen)+0;

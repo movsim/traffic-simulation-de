@@ -192,7 +192,7 @@ for (var ir=0; ir<nr; ir++){
 
     // avoid that an obstacle id is a multiple of the number of obstacle 
     // img srcfiles since then the "black bar" for end-onramp is drawn
-    if(virtualVeh.id%obstacle_srcFiles.length==0){virtualVeh.id+=1;}
+    if(virtualVeh.id%obstacle_srcFiles.length===0){virtualVeh.id+=1;}
 
     virtualVeh.longModel=longModelObstacle;
     virtualVeh.LCModel=LCModelObstacle;
@@ -540,17 +540,17 @@ function init() {
 	// init road image(s)
 
     roadImg1 = new Image();
-    roadImg1.src=(nLanes==1)
+    roadImg1.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWith_srcFile
-	: (nLanes==3) ? road3lanesWith_srcFile
+	: (nLanes===2) ? road2lanesWith_srcFile
+	: (nLanes===3) ? road3lanesWith_srcFile
 	: road4lanesWith_srcFile;
 
     roadImg2 = new Image();
-    roadImg2.src=(nLanes==1)
+    roadImg2.src=(nLanes===1)
 	? road1lanes_srcFile
-	: (nLanes==2) ? road2lanesWithout_srcFile
-	: (nLanes==3) ? road3lanesWithout_srcFile
+	: (nLanes===2) ? road2lanesWithout_srcFile
+	: (nLanes===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
 
     rampImg = new Image();

@@ -40,7 +40,7 @@ function hslToRgb(h, s, l) {
 
   else{ // not mt version
 
-    if(s == 0){
+    if(s === 0){
         r = g = b = l; // achromatic
     }else{
         function hue2rgb(p, q, t){
@@ -74,7 +74,7 @@ function hslToRgb(h, s, l) {
  *
  * @param   v: the actual speed
  * @param   vmin,vmax: speed range for color coding
- * @param   vehType: darker if vehType=="truck"
+ * @param   vehType: darker if vehType==="truck"
  * @param   isEgo (opt): special color to mark ego-vehicle (if applicable)
  * @param   time (opt): only for making ego vehicles blink
  * @param   isOpaque (opt): for drawing colormap itself if moving background
@@ -99,7 +99,7 @@ function colormapSpeed(v, vmin, vmax, vehType, isEgo, time, isOpaque){
 
     var hue=hue_vmin+vrel_nl*(hue_vmax-hue_vmin);
     var sat=1; // use max saturation
-    var lightness=(vehType=="truck") ? 0.2 : 0.5; //0: all black; 1: white
+    var lightness=(vehType==="truck") ? 0.2 : 0.5; //0: all black; 1: white
  
     // convert into rgb and add opacity (0: fully transp; 1: opaque=normal)
 
@@ -108,7 +108,7 @@ function colormapSpeed(v, vmin, vmax, vehType, isEgo, time, isOpaque){
     r=rgbArr[0];
     g=rgbArr[1];
     b=rgbArr[2];
-    a=(vehType=="truck") ? 0.3 : 0.4;
+    a=(vehType==="truck") ? 0.3 : 0.4;
     if(isEgo){
 	var lightsOn=( (Math.floor(1000*time))%dt_blink_ms<0.5*dt_blink_ms);
 	a=(lightsOn) ? 0.95 : 0.2;

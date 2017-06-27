@@ -65,7 +65,7 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
     var idminTL=100; // see top of this file
     while(idmin%nImgs!=0){idmin++;}
     for(var i=0; i<nveh; i++){
-	var imgNmbr=(nImgs==1) ? 0 : Math.max(1,i%nImgs);
+	var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);
 	var latDistVeh=this.lVeh*(1+this.gapRel);
 	var xVehDepot=this.xDepot+latDistVeh*(i+0.5*(1-this.nveh));
 	var yVehDepot=this.yDepot;
@@ -87,8 +87,6 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
 
         // ad hoc introduce 2 TL at the beginning (quick hack!!!)
 	if(i<2){this.veh[i].id=100+i;}
-	console.log("in vehicleDepot cstr: nImgs=",nImgs," i=",i,
-		    "\n   this.veh[i]=",this.veh[i]);
     }
 
 }// end cstr

@@ -198,8 +198,8 @@ truckImg.src='figs/truck1Small.png';
 obstacleImg.src='figs/obstacleImg.png';
 
 roadImg1.src=
-    (nLanes==1) ? 'figs/road1lanesCrop.png' :
-    (nLanes==2) ? 'figs/road2lanesCropWith.png' :
+    (nLanes===1) ? 'figs/road1lanesCrop.png' :
+    (nLanes===2) ? 'figs/road2lanesCropWith.png' :
     'figs/road3lanesCropWith.png';
 
 
@@ -393,15 +393,15 @@ function init(){
         if((mainroad.veh[i].type != "obstacle")
 	   &&(mainroad.veh[i].id != 1)){// otherwise no models defined
 
-            mainroad.veh[i].LCModel=(mainroad.veh[i].type == "car")
+            mainroad.veh[i].LCModel=(mainroad.veh[i].type === "car")
 	        ? LCModelCar : LCModelTruck;
-	    var v0=(mainroad.veh[i].lane==0) ? v0Left : 
-		(mainroad.veh[i].lane==1) ? v0Middle : v0Right;
-	    var T=(mainroad.veh[i].lane==0) ? TLeft : 
-		(mainroad.veh[i].lane==1) ? TMiddle : TRight;
-	    var a=(mainroad.veh[i].lane==0) ? aLeft : 
-		(mainroad.veh[i].lane==1) ? aMiddle : aRight;
-	    mainroad.veh[i].longModel=(mainroad.veh[i].type=="truck")
+	    var v0=(mainroad.veh[i].lane===0) ? v0Left : 
+		(mainroad.veh[i].lane===1) ? v0Middle : v0Right;
+	    var T=(mainroad.veh[i].lane===0) ? TLeft : 
+		(mainroad.veh[i].lane===1) ? TMiddle : TRight;
+	    var a=(mainroad.veh[i].lane===0) ? aLeft : 
+		(mainroad.veh[i].lane===1) ? aMiddle : aRight;
+	    mainroad.veh[i].longModel=(mainroad.veh[i].type==="truck")
 		? new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b)
 		: new ACC(v0,T,IDM_s0,a,IDM_b);
         }
@@ -433,7 +433,7 @@ function init(){
 
     //!!! test localStorage (a html5/js keyword) for highscores
 
-    if (typeof(Storage) !== "undefined") {
+    if (typeof(Storage) !=== "undefined") {
 	var scores =[];
 
         // if coffeemeterGame_HighScores exists, get the stored scores 
@@ -484,7 +484,7 @@ function drawMovingBackground(uObs){
     var yTopPix =-scale*(iLowerTile*sizeBgPhys + yBegin-traj_y(uObs));//moving
 
 
-    if(drawBackground&&(hasChanged||(itime<=2) || (itime==20) || relObserver 
+    if(drawBackground&&(hasChanged||(itime<=2) || (itime===20) || relObserver 
 			|| (!drawRoad))){
 
 	var sizeScreenImg=scale*sizeBgPhys;
@@ -634,7 +634,7 @@ function update(){
     
     if(false){
 	for (var iveh=0; iveh<mainroad.veh.length; iveh++){
-	    if(mainroad.veh[iveh].type=="truck"){
+	    if(mainroad.veh[iveh].type==="truck"){
 		console.log("iveh=",iveh,
 			    " LCmodel=",mainroad.veh[iveh].LCModel);
 	    }
@@ -652,7 +652,7 @@ function update(){
     }
 
    
-    if(itime%50==0){
+    if(itime%50===0){
     //if(false}{
 	mainroad.writeVehicleModels();
     }

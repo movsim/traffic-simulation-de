@@ -42,7 +42,7 @@ var depotObject;    // element depot.veh[i]; among others phys. Pos x,y
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
 var distDragCrit=0.8;  // drag function if dragged more [m]; otherwise click
 var distDrag=0; // physical distance[m] of the dragging
-
+var idPerturbed=10;   // id=10 is that of first perturbed veh; then incr
 
 // secondaryRoad='undefined' in ring,roadworks,uphill scenarios,
 // =oramp/offramp/deviation in the three "network" scenarios
@@ -59,15 +59,15 @@ var secondaryRoad;     // defined in onmouseenter callback
 
 function defineSecondaryRoad(event){
     isNetworkScenario=true;
-    if(scenarioString=="OnRamp"){secondaryRoad=onramp;}
-    else if(scenarioString=="OffRamp"){secondaryRoad=offramp;}
-    else if(scenarioString=="Deviation"){secondaryRoad=deviation;}
+    if(scenarioString==="OnRamp"){secondaryRoad=onramp;}
+    else if(scenarioString==="OffRamp"){secondaryRoad=offramp;}
+    else if(scenarioString==="Deviation"){secondaryRoad=deviation;}
     else {
 	isNetworkScenario=false;
 	secondaryRoad='undefined';
     }
-    console.log("onmouseenter: isNetworkScenario=",isNetworkScenario,
-		" secondaryRoad=",secondaryRoad);
+    //console.log("onmouseenter: isNetworkScenario=",isNetworkScenario,
+//		" secondaryRoad=",secondaryRoad);
 }
 
 
@@ -77,7 +77,7 @@ function defineSecondaryRoad(event){
 
 /* priorities (at most one action initiated at a given time):
 
-(1) pick/drag a special road vehicle. If success=>depotObject=>(2)
+(1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
 (2) pick/drag depot vehicle: depotObjDragged=true
 (3) drag on road less than crit and then mouse up: roadVehSelected=true
 (4) drag on road more than crit: roadDragged=true
@@ -96,16 +96,39 @@ function pickRoadOrVehicle(event){
     xUserDown=xUser;
     yUserDown=yUser;
 
-
-    // (1) pick/drag special road object
-    // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist]
+    // (1a) pick/drag a traffic light
+    // (need to do it separately since green TL have no road-vehicle objects)
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
-    // !!!TODO: convert the road object to a depot vehicle
+    // critical drag distance distCrit defined by road
 
-    console.log("  (2) test for special road object");
-    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // distCrit by road
+    console.log("  pickRoadOrVehicle: (1a) test for nearby traffic light");
+    var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
     if(pickResults[0]){
-	console.log("  (2) picked a special road object");
+	var TL=pickResults[1];
+        var success=false;
+        for(var i=0; (!success)&&(i<depot.veh.length); i++){
+	    success=(TL.id===depot.veh[i].id);
+	    if(success) depot.veh[i].inDepot=true;
+	}
+	if(!success) console.log(
+	    "canvas.pickRoadOrVehicle: no corresp depot veh found!");
+
+	depotObjDragged=true;
+	//specRoadObjDragged=true;
+	roadVehSelected=false;
+	roadDragged=false;
+	return;
+    }
+
+
+     // pick/drag special road object other than traffic light
+    // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
+    // !!!TODO: do it also on secondary road in network scenarios! =>(4)
+ 
+    console.log("  (1b) test for special road object");
+    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
+    if(pickResults[0]){
+	console.log("  (1b) picked a special road object");
 	specialRoadObject=pickResults[1];
 	transformToDepotObject(specialRoadObject,mainroad,depot);
 
@@ -120,11 +143,11 @@ function pickRoadOrVehicle(event){
     // (2) pick/drag depot vehicle: test for depotObjDragged
     // depot.pickVehicle returns [successFlag, thePickedDepotVeh]
  
-    console.log("  (1) test for depot vehicle");
+    console.log("  (2) test for depot vehicle");
     var distCrit=10;
-    var pickResults=depot.pickVehicle(xUser, yUser, distCrit);
+    pickResults=depot.pickVehicle(xUser, yUser, distCrit);
     if(pickResults[0]){
-	console.log("  (1) picked a depot vehicle");
+	console.log("  (2) picked a depot vehicle");
 	depotObject=pickResults[1];
 	depotObjDragged=true;
 	roadVehSelected=false;
@@ -251,14 +274,14 @@ function finishDistortOrDropVehicle(){
 
 
     if(depotObjDragged){
-	console.log("in canvas_gui.onmouseup: drop vehicle: WARNING: only mainroad handled until now!");
+	//console.log("in canvas_gui.onmouseup: drop vehicle: WARNING: only mainroad handled until now!");
 
         userCanvasManip=true; // if true, new backgr, new road drawn
 	depotObjDragged=false;
 
         // [dist,uReturn,vLanes]
 	var dropInfo=mainroad.findNearestDistanceTo(xUser, yUser);
-	console.log("in canvas_gui.onmouseup: dropInfo=",dropInfo);
+	//console.log("in canvas_gui.onmouseup: dropInfo=",dropInfo);
 
         // unsuccessful drop: initiate zoom back to depot
         // depotVehZoomBack is true if further zooms are needed
@@ -287,22 +310,36 @@ function finishDistortOrDropVehicle(){
 
 
 //#####################################################
-// canvas onclick callback
+// canvas onclick callback (onmouseup afteronmousedown)
 //#####################################################
 
 function influenceClickedVeh(event){
     console.log("onclick: in influenceClickedVeh");
 
-    // only do click action (=onmouseup after onmousedown) if 
-    // only insignificant drag; otherwise, do drag action instead
-    // distDrag,xUser,yUser already from onmousedown,-move,-up ops known
+    // first change lights if a traffic light is nearby (crit dist def in road)
 
-    if(distDrag<distDragCrit){ 
-	slowdownChangeTLNearestTo(xUser,yUser);
-//!!! Separate slow down and change TL (TL: road search, slDown: veh search)
+    var success= mainroad.changeTrafficLightByUser(xUser,yUser);
+    var success2=false;
+    if(isNetworkScenario){
+	success2=secondaryRoad.changeTrafficLightByUser(xUser,yUser);}
+
+
+    // only slowdown clicked vehicles if 
+    // (i) TL switch no success, (ii) only insignificant drag ;  
+    // (iii) nearest selected vehicle is nearer than distCrit 
+    // (dragging actions with converse filter by onmousedown,-move,-up ops
+
+    if(!(success||success2)){
+        var distCrit=10; 
+        if(distDrag<distDragCrit){ 
+	    slowdownVehNearestTo(xUser,yUser,distCrit);
+	}
     }
 
-    distDrag=0; // reset drag distance recorder
+
+    // reset drag distance recorder
+
+    distDrag=0;
 }
 
 
@@ -341,7 +378,7 @@ function cancelActivities(event){
 function handleDependencies(){
     console.log("handleDependencies: scenarioString=",scenarioString);
 
-    if(scenarioString=="OnRamp"){
+    if(scenarioString==="OnRamp"){
 
         // update end-ramp obstacle and ramp->main offset
 
@@ -355,7 +392,7 @@ function handleDependencies(){
 
     }
 
-    else if(scenarioString=="OffRamp"){
+    else if(scenarioString==="OffRamp"){
 
         // search mainroad u-point nearest to diverging point of onramp
         // and update offrampInfo
@@ -367,7 +404,7 @@ function handleDependencies(){
 
     }
 
-    else if(scenarioString=="Deviation"){
+    else if(scenarioString==="Deviation"){
 	console.log("before canvas_gui.handleDependencies for \"Deviation\"",
 		    "\n   umainMerge=",umainMerge,
 		    "\n   umainDiverge=",umainDiverge
@@ -396,19 +433,29 @@ function handleDependencies(){
 
 //#####################################################
 // helper function for transforming a selected special road vehicle/object
+// to depot vehicle
 //#####################################################
 
 /* eliminates this vehicle from the road, 
-and reverts "inDepot property of corresp depot vehicle 
+and reverts "inDepot" property of corresp depot vehicle 
 */
 function transformToDepotObject(specialRoadObject,road,depot){
+    if(false){
+	console.log("canvas.transformToDepotObject: ",
+		    "  specialRoadObject=",specialRoadObject);
+	console.log("\ndepot indices:");
+	for (var i=0;i<depot.veh.length; i++){console.log(depot.veh[i].id);}
+	console.log("\nroad vehicles:");
+	road.writeVehiclesSimple();
+    }
+
 
    // search for this vehicle in depot 
    // and integrate it by setting .inDepot=true
 
     var success=false;
     for(var i=0; (!success)&&(i<depot.veh.length); i++){
-	success=(specialRoadObject.id==depot.veh[i].id);
+	success=(specialRoadObject.id===depot.veh[i].id);
 	if(success){
 	    console.log("canvas.transformToDepotObject: found fitting depot vehicle!");
 	    depot.veh[i].inDepot=true;
@@ -418,20 +465,6 @@ function transformToDepotObject(specialRoadObject,road,depot){
 	console.log("canvas.transformToDepotObject: no depot veh found!");
     }
 
-
-    // eliminate vehicle-object from road
-
-    success=false;
-    for(var i=0; (!success)&&(i<road.veh.length); i++){
-	success=(specialRoadObject.id==road.veh[i].id);
-	if(success){
-	    road.veh.splice(i,1);
-	}
-    }
-
-    if(!success){
-	console.log("canvas.transformToDepotObject: no road veh found!");
-    }
 }
 
 
@@ -458,19 +491,19 @@ function dragRoad(xUser,yUser){
       
     // "network scenarios
 
-    else if(scenarioString=="OnRamp"){
+    else if(scenarioString==="OnRamp"){
 
-	var otherRoad=(draggedRoad==mainroad) ? onramp : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? onramp : mainroad;
 
         // uBeginRamp always fixed since mergeLen fixed 
         // and merge always at the end of the onramp
  
 	var uBeginRamp=onramp.roadLen-mergeLen; 
 	var uBeginMain=onramp.getNearestUof(mainroad,uBeginRamp); 
-	var uBegin=(draggedRoad==mainroad) ? uBeginMain : uBeginRamp;
+	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
 	console.log(
 	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad==mainroad) ? "mainroad" : "onramp"),
+	    ((draggedRoad===mainroad) ? "mainroad" : "onramp"),
 	    "\n  uBeginRamp=",uBeginRamp," rampLen=",onramp.roadLen,
 	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
 	    "\n   uBegin=",uBegin);
@@ -480,16 +513,16 @@ function dragRoad(xUser,yUser){
 	draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,mergeLen);
     }
 
-    else if(scenarioString=="OffRamp"){ // divergeLen constant
+    else if(scenarioString==="OffRamp"){ // divergeLen constant
 
-	var otherRoad=(draggedRoad==mainroad) ? offramp : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? offramp : mainroad;
 
 	var uBeginRamp=0; // begin diverge=>ramp.u=0
 	var uBeginMain=offramp.getNearestUof(mainroad,divergeLen)-divergeLen; 
-	var uBegin=(draggedRoad==mainroad) ? uBeginMain : uBeginRamp;
+	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
 	console.log(
 	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad==mainroad) ? "mainroad" : "offramp"),
+	    ((draggedRoad===mainroad) ? "mainroad" : "offramp"),
 	    "\n   uBeginRamp=",uBeginRamp," rampLen=",offramp.roadLen,
 	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
 	    "\n   uBegin=",uBegin);
@@ -501,20 +534,20 @@ function dragRoad(xUser,yUser){
 
     }
 
-    else if(scenarioString=="Deviation"){
+    else if(scenarioString==="Deviation"){
 
-	var otherRoad=(draggedRoad==mainroad) ? deviation : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? deviation : mainroad;
 
 	var uBeginDivergeRamp=0; // begin diverge=>ramp.u=0
 	var uBeginDivergeMain
 	    =deviation.getNearestUof(mainroad,lrampDev)-lrampDev;
-	var uBeginDiverge=(draggedRoad==mainroad)
+	var uBeginDiverge=(draggedRoad===mainroad)
 	    ? uBeginDivergeMain : uBeginDivergeRamp;
 
 	var uBeginMergeRamp=deviation.roadLen-lrampDev;
 	var uBeginMergeMain
 	    =deviation.getNearestUof(mainroad,deviation.roadLen-lrampDev);
-	var uBeginMerge=(draggedRoad==mainroad)
+	var uBeginMerge=(draggedRoad===mainroad)
 	    ? uBeginMergeMain : uBeginMergeRamp;
 
 	var iPivot=draggedRoad.iPivot;
@@ -525,7 +558,7 @@ function dragRoad(xUser,yUser){
 	if(false){
 	console.log(
 	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad==mainroad) ? "mainroad" : "deviation"),
+	    ((draggedRoad===mainroad) ? "mainroad" : "deviation"),
 	    "\n   uBeginDivergeRamp=",uBeginDivergeRamp,
 	    " rampLen=",deviation.roadLen,
 	    "\n   uBeginDivergeMain=",uBeginDivergeMain,
@@ -566,7 +599,7 @@ function dragRoad(xUser,yUser){
 // helper function for onclick and touched(?) events
 //#####################################################
 
-function slowdownChangeTLNearestTo(xUser,yUser){
+function slowdownVehNearestTo(xUser,yUser,distCrit){
 
     var speedReduce=10;
 
@@ -593,26 +626,33 @@ function slowdownChangeTLNearestTo(xUser,yUser){
 
     // findResults=[successFlag, pickedVeh, minDist]
 
-    var vehPerturbed=(!success1) ? findResults2[1]
-	: (!success2) ? findResults1[1]
-	: (findResults1[2]<findResults2[2]) ? findResults1[1] 
-	: findResults2[1];
-    var id=vehPerturbed.id;
-
-    // if target object is traffic light, change its state
-
-    var isTrafficLight=(id>=100)&&(id<200);
-    if(isTrafficLight){
-	var targetRoad=(findResults1[2]<findResults2[2])
-	    ? mainroad : secondaryRoad;
-	targetRoad.changeLights(id);
+    var vehPerturbed=findResults1[1];
+    var targetRoad=mainroad;
+    var distMin=findResults1[2];
+    if(isNetworkScenario&&success2){
+	if(findResults2[2]<distMin){
+	    vehPerturbed=findResults2[1];
+	    targetRoad=secondaryRoad;
+	    distMin=findResults2[2];
+	}
     }
 
-    // otherwise, slow down target (no effect if obstacle)
+    if(distMin<=distCrit){
 
-    else{
-	vehPerturbed.id=10;  // to distinguish it by color
-	vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
+        console.log("canvas slowdownVehNearestTo: vehPerturbed=",
+		    vehPerturbed);
+
+        // only slow down+change its id if target object is 
+        // neither a traffic light nor a depot vehicle nor an obstacle
+        // NOTICE: change state of TL by other function since
+        //(i) a red TL is crowded by waiting veh,
+        // (ii) and a green TL has no virtual vehicles to be selected
+
+        if(vehPerturbed.isRegularVeh()){
+	    vehPerturbed.id=idPerturbed;  // to distinguish it by color
+	    vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
+	    idPerturbed++; if(idPerturbed===50){idPerturbed=10;}
+	}
     }
 }
 

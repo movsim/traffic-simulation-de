@@ -18,7 +18,7 @@ function EgoVeh(vLongInit){
 
     this.latCtrlModel=1; // 0=direct pos control, 1=speed ctrl; 2=steering
 
-    // data members that are only relevant if this.latCtrlModel==2
+    // data members that are only relevant if this.latCtrlModel===2
     // curves in the road are considered in handling by road.js
 
     this.vLong=vLongInit; // speed along vehicle axis 
@@ -26,9 +26,9 @@ function EgoVeh(vLongInit){
     this.aLong=0;  // acceleration along vehicle axis
     this.aLat=0;  // acceleration perp to veh axis (right=positive)
     this.driveAngle=0;  // =atan(vLat/vLong) only !=0 if isSliding=true
-    this.isSliding=false; //driveAngle, sliding only relev. if latCtrlModel==2
+    this.isSliding=false; //driveAngle, sliding only relev. if latCtrlModel===2
 
-    // data memers that are only relevant if this.latCtrlModel==0 or 1 
+    // data memers that are only relevant if this.latCtrlModel===0 or 1 
     // only implemented if road has small curves (y approx u, |x|<<y)
     // => y(u,v)=u, x(u,v)=v+traj_x(u), control is w/respect to x,y
 
@@ -48,16 +48,16 @@ function EgoVeh(vLongInit){
     this.bmax=9;  // max absolute acc (limit where sliding/ESP begins)
     this.amax=4;  // max long acceleration (if ego.vLong=0)
 
-    this.sensLat0=0.4; // lat displacement sensitivity [1](latCtrlModel==0)
+    this.sensLat0=0.4; // lat displacement sensitivity [1](latCtrlModel===0)
                        //  sensLat0=1 => vehicle follows lateral mouse 1:1
-    this.sensLat1=20;  // max lateral speed [m/s] (latCtrlModel==1) 
+    this.sensLat1=20;  // max lateral speed [m/s] (latCtrlModel===1) 
                        // if mouse pointer at the boundaries of canvas
-    this.vc=10;        // steering sensitivity [m/s] (latCtrlModel==2) 
+    this.vc=10;        // steering sensitivity [m/s] (latCtrlModel===2) 
                        // (the lower vc, the higher): 
                        // @vc, max steering (mouse pointer at canvas  
                        // boundaries) leads to |accLat|>bmax
-    this.tau_v=0.8;    // time scale exponential smoothing if latCtrlModel==0
-    this.tau_vv=0.5;   // time scale exponential smoothing if latCtrlModel==1
+    this.tau_v=0.8;    // time scale exponential smoothing if latCtrlModel===0
+    this.tau_vv=0.5;   // time scale exponential smoothing if latCtrlModel===1
 }
 
 
@@ -111,14 +111,14 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 	    : this.amax*(1-this.vLong/this.vmax)
 	      * (yPixZero-yMouseCanvas)/yPixZero;
 
-        // latCtrlModel==0: lateral control by direct positioning
+        // latCtrlModel===0: lateral control by direct positioning
         // zero value=center of left lane (lane 0)
         // exponential smoothing time constant tau_v
 
         // (if dt=const guarantieed, weighting value could be 
         // calculated at construction time)
 
-	if(this.latCtrlModel==0){
+	if(this.latCtrlModel===0){
 	    var beta_v=1-Math.exp(-dt/this.tau_v); // weighting new v value
 	    var vInst=this.sensLat0*(xMouseCanvas-xPixZero)/scale;
 	    this.v=beta_v*vInst+(1-beta_v)*this.vOld;
@@ -128,10 +128,10 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 	    this.vvOld=this.vv;
 	}
 
-        // latCtrlModel==1: lateral control by direct speed control
+        // latCtrlModel===1: lateral control by direct speed control
         // exponential smoothing time constant tau_vv
 
-	if(this.latCtrlModel==1){
+	if(this.latCtrlModel===1){
 	    var beta_vv=1-Math.exp(-dt/this.tau_vv); // weighting new vv value
 	    var vvInst=this.sensLat1*(xMouseCanvas-xPixZero)
 		/(canvas.width-xPixZero);
@@ -143,11 +143,11 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
 	}
 
 
-        // latCtrlModel==2: lateral control by steering
+        // latCtrlModel===2: lateral control by steering
         // lateral/steering accelerations perp to vehicle (not road!) axis:
 	// curvature is controlled; 
 
-	if(this.latCtrlModel==2){
+	if(this.latCtrlModel===2){
 	    var curv=this.bmax/Math.pow(this.vc,2)*(xMouseCanvas-xPixZero)
 		/(canvas.width-xPixZero);
 	    this.aLat=0.5*this.vLong*this.vLong*curv;

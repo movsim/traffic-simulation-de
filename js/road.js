@@ -22,9 +22,10 @@ the functions traj_x, traj_y provided as cstr parameters
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
-// id=50..99            depot vehicles/obstacles
-// id=100..199          traffic lights
+// id=50..99            depot vehicles/obstacles (vehicle.isDepotObstacle())
+// id=100..199          traffic lights (vehicle.isTrafficLight())
 // id>=200:             normal vehicles and obstacles
+// id>=200&&type!=="obstacle" regular vehicles (vehicle.isRegularVeh)
 they are specially drawn and externally influenced from the main program
  
 @param roadID:          integer-valued road ID
@@ -115,10 +116,10 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	var truckFracRight=Math.min(this.nLanes*truckFracInit,1);
 	var truckFracRest=(this.nLanes*truckFracInit>1)
 	    ? ((this.nLanes*truckFracInit-1)/(this.nLanes-1)) : 0;
-	var truckFrac=(lane==this.nLanes-1) ? truckFracRight : truckFracRest;
+	var truckFrac=(lane===this.nLanes-1) ? truckFracRight : truckFracRest;
 	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
-	var vehLength=(vehType == "car") ? car_length:truck_length;
-	var vehWidth=(vehType == "car") ? car_width:truck_width;
+	var vehLength=(vehType === "car") ? car_length:truck_length;
+	var vehWidth=(vehType === "car") ? car_width:truck_width;
 
         // actually construct vehicles (this also defined id)
 
@@ -461,9 +462,9 @@ road.prototype.writeVehicleModels= function() {
 //######################################################################
 
 road.prototype.writeTrucksLC= function() {
-    console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
+    console.log("\nin road.writeTrucksLC(): nveh=",this.veh.length,
 		" itime="+itime);
-    for(var i=0; i<this.veh.length; i++){if(this.veh[i].type=="truck"){
+    for(var i=0; i<this.veh.length; i++){if(this.veh[i].type==="truck"){
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
@@ -486,21 +487,204 @@ road.prototype.writeTrucksLC= function() {
 @param id:     unique id in [100,199]
 @param pos:    longitudinal coordinate u (traffic light acts on all lanes)
 @param state:  "red", or "green"
-@param imgRed,imgGreen: corresponing images
+
 @return adds a traffic-light object to this.trafficLights[]  
 */
 
 
-road.prototype.addTrafficLight= function(id,pos,state,imgRed,imgGreen) {
+road.prototype.addTrafficLight= function(id,pos,state) {
     var trafficLight={id: id,
-		      u: pos,
+		      u: pos, 
 		      state: state,
-		      imageRed: imgRed,
-		      imageGreen: imgGreen};
+		      xPixLightLeft: 0, // defined later in draw 
+		      yPixLightLeft: 0, //(later ad-hoc adding unsafe)
+		      xPixLightRight: 0,
+		      yPixLightRight: 0
+		     };
     this.trafficLights.push(trafficLight);
-    this.changeLights(id,state);
+    this.changeTrafficLight(id,state);
     console.log("road.addTrafficLight: added the traffic light",trafficLight,
 		" this.trafficLights.length=",this.trafficLights.length);
+}
+
+
+/**
+#############################################################
+(jun17) remove traffic light
+#############################################################
+
+@param id:     unique id in [100,199]
+
+@return:       removes a traffic light of the list if id is found, 
+               if last state was red, also removes the virtual
+               vehicles associated with it
+*/
+
+road.prototype.removeTrafficLight= function(id) {
+    // change state of trafficLight object
+
+    console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
+    var success=false;
+    var iDel=-1;
+    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+	console.log("i=",i," trafficLight=",this.trafficLights[i]);
+	if(this.trafficLights[i].id===id){
+	    success=true;
+	    iDel=i;
+	    this.changeTrafficLight(id,"green"); // to remove virt vehicles
+	}
+    }
+    if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
+    else this.trafficLights.splice(iDel,1);
+}
+
+
+
+/**
+#############################################################
+(jun17) draw the traffic lights on the standard canvas "canvas"
+#############################################################
+
+@param imgRed,imgGreen: images of the complete red and green traffic light
+*/
+
+road.prototype.drawTrafficLights=function(imgRed,imgGreen){
+    //  (jun17) draw also traffic light at the end of road, before vehicles
+
+    for(var i=0; i<this.trafficLights.length; i++){
+	var TL=this.trafficLights[i];
+
+        // the stopping line
+
+	var stopLineWidth=1;    // [m]
+	var stopLineLength=this.nLanes*this.laneWidth;
+
+        var xCenterPix=  scale*this.traj_x(TL.u);
+        var yCenterPix= -scale*this.traj_y(TL.u); // minus!!
+	var wPix=scale*stopLineWidth;
+	var lPix=scale*stopLineLength;
+        var phi=this.get_phi(TL.u);
+        var cphi=Math.cos(phi);
+        var sphi=Math.sin(phi);
+
+        ctx.setTransform(cphi,-sphi,sphi,cphi,xCenterPix,yCenterPix);
+	ctx.fillStyle="rgb(255,255,255)";
+	ctx.fillRect(-0.5*wPix, -0.5*lPix, wPix, lPix);
+
+        // the traffic-light image both at the left and right side
+
+	var img=(TL.state==="red") ? imgRed : imgGreen;
+	var sizePix=Math.min(canvas.width, canvas.height);
+	var wPix=0.07*sizePix; // (canvas is wider than TL image)
+	var hPix=0.09*sizePix; // 
+
+	var vLeft =-0.55*stopLineLength; // [m]
+	var xPixLeft=xCenterPix+scale*vLeft*sphi;  // +
+	var yPixLeft=yCenterPix+scale*vLeft*cphi;  // -*-=+
+        ctx.setTransform(1,0,0,1,xPixLeft,yPixLeft);
+	ctx.drawImage(img,-0.5*wPix,-hPix,wPix, hPix);
+
+	var vRight=-vLeft; // [m]
+	var xPixRight=xCenterPix+scale*vRight*sphi;  // +
+	var yPixRight=yCenterPix+scale*vRight*cphi;  // -*-=+
+        ctx.setTransform(1,0,0,1,xPixRight,yPixRight);
+	ctx.drawImage(img,-0.5*wPix,-hPix,wPix, hPix);
+
+        // save pixel positions of the actual visual lights 
+        // for use in this.changeTrafficLightByUser
+
+	TL.xPixLightLeft=xPixLeft;
+	TL.yPixLightLeft=yPixLeft-0.8*hPix;
+	TL.xPixLightRight=xPixRight;
+	TL.yPixLightRight=yPixRight-0.8*hPix;
+	//console.log("road.drawTrafficLights: TL=",TL);
+
+    }
+}// draw traffic lights
+
+
+
+
+/**#########################################################
+check if a traffic light is near the physical input coords (xUser, yUser)
+if so, remove it from the road and return its id
+#########################################################
+
+notice that, in contrast to clicking to change the state, 
+the user-action should be centered onto the white stopping line 
+and dragging, not only clicking, needed 
+
+@param  xUser, yUser: external physical coordinates [m]
+@return [success, virtualVehicleRepresentingTL]  
+        (undefined if no success)
+*/
+
+
+road.prototype.pickTrafficLight=function(xUser, yUser){
+
+    var success=false;
+    var TLreturn;
+
+    //!!! chose a very small distCrit since otherwise conflict with 
+    // user-clicked changeState!
+    // (once selected here, it is removed, later dropped=>created new,  and ch    // angeState does no longer know the TLs pixel pos!
+
+    var distCrit=0.2*this.nLanes*this.laneWidth; // 0.5 => only inside road
+    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+	var u=this.trafficLights[i].u;
+	var dx=xUser-this.traj_x(u);
+	var dy=yUser-this.traj_y(u);
+	var dist=Math.sqrt(dx*dx+dy*dy);
+	if(dist<distCrit){
+	    console.log("road.pickTrafficLight: found TL nearer than ",
+			distCrit);
+	    success=true;
+	    TLreturn=this.trafficLights[i];
+	}
+    }
+    if(success) this.removeTrafficLight(TLreturn.id);
+    else console.log("road.pickTrafficLight: no TL found nearer than ",
+		     distCrit);
+    return [success,TLreturn];
+}
+
+
+/**
+#############################################################
+(jun17) user-driven change of the state of traffic light by click on canvas
+#############################################################
+*/
+
+
+road.prototype.changeTrafficLightByUser=function(xUser, yUser){
+    var refSizePix=Math.min(canvas.height,canvas.width);
+    var distCritPix=0.02*refSizePix; 
+    var success=false;
+    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+	var TL=this.trafficLights[i];
+	//console.log("TL=",TL);
+	var dxPixLeft=scale*xUser-TL.xPixLightLeft;
+	var dyPixLeft=-scale*yUser-TL.yPixLightLeft;
+	var dxPixRight=scale*xUser-TL.xPixLightRight;
+	var dyPixRight=-scale*yUser-TL.yPixLightRight;
+	var distPixL=Math.sqrt(dxPixLeft*dxPixLeft+dyPixLeft*dyPixLeft);
+	var distPixR=Math.sqrt(dxPixRight*dxPixRight+dyPixRight*dyPixRight);
+	if(Math.min(distPixL,distPixR)<=distCritPix){
+	    this.changeTrafficLight(TL.id);
+	    success=true;
+	    //console.log("road.changeTrafficLightByUser: success!");
+	}
+	if(false){
+	    console.log("road.changeTrafficLightByUser: i=",i,
+			" scale*xUser=",scale*xUser," TL.xPixLightLeft=",
+			TL.xPixLightLeft,
+			" distPixL=",distPixL," distPixR=",distPixR);
+	}
+    }
+    if(false){
+    //if(!success){
+	console.log("road.changeTrafficLightByUser: no success");
+    }
 }
 
 /**
@@ -515,47 +699,47 @@ road.prototype.addTrafficLight= function(id,pos,state,imgRed,imgGreen) {
                its state is changed accordingly
 */
 
-road.prototype.changeLights=function(id,state){
+road.prototype.changeTrafficLight=function(id,state){
 
     // change state of trafficLight object
 
-    console.log("in road.changeLights: id=",id," state=",state);
-    console.log("\nentering road.changeLights: id=",id," state=",state);
+    console.log("in road.changeTrafficLight: id=",id," state=",state);
+    console.log("\nentering road.changeTrafficLight: id=",id," state=",state);
     //this.writeVehicles();
 
     var success=false;
     var pickedTL;
     for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	if(id==this.trafficLights[i].id){
+	if(id===this.trafficLights[i].id){
 	    success=true;
 	    pickedTL=this.trafficLights[i];
-	    if(state==='undefined'){
-		console.log("road.changeLights: id=",id, "no state given:",
+
+	    if(typeof(state) === "undefined"){
+		console.log("road.changeTrafficLight: id=",id, "no state given:",
 			    " old state=",pickedTL.state);
-		pickedTL.state=(pickedTL.state=="red")
+		pickedTL.state=(pickedTL.state==="red")
 		    ? "green" : "red";
-		console.log("road.changeLights: id=",id, "no state given:",
+		console.log("road.changeTrafficLight: id=",id, "no state given:",
 			    " new state=",pickedTL.state);
 
 	    }
 	    else{pickedTL.state=state;}
 	}
     }
-    if(!success)console.log("road.changeLights: no TL of id ",id," found!");
-    else console.log("found a TL!");
+    if(!success)console.log("road.changeTrafficLight: no TL of id ",id," found!");
 
     // implement effect to traffic by adding/removing virtual obstacles
 
     //if(false){
     if(success){
-	if(state=="green"){
+	if(pickedTL.state==="green"){
 	    for(var i=0; i<this.veh.length; i++){
-		if(this.veh[i].id==id){
+		if(this.veh[i].id===id){
 		    this.veh.splice(i, nLanes); // nLanes red TL removed
 		}
 	    }
 	}
-	else{ // state="red"
+	else{ // pickedTL.state="red"
 	    for(var il=0; il<this.nLanes; il++){
 	    //for(var il=0; il<1; il++){
 		var virtVeh=new vehicle(1,this.laneWidth,
@@ -569,10 +753,9 @@ road.prototype.changeLights=function(id,state){
 
     }
 
-    //console.log("\nexiting road.changeLights(..):\n");
+    //console.log("\nexiting road.changeTrafficLight(..):\n");
     //this.writeVehicles();
-} // changeLights
-
+} // changeTrafficLight
 
 
 
@@ -627,18 +810,21 @@ road.prototype.getNearestUof=function(otherRoad, u){
 
 @param  xUser,yUser: the external physical position
 @param  filterFun: (optional) restrict search to filterFun(veh)=true
-@return [success flag, the nearest vehicle which is no obstacle, dist_min]
+        !!! this.veh[i].filterFun() does not work!! need direct fun name!
+@return [success flag, the nearest vehicle which is no obstacle, dist_min,i]
 */
-road.prototype.findNearestVehTo=function(xUser,yUser,conditionFun){
+road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
     var dist2_min=1e9;
     var vehReturn;
     var success=false;
+    var iReturn=-1;
     for(var i=0; i<this.veh.length; i++){
-	var filterPassed=(typeof conditionFun === 'undefined')
-	    ? true : conditionFun(this.veh[i]);
+	var filterPassed=(typeof filterFun === 'undefined')
+	   ? true : filterFun(this.veh[i]);
+
 	//console.log("road.findNearestVehTo: i=",i,
-	//	    " conditionFun=",conditionFun,
-	//	    " conditionFun(this.veh[i])=",conditionFun(this.veh[i]));
+	//	    " filterFun=",filterFun,
+	//	    " filterFun(this.veh[i])=",filterFun(this.veh[i]));
 	if(filterPassed){
 	    var u=this.veh[i].u;
 	    var dist2=Math.pow(xUser-this.traj_x(u),2)
@@ -647,6 +833,7 @@ road.prototype.findNearestVehTo=function(xUser,yUser,conditionFun){
 	        success=true;
 	        dist2_min=dist2;
 	        vehReturn=this.veh[i];
+		iReturn=i;
 	    }
 	}
     }
@@ -656,7 +843,7 @@ road.prototype.findNearestVehTo=function(xUser,yUser,conditionFun){
 		    " i=",i,
                     " dist_min=",Math.sqrt(dist2_min)  );
     }
-    return [success,vehReturn,Math.sqrt(dist2_min)];
+    return [success,vehReturn,Math.sqrt(dist2_min), iReturn];
 }
 /**
 
@@ -674,7 +861,7 @@ road.prototype.findLeaderAt=function(u,lane){
     var i=0;
     var iLead;
     while ((i<this.veh.length) && (this.veh[i].u<u)){
-	if(this.veh[i].lane==lane){
+	if(this.veh[i].lane===lane){
 	    success=true;
 	    iLead=i;
 	}
@@ -720,7 +907,7 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
     var vPhys=sign_v*dist; // v parallel to distance vector
     var vLanes=vPhys/(this.laneWidth) +0.5*(this.nLanes-1);
 
-    if(true){
+    if(false){
 	console.log("end road.findNearestDistanceTo:",
 		    " roadID=",this.roadID,
 		    " xUser=",xUser, " yUser=",yUser,
@@ -768,8 +955,8 @@ road.prototype.testCRG=function(xUser,yUser){
     var dist_min=Math.sqrt(dist2_min);
     var success=(dist_min<=distCrit);
 
-    console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
-    console.log("road.testCRG: this=",this);
+    //console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
+
     if(success){
 	console.log("road.testCRG: new CRG event initiated!",
 		    " dist_min=",Math.round(dist_min),
@@ -1091,7 +1278,7 @@ road.prototype.smoothLocally=function(iCenter, iWidth){
 	for(var j=0; j<=2*iwLoc; j++){
 	    kern[j]=(1-Math.abs(j+0.-iwLoc)/iwLoc)/norm;
 	}
-	if(iwLoc==0){
+	if(iwLoc===0){
 	    xtabNew[i]=this.xtab[i];
 	    ytabNew[i]=this.ytab[i];
 	}
@@ -1235,13 +1422,13 @@ road.prototype.initializeMicro=function(types,lengths,widths,
     for(var i=0; i<types.length; i++){
 
         // !! later on directly (if types internally = integer)
-	var type=(types[i]==0) ? "car" :
-	    (types[i]==1) ? "truck" : "obstacle";
+	var type=(types[i]===0) ? "car" :
+	    (types[i]===1) ? "truck" : "obstacle";
 	var lane=Math.round(lanesReal[i]);
         var vehNew=new vehicle(lengths[i],widths[i], 
 			       longPos[i],lane, speeds[i], type);
 	vehNew.v=lanesReal[i]; // since vehicle cstr initializes veh.v=veh.lane
-	if(i==iEgo){
+	if(i===iEgo){
             vehNew.id=1;
 	    this.egoVeh=vehNew;
 	}
@@ -1324,8 +1511,8 @@ road.prototype.setCFModelsInRange
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
 	if((u>umin)&&(u<umax)){
-	    if(this.veh[i].type=="car"){this.veh[i].longModel=longModelCar;}
-	    if(this.veh[i].type=="truck"){this.veh[i].longModel=longModelTruck;}
+	    if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
+	    if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
 	}
     }
 }
@@ -1343,8 +1530,8 @@ road.prototype.setLCModelsInRange
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
 	if((u>umin)&&(u<umax)){
-	    if(this.veh[i].type=="car"){this.veh[i].LCModel=LCModelCar;}
-	    if(this.veh[i].type=="truck"){this.veh[i].LCModel=LCModelTruck;}
+	    if(this.veh[i].type==="car"){this.veh[i].LCModel=LCModelCar;}
+	    if(this.veh[i].type==="truck"){this.veh[i].LCModel=LCModelTruck;}
 	}
     }
 }
@@ -1379,8 +1566,8 @@ road.prototype.setLCMandatory=function(umin,umax,toRight){
 
   vehicle indices iLead, iLag, iLeadLeft, iLeadRight, iLagLeft, iLagRight
 
-  if i==0 (first vehicle) leader= last vehicle also for non-ring roads
-  if i==nveh-1 (last vehicle) follower= first vehicle also for non-ring roads
+  if i===0 (first vehicle) leader= last vehicle also for non-ring roads
+  if i===nveh-1 (last vehicle) follower= first vehicle also for non-ring roads
   same for iLeadLeft, iLeadRight, iLagLeft, iLagRight
    !! should be caught by BC or by setting gap very large
 
@@ -1397,11 +1584,11 @@ road.prototype.setLCMandatory=function(umin,umax,toRight){
 
 road.prototype.update_iLead=function(i){
     var n=this.veh.length;
-    var iLead=(i==0) ? n-1 : i-1;  //!! also for non periodic BC
-    success=(this.veh[iLead].lane==this.veh[i].lane);
+    var iLead=(i===0) ? n-1 : i-1;  //!! also for non periodic BC
+    success=(this.veh[iLead].lane===this.veh[i].lane);
     while(!success){
-	iLead=(iLead==0) ? n-1 : iLead-1;
-	success=( (i==iLead) || (this.veh[iLead].lane==this.veh[i].lane));
+	iLead=(iLead===0) ? n-1 : iLead-1;
+	success=( (i===iLead) || (this.veh[iLead].lane===this.veh[i].lane));
     }
     this.veh[i].iLead = iLead;
 }
@@ -1410,11 +1597,11 @@ road.prototype.update_iLead=function(i){
 
 road.prototype.update_iLag=function(i){
     var n=this.veh.length;
-    var iLag=(i==n-1) ? 0 : i+1;
-    success=(this.veh[iLag].lane==this.veh[i].lane);
+    var iLag=(i===n-1) ? 0 : i+1;
+    success=(this.veh[iLag].lane===this.veh[i].lane);
     while(!success){
-	iLag=(iLag==n-1) ? 0 : iLag+1;
-	success=( (i==iLag) || (this.veh[iLag].lane==this.veh[i].lane));
+	iLag=(iLag===n-1) ? 0 : iLag+1;
+	success=( (i===iLag) || (this.veh[iLag].lane===this.veh[i].lane));
     }
     this.veh[i].iLag = iLag;
 }
@@ -1426,11 +1613,11 @@ road.prototype.update_iLeadRight=function(i){
     var n=this.veh.length;
     var iLeadRight;
     if(this.veh[i].lane<this.nLanes-1){
-	iLeadRight=(i==0) ? n-1 : i-1;
-	success=((i==iLeadRight) || (this.veh[iLeadRight].lane==this.veh[i].lane+1));
+	iLeadRight=(i===0) ? n-1 : i-1;
+	success=((i===iLeadRight) || (this.veh[iLeadRight].lane===this.veh[i].lane+1));
 	while(!success){
-	    iLeadRight=(iLeadRight==0) ? n-1 : iLeadRight-1;
-	    success=( (i==iLeadRight) || (this.veh[iLeadRight].lane==this.veh[i].lane+1));
+	    iLeadRight=(iLeadRight===0) ? n-1 : iLeadRight-1;
+	    success=( (i===iLeadRight) || (this.veh[iLeadRight].lane===this.veh[i].lane+1));
 	}
     }
     else{iLeadRight=-10;}
@@ -1443,11 +1630,11 @@ road.prototype.update_iLagRight=function(i){
     var n=this.veh.length;
     var iLagRight;
     if(this.veh[i].lane<this.nLanes-1){
-	iLagRight=(i==n-1) ? 0 : i+1;
-	success=((i==iLagRight) || (this.veh[iLagRight].lane==this.veh[i].lane+1));
+	iLagRight=(i===n-1) ? 0 : i+1;
+	success=((i===iLagRight) || (this.veh[iLagRight].lane===this.veh[i].lane+1));
 	while(!success){
-	    iLagRight=(iLagRight==n-1) ? 0 : iLagRight+1;
-	    success=( (i==iLagRight) || (this.veh[iLagRight].lane==this.veh[i].lane+1));
+	    iLagRight=(iLagRight===n-1) ? 0 : iLagRight+1;
+	    success=( (i===iLagRight) || (this.veh[iLagRight].lane===this.veh[i].lane+1));
 	}
     }
     else{iLagRight=-10;}
@@ -1461,11 +1648,11 @@ road.prototype.update_iLeadLeft=function(i){
 
     var iLeadLeft;
     if(this.veh[i].lane>0){
-	iLeadLeft=(i==0) ? n-1 : i-1;
-	success=((i==iLeadLeft) || (this.veh[iLeadLeft].lane==this.veh[i].lane-1));
+	iLeadLeft=(i===0) ? n-1 : i-1;
+	success=((i===iLeadLeft) || (this.veh[iLeadLeft].lane===this.veh[i].lane-1));
 	while(!success){
-	    iLeadLeft=(iLeadLeft==0) ? n-1 : iLeadLeft-1;
-	    success=( (i==iLeadLeft) || (this.veh[iLeadLeft].lane==this.veh[i].lane-1));
+	    iLeadLeft=(iLeadLeft===0) ? n-1 : iLeadLeft-1;
+	    success=( (i===iLeadLeft) || (this.veh[iLeadLeft].lane===this.veh[i].lane-1));
 	}
     }
     else{iLeadLeft=-10;}
@@ -1479,11 +1666,11 @@ road.prototype.update_iLagLeft=function(i){
     var iLagLeft;
 
     if(this.veh[i].lane>0){
-	iLagLeft=(i==n-1) ? 0 : i+1;
-	success=((i==iLagLeft) || (this.veh[iLagLeft].lane==this.veh[i].lane-1));
+	iLagLeft=(i===n-1) ? 0 : i+1;
+	success=((i===iLagLeft) || (this.veh[iLagLeft].lane===this.veh[i].lane-1));
 	while(!success){
-	    iLagLeft=(iLagLeft==n-1) ? 0 : iLagLeft+1;
-	    success=( (i==iLagLeft) || (this.veh[iLagLeft].lane==this.veh[i].lane-1));
+	    iLagLeft=(iLagLeft===n-1) ? 0 : iLagLeft+1;
+	    success=( (i===iLagLeft) || (this.veh[iLagLeft].lane===this.veh[i].lane-1));
 	}
     }
     else{iLagLeft=-10;}
@@ -1531,7 +1718,7 @@ road.prototype.calcAccelerations=function(){
     for(var i=0; i<this.veh.length; i++){
 	var speed=this.veh[i].speed;
 	var iLead= this.veh[i].iLead;
-	if(iLead==-100){console.log("road.calcAccelerations: i=",i,
+	if(iLead===-100){console.log("road.calcAccelerations: i=",i,
 				    " iLead=",iLead," should not happen!!");}
 	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
 	var speedLead=this.veh[iLead].speed;;
@@ -1557,7 +1744,7 @@ road.prototype.calcAccelerations=function(){
         // imposed directly by road.updateEgoEgoVeh(externalEgoVeh) 
         // called in the top-level js; here only logging
 
-	if(this.veh[i].id==1){
+	if(this.veh[i].id===1){
 	    if(false){
 		console.log("in road: ego vehicle: u=",this.veh[i].u,
 			    " v=",this.veh[i].v,
@@ -1615,12 +1802,12 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     var found=false;
     var iEgo=-1;
     for(var i=0; !found &&(i<this.veh.length); i++){
-	if(this.veh[i].id==1){
+	if(this.veh[i].id===1){
 	    iEgo=i;
 	    found=true;
 	}
     }
-    if(iEgo==-1){
+    if(iEgo===-1){
 	console.log("warning: road.updateEgoVeh called"+
 		    " although no ego vehicle exists; doing nothing");
 	return;
@@ -1660,7 +1847,7 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // calculate lateral dynamics directly by ballistic update 
     // Watch out: coordinate v has unit laneWidth, not m! 
 
-    if(externalEgoVeh.latCtrlModel==2){
+    if(externalEgoVeh.latCtrlModel===2){
         ego.v += ego.dvdt*dt+0.5*acc_v*dt*dt;        // [lanes] 
         ego.dvdt += acc_v*dt;
     }
@@ -1867,7 +2054,7 @@ road.prototype.doChangesInDirection=function(toRight){
          // (regular lane changes; for merges, see below)
 
 
-	 //var log=(this.veh[i].type=="truck");
+	 //var log=(this.veh[i].type==="truck");
 	 var log=false;
 	//var log=true;
 
@@ -1876,7 +2063,7 @@ road.prototype.doChangesInDirection=function(toRight){
 
          // only test output
 
-         if(MOBILOK&&(this.veh[i].id==107)){//!!
+         if(MOBILOK&&(this.veh[i].id===107)){//!!
 	     var s=this.veh[iLead].u-this.veh[iLead].length-this.veh[i].u;
 	     var accLead=this.veh[iLead].acc;
 	     var speed=this.veh[i].speed;
@@ -1989,7 +2176,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,isMerge,toRight)
     // immediate success if no target vehicles in neighbourhood
     // and at least one (real) origin vehicle: the first one changes
 
-    var success=( (targetVehicles.length==0)&&(originVehicles.length>0)
+    var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
 		  &&(originVehicles[0].type != "obstacle")
 		  &&(originVehicles[0].mandatoryLCahead) );
     if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
@@ -2057,7 +2244,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,isMerge,toRight)
 		  &&(sNew>0)&&(sLagNew>0)
 		  &&(originVehicles[i].mandatoryLCahead);
 
-	      if(log&&(this.roadID==2)){
+	      if(log&&(this.roadID===2)){
 		  console.log("in road.mergeDiverge: roadID="+this.roadID
 			      +" LCModel.bSafeMax="+LCModel.bSafeMax);
 	      }
@@ -2172,6 +2359,7 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 	console.log("road.dropDepotVehicle: dropped vehicle at uDrop=",u,
 		    " lane=",lane);
     }
+
     else{ // traffic light has its sorting pushing and splicing ops intnlly
 	this.addTrafficLight(depotVehicle.id,u,"red",
 			     imgRed,imgGreen);
@@ -2180,9 +2368,12 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 }
 
 
+
+
 //#########################################################
-// pick an external depot vehicle to move it elsewhere or return
-// it to the depot
+// check if the nearest  external depot obstacle (no traffic light)
+// is nearer than distCrit (calculated internally) and if so, remove it 
+// from the road.veh and return it
 //#########################################################
 /**
 the reverse process of dropping above
@@ -2197,15 +2388,20 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 
     var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
 
-    function isDepotVeh(veh){return ((veh.id>=50)&&(veh.id<200))};
+    function isDepotObstacle(veh){return veh.isDepotObstacle();}
 
-    var findResults=this.findNearestVehTo(xUser,yUser,isDepotVeh);
+    var findResults=this.findNearestVehTo(xUser,yUser,isDepotObstacle);
 
     if( (!findResults[0]) || (findResults[2]>distCrit)){
 	findResults=[false,'undefined',1e8];
     }
+    else{
+	this.veh.splice(findResults[3],1); // findResults[3]=index
+	this.sortVehicles();
+	this.updateEnvironment();
+    }
     console.log("in road.pickSpecialVehicle: findResult=",findResults);
-    return findResults;// [success,vehReturn,dist]
+    return findResults;// [success, vehReturn, dist, i for internal use]
 }
 
 
@@ -2225,7 +2421,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
     var nTruckDesired=Math.floor(n*truckFrac);
     var nTruck=0;
     for(var i=0; i<n; i++){
-	if(this.veh[i].type == "truck"){nTruck++;}
+	if(this.veh[i].type === "truck"){nTruck++;}
     }
     var truckFracReal=nTruck/n;  // integer division results generally in double: OK!
 
@@ -2250,7 +2446,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	  var maxSpace=0;
 	  for(var lane=this.nLanes-1; lane>=0; lane--){if(!success){
 	    for(var i=0; i<n; i++){
-	      if( (this.veh[i].lane==lane)&&(this.veh[i].type == candidateType)){
+	      if( (this.veh[i].lane===lane)&&(this.veh[i].type === candidateType)){
 	        var iLag= this.veh[i].iLag;
 	        var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
 	        if(iLag<i){s+=this.roadLen;}//periodic BC (OK for open BC as well)
@@ -2264,7 +2460,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	else{ // change trucks->cars: transform truck with smallest space 
 	  var minSpace=10000;
 	  for(var i=0; i<n; i++){
-	    if(this.veh[i].type == candidateType){
+	    if(this.veh[i].type === candidateType){
 	      success=1; // always true for trucks->cars if there is a truck
 	      var iLag= this.veh[i].iLag;
 	      var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
@@ -2287,22 +2483,32 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 }
 
 
-
-
 //######################################################################
 // update vehicle density by adding vehicles into largest gaps
 // or removing some randomly picked vehicles (one at a time)
+//!!! only regular vehicles count, no special vehicles or obstacles!
 //######################################################################
 
 road.prototype.updateDensity=function(density){
     var nDesired= Math.floor(this.nLanes*this.roadLen*density);
-    var nveh_old=this.veh.length;
-    if(this.veh.length>nDesired){// too many vehicles, remove one per time step
+    var nActual=0;
+    var nTot=this.veh.length;
+    for (var i=0; i<this.veh.length; i++){
+	if(this.veh[i].isRegularVeh()) nActual++;
+    }
+
+    if(nActual>nDesired){// too many vehicles, remove one per time step
         var r=Math.random();
         var k=Math.floor( this.veh.length*r);
-	this.veh.splice(k,1); // remove vehicle at random position k  (k=0 ... n-1)
+	var rmCandidate=this.veh[k];
+	if(rmCandidate.isRegularVeh()){
+	    this.veh.splice(k,1); // remove vehicle at random position k
+	} // if it is, do not try a second time; wait to the next round
     }
-    else if(this.veh.length<nDesired){// too few vehicles, generate one per time step in largest gap
+
+    // too few vehicles, generate one per time step in largest gap
+
+    else if(nActual<nDesired){
 	var maxSpace=0;
 	var k=0; // considered veh index
 	var success=false;
@@ -2314,8 +2520,8 @@ road.prototype.updateDensity=function(density){
 	var laneNew=0;
 	var uNew=0.5*this.roadLen
 	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
-	var vehLength=(vehType=="car") ? car_length:truck_length;
-	var vehWidth=(vehType=="car") ? car_width:truck_width;
+	var vehLength=(vehType==="car") ? car_length:truck_length;
+	var vehWidth=(vehType==="car") ? car_width:truck_width;
 	var speedNew=0; // always overwritten
 
         // test if there are lanes w/o vehicles which will not be caught 
@@ -2329,7 +2535,7 @@ road.prototype.updateDensity=function(density){
 	//    console.log("road.updateDensity: lane="+il+" #veh="+nvehLane[il]);
 	//}
 	for (var il=0; (il<this.nLanes)&&(!success); il++){
-	    if(nvehLane[il]==0){
+	    if(nvehLane[il]===0){
 		success=true;
 		emptyLanes=true;
 		laneNew=il;
@@ -2368,7 +2574,7 @@ road.prototype.updateDensity=function(density){
     // sort (re-sort) vehicles with respect to decreasing positions
     // and provide the updated local environment to each vehicle
 
-    if(this.veh.length!=nveh_old){
+    if(this.veh.length!=nTot){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
@@ -2411,16 +2617,16 @@ road.prototype.updateBCup=function(Qin,dt,route){
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
       var vehType=(Math.random()<truckFrac) ? "truck" : "car";
-      var vehLength=(vehType=="car") ? car_length:truck_length;
-      var vehWidth=(vehType=="car") ? car_width:truck_width;
+      var vehLength=(vehType==="car") ? car_length:truck_length;
+      var vehWidth=(vehType==="car") ? car_width:truck_width;
       var space=0; // available bumper-to-bumper space gap
 
       // try to set trucks at the right lane
 
       var lane=this.nLanes-1; // start with right lane
-      if(this.veh.length==0){success=true; space=this.roadLen;}
+      if(this.veh.length===0){success=true; space=this.roadLen;}
 
-      else if(vehType=="truck"){
+      else if(vehType==="truck"){
 	  var iLead=this.veh.length-1;
 	  while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
 	  space=this.veh[iLead].u-this.veh[iLead].length;
@@ -2448,7 +2654,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       // actually insert new vehicle
 
       if(success){
-	  var longModelNew=(vehType=="car") ? longModelCar : longModelTruck;
+	  var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
 	  var uNew=0;
 	  var speedNew=Math.min(longModelNew.v0, longModelNew.speedlimit, 
 				space/longModelNew.T);
@@ -2493,8 +2699,8 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
     //console.log("getTargetNeighbourhood:");
     for (var i=0; i<this.veh.length; i++){
 	//console.log("i=",i," nveh=",this.veh.length," u=",this.veh[i].u);
-	if( (this.veh[i].lane==targetLane)&&(this.veh[i].u>=umin)&&(this.veh[i].u<=umax)){
-	    if(firstTime==true){this.iOffset=i;firstTime=false;}
+	if( (this.veh[i].lane===targetLane)&&(this.veh[i].u>=umin)&&(this.veh[i].u<=umax)){
+	    if(firstTime===true){this.iOffset=i;firstTime=false;}
 	    targetVehicles[iTarget]=this.veh[i];
 	    iTarget++;
 	}
@@ -2522,9 +2728,9 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   for(var i=0; i<this.veh.length; i++){
       if(this.veh[i].type != "obstacle"){// then do nothing
-        this.veh[i].longModel=(this.veh[i].type == "car")
+        this.veh[i].longModel=(this.veh[i].type === "car")
 	  ? longModelCar : longModelTruck;
-        this.veh[i].LCModel=(this.veh[i].type == "car")
+        this.veh[i].LCModel=(this.veh[i].type === "car")
 	  ? LCModelCar : LCModelTruck;
       }
   }
@@ -2548,7 +2754,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	  var route=this.veh[i].route;
 	  var mandatoryLC=false;
 	  for(var ir=0; ir<route.length; ir++){
-	      if(offID==route[ir]){mandatoryLC=true;}
+	      if(offID===route[ir]){mandatoryLC=true;}
 	  }
 	  if(mandatoryLC){
 	      this.veh[i].mandatoryLCahead=true;
@@ -2761,48 +2967,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     }
 
 
+// draw traffic lights separately by its own command .draw(imgRed,imgGreen)
 
-    //  (jun17) draw also traffic light at the end of road, before vehicles
-
-    for(var i=0; i<this.trafficLights.length; i++){
-	var TL=this.trafficLights[i];
-
-        // the stopping line
-
-	var stopLineWidth=1;    // [m]
-	var stopLineLength=this.nLanes*this.laneWidth;
-
-        var xCenterPix=  scale*this.traj_x(TL.u);
-        var yCenterPix= -scale*this.traj_y(TL.u); // minus!!
-	var wPix=scale*stopLineWidth;
-	var lPix=scale*stopLineLength;
-        var phi=this.get_phi(TL.u);
-        var cphi=Math.cos(phi);
-        var sphi=Math.sin(phi);
-
-        ctx.setTransform(cphi,-sphi,sphi,cphi,xCenterPix,yCenterPix);
-	ctx.fillStyle="rgb(255,255,255)";
-	ctx.fillRect(-0.5*wPix, -0.5*lPix, wPix, lPix);
-
-        // the traffic-light image both at the left and right side
-
-	var img=(TL.state=="red") ? TL.imageRed : TL.imageGreen;
-	var sizePix=Math.min(canvas.width, canvas.height);
-	var wPix=0.07*sizePix; // (canvas is wider than TL image)
-	var hPix=0.09*sizePix; // 
-
-	var vLeft =-0.55*stopLineLength; // [m]
-	var xPix=xCenterPix+scale*vLeft*sphi;  // +
-	var yPix=yCenterPix+scale*vLeft*cphi;  // -*-=+
-        ctx.setTransform(1,0,0,1,xPix,yPix);
-	ctx.drawImage(img,-0.5*wPix,-hPix,wPix, hPix);
-
-	var vRight=-vLeft; // [m]
-	xPix=xCenterPix+scale*vRight*sphi;  // +
-	yPix=yCenterPix+scale*vRight*cphi;  // -*-=+
-        ctx.setTransform(1,0,0,1,xPix,yPix);
-	ctx.drawImage(img,-0.5*wPix,-hPix,wPix, hPix);
-    }// draw traffic lights
 
 
 }// draw road
@@ -2827,9 +2993,11 @@ have special appearance according to
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
-// id=50..99            depot vehicles/obstacles
-// id=100..199          traffic lights
+// id=50..99            depot vehicles/obstacles (vehicle.isDepotObstacle())
+// id=100..199          traffic lights (vehicle.isTrafficLight())
 // id>=200:             normal vehicles and obstacles
+// id>=200&&type!=="obstacle" regular vehicles (vehicle.isRegularVeh)
+
 
 @param carImg, truckImg: one veh image per type
 @param obstacleImgs: array [standard black bar, construction vehs]
@@ -2871,7 +3039,14 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
     var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
     for(var i=0; i<this.veh.length; i++){
-      if(noRestriction || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax))){
+
+        // do not draw virtual traffic-light vehicle if red
+
+	var filterPassed=(!this.veh[i].isTrafficLight())
+	    && (noRestriction // default: noRestriction=true
+		|| ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
+
+	if(filterPassed){
           var type=this.veh[i].type;
           var vehLenPix=scale*this.veh[i].length;
           var vehWidthPix=scale*this.veh[i].width;
@@ -2888,12 +3063,13 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	      : -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
           var phiVeh=phiRoad + phiVehRel;
 
-          // special corrections for image obstacles 
-          // (depends on image and orientation)
+          // special corrections for special (depot) obstacles 
+          // normal obstacles are drawn with obstacleImgs[0]=black box
 
-	  var obstacleImgIndex=this.veh[i].id % obstacleImgs.length;
+	  var obstacleImgIndex=(this.veh[i].isSpecialVeh())
+		? this.veh[i].id % obstacleImgs.length : 0;
 
-	  if(type=="obstacle"){
+	  if(type==="obstacle"){
 	      //console.log("obstacle id=",this.veh[i].id);
 
 
@@ -2917,12 +3093,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           // (1) draw vehicles as images
 
 	  var obstacleImg;
-	  if(type=="obstacle"){
+	  if(type==="obstacle"){
 	      obstacleImg=obstacleImgs[obstacleImgIndex];
 	  }
 
-          vehImg=(type=="car")
-	      ? carImg : (type=="truck")
+          vehImg=(type==="car")
+	      ? carImg : (type==="truck")
 	      ? truckImg : obstacleImg;
           ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
 			   xCenterPix, yCenterPix);
@@ -2934,15 +3110,14 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           //     (different size of box because of mirrors of veh images)
 
 	  if(type!="obstacle"){
-              var effLenPix=(type=="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
-              var effWPix=(type=="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
+              var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
+              var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
               var speed=this.veh[i].speed;
-	      var isEgo=(this.veh[i].id==1);
-	      var isPerturbed=(this.veh[i].id==10);
+	      var isEgo=(this.veh[i].id===1);
               ctx.fillStyle=colormapSpeed(speed,speedmin,speedmax,type,
 					  isEgo,time);
 	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
-	      if((isEgo)||(isPerturbed)){
+	      if(isEgo||this.veh[i].isPerturbed()){
 		  ctx.strokeStyle="rgb(0,0,0)";
 		  ctx.strokeRect(-0.55*effLenPix, -0.55*effWPix, 
 			       1.1*effLenPix, 1.1*effWPix);
