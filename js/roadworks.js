@@ -8,6 +8,20 @@
 
 var scenarioString="RoadWorks";
 
+// adapt standard gui settings of control_gui.js for this scenario
+
+qIn=1800./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=3600*qIn+" veh/h";
+
+speedL=speedLInit=80./3.6
+slider_speedL.value=3.6*speedL;
+slider_speedLVal.innerHTML=3.6*speedL+" veh/h";
+
+truckFrac=0.20;
+slider_truckFrac.value=100*truckFrac;
+slider_truckFracVal.innerHTML=100*truckFrac+"%";
+
 // graphical settings
 
 var hasChanged=true; // window dimensions have changed (responsive design)

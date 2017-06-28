@@ -66,14 +66,11 @@ var truck_width=7;
 // (iii) function road.prototype.mergeDiverge: local variable merge_bSafe=road.mandat_bSafe
 // (iv) longitudinal deceleration IDM.bmax=16
 
-var MOBIL_bSafe=4;     // bSafe if v to v0
+var MOBIL_bSafe=4;     // bSafe if v to v0  (threshold, bias in sliders)
 var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
-var MOBIL_bThr=0.4;
-var MOBIL_bBiasRight_car=-0.2; 
-var MOBIL_bBiasRight_truck=0.1; 
 
-var MOBIL_mandat_bSafe=42;
-var MOBIL_mandat_bThr=0;
+var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
+var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_bias=42;
 
 var dt_LC=4; // duration of a lane change
@@ -233,7 +230,7 @@ var obstacle_srcFiles = [];
 obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
 for (var i=1; i<10; i++){ //!!!
     obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
+    //console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
 }
 
 var road1lanes_srcFile='figs/road1lanesCrop.png';

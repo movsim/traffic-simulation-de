@@ -250,17 +250,23 @@ button{
 /* (5) text layout of sliders: tables override general text spec) */
 
 
-TH{                    /* only used in infotext */
+th{                    /* only used in infotext */
   font-size: 2.2vmin;
   font-weight: bold; 
   color: #404060;      /* text color */
 
 }
 
-TR{
+td{
   font-size:1.8vmin; 
   font-weight: bold; 
-  color: #404060;
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
 }
 
 

@@ -8,6 +8,21 @@
 
 var scenarioString="Uphill";
 
+// adapt standard gui settings of control_gui.js for this scenario
+
+qIn=2400./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=3600*qIn+" veh/h";
+
+IDM_v0Up=80./3.6
+slider_IDM_v0Up.value=3.6*IDM_v0Up;
+slider_IDM_v0UpVal.innerHTML=3.6*IDM_v0Up+" veh/h";
+
+truckFrac=0.20;
+slider_truckFrac.value=100*truckFrac;
+slider_truckFracVal.innerHTML=100*truckFrac+"%";
+
+
 // graphical settings
 
 var hasChanged=true; // window dimensions have changed (responsive design)
@@ -54,7 +69,10 @@ var car_width=5; // car width in m
 var truck_length=12; // trucks
 var truck_width=7; 
 
-
+var MOBIL_bSafe=4;   // bSafe if v to v0  (threshold, bias in sliders)
+var MOBIL_bSafeMax=16;  // bSafe if v to 0 //!! use it
+var MOBIL_mandat_bSafe=6;
+var MOBIL_mandat_bSafeMax=20;
 var dt_LC=4; // duration of a lane change
 
 // simulation initial conditions settings
@@ -142,10 +160,23 @@ var LCModelTruckUphill;
 
 // truck if overtaking ban active
 
-var LCModelTruckLCban;
+var MOBIL_bSafe=8; // was 12
+var MOBIL_bSafeMax=16;
+var MOBIL_bThr=0.1;
+var MOBIL_bBiasRight_car=0.2; 
+var MOBIL_bBiasRight_truck=0.5; 
+
+var MOBIL_mandat_bSafe=6;
+var MOBIL_mandat_bSafeMax=20;
+var MOBIL_mandat_bThr=0;
+var MOBIL_mandat_biasRight=20;
+
+
+var LCModelTruckLCban;//=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+		//		MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
 
 updateModels(); // initial update
-				      // LCModelCar,LCModelTruck);
+updateModelsUphill();
 
 var isRing=0;  // 0: false; 1: true
 var roadID=1;

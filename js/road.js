@@ -154,18 +154,21 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.gridTrajectories(traj_x,traj_y); 
 
+    if(false){
     console.log("after gridTrajectories: this.traj_x(-1)=",this.traj_x(-1),
 		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
     console.log("                     this.traj_y(-1)=",this.traj_y(-1),
 		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
+    }
 
     this.update_nSegm_tabxy();
 
+    if(false){
     console.log("after update_nSegm_tabxy: this.traj_x(-1)=",this.traj_x(-1),
 		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
     console.log("                     this.traj_y(-1)=",this.traj_y(-1),
 		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
-
+    }
  
 
     // defines the variables for user-driven change in road geometry
@@ -266,7 +269,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-    console.log("in road.gridTrajectories: this.nSegm=",this.nSegm);
+    //console.log("in road.gridTrajectories: this.nSegm=",this.nSegm);
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
@@ -306,13 +309,15 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 
     // test code
 
-    console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
+    if(false){
+        console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
 		" this.xtab[0]=",this.xtab[0],
 		" this.xtab[1]=",this.xtab[1],
 		" this.traj_x(0)=",this.traj_x(0),
 		" this.xtab[this.nSegm]=",this.xtab[this.nSegm],
 		" this.traj_x(this.roadLen)=",this.traj_x(this.roadLen)
-	       );
+		   );
+    }
 
     if(false){
 	var utab=[];
