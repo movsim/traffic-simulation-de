@@ -278,7 +278,7 @@ td.important{
   top: 22vmin;
   height: 20vmin;
   left: 121vmin;
-  width: calc(50vmin+3vw);
+  width: 55vmin;
   background-color: rgba(0,40,255,0);
   z-index: 2; /* the higher the integer, the more on top */
 }
