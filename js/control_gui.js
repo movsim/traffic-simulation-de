@@ -189,7 +189,7 @@ else{
 
 // density slider
 
-var density=densityInit=0.10; // 0.10
+var density=densityInit=0.03; // 0.10
 var slider_density, slider_densityVal;
 if(document.getElementById("slider_density")===null) 
     console.log("no density slider");

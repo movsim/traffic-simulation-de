@@ -294,10 +294,10 @@ rampImg.src=ramp_srcFile;
 // alignedHoriz,containsObstacles)
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 10,
+var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
-			   20,20,true,true);
+			   20,20,true);
 
 
 

@@ -32,30 +32,30 @@ vehicleDepot object constructor
 @param nImgs:   how many images in draw cmd to assign 
                 immutable image index at construction time
                 (>=2 images for distinguishing virt veh from depot veh)
-@param nveh:    number of depot vehicles (including that underway)
+@param nRow:    number of rows
+@param nCol:    number of columns (nRow*nCol objects, generally !=nImgs
 @param xDepot:  center x position[m] of depot (0=left)
 @param yDepot:  center y position[m] of depot (0=top, <0 in canvas)
 
 @param lVeh:    vehicle length[m]
 @param wVeh:    vehicle width[m]
-@param alignedHoriz: true if the vehicles are aligned horizontally
-                     (i.e., vertically oriented)
+
 */
 
 
 
-function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
-		      alignedHoriz, containsObstacles){
+function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
+		      containsObstacles){
 
-    console.log("vehicleDepot cstr: xDepot=",xDepot," yDepot=",yDepot);
+    //console.log("vehicleDepot cstr: xDepot=",xDepot," yDepot=",yDepot);
 
-    this.nveh=nveh; // generally not imageArray.length
-
+    this.nRow=nRow; // generally nRow*nCol != imageArray.length
+    this.nCol=nCol; 
+    this.nveh=nRow*nCol;
     this.xDepot=xDepot;
     this.yDepot=yDepot;
     this.lVeh=lVeh;
     this.wVeh=wVeh;
-    this.alignedHoriz=alignedHoriz;
     this.containsObstacles=containsObstacles;
     this.gapRel=-0.1; // lateral gap [veh width] between the vehicles in the depot
 
@@ -67,29 +67,38 @@ function vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
     var idmin=50; // see top of this file
     var idminTL=100; // see top of this file
     while(idmin%nImgs!=0){idmin++;}
-    for(var i=0; i<nveh; i++){
-	var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);
-	var latDistVeh=this.lVeh*(1+this.gapRel);
-	var xVehDepot=this.xDepot+latDistVeh*(i+0.5*(1-this.nveh));
-	var yVehDepot=this.yDepot;
-	if(!this.alignedHoriz){ // veh aligned vertically
-	    xVehDepot=this.xDepot;
-	    yVehDepot=this.yDepot+latDistVeh*(i+0.5*(1-this.nveh));
-	}
-	this.veh[i]={id:        idmin+i, 
-		     imgNumber: imgNmbr,
-		     type:      (containsObstacles) ? "obstacle" : "car",
-		     lVeh:      this.lVeh,
-		     wVeh:      this.wVeh,
-		     inDepot:   true,
-		     x:         xVehDepot, 
-		     y:         yVehDepot, 
-		     xDepot:    xVehDepot, 
-		     yDepot:    yVehDepot
-		    };
 
-        // ad hoc introduce 2 TL at the beginning (quick hack!!!)
-	if(i<2){this.veh[i].id=100+i;}
+    var latDistVeh=this.wVeh*(1+this.gapRel);
+
+    for(var ir=0; ir<nRow; ir++){
+	for(var ic=0; ic<nCol; ic++){
+	    var i=ir*nCol+ic;
+	    var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);
+	    var xVehDepot=this.xDepot+latDistVeh*(ic+0.5*(1-nCol));
+	    var yVehDepot=this.yDepot+latDistVeh*(ir+0.5*(1-nRow));
+	    this.veh[i]={id:        idmin+i, 
+			 imgNumber: imgNmbr,
+			 type:      (containsObstacles) ? "obstacle" : "car",
+			 lVeh:      this.lVeh,
+			 wVeh:      this.wVeh,
+			 inDepot:   true,
+			 x:         xVehDepot, 
+		         y:         yVehDepot, 
+		         xDepot:    xVehDepot, 
+		         yDepot:    yVehDepot
+			};
+
+            // ad hoc introduce 2 TL at the beginning (quick hack!!!)
+
+	    if(i<2){this.veh[i].id=100+i;}
+	}
+    }
+
+
+    if(false){
+	for(var i=0; i<nRow*nCol; i++){
+	    console.log("vehicleDepot cstr: i=",i," this.veh[i]=",this.veh[i]);
+	}
     }
 
 }// end cstr
