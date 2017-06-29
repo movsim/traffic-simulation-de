@@ -123,7 +123,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 var laneWidth=7; // remains constant => road becomes more compact for smaller
 var laneWidthRamp=5;
 var nLanes_main=3;
-var nLanes_onramp=1;
+var nLanes_rmp=1;
 
 
 var car_length=7; // car length in m
@@ -168,7 +168,7 @@ function trajRamp_xInit(u){ // physical coordinates
 function trajRamp_yInit(u){ // physical coordinates
 
     var yMergeBegin=traj_yInit(mainRampOffset+rampLen-mergeLen)
-	-0.5*laneWidth*(nLanes_main+nLanes_onramp)-0.02*laneWidth;
+	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
     var yMergeEnd=yMergeBegin+laneWidth;
     return (u<rampLen-mergeLen)
@@ -189,7 +189,8 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes with new incoming/outgoing vehicles
+var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
+                      // sudden changes with new incoming/outgoing vehicles
 
 var speedInit=20; // IC for speed
 
@@ -197,7 +198,7 @@ var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_xInit,traj_yInit,
 		      densityInit, speedInit,truckFracInit, isRing);
 
-var onramp=new road(roadIDramp,rampLen,laneWidth,1,
+var onramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_xInit,trajRamp_yInit,
 		    0*densityInit, speedInit, truckFracInit, isRing);
 
@@ -230,21 +231,20 @@ updateModels(); //  from control_gui.js  => define the 6 above models
 // Global graphics specification and image file settings
 //####################################################################
 
-// graphical settings
-
 var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; //!!! true only if user-driven geometry changes
+var userCanvasManip; // true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
-// Notice: set drawBackground=false if no bg wanted
-var background_srcFile='figs/backgroundGrass.jpg'; 
 
+// image source files
+
+var background_srcFile='figs/backgroundGrass.jpg'; 
 
 var car_srcFile='figs/blackCarCropped.gif';
 var truck_srcFile='figs/truck1Small.png';
@@ -253,7 +253,7 @@ var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
 
 var obstacle_srcFiles = [];
 obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){ //!!!
+for (var i=1; i<10; i++){ 
     obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
     //console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
 }
@@ -393,7 +393,6 @@ function updateU(){
 
     //!!!
     if(depotVehZoomBack){
-	console.log("ring: depotVehZoomBack=true!!! ");
 	var res=depot.zoomBackVehicle();
 	depotVehZoomBack=res;
 	userCanvasManip=true;

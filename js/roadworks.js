@@ -1,6 +1,4 @@
 
-// general comments: ring.js, offramp.js (responsive design)
-
 
 //#############################################################
 // Initial settings
@@ -296,21 +294,13 @@ function updateU(){
     }
 
 
- 
-    //logging
-
-    if(false){
-        console.log("\nafter updateU: itime="+itime+" mainroad.nveh="+mainroad.nveh);
-	for(var i=0; i<mainroad.veh.length; i++){
-	    if(mainroad.veh[i].type != "obstacle"){
-	      console.log("i="+i+" mainroad.veh[i].u="+mainroad.veh[i].u
-			+" type="+mainroad.veh[i].type
-			+" speedlimit="+mainroad.veh[i].longModel.speedlimit
-			+" speed="+mainroad.veh[i].speed);
-	    }
-	}
-	console.log("\n");
+     //!!!
+    if(depotVehZoomBack){
+	var res=depot.zoomBackVehicle();
+	depotVehZoomBack=res;
+	userCanvasManip=true;
     }
+
 
 }//updateU
 
@@ -400,6 +390,7 @@ function drawU() {
     
      var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
      mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  
@@ -431,7 +422,12 @@ function drawU() {
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 
-    // (5) draw some running-time vars
+    // (5) !!! draw depot vehicles
+
+    depot.draw(obstacleImgs,scale,canvas);
+
+
+    // (6) draw some running-time vars
 
   if(true){
     ctx.setTransform(1,0,0,1,0,0); 
@@ -453,62 +449,7 @@ function drawU() {
 		 timeStr_ylb-0.2*textsize);
 
     
-   /*
-    var scaleStr=" scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=8*textsize;
-    var scaleStr_ylb=timeStr_ylb;
-    var scaleStr_width=5*textsize;
-    var scaleStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,
-		 scaleStr_width,scaleStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
-		 scaleStr_ylb-0.2*textsize);
-    
-
-
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=16*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-    
  
-    var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
-    var genVarStr_xlb=24*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-    
-
-    var genVarStr="qIn="+Math.round(3600*qIn)+"veh/h";
-    var genVarStr_xlb=32*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-
-*/
-
-
     // (6) draw the speed colormap
 
     if(drawColormap){displayColormap(0.22*refSizePix,
@@ -526,7 +467,7 @@ function drawU() {
 function init() {
 
     // "canvas_roadworks" defined in roadworks.html
-    canvas = document.getElementById("canvas_roadworks");
+    canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
 
     background = new Image();
@@ -570,6 +511,14 @@ function init() {
     rampImg = new Image();
     rampImg.src=ramp_srcFile;
 
+
+//!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+
+var smallerDimPix=Math.min(canvas.width,canvas.height);
+var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+			   0.7*smallerDimPix/scale,
+			   -0.5*smallerDimPix/scale,
+			   20,20,true);
 
  
 

@@ -209,7 +209,7 @@ else{
 
 // offramp use fraction  slider
 
-var fracOff=fracOffInit=0.10; // 0.10
+var fracOff=fracOffInit=0.25; 
 var slider_fracOff, slider_fracOffVal;
 if(document.getElementById("slider_fracOff")===null) 
     console.log("no fracOff slider");

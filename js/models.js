@@ -231,7 +231,8 @@ function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
 
     MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,toRight,log){
 
- 	if(log|| (this.bSafe>24)){
+ 	if(false){
+ 	//if(log|| (this.bSafe>24)){
           console.log("\nIn MOBIL.realizeLaneChange");
 	  console.log("  vrel="+vrel
 	              +" acc="+acc+" accNew="+accNew
@@ -247,7 +248,8 @@ function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
 
 	var dacc=accNew-acc + this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
 
-	if(log || (this.bSafe>24)){
+ 	if(false){
+ 	//if(log|| (this.bSafe>24)){
 	  console.log("...dacc="+dacc);
 	  if(dacc>0){console.log("  positive MOBIL LC decision!");}
 	}
