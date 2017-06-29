@@ -46,7 +46,7 @@ function canvas_resize(canvas,limAspectRatio){
 
   /* refDim is relevant canvas dimension (pixels) for determining the scale
      factor (pixels/m) by comparing refDim 
-     with reference physical size sizePhys: refDim is canvas height 
+     with reference physical size refSizePhys: refDim is canvas height 
      if actual aspect ratio is  greater than limit aspect ratio, 
      otherwise width/limAspectRatio
   */ 
@@ -54,10 +54,10 @@ function canvas_resize(canvas,limAspectRatio){
     if(hasChanged){
 	//var refDim=Math.min(canvas.width,canvas.height*limAspectRatio);
 	var refDim=Math.min(canvas.height,canvas.width/limAspectRatio);
-	scale=refDim/sizePhys;  
+	scale=refDim/refSizePhys;  
 	console.log(" canvasresize: width=",canvas.width,
 		    " height=",canvas.height," refDim=",
-		    refDim," sizePhys=",sizePhys," scale=",scale);
+		    refDim," refSizePhys=",refSizePhys," scale=",scale);
     }
     return hasChanged;
 }

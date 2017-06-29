@@ -44,7 +44,7 @@ function EgoVeh(vLongInit){
 
     // following are parameters of simplified ego model
 
-    this.vmax=190/3.6;   // maximum speed of ego vehicle
+    this.vmax_col=190/3.6;   // maximum speed of ego vehicle
     this.bmax=9;  // max absolute acc (limit where sliding/ESP begins)
     this.amax=4;  // max long acceleration (if ego.vLong=0)
 
@@ -108,7 +108,7 @@ EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
         var isBraking=(yMouseCanvas-yPixZero>0);
         this.aLong=(isBraking)
 	    ? - this.bmax*(yMouseCanvas-yPixZero) /(canvas.height-yPixZero)
-	    : this.amax*(1-this.vLong/this.vmax)
+	    : this.amax*(1-this.vLong/this.vmax_col)
 	      * (yPixZero-yMouseCanvas)/yPixZero;
 
         // latCtrlModel===0: lateral control by direct positioning

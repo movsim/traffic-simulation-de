@@ -18,14 +18,14 @@ var drawRoad=true; // if false, only vehicles are drawn
 var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
-var vmin=0; // min speed for speed colormap (drawn in red)
-var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmin_col=0; // min speed for speed colormap (drawn in red)
+var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
 // physical geometry settings [m]
 
-var sizePhys=350;   
+var refSizePhys=350;   
 var center_xPhys=135; // !! only IC!
 var center_yPhys=-180; // !! only IC! ypixel downwards=> physical center <0
 
@@ -457,7 +457,7 @@ function drawU() {
     /* (0) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
      (=actions of canvasresize.js for the ring-road scenario,
-     here not usable ecause of side effects with sizePhys)
+     here not usable ecause of side effects with refSizePhys)
      NOTICE: resizing also brings some small traffic effects 
      because mainRampOffset slightly influenced, but No visible effect 
      */
@@ -481,13 +481,13 @@ function drawU() {
 
       // update sliderWidth in *_gui.js; 
 
-      var css_track_vmin=15; // take from sliders.css 
-      sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+      var css_track_vmin_col=15; // take from sliders.css 
+      sliderWidth=0.01*css_track_vmin_col*Math.min(canvas.width,canvas.height);
 
       // update geometric properties
 
       arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-      sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
+      refSizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
 
@@ -514,7 +514,7 @@ function drawU() {
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.43*arcRadius; // ypixel downwards=> physical center <0
 
-      scale=refSizePix/sizePhys; 
+      scale=refSizePix/refSizePhys; 
 
       // !!!!
       // update gridded road trajectories (revert any user-dragged shifts)
@@ -529,7 +529,7 @@ function drawU() {
       if(true){
 	console.log("canvas has been resized: new dim ",
 		    canvas.width,"X",canvas.height," refSizePix=",
-		    refSizePix," sizePhys=",sizePhys," scale=",scale,
+		    refSizePix," refSizePhys=",refSizePhys," scale=",scale,
 		    " lDev=",lDev);
       }
     }
@@ -583,15 +583,15 @@ function drawU() {
     //var changedGeometry=false; 
 
     deviation.draw(rampImg,rampImg,scale,changedGeometry);
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin_col,vmax_col);
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin_col,vmax_col);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin_col,vmax_col,
 			   0,lrampDev);
-    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin,vmax,
+    deviation.drawVehicles(carImg,truckImg,obstacleImg,scale,vmin_col,vmax_col,
 			   lDev-lrampDev, lDev);
 
 
@@ -676,7 +676,7 @@ function drawU() {
          displayColormap(0.22*refSizePix,
                    0.50*refSizePix,
                    0.1*refSizePix, 0.2*refSizePix,
-		   vmin,vmax,0,100/3.6);
+		   vmin_col,vmax_col,0,100/3.6);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 

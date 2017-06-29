@@ -17,12 +17,12 @@ var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 var userCanvasManip; //!!! true only if user-driven geometry changes
 
-var vmin=0; // min speed for speed colormap (drawn in red)
-var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmin_col=0; // min speed for speed colormap (drawn in red)
+var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 // physical geometry settings [m]
-// sizePhys=physical dimension; should be of the order of vertical extension
+// refSizePhys=physical dimension; should be of the order of vertical extension
 
 // fixed at initialization; relevant for actual simulation
 
@@ -47,7 +47,7 @@ var center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
 
 var rampRadius=4*arcRadius;
 
-var sizePhys=200;  // typical physical linear dimension for scaling 
+var refSizePhys=200;  // typical physical linear dimension for scaling 
 
 
 
@@ -373,7 +373,7 @@ function drawU() {
     /* (0) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
      (=actions of canvasresize.js for the ring-road scenario,
-     here not usable ecause of side effects with sizePhys)
+     here not usable ecause of side effects with refSizePhys)
      NOTICE: resizing also brings some small traffic effects 
      because mainRampOffset slightly influenced, but No visible effect 
      */
@@ -398,19 +398,19 @@ function drawU() {
 
       // update sliderWidth in *_gui.js; 
 
-      var css_track_vmin=15; // take from sliders.css 
-      sliderWidth=0.01*css_track_vmin*Math.min(canvas.width,canvas.height);
+      var css_track_vmin_col=15; // take from sliders.css 
+      sliderWidth=0.01*css_track_vmin_col*Math.min(canvas.width,canvas.height);
 
       // update geometric properties
 
       arcRadius=0.14*mainroadLenInit*Math.min(critAspectRatio/aspectRatio,1.);
-      sizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
+      refSizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
       straightLen=0.5*(mainroadLenInit-arcLen);  // one straight segment
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-      scale=refSizePix/sizePhys; 
+      scale=refSizePix/refSizePhys; 
 
       // !!! if hasChanged revert any user-dragged shifts!
       mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
@@ -474,14 +474,14 @@ function drawU() {
     // (4) draw vehicles
 
     onramp.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			vmin,vmax,0,onramp.roadLen,
+			vmin_col,vmax_col,0,onramp.roadLen,
 			movingObserver,0,
 			center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
 			center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0));
 
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			  vmin, vmax,0,mainroad.roadLen,
+			  vmin_col, vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
 
@@ -566,7 +566,7 @@ function drawU() {
       displayColormap(0.22*refSizePix,
                    0.43*refSizePix,
                    0.1*refSizePix, 0.2*refSizePix,
-		   vmin,vmax,0,100/3.6);
+		   vmin_col,vmax_col,0,100/3.6);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 

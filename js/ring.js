@@ -20,15 +20,15 @@ var drawRoad=true; // if false, only vehicles are drawn
 var userCanvasManip; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
-var vmin=0; // min speed for speed colormap (drawn in red)
-var vmax=100/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmin_col=0; // min speed for speed colormap (drawn in red)
+var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
 
 // physical geometry settings [m]
 
-var sizePhys=290;    //responsive design  
+var refSizePhys=290;    //responsive design  
 var center_xPhys=139;
 var center_yPhys=-150; // ypixel downwards=> physical center <0
 
@@ -307,7 +307,7 @@ function drawRing() {
 
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin,vmax);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     // (5) draw depot vehicles
 
@@ -382,7 +382,7 @@ function drawRing() {
         displayColormap(scale*(center_xPhys-0.03*roadRadius), 
                     -scale*(center_yPhys+0.50*roadRadius), 
 		    scale*35, scale*45,
-		    vmin,vmax,0,100/3.6);
+		    vmin_col,vmax_col,0,100/3.6);
     }
 
     // revert to neutral transformation at the end!

@@ -8,10 +8,10 @@
 
 // space and time
 
-var sizePhys=slider_sizePhys.value;  // visible road section [m] 
-                   // (scale=min(canvas.width,height/sizePhys))
+var refSizePhys=slider_refSizePhys.value;  // visible road section [m] 
+                   // (scale=min(canvas.width,height/refSizePhys))
 var timewarp=1;
-var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
+var scale;        // pixel/m defined in draw() by min(canvas.width,height)/refSizePhys
 var scaleBg;      // pixel bg Img/m defined in draw()
 var fps=20; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
@@ -34,7 +34,7 @@ var qIn=0;       // no addl inflowing vehicles; all done by initializeMicro
 
 var bmax=9;// maximum absolue acceleration (limit where sliding/ESP begins)
 var amax=4;// max acceleration (if vLong=0)
-var vmax=190/3.6; // maximum speed of ego-vehicle @ full throttle
+var vmax_col=190/3.6; // maximum speed of ego-vehicle @ full throttle
 var vc=25; // if vLong>vc, then steering can lead to accLat>bmax
 
 
@@ -95,8 +95,8 @@ var hasChanged=true; // whether window dimensions has changed (resp. design)
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 
-var vminColormap=0; // min speed for speed colormap (drawn in red)
-var vmaxColormap=180/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmin_colColormap=0; // min speed for speed colormap (drawn in red)
+var vmax_colColormap=180/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
@@ -110,7 +110,7 @@ var yMouseCanvas;
 // physical geometry settings [m]
 //#############################################################
 
-var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
+var sizeBgPhys=1.2*refSizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
 
@@ -293,9 +293,9 @@ speedoImg.src='figs/speedometer.jpg';
 var xRelSpeedo=0.18;     // center of speedometer in units of canvas width
 var yRelSpeedo=0.60;    // and height, respectively
 var sizeRelSpeedo=0.24;  // in terms of min(canvas width,height)
-var vmaxSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
+var vmax_colSpeedo=160/3.6; // max speed [m/s] for this particular speedoImg
 
-var speedometer=new Speedometer(speedoImg,vmaxSpeedo,sizeRelSpeedo,
+var speedometer=new Speedometer(speedoImg,vmax_colSpeedo,sizeRelSpeedo,
 				xRelSpeedo,yRelSpeedo);
 
 
@@ -565,7 +565,7 @@ function drawRuntimeVars(){
       displayColormap(0.86*canvas.width,
                    0.88*canvas.height,
                    0.1*canvas.width, 0.2*canvas.height,
-		   vminColormap,vmaxColormap,vminColormap,vmaxColormap);
+		   vmin_colColormap,vmax_colColormap,vmin_colColormap,vmax_colColormap);
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
@@ -605,7 +605,7 @@ function update(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
 
-    sizePhys=slider_sizePhys.value;
+    refSizePhys=slider_refSizePhys.value;
     resize();
 
     // !! update models =>mainroad.updateModelsOfAllVehicles 
@@ -682,7 +682,7 @@ function draw() {
 
     mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
     mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
-			  vminColormap,vmaxColormap,0,lenMainroad,relObserver,
+			  vmin_colColormap,vmax_colColormap,0,lenMainroad,relObserver,
 			  uObs,xObsRel,yBegin);
     displayEgoVehInfo();
     coffeemeter.draw(canvas);
@@ -699,14 +699,14 @@ function draw() {
 //##################################################
 
 function resize() { 
-    sizeBgPhys=1.2*sizePhys; // physical length [m] of the (square) bg image
-    scale=Math.min(canvas.height,canvas.width)/sizePhys;
+    sizeBgPhys=1.2*refSizePhys; // physical length [m] of the (square) bg image
+    scale=Math.min(canvas.height,canvas.width)/refSizePhys;
     xBegin=0.6*canvas.width/scale;
     yBegin=-canvas.height/scale;
     uObs=mainroad.egoVeh.u-ego_yRelPosition*canvas.height/scale;
     draw();
     if(false){
-	console.log("resize(): sizePhys=",sizePhys,
+	console.log("resize(): refSizePhys=",refSizePhys,
 		    " canvas.height=",canvas.height,
 		    " canvas.width=",canvas.width,
 		    " scale=",scale,
