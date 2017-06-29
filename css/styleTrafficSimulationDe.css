@@ -171,12 +171,32 @@ img.title{
   position: absolute;
   left:   0vw;
   top:   5vmin;
-  height: 95vmin;
   width:  120vmin;
+  height: 95vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
+
+
+/* DOS canvas size specification; none works:
+(i) as here
+(ii) removing outer div spec
+(iii) both combinations with "width=100%" etc in html canvas
+=> NEED document.getElementById("contents").clientWidth
+which always gives correct size!!
+ 
+#canvas {
+  position: absolute;
+  left:   0vw;
+  top:   5vmin;
+  width:  120vmin;
+  height: 95vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+*/
 
 
 /* (2a) position of the copyright: left bottom of simCanvas */

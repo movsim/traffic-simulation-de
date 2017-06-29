@@ -1,29 +1,9 @@
 
 
 
-// general comments: ring.js, offramp.js (responsive design)
-
-//#############################################################
-// Initial settings
-//#############################################################
-
-var scenarioString="OnRamp";
-
-// graphical settings
-
-var hasChanged=true; // window dimensions have changed (responsive design)
-
-var drawBackground=true; // if false, default unicolor background
-var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; //!!! true only if user-driven geometry changes
-
-var drawColormap=false;
-var vmin_col=0; // min speed for speed colormap (drawn in red)
-var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
-
 
 /*######################################################
- Overall scaling
+ Global overall scenario settings and graphics objects
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
@@ -42,48 +22,97 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
   Or jump at trigger refSizePix<canvasSizeCrit propto clientSize 
   => css cntrl normal/mobile with 2 fixed settings
 
+  NOTICE: canvas has strange initialization of width=300 in firefox 
+  and DOS when try sizing in css (see there) only 
+ 
+  document.getElementById("contents").clientWidth; .clientHeight;
+
+  always works!
+
 ######################################################*
 */
+
+
+var scenarioString="OnRamp";
+console.log("\n\nstart main: scenarioString=",scenarioString);
+
+// overall graphical objects
+
+var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas_onramp"); 
 var ctx = canvas.getContext("2d"); // graphics context
-var critAspectRatio=1.15;
+
+console.log("start main: canvas.width=",canvas.width,
+	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+
+canvas.width  = simDivWindow.clientWidth;
+canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
+
+console.log("after adaptation: canvas.width=",canvas.width,
+	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+
+// overall scaling (critAspectRatio should be consistent with 
+// width/height in css.#contents)
+
+var refSizePhys=250;  // constants => all objects scale with refSizePix
+
+var critAspectRatio=1.27; // 
+
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-
-var refSizePhys=200;  // typical physical linear dimension for scaling 
-var center_xPhys=85; // only IC!! later not relevant!
-var center_yPhys=-105; // only IC!! ypixel downwards=> physical center <0
+var scale=refSizePix/refSizePhys;
 
 
-//######################################################
-// Physical geometry settings [m]
 
-var mainroadLenInit=800;
-var nLanes_main=3;
-var nLanes_onramp=1;
+
+//##################################################################
+// Specification of physical road and vehicle properties
+// If refSizePhys changes, change them all => adaptPhysicalDimensions();
+//##################################################################
+
+// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+
+var center_xRel=0.5;
+var center_yRel=-0.5;
+
+var center_xPhys=center_xRel*refSizePhys;
+var center_yPhys=center_yRel*refSizePhys;
+
+var arcRadiusRel=0.35;
+
+var arcRadius=arcRadiusRel*refSizePhys;
+var arcLen=arcRadius*Math.PI;
+var straightLen=refSizePhys*critAspectRatio-center_xPhys;
+var mainroadLen=arcLen+2*straightLen;
+console.log("arcRadius=",arcRadius," arcLen=",arcLen," mainroadLen=",mainroadLen);
+
 var laneWidth=7;
 var laneWidthRamp=5;
 
-var rampLenInit=240; 
+var rampLen=240; 
 var mergeLen=120;
 var taperLen=60;
 
-// variable depending on aspect ratio: only relevant for graphics
-
-var straightLen=0.34*mainroadLenInit;      // straight segments of U
-var mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
-var arcLen=mainroadLenInit-2*straightLen; // length of half-circe arc of U
-var arcRadius=arcLen/Math.PI;
+//var straightLen=0.34*mainroadLen;      // straight segments of U
+var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
 
 var rampRadius=4*arcRadius;
-
-
-// specification of vehicle and traffic  properties
 
 var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
 var truck_width=7; 
+
+
+//##################################################################
+// specification of logical road and traffic behaviour properties
+//##################################################################
+
+
+
+var nLanes_main=3;
+var nLanes_onramp=1;
 
 // initial parameter settings (!! transfer def to GUI if variable in sliders!)
 //!! clarify mandatory changes:
@@ -129,7 +158,7 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise su
 function traj_xInit(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
 	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLenInit+straightLen
+	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
 	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
 	return center_xPhys+dxPhysFromCenter;
 }
@@ -144,11 +173,11 @@ function traj_yInit(u){ // physical coordinates
 
 
 function trajRamp_xInit(u){ // physical coordinates
-	//var xMergeBegin=traj_xInit(mainroadLenInit-straightLen);
-	var xMergeBegin=traj_xInit(mainRampOffset+rampLenInit-mergeLen);
-	var xPrelim=xMergeBegin+(u-(rampLenInit-mergeLen));
-	return (u<rampLenInit-taperLen) 
-	    ? xPrelim : xPrelim-0.05*(u-rampLenInit+taperLen);
+	//var xMergeBegin=traj_xInit(mainroadLen-straightLen);
+	var xMergeBegin=traj_xInit(mainRampOffset+rampLen-mergeLen);
+	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
+	return (u<rampLen-taperLen) 
+	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
 }
 
 
@@ -157,20 +186,20 @@ function trajRamp_xInit(u){ // physical coordinates
 
 function trajRamp_yInit(u){ // physical coordinates
 
-    var yMergeBegin=traj_yInit(mainRampOffset+rampLenInit-mergeLen)
+    var yMergeBegin=traj_yInit(mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_onramp)-0.02*laneWidth;
 
     var yMergeEnd=yMergeBegin+laneWidth;
-    return (u<rampLenInit-mergeLen)
-	? yMergeBegin - 0.5*Math.pow(rampLenInit-mergeLen-u,2)/rampRadius
-	: (u<rampLenInit-taperLen) ? yMergeBegin
-	: (u<rampLenInit-0.5*taperLen) 
-        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLenInit+taperLen)/taperLen,2)
-	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLenInit)/taperLen,2);
+    return (u<rampLen-mergeLen)
+	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
+	: (u<rampLen-taperLen) ? yMergeBegin
+	: (u<rampLen-0.5*taperLen) 
+        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
+	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
 }
 
 
-console.log("main: trajRamp_xInit(rampLenInit)=",trajRamp_xInit(rampLenInit));
+console.log("main: trajRamp_xInit(rampLen)=",trajRamp_xInit(rampLen));
 
 
 
@@ -187,17 +216,17 @@ updateModels(); //  from onramp_gui.js
 var isRing=0;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
-var mainroad=new road(roadIDmain,mainroadLenInit,laneWidth,nLanes_main,
+var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_xInit,traj_yInit,
 		      0.1*densityInit, speedInit,truckFracInit, isRing);
 console.log("end define mainroad, before onramp");
-var onramp=new road(roadIDramp,rampLenInit,laneWidth,1,
+var onramp=new road(roadIDramp,rampLen,laneWidth,1,
 		    trajRamp_xInit,trajRamp_yInit,
 		    0*densityInit, speedInit, truckFracInit, isRing);
 if(false){	
     console.log("end define onramp:",
-	    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	    " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+	    " trajRamp_xInit(rampLen)=", trajRamp_xInit(rampLen),
+	    " onramp.traj_x(rampLen)=",onramp.traj_x(rampLen),
 	    " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]);
 }
 
@@ -244,6 +273,17 @@ if(false){
 // Global graphics specification and image file settings
 //####################################################################
 
+// graphical settings
+
+var hasChanged=true; // window dimensions have changed (responsive design)
+
+var drawBackground=true; // if false, default unicolor background
+var drawRoad=true; // if false, only vehicles are drawn
+var userCanvasManip; //!!! true only if user-driven geometry changes
+
+var drawColormap=false;
+var vmin_col=0; // min speed for speed colormap (drawn in red)
+var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 // Notice: set drawBackground=false if no bg wanted
 var background_srcFile='figs/backgroundGrass.jpg'; 
@@ -436,7 +476,7 @@ function drawU() {
      */
 
     var hasChanged=false;
-    var simDivWindow=document.getElementById("contents");
+    //var simDivWindow=document.getElementById("contents");
 
     if (canvas.width!=simDivWindow.clientWidth){
 	hasChanged=true;
@@ -445,34 +485,34 @@ function drawU() {
     if (canvas.height != simDivWindow.clientHeight){
 	hasChanged=true;
         canvas.height  = simDivWindow.clientHeight;
+	console.log("haschanged=true: canvas.width=",canvas.width,
+	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+
+
     }
     aspectRatio=canvas.width/canvas.height;
     refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
-    //if(false){
-    if(hasChanged){
+    if(false){
+    //if(hasChanged){
 
-      // update sliderWidth in *_gui.js; 
-
-      //var css_track_vmin_col=15; // take from sliders.css 
-      //sliderWidth=0.01*css_track_vmin_col*Math.min(canvas.width,canvas.height);
 
       // update geometric properties
 
-      arcRadius=0.14*mainroadLenInit*Math.min(critAspectRatio/aspectRatio,1.);
+      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
       refSizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
       arcLen=arcRadius*Math.PI;
-      straightLen=0.5*(mainroadLenInit-arcLen);  // one straight segment
+      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
 
       center_xPhys=1.2*arcRadius;
       center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
       scale=refSizePix/refSizePhys; 
 
       // !!! if hasChanged revert any user-dragged shifts!
-      mainRampOffset=mainroadLenInit-straightLen+mergeLen-rampLenInit;
+      mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 
-      mainroad.roadLen=mainroadLenInit;
-      onramp.roadLen=rampLenInit;
+      mainroad.roadLen=mainroadLen;
+      onramp.roadLen=rampLen;
       onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
 
       mainroad.gridTrajectories(traj_xInit,traj_yInit); //!!!!
@@ -482,8 +522,8 @@ function drawU() {
 	  console.log("\n after local canvas resize, after gridTrajectories:\n",
 		      "mainroad.roadLen=",mainroad.roadLen,
 		      "onramp.roadLen=",onramp.roadLen,
-                    " trajRamp_xInit(rampLenInit)=", trajRamp_xInit(rampLenInit),
-	            " onramp.traj_x(rampLenInit)=",onramp.traj_x(rampLenInit),
+                    " trajRamp_xInit(rampLen)=", trajRamp_xInit(rampLen),
+	            " onramp.traj_x(rampLen)=",onramp.traj_x(rampLen),
 	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
 	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
 		   );
