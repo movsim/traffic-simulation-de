@@ -32,9 +32,10 @@ limits:
  big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
  small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
 ATTENTION!! no space before pixels! 
+INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3; 
 #############################################################*/
 
-
+/*1080p (1920×1080 px; 
 
 /*#############################################################*/
 /* basic settings for all aspect ratios */
@@ -124,26 +125,12 @@ a:hover {
 }
 
 
-/* (9)-(11): layout of tables for info boxes */ 
-
-table.infoTable {
-   border: 3px ridge rgb(130,130,130);
-   border-spacing: 4px; 
-   border-collapse: collapse; 
-   padding: 1px;
-   background-color: rgba(255,255,255,0.4);
-}
-table.infoTable td {
-   border: 3px ridge rgb(130,130,130);
-}
-
-
 /*#############################################################*/
 /* basic settings for landscape formats */
 /*#############################################################*/
 
-
 @media all and  (min-aspect-ratio: 6/5){
+
 
 /* (1) the title */
 
@@ -158,6 +145,7 @@ table.infoTable td {
   z-index: 2;  /* above simulation canvas in rare chances of overlapping */
 }
 
+
 /* title image */
 
 img.title{
@@ -171,7 +159,7 @@ img.title{
   position: absolute;
   left:   0vw;
   top:   5vmin;
-  width:  120vmin;
+  width:  120vmin;  /* 6/5 */
   height: 95vmin;
   margin-right: 0vw;
   margin-left: 0vw;
@@ -186,16 +174,6 @@ img.title{
 => NEED document.getElementById("contents").clientWidth
 which always gives correct size!!
  
-#canvas {
-  position: absolute;
-  left:   0vw;
-  top:   5vmin;
-  width:  120vmin;
-  height: 95vmin;
-  margin-right: 0vw;
-  margin-left: 0vw;
-  z-index: 1;
-}
 */
 
 
@@ -240,35 +218,42 @@ which always gives correct size!!
 #infoFlags{
   position: absolute;
   top:   1vmin;
-  right:   1vw;
-  width:  20vmin; /* no height */
+  left:   140vmin;
+  width:  16vmin; /* no height */
   z-index: 2;
 }
 
 
-/* (4) the field for selecting the scenarios; if all in one row or several rows
-is left to the html. Notice: 
-leave buttons layout as is; css offers only very simplistic customization */
+/* (4) the field for selecting the scenarios; */
 
 #scenarios{
   position: absolute;
-  top:     8vmin;
+  top:     6vmin;
   height:  20vmin;
   left: 121vmin;
   width: 50vmin;
   z-index: 2;
 }
 
-button{
-  font-size: calc(2.0vmin + 0.01vw);
-  width: 15vmin;
+
+
+
+/* (5) sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+
+#sliders{ 
+  position: absolute;
+  top: 19vmin;
+  height: 20vmin;
+  left: 121vmin;
+  width: 55vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
 
-
-
 /* (5) text layout of sliders: tables override general text spec) */
-
 
 th{                    /* only used in infotext */
   font-size: 2.2vmin;
@@ -290,42 +275,11 @@ td.important{
 }
 
 
-/* (5a) sliders 1: traffic flow and general variables (or all) */
-/* Notice: table elements relevant for font size */
+/* (5a-c) nested div's single slider-areas. In landscape, just let them flow
+(no spec), in portrait,  unfortunately DOS  => position by brute force  */
 
-#sliders1{ 
-  position: absolute;
-  top: 22vmin;
-  height: 20vmin;
-  left: 121vmin;
-  width: 55vmin;
-  background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
-}
+#slidersGen,#slidersIDM,#slidersLC{
 
-/* (5b) sliders 2: longitudinal driving behaviour (if not all in sliders1) */
-
-#sliders2{ 
-  position: absolute;
-  top: 45vmin;
-  height: 20vmin;
-  left: 121vmin;
-  width: 55vmin;
-  background-color: rgba(0,40,255,0.10);
-  z-index: 2;
-}
-
-
-/* (5c) sliders 3: LC behaviour (if not all in sliders1)*/
-
-#sliders3{ 
-  position: absolute;
-  top: 65vmin;
-  height: 20vmin;
-  left: 121vmin;
-  width: 55vmin;
-  background-color: rgba(0,40,255,0.10);
-  z-index: 2;
 }
 
 
@@ -342,8 +296,8 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #infotext{
   border:1px solid black;
-  width: 50vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 26vmin;
+  width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  height: 32vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -363,50 +317,222 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
+} /* end @media filter landscape normal */
 
 
-/* (9)-(11): image layout for "text arts" title images */ 
 
-img.infoBlock{
-    /*max-width: 90%;*/
-    max-width: 16vw;
-    max-height: 3vh;
+
+/*#############################################################*/
+/* basic settings for square/portrait formats */
+/*#############################################################*/
+
+@media all and  (max-aspect-ratio: 6/5){
+
+/* (1) the title */
+
+#header{
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
 }
 
 
-/* (9) former model navigation frame  */
+/* title image */
 
-#infoModels{
+img.title{
+  max-height: 5vmin;  z-index: 2;
+}
+
+
+/* (2) the simulation canvas */
+
+#contents{
   position: absolute;
-  top:   8vmin;
-  height:  20vmin;
-  left:   85vw;
-  width:  13vw;
+  left:   0vw;
+  top:   5vmin;
+  width:  99vmin;  /* 6/5 */
+  height: 82vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (2a) position of the copyright: left bottom of simCanvas */
+
+#impressum{ 
+  position: absolute;
+  top: 84vmin;
+  height: 2vmin;
+  left: 1vw;
+  width: 12vmin;
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+
+/* (2b) position of the info button: right top of simCanvas */
+
+#infoDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 6vmin;
+  left: 90vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2c) position of the start/stop sign: just to the left of info button */
+
+#startStopDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 6vmin;
+  left: 82vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (3) position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   90vmin;
+  left:   80vmin;
+  width:  15vmin; /* no height */
   z-index: 2;
 }
 
-/* (10) position of the block describing the scenarios */
 
-#infoScenarios{
+/* (4) the field for selecting the scenarios; */
+
+#scenarios{
   position: absolute;
-  top:   34vmin;
-  height:  30vmin;
-  left:   85vw;
-  width:  13vw;
-  /*background-color: #AAFFAA;*/
+  top:     86vmin;
+  height:  50vmin;
+  left: 15vmin;
+  width: 50vmin;
+  z-index: 2;
 }
 
-/* (11) position of the general link fields (often outside main area) */
- 
-#infoLinks{
+
+
+
+
+/* (5) sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+#sliders{ 
   position: absolute;
-  top:   85vmin;
-  height:  30vmin;
-  left:   85vw;
-  width:  13vw;
+  top: 98vmin;
+  left: 0vmin;
+  width: 100vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
 }
+
+/* text layout of sliders: tables override general text spec) */
+
+th{                    /* only used in infotext */
+  font-size: 2.2vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+
+/* (5a-c) nested div's single slider-areas. In landscape, just let them flow
+(no spec), in portrait,  unfortunately DOS  => position by brute force  */
+
+#slidersGen{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 0;
+  width: 50vmin;
+  top: 0;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#slidersIDM{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 49vmin;
+  width: 50vmin;
+  top: 0;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#slidersLC{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 0;
+  width: 46vmin;
+  top: 18vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (6) infotext div-box  (sub-div, no pos info, just below the sliders*/
+
+#infotext{
+  border:1px solid black;
+  position: absolute;   /* w/respect to outer div */
+  left: 49vmin;
+  width: 45vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  top: 18vmin;
+  height: 26vmin;
+  text-align: left;
+  padding-top: 0vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
+  background-color: rgba(0,40,255,0.0);
+  overflow:auto;
+}
+
+
+ul { margin-left: 2vmin; padding: 0vmin; }
+
+ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
+    margin-left: 5px;
+    margin-right: 0px;
+    padding-left: 10px;
+    padding-right: 0px;
+}
+
+
+/* (7) position/size of the colorbox */
+
+#colorBox{
+  position: absolute;
+  top:   79vmin;
+  left: 103vmin;
+  width:  15vmin; /* no height */
+  z-index: 2;
+}
+
 
 } /* end @media filter landscape normal */
+
+
+
 
 /*#########################################################*/
 /* addl settings hendheld-type devices with small screen */
@@ -414,69 +540,3 @@ img.infoBlock{
 
 @media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
 
-div#track_timewarp, div#track_density, div#track_scale, div#track_truckFrac,div#track_qIn, div#track_qOn, div#track_fracOff, div#track_speedL,div#track_IDM_v0, div#track_IDM_v0Up, div#track_IDM_T,div#track_IDM_s0, div#track_IDM_a, div#track_IDM_b{
-    width: 20vmin;
-    height: 2.8vmin;
-}
-
-div#slider_timewarp, div#slider_density, div#slider_scale, div#slider_truckFrac,div#slider_qIn, div#slider_qOn, div#slider_fracOff, div#slider_speedL,div#slider_IDM_v0, div#slider_IDM_v0Up, div#slider_IDM_T,div#slider_IDM_s0, div#slider_IDM_a, div#slider_IDM_b{
-    height: 2.8vmin; 
-    width: 1.5vmin;
-}
-
-
-button{
-  font-size: calc(2.4vmin + 0.3vw);
-  width:    calc(14vmin + 3vw );
- /* height:    calc(3.5vmin + 1vw);*/
-}
-
-TR{
-  font-size:2.8vmin; 
-  color: #000000;
-}
-
-
-/* (3a) */
-
-#scenarios{
-  left: calc(80.5vw - 14vmin); /* left border: 84vw*/
-  width: calc(14vmin + 3vw );
-}
-
-/* (7a) */
-
-#sliders2{
-  bottom: 1.5vmin;
-  height: 21vmin;
-  width: 60vmin;
-}
-
-/* (10a) */
-
-#infoScenarios{
-  top: 40vmin;
-}
-
-/* (11a) */
-
-#infoLinks{
-  top: 100vmin;
-}
-
-} /* end @media filter landscape handheld */
-
-
-/*#########################################################*/
-/* addl settings if handheld and nearly square */
-/*#########################################################*/
-
-@media all and  (min-aspect-ratio: 6/5) and (max-aspect-ratio: 3/2) and (max-height: 599px){
-
-/* (7b) */
-
-#sliders2{
-  top: calc(100vh + 1vmin);
-  left: 24vmin;
-}
-}

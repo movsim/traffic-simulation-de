@@ -24,6 +24,7 @@
 // they are specially drawn and externally influenced from the main program
 
 
+console.log("reading canvas_gui.js");
 var xPixLeft, yPixTop;
 var xPixMouse, yPixMouse;
 var xUser, yUser;

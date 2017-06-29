@@ -451,10 +451,22 @@ else{
 //#########################################################
 
 
-// model-parameter related constants
+// constant parameters and parameter-related constants
 
 // speeL=car-speeL default set to infinity, ctrl by slider if applicable
+
+speedL=1000/3.6; // already defined in the sliders above
 var speedL_truck=80/3.6;  
+
+var MOBIL_bSafe=4;     // bSafe if v to v0  (threshold, bias in sliders)
+var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
+
+var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
+var MOBIL_mandat_bThr=0;   // to be specified below
+var MOBIL_mandat_bias=42;
+
+var dt_LC=4; // duration of a lane change
+
 
 var factor_v0_truck=0.7;
 var factor_a_truck=0.8;
@@ -476,6 +488,11 @@ function updateModels(){
                          MOBIL_bThr, MOBIL_bBiasRight_car);
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
+    LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
+    LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
+
 }
 
 

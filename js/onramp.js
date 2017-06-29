@@ -1,4 +1,8 @@
 
+// adapt settings from control_gui.js
+
+densityInit=0.02; 
+var speedInit=20; // IC for speed
 
 
 
@@ -38,6 +42,7 @@ console.log("\n\nstart main: scenarioString=",scenarioString);
 
 // overall graphical objects
 
+var outerContainer=document.getElementById("container"); 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas_onramp"); 
 var ctx = canvas.getContext("2d"); // graphics context
@@ -45,12 +50,29 @@ var ctx = canvas.getContext("2d"); // graphics context
 console.log("start main: canvas.width=",canvas.width,
 	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
 
+
+// nearly the same result as the jquery below
+console.log("window.innerWidth=",window.innerWidth,
+	    " window.innerHeight=",window.innerHeight);
+
+//undefined
+console.log("window.clientWidth=",window.clientWidth,
+	    " window.clientHeight=",window.clientHeight);
+
+// only width
+console.log("outerContainer.clientWidth=",outerContainer.clientWidth,
+	    " outerContainer.clientHeight=",outerContainer.clientHeight);
+//both approx OK
+console.log("$(window).width()=",$(window).width(),
+	    " $(window).height()=",$(window).height());
+
 canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
 console.log("after adaptation: canvas.width=",canvas.width,
 	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+
 
 // overall scaling (critAspectRatio should be consistent with 
 // width/height in css.#contents)
@@ -66,38 +88,49 @@ var scale=refSizePix/refSizePhys;
 
 
 //##################################################################
-// Specification of physical road and vehicle properties
-// If refSizePhys changes, change them all => adaptPhysicalDimensions();
+// Specification of physical road geometry and vehicle properties
+// If refSizePhys changes, change them all => updatePhysicalDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.5;
 var center_yRel=-0.5;
+var arcRadiusRel=0.35;
+var rampLenRel=0.9;
 
 var center_xPhys=center_xRel*refSizePhys;
 var center_yPhys=center_yRel*refSizePhys;
 
-var arcRadiusRel=0.35;
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
-console.log("arcRadius=",arcRadius," arcLen=",arcLen," mainroadLen=",mainroadLen);
-
-var laneWidth=7;
-var laneWidthRamp=5;
-
-var rampLen=240; 
-var mergeLen=120;
-var taperLen=60;
-
-//var straightLen=0.34*mainroadLen;      // straight segments of U
+var rampLen=rampLenRel*refSizePhys; 
+var mergeLen=0.5*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-var arcLen=mainroadLen-2*straightLen; // length of half-circe arc of U
-
+var taperLen=0.2*rampLen;
 var rampRadius=4*arcRadius;
+
+function updatePhysicalDimensions(){ // only if sizePhys changed
+    arcRadius=arcRadiusRel*refSizePhys;
+    arcLen=arcRadius*Math.PI;
+    straightLen=refSizePhys*critAspectRatio-center_xPhys;
+    mainroadLen=arcLen+2*straightLen;
+    rampLen=rampLenRel*refSizePhys; 
+    mergeLen=0.5*rampLen;
+    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+    taperLen=0.2*rampLen;
+    rampRadius=4*arcRadius;
+}
+
+
+// the following remains constant 
+// => road becomes more compact for smaller screens
+
+var laneWidth=7; // remains constant => road becomes more compact for smaller
+var laneWidthRamp=5;
 
 var car_length=7; // car length in m
 var car_width=5; // car width in m
@@ -105,55 +138,8 @@ var truck_length=15; // trucks
 var truck_width=7; 
 
 
-//##################################################################
-// specification of logical road and traffic behaviour properties
-//##################################################################
-
-
-
-var nLanes_main=3;
-var nLanes_onramp=1;
-
-// initial parameter settings (!! transfer def to GUI if variable in sliders!)
-//!! clarify mandatory changes:
-// (i) here: var MOBIL_mandat_bSafe=42 ...
-// (ia) here: var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe,...)
-// (1b) here: onramp.LCModelMandatoryLeft=LCModelMandatoryLeft
-// (ii) road.js: road.mandat_bSafe=17
-// (iia) road.js: this.LCModelMandatoryLeft=new MOBIL(17,0,-17/2) for diverges
-//       (formulated with road.mandat_bSafe)
-// (iii) function road.prototype.mergeDiverge: local variable merge_bSafe=road.mandat_bSafe
-// (iv) longitudinal deceleration IDM.bmax=16
-
-var MOBIL_bSafe=4;     // bSafe if v to v0  (threshold, bias in sliders)
-var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
-
-var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
-var MOBIL_mandat_bThr=0;   // to be specified below
-var MOBIL_mandat_bias=42;
-
-var dt_LC=4; // duration of a lane change
-
-// simulation initial conditions settings
-//(initial values and range of user-ctrl var in gui.js)
-
-var speedInit=20; // m/s
-var densityInit=0.02;
-var speedInitPerturb=13;
-var relPosPerturb=0.8;
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes
-
-
-
-
-//###############################################################
-// physical road and vehicles  specification
-//###############################################################
-
-    // define road geometry as parametric functions of arclength u
-    // (physical coordinates!)
-
-
+// on constructing road, road elements are gridded and interna
+// road.traj_xy(u) are generated. The, traj_xy*Init(u) obsolete
 
 function traj_xInit(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -181,7 +167,8 @@ function trajRamp_xInit(u){ // physical coordinates
 }
 
 
-//!! do not refer to mainroad or onramp!! may not be defined: 
+// indefining dependent geometry,
+//  do not refer to mainroad or onramp!! may not be defined: 
 // mainroad.nLanes => nLanes_main, onramp.nLanes=>nLanes_onramp1!!
 
 function trajRamp_yInit(u){ // physical coordinates
@@ -199,73 +186,49 @@ function trajRamp_yInit(u){ // physical coordinates
 }
 
 
-console.log("main: trajRamp_xInit(rampLen)=",trajRamp_xInit(rampLen));
 
-
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
-				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
-				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
-updateModels(); //  from onramp_gui.js 
+//##################################################################
+// Specification of logical road 
+//##################################################################
 
 var isRing=0;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
+
+var nLanes_main=3;
+var nLanes_onramp=1;
+var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes with new incoming/outgoing vehicles
+
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_xInit,traj_yInit,
-		      0.1*densityInit, speedInit,truckFracInit, isRing);
-console.log("end define mainroad, before onramp");
+		      densityInit, speedInit,truckFracInit, isRing);
+
 var onramp=new road(roadIDramp,rampLen,laneWidth,1,
 		    trajRamp_xInit,trajRamp_yInit,
 		    0*densityInit, speedInit, truckFracInit, isRing);
-if(false){	
-    console.log("end define onramp:",
-	    " trajRamp_xInit(rampLen)=", trajRamp_xInit(rampLen),
-	    " onramp.traj_x(rampLen)=",onramp.traj_x(rampLen),
-	    " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]);
-}
 
-onramp.LCModelMandatoryRight=LCModelMandatoryRight; //unique mandat LC model
-onramp.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
-
-//!! test Micro-IC (!! trucks may change to cars due to init truck frac)
-
-if(false){
-    types  =[0,    0,    1,    0];
-    lengths=[8,    5,    14,   7];
-    widths =[4.5,  4,    6,  4.5];
-    longPos=[150,  160,  170,  180];
-    lanes  =[0,    1,    2,    0];
-    speeds =[25,   25,   0,   30];
-    mainroad.initializeMicro(types,lengths,widths,longPos,lanes,speeds);
-}
 
 // add standing virtual vehicle at the end of onramp (1 lane)
 // prepending=unshift (strange name)
 
 var virtualStandingVeh=new vehicle(2, laneWidth, onramp.roadLen-0.6*taperLen, 0, 0, "obstacle");
-var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=new MOBIL(MOBIL_bSafe, MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
-virtualStandingVeh.longModel=longModelObstacle;
-virtualStandingVeh.LCModel=LCModelObstacle;
+
 onramp.veh.unshift(virtualStandingVeh);
-if(false){
-        console.log("\nonramp.nveh="+onramp.nveh);
-	for(var i=0; i<onramp.veh.length; i++){
-	    console.log("i="+i
-			+" onramp.veh[i].type="+onramp.veh[i].type
-			+" onramp.veh[i].u="+onramp.veh[i].u
-			+" onramp.veh[i].v="+onramp.veh[i].v
-			+" onramp.veh[i].lane="+onramp.veh[i].lane
-			+" onramp.veh[i].laneOld="+onramp.veh[i].laneOld);
-	}
-	console.log("\n");
-}
+
+
+
+//#########################################################
+// model specifications (ALL) parameters in control_gui.js)
+//#########################################################
+
+var longModelCar;
+var longModelTruck;
+var LCModelCar;
+var LCModelTruck;
+var LCModelMandatoryRight;
+var LCModelMandatoryLeft;
+	
+updateModels(); //  from onramp_gui.js  => define the 6 above models
 
 
 
@@ -392,54 +355,44 @@ function updateU(){
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 
 
-    //console.log("\nbefore mainroad.writeVehicles:"); mainroad.writeVehicles();
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
 
-    //console.log("\nbefore onramp.writeVehicles:"); onramp.writeVehicles();
     onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck);
 
     // externally impose mandatory LC behaviour
     // all onramp vehicles must change lanes to the left (last arg=false)
+
     onramp.setLCMandatory(0, onramp.roadLen, false);
 
 
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    //console.log("1: mainroad.nveh=",mainroad.veh.length);
     mainroad.calcAccelerations();  
     mainroad.changeLanes();         
-    //console.log("3: mainroad.nveh=",mainroad.veh.length);
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
-    //console.log("5: mainroad.nveh=",mainroad.veh.length);
     mainroad.updateBCup(qIn,dt); // argument=total inflow
-    //console.log("6: mainroad.nveh=",mainroad.veh.length);
 
-    if(true){
-	for (var i=0; i<mainroad.nveh; i++){
-	    if(mainroad.veh[i].speed<0){
-		console.log(" speed "+mainroad.veh[i].speed
+    for (var i=0; i<mainroad.nveh; i++){
+	if(mainroad.veh[i].speed<0){
+	    console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
-	    }
 	}
     }
 
-    //console.log("1: onramp.nveh=",onramp.veh.length);
+
     onramp.calcAccelerations();  
     onramp.updateSpeedPositions();
     onramp.updateBCdown();
-    //console.log("5: onramp.nveh=",onramp.veh.length);
     onramp.updateBCup(qOn,dt); // argument=total inflow
-    //console.log("6: onramp.nveh=",onramp.veh.length);
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
-
 
     onramp.mergeDiverge(mainroad,mainRampOffset,
 			onramp.roadLen-mergeLen,onramp.roadLen,true,false);
@@ -464,6 +417,7 @@ function drawU() {
 //##################################################
 
     //!! test relative motion isMoving
+
     var movingObserver=false;
     var uObs=0*time;
 
@@ -476,63 +430,33 @@ function drawU() {
      */
 
     var hasChanged=false;
-    //var simDivWindow=document.getElementById("contents");
 
-    if (canvas.width!=simDivWindow.clientWidth){
+    console.log(" new total inner window dimension: ",
+		window.innerWidth," X ",window.innerHeight,
+		" full hd 16:9 e.g., 1120:630");
+
+
+    if ((canvas.width!=simDivWindow.clientWidth)
+	||(canvas.height != simDivWindow.clientHeight)){
 	hasChanged=true;
 	canvas.width  = simDivWindow.clientWidth;
-    }
-    if (canvas.height != simDivWindow.clientHeight){
-	hasChanged=true;
         canvas.height  = simDivWindow.clientHeight;
-	console.log("haschanged=true: canvas.width=",canvas.width,
-	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+	aspectRatio=canvas.width/canvas.height;
+	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
+	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-    }
-    aspectRatio=canvas.width/canvas.height;
-    refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+	updatePhysicalDimensions();
 
-    if(false){
-    //if(hasChanged){
-
-
-      // update geometric properties
-
-      arcRadius=0.14*mainroadLen*Math.min(critAspectRatio/aspectRatio,1.);
-      refSizePhys=2.3*arcRadius + 2*nLanes_main*laneWidth;
-      arcLen=arcRadius*Math.PI;
-      straightLen=0.5*(mainroadLen-arcLen);  // one straight segment
-
-      center_xPhys=1.2*arcRadius;
-      center_yPhys=-1.30*arcRadius; // ypixel downwards=> physical center <0
-      scale=refSizePix/refSizePhys; 
-
-      // !!! if hasChanged revert any user-dragged shifts!
-      mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-
-      mainroad.roadLen=mainroadLen;
-      onramp.roadLen=rampLen;
-      onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift obstacle
-
-      mainroad.gridTrajectories(traj_xInit,traj_yInit); //!!!!
-      onramp.gridTrajectories(trajRamp_xInit,trajRamp_yInit);
-
-      if(true){
-	  console.log("\n after local canvas resize, after gridTrajectories:\n",
-		      "mainroad.roadLen=",mainroad.roadLen,
-		      "onramp.roadLen=",onramp.roadLen,
-                    " trajRamp_xInit(rampLen)=", trajRamp_xInit(rampLen),
-	            " onramp.traj_x(rampLen)=",onramp.traj_x(rampLen),
-	            " onramp.traj_x(onramp.roadLen)=",onramp.traj_x(onramp.roadLen),
-	            " onramp.xtab[onramp.nSegm]=",onramp.xtab[onramp.nSegm]
-		   );
-      }
-
+	if(true){
+	    console.log("haschanged=true: new canvas dimension: ",
+		        canvas.width," X ",canvas.height);
+	}
 
 
     }
 
+ 
 
 
     // (1) update heading of all vehicles rel. to road axis
@@ -608,8 +532,7 @@ function drawU() {
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
 		 timeStr_ylb-0.2*textsize);
 
-/*
-    
+    /*
     var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
@@ -621,46 +544,7 @@ function drawU() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
-    
-   /*
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=15*textsize;
-    var timewStr_ylb=timeStr_ylb;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,
-		 timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize,
-		 timewStr_ylb-0.2*textsize);
-
-
-    var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
-    var genVarStr_xlb=24*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-    
-
-    var genVarStr="qIn="+Math.round(3600*qIn)+"veh/h";
-    var genVarStr_xlb=32*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-*/
+    */
 
 
     // (6) draw the speed colormap

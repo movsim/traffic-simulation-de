@@ -5,7 +5,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 
-    <link href="css/sliders.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleSliders.css" rel="stylesheet" type="text/css" />
     <link href="css/styleTrafficSimulationDe.css" 
           rel="stylesheet" type="text/css"/>
     <script type="text/javascript" 
@@ -80,8 +80,11 @@
 <!-- the actual simulation canvas -->
 <!-- ############################################## -->
 
+<!--  !!!  NO comments inside canvas spec, leads to DOS!!! -->
+<!-- no width, height spec in canvas; overridden anyway -->
+
 <div id="contents">
-  <canvas id="canvas_onramp" <!-- no width, always DOS => top of onramp.js-->
+  <canvas id="canvas_onramp" 
           onmouseenter="defineSecondaryRoad(event)"
           onmousemove="getCoordinatesDoDragging(event)"
           onmousedown="pickRoadOrVehicle(event)"
@@ -107,13 +110,15 @@
 <!-- Sliders 1: The whole rihgt-hand side
 <!-- ################################################# -->
 
-<div id="sliders1">
+<div id="sliders">
+
+<!-- ######################################################## -->
+<!-- sliders Traffic_Flow_and_General
+<!-- ######################################################## -->
+
+<div id="slidersGen">
 <center>
-
-
-<!-- ######################################################## -->
 <img src="figs/Traffic_Flow_and_General.png" width="65%"/>
-<!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
@@ -145,18 +150,21 @@
   <td> <div id="slider_timewarpVal"></div> </td>
 </tr>
 
-
 </table>
-
-<br>
+</center>
+</br>
+</div>
 
 
 <!-- ######################################################## -->
+<!-- sliders Car-Following_Behavior
+<!-- ######################################################## -->
+
+<div id="slidersIDM">
+
+<center>
 <img src="figs/Car-Following_Behavior.png" width="60%"/>
-<!-- ######################################################## -->
-
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
-
 
 <tr>
   <td>Max Speed v</sub>0</td>
@@ -180,13 +188,20 @@
 </tr>
 
 </table>
-
+</center>
+<br>
+</div
 
 <!-- ######################################################## -->
+<!-- sliders Lane-Changing_Behavior
+<!-- ######################################################## -->
+
+<div id="slidersLC">
+
+<center>
 <img src="figs/Lane-Changing_Behavior.png" width="60%"/>
-<!-- ######################################################## -->
-
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
 <tr>
   <td>LC Threshold</td>
   <td> <input id="slider_MOBIL_bThr" type="range" 
@@ -208,19 +223,19 @@
   <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
 </tr>
 </table>
-
+</center>
+<br>
+</div>
 
 <!-- ############################################## -->
-<!-- info-text inside sliders1-div (filled by showInfo())
+<!-- info-text inside sliders-div (filled by showInfo())
 <!-- ############################################## -->
 
 <br>
 <div id="infotext">
 </div>
 
-
-</center>
-</div>   <!-- id="sliders1">-->
+</div>   <!-- id="sliders">-->
 
 
 
