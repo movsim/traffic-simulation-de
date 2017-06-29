@@ -1,14 +1,135 @@
 
-// main simulation script; one separate script for each scenario;
-// and one separate html page where only the respective sim script is loaded
 
-//#############################################################
-// Initial settings
-//#############################################################
+
+/*######################################################
+ Global overall scenario settings and graphics objects
+ see onramp.js for more details
+
+ refSizePhys  => reference size in m (generally smaller side of canvas)
+ refSizePix   => reference size in pixel (generally smaller side of canvas)
+ scale = refSizePix/refSizePhys 
+       => roads have full canvas regardless of refSizePhys, refSizePix
+
+ (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
+
+ (2) refSizePhys smaller  => all phys roadlengths smaller
+  => vehicles and road widths appear bigger for a given screen size 
+  => chose smaller for mobile, 
+
+######################################################*
+*/
 
 
 var scenarioString="Ring";
+console.log("\n\nstart main: scenarioString=",scenarioString);
 
+var simDivWindow=document.getElementById("contents");
+var canvas = document.getElementById("canvas"); 
+var ctx = canvas.getContext("2d"); // graphics context
+canvas.width  = simDivWindow.clientWidth; 
+canvas.height  = simDivWindow.clientHeight;
+var aspectRatio=canvas.width/canvas.height;
+
+
+//##################################################################
+// overall scaling (critAspectRatio should be consistent with 
+// width/height in css.#contents)
+//##################################################################
+
+var refSizePhys=260;  // constants => all objects scale with refSizePix
+
+var critAspectRatio=120./95.; // from css file width/height of #contents
+
+var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+var scale=refSizePix/refSizePhys;
+
+
+
+//##################################################################
+// Specification of physical road geometry and vehicle properties
+// If refSizePhys changes, change them all => updatePhysicalDimensions();
+//##################################################################
+
+// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+
+
+var center_xRel=0.5;
+var center_yRel=-0.5;
+var roadRadiusRel=0.42;
+
+
+// physical geometry settings [m]
+
+var center_xPhys=center_xRel*refSizePhys; //[m]
+var center_yPhys=center_yRel*refSizePhys;
+var roadRadius=roadRadiusRel*refSizePhys;
+var roadLen=roadRadius*2*Math.PI;
+
+function updatePhysicalDimensions(){ // only if sizePhys changed
+    center_xPhys=center_xRel*refSizePhys; //[m]
+    center_yPhys=center_yRel*refSizePhys;
+    roadRadius=roadRadiusRel*refSizePhys;
+    roadLen=roadRadius*2*Math.PI;
+}
+
+
+// the following remains constant 
+// => road becomes more compact for smaller screens
+
+var laneWidth=8; // remains constant => road becomes more compact for smaller
+var nLanes=3;
+
+var car_length=7; // car length in m
+var car_width=6; // car width in m
+var truck_length=15; // trucks
+var truck_width=7; 
+
+
+// on constructing road, road elements are gridded and interna
+// road.traj_xy(u) are generated. The, traj_xy*Init(u) obsolete
+
+function traj_x(u){
+    return center_xPhys + roadRadius*Math.cos(u/roadRadius);
+}
+
+function traj_y(u){
+    return center_yPhys + roadRadius*Math.sin(u/roadRadius);
+}
+
+
+//##################################################################
+// Specification of logical road 
+//##################################################################
+
+var isRing=true;  // 0: false; 1: true
+var roadID=1;
+var speedInit=20; // IC for speed
+var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
+
+var mainroad=new road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
+		      densityInit,speedInit,truckFracInit,isRing);
+
+
+
+
+//#########################################################
+// model specifications (ALL) parameters in control_gui.js)
+//#########################################################
+
+var longModelCar;
+var longModelTruck;
+var LCModelCar;
+var LCModelTruck;
+var LCModelMandatoryRight;
+var LCModelMandatoryLeft;
+	
+updateModels(); //  from control_gui.js  => define the 6 above models
+
+
+
+//####################################################################
+// Global graphics specification and image file settings
+//####################################################################
 
 
 // graphical settings
@@ -23,92 +144,6 @@ var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
-
-
-
-// physical geometry settings [m]
-
-var refSizePhys=290;    //responsive design  
-var center_xPhys=139;
-var center_yPhys=-150; // ypixel downwards=> physical center <0
-
-var roadRadius=120; // 90 change scaleInit in gui.js correspondingly
-var roadLen=roadRadius*2*Math.PI;
-var nLanes=3;
-var laneWidth=10;
-
-// specification of vehicle and traffic  properties
-
-var car_length=7; // car length in m
-var car_width=6; // car width in m
-var truck_length=15; // trucks
-var truck_width=7; 
-
-// initial parameter settings (!! transfer def to GUI if variable in sliders!)
-
-var MOBIL_bSafe=4;
-var MOBIL_bSafeMax=17;
-
-var dt_LC=4; // duration of a lane change
-
-// simulation initial conditions settings
-//(initial values and range of user-ctrl var in gui.js)
-// densityInit etc also in gui.js
-
-var speedInit=20; // m/s
-var speedInitPerturb=13;
-var relPosPerturb=0.8;
-
-// needed here for road cstr interface:
-// need tolerance in open systems, otherwise sudden changes
-var truckFracToleratedMismatch=0.02;
-
-
-
-
-
-//###############################################################
-// physical road and vehicles  specification
-//###############################################################
-
-    // define road geometry as parametric functions of arclength u
-    // (physical coordinates!)
-
-function traj_x(u){
-    return center_xPhys + roadRadius*Math.cos(u/roadRadius);
-}
-
-function traj_y(u){
-    return center_yPhys + roadRadius*Math.sin(u/roadRadius);
-}
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck; 
-updateModels(); //  from ring_gui.js 
-
-var isRing=1;  // 0: false; 1: true
-var roadID=1;
-var mainroad=new road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
-		      densityInit,speedInit,truckFracInit,isRing);
-
-var veh=mainroad.veh;  // should be not needed in final stage=>onramp.js
-
-// initial perturbation of the vehicles 
-// first actual action apart from constructors 
-// (can be seen as extension of the constructor)
-
-var iveh=Math.floor(relPosPerturb*mainroad.veh.length);
-iveh=Math.max(0, Math.min(iveh,mainroad.veh.length)); 
-mainroad.veh[iveh].speed=speedInitPerturb;
-
-//####################################################################
-// Global graphics specification and image file settings
-//####################################################################
-
-var canvas = document.getElementById("canvas_ring"); 
-var ctx = canvas.getContext("2d"); // graphics context
 
 
 // Notice: set drawBackground=false if no bg wanted
@@ -185,11 +220,6 @@ var depot=new vehicleDepot(obstacleImgs.length,5,2,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   20,20,true);
 
-//!!! test: add traffic lights
-
-//mainroad.addTrafficLight(101,60,"green");
-//mainroad.addTrafficLight(102,240,"red");
-
 
 //############################################
 // run-time specification and functions
@@ -212,8 +242,6 @@ function updateRing(){
     //console.log("does Math.tanh exist?");
     //console.log("Math.tanh(5)=",Math.tanh(5));
 
-    // transfer effects from slider interaction to the vehicles and models: 
-    // modelparam sliders (updateModelsOfAllVehicles), density, truckFrac sliders
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -231,14 +259,6 @@ function updateRing(){
     mainroad.updateSpeedPositions();
     //mainroad.writeVehicles();
 
-    if(false){//!!!
-    //if(itime%50===0){//!!!
-	var newstate=(itime%100===0) ? "green" : "red";
-	console.log("in mainroad.changeTrafficLight: newstate=",newstate);
-	mainroad.changeTrafficLight(101);
-	mainroad.changeTrafficLight(102);
-    }
-					  
 
     //!!!
     if(depotVehZoomBack){
@@ -262,22 +282,34 @@ function updateRing(){
 function drawRing() {
 //##################################################
 
-    // resize drawing region if browser's dim has changed (responsive design)
-    // canvas_resize(canvas,aspectRatio)
 
-    hasChanged=canvas_resize(canvas,0.96); 
-    //hasChanged=true; //!!
-    if(hasChanged){
-        console.log(" new canvas size ",canvas.width,"x",canvas.height);
-	//depot.setDepotPositions(canvas);
- 
-    }
+
 
     // (0) reposition physical x center coordinate as response
     // to viewport size (changes)
 
-    var aspectRatio=canvas.width/canvas.height;
+    var hasChanged=false;
 
+    console.log(" new total inner window dimension: ",
+		window.innerWidth," X ",window.innerHeight,
+		" (full hd 16:9 e.g., 1120:630)",
+		" canvas: ",canvas.width," X ",canvas.height);
+
+
+    if ((canvas.width!=simDivWindow.clientWidth)
+	||(canvas.height != simDivWindow.clientHeight)){
+	hasChanged=true;
+	canvas.width  = simDivWindow.clientWidth;
+        canvas.height  = simDivWindow.clientHeight;
+	aspectRatio=canvas.width/canvas.height;
+	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+
+	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
+
+	updatePhysicalDimensions();
+    }
+
+ 
 
     // (1) update heading of all vehicles rel. to road axis
     // (for some reason, strange rotations at beginning)
@@ -331,50 +363,7 @@ function drawRing() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
 
-/*    
-    var scaleStr=" scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=9*textsize;
-    var scaleStr_ylb=timeStr_ylb;;
-    var scaleStr_width=7*textsize;
-    var scaleStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,scaleStr_width,scaleStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, scaleStr_ylb-0.2*textsize);
-    
-    var timewStr="timewarp="+Math.round(10*timewarp)/10;
-    var timewStr_xlb=16*textsize;
-    var timewStr_ylb=timeStr_ylb;;
-    var timewStr_width=7*textsize;
-    var timewStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timewStr_xlb,timewStr_ylb-timewStr_height,timewStr_width,timewStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timewStr, timewStr_xlb+0.2*textsize, timewStr_ylb-0.2*textsize);
-    
-    var densStr="density="+Math.round(10000*density)/10;
-    var densStr_xlb=24*textsize;
-    var densStr_ylb=timeStr_ylb;
-    var densStr_width=7*textsize;
-    var densStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(densStr_xlb,densStr_ylb-densStr_height,densStr_width,densStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(densStr, densStr_xlb+0.2*textsize, densStr_ylb-0.2*textsize);
-    
 
-    var genVarStr="truckFrac="+Math.round(100*truckFrac)+"\%";
-    var genVarStr_xlb=32*textsize;
-    var genVarStr_ylb=timeStr_ylb;
-    var genVarStr_width=7.2*textsize;
-    var genVarStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(genVarStr_xlb,genVarStr_ylb-genVarStr_height,
-		 genVarStr_width,genVarStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(genVarStr, genVarStr_xlb+0.2*textsize, 
-		 genVarStr_ylb-0.2*textsize);
-    */
 
     // (6) draw the speed colormap (text size propto widthPix
 
@@ -402,8 +391,6 @@ function main_loop() {
     updateRing();
     drawRing();
     userCanvasManip=false;
-   //console.log("mainroad.veh.length=",mainroad.veh.length);
-   //mainroad.writeVehicles(); // for debugging
 }
 
 

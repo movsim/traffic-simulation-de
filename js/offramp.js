@@ -313,10 +313,6 @@ function drawU() {
 
     if(hasChanged){
 
-      // update sliderWidth in *_gui.js; 
-
-      var css_track_vmin_col=15; // take from sliders.css 
-      sliderWidth=0.01*css_track_vmin_col*Math.min(canvas.width,canvas.height);
 
       // update geometric properties
 

@@ -195,7 +195,7 @@ which always gives correct size!!
 
 #infoDiv{
   position: absolute;
-  top: 7vmin;
+  top: 6vmin;
   height: 8vmin;
   left: 111vmin;
   width: 8vmin;
@@ -206,7 +206,7 @@ which always gives correct size!!
 
 #startStopDiv{
   position: absolute;
-  top: 7vmin;
+  top: 6vmin;
   height: 8vmin;
   left: 101vmin;
   width: 8vmin;
@@ -355,8 +355,8 @@ img.title{
   position: absolute;
   left:   0vw;
   top:   5vmin;
-  width:  99vmin;  /* 6/5 */
-  height: 82vmin;
+  width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
+  height: 79vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;

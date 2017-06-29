@@ -2,7 +2,6 @@
 // adapt settings from control_gui.js
 
 densityInit=0.02; 
-var speedInit=20; // IC for speed
 
 
 
@@ -40,50 +39,40 @@ var speedInit=20; // IC for speed
 var scenarioString="OnRamp";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
-// overall graphical objects
 
 var outerContainer=document.getElementById("container"); 
 var simDivWindow=document.getElementById("contents");
-var canvas = document.getElementById("canvas_onramp"); 
+var canvas = document.getElementById("canvas"); 
 var ctx = canvas.getContext("2d"); // graphics context
+canvas.width  = simDivWindow.clientWidth; 
+canvas.height  = simDivWindow.clientHeight;
+var aspectRatio=canvas.width/canvas.height;
 
 console.log("start main: canvas.width=",canvas.width,
 	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
 
-
-// nearly the same result as the jquery below
 console.log("window.innerWidth=",window.innerWidth,
 	    " window.innerHeight=",window.innerHeight);
 
-//undefined
-console.log("window.clientWidth=",window.clientWidth,
-	    " window.clientHeight=",window.clientHeight);
-
-// only width
-console.log("outerContainer.clientWidth=",outerContainer.clientWidth,
-	    " outerContainer.clientHeight=",outerContainer.clientHeight);
-//both approx OK
-console.log("$(window).width()=",$(window).width(),
+console.log("$(window).width()=",$(window).width(), // nearly the same
 	    " $(window).height()=",$(window).height());
 
-canvas.width  = simDivWindow.clientWidth;
-canvas.height  = simDivWindow.clientHeight;
-var aspectRatio=canvas.width/canvas.height;
 
 console.log("after adaptation: canvas.width=",canvas.width,
 	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
 
 
+//##################################################################
 // overall scaling (critAspectRatio should be consistent with 
 // width/height in css.#contents)
+//##################################################################
 
 var refSizePhys=250;  // constants => all objects scale with refSizePix
 
-var critAspectRatio=1.27; // 
+var critAspectRatio=120./95.; // from css file width/height of #contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
-
 
 
 
@@ -94,12 +83,12 @@ var scale=refSizePix/refSizePhys;
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.5;
+var center_xRel=0.43;
 var center_yRel=-0.5;
 var arcRadiusRel=0.35;
 var rampLenRel=0.9;
 
-var center_xPhys=center_xRel*refSizePhys;
+var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
 
@@ -112,6 +101,8 @@ var mergeLen=0.5*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 var taperLen=0.2*rampLen;
 var rampRadius=4*arcRadius;
+
+
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
     arcRadius=arcRadiusRel*refSizePhys;
@@ -131,6 +122,9 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
 var laneWidthRamp=5;
+var nLanes_main=3;
+var nLanes_onramp=1;
+
 
 var car_length=7; // car length in m
 var car_width=5; // car width in m
@@ -191,13 +185,13 @@ function trajRamp_yInit(u){ // physical coordinates
 // Specification of logical road 
 //##################################################################
 
-var isRing=0;  // 0: false; 1: true
+var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var nLanes_main=3;
-var nLanes_onramp=1;
 var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise sudden changes with new incoming/outgoing vehicles
+
+var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_xInit,traj_yInit,
@@ -228,7 +222,7 @@ var LCModelTruck;
 var LCModelMandatoryRight;
 var LCModelMandatoryLeft;
 	
-updateModels(); //  from onramp_gui.js  => define the 6 above models
+updateModels(); //  from control_gui.js  => define the 6 above models
 
 
 
@@ -321,8 +315,7 @@ rampImg.src=ramp_srcFile;
 
 
 
-//!!! vehicleDepot(nImgs,nveh,xDepot,yDepot,lVeh,wVeh,
-// alignedHoriz,containsObstacles)
+//!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
@@ -423,17 +416,14 @@ function drawU() {
 
     /* (0) redefine graphical aspects of road (arc radius etc) using
      responsive design if canvas has been resized 
-     (=actions of canvasresize.js for the ring-road scenario,
-     here not usable ecause of side effects with refSizePhys)
-     NOTICE: resizing also brings some small traffic effects 
-     because mainRampOffset slightly influenced, but No visible effect 
      */
 
     var hasChanged=false;
 
     console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
-		" full hd 16:9 e.g., 1120:630");
+		" (full hd 16:9 e.g., 1120:630)",
+		" canvas: ",canvas.width," X ",canvas.height);
 
 
     if ((canvas.width!=simDivWindow.clientWidth)
