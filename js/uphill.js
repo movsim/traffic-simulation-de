@@ -73,7 +73,7 @@ var MOBIL_bSafe=4;   // bSafe if v to v0  (threshold, bias in sliders)
 var MOBIL_bSafeMax=16;  // bSafe if v to 0 //!! use it
 var MOBIL_mandat_bSafe=6;
 var MOBIL_mandat_bSafeMax=20;
-var dt_LC=4; // duration of a lane change
+
 
 // simulation initial conditions settings
 //(initial values and range of user-ctrl var in gui.js)
@@ -224,7 +224,8 @@ function updateU(){
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
     mainroad.setCFModelsInRange(uBeginUp,uEndUp,
 				 longModelCarUphill,longModelTruckUphill);
     mainroad.setLCModelsInRange(uBeginBan,uEndUp,

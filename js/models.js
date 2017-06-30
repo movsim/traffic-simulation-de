@@ -209,9 +209,9 @@ at present no politeness but speed dependent safe deceleration
 
 function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
     this.bSafe=bSafe;
+    this.bSafeMax=bSafeMax; //!!! transfer into arg list of cstr later on
     this.bThr=bThr;
     this.bBiasRight=bBiasRight;
-    this.bSafeMax=bSafeMax; //!!! transfer into arg list of cstr later on
     //this.p=p; 
 
 

@@ -97,7 +97,6 @@ var MOBIL_mandat_bSafe=15;
 var MOBIL_mandat_bThr=0;
 var MOBIL_mandat_bias=15;
 
-var dt_LC=4; // duration of a lane change
 
 // simulation initial conditions settings
 //(initial values and range of user-ctrl var in gui.js)

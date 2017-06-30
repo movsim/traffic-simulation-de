@@ -223,10 +223,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight;
-var LCModelMandatoryLeft;
+var LCModelMandatory;
 	
-updateModels(); //  from control_gui.js  => define the 6 above models
+updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 
@@ -353,11 +352,13 @@ function updateU(){
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
     onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
     // externally impose mandatory LC behaviour
     // all onramp vehicles must change lanes to the left (last arg=false)

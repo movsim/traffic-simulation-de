@@ -207,10 +207,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight;
-var LCModelMandatoryLeft;
+var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 6 above models
+updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 //####################################################################
@@ -340,14 +339,12 @@ function updateU(){
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
-				      // LCModelMandatoryRight,
-				      // LCModelMandatoryLeft);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
     offramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     offramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				      LCModelCar,LCModelTruck);
-				      // LCModelMandatoryRight,
-				      // LCModelMandatoryLeft);
+				      LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
 
     // do central simulation update of vehicles

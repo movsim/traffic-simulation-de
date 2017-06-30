@@ -64,28 +64,18 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.offrampLastExits=[]; // locations? (increasing u)
     this.offrampToRight=[]; // offramp attached to the right?
 
-    this.duTactical=-1e-6; // if duAntic>0 activate tactical changes for mandat. LC
-
     this.trafficLights=[]; // (jun17) introduce by this.addTrafficLight
 
-    // model parameters
 
-    //this.MOBIL_bSafeMandat=4; // mandat LC and merging for v=v0
-    //this.MOBIL_bSafeMax=17; //!! mandat LC and merging for v=0
+    // tactical and LC related global aspects
 
-    // default LC models for mandatory lane changes 
-    // MOBIL(bSafe,bThr,bias)
-    //!! only for preparing diverges! Actual merging with separate function!!
 
-    this.LCModelMandatoryRight=new MOBIL(this.MOBIL_bSafeMandat,
-					 this.MOBIL_bSafeMax,
-					 0,0.5*this.MOBIL_bSafeMax); 
-    this.LCModelMandatoryLeft=new MOBIL(this.MOBIL_bSafeMandat,
-					 this.MOBIL_bSafeMandat,
-					0,-0.5*this.MOBIL_bSafeMax);
+    this.waitTime=dt_LC;   // waiting time after passive LC to do an active LC
+                           //!!! dt_LC is global var in paths.js
 
-    this.dt_LC=4;         // 4 duration of a lane change
-    this.waitTime=this.dt_LC;  // waiting time after passive LC to do an active LC
+    this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
+                           // for mandat. LC
+
 
 
     // drawing-related vatiables
@@ -442,11 +432,11 @@ road.prototype.writeVehiclesSimple= function() {
 
 
 //######################################################################
-// write vehicle model info
+// write vehicle longmodel info
 //######################################################################
 
-road.prototype.writeVehicleModels= function() {
-    console.log("\nin road.writeVehicleModels(): nveh=",this.veh.length,
+road.prototype.writeVehicleLongModels= function() {
+    console.log("\nin road.writeVehicleLongModels(): nveh=",this.veh.length,
 		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
@@ -457,9 +447,30 @@ road.prototype.writeVehicleModels= function() {
 		    +"  v0="+parseFloat(this.veh[i].longModel.v0).toFixed(1)
 		    +"  T="+parseFloat(this.veh[i].longModel.T).toFixed(1)
 		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(1)
+		    +"  acc="+parseFloat(this.veh[i].acc).toFixed(1)
 		    +"");
   }
 }
+
+
+
+//######################################################################
+// write vehicle LC model info
+//######################################################################
+
+road.prototype.writeVehicleLCModels= function() {
+    console.log("\nin road.writeVehicleLCModels(): nveh=",this.veh.length,
+		" itime="+itime);
+    for(var i=0; i<this.veh.length; i++){
+	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +" id="+this.veh[i].id
+		    +" u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +" v="+parseFloat(this.veh[i].v,10).toFixed(1)
+		    +" speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
+                    +" LCmodel=",this.veh[i].LCModel);
+    }
+}
+
 
 
 //######################################################################
@@ -1529,6 +1540,7 @@ road.prototype.setCFModelsInRange
 // local necessity/desire to drive right etc)
 //#####################################################
 
+
 road.prototype.setLCModelsInRange
     =function(umin,umax,LCModelCar,LCModelTruck){
 
@@ -1550,17 +1562,24 @@ road.prototype.setLCModelsInRange
 //#####################################################
 
 road.prototype.setLCMandatory=function(umin,umax,toRight){
-    for(var i=0; i<this.veh.length; i++){
+  for(var i=0; i<this.veh.length; i++){
+    if(this.veh[i].isRegularVeh()){
 	var u=this.veh[i].u;
 	if((u>umin)&&(u<umax)){
-	    this.veh[i].mandatoryLCahead=true;
+	    this.veh[i].mandatoryLCahead=true; 
 	    this.veh[i].toRight=toRight;
 	    this.veh[i].LCModel=(toRight) 
 		? this.LCModelMandatoryRight : this.LCModelMandatoryLeft;
-            console.log("in road.setLCMandatory: this.veh[i].LCModel=",
-			this.veh[i].LCModel);
+            //console.log("in road.setLCMandatory: this.veh[i].LCModel=",
+	//		this.veh[i].LCModel);
+	}
+	else{
+	    this.veh[i].mandatoryLCahead=false; 
+	    this.veh[i].LCModel=(this.veh[i].type=="car") 
+		? LCModelCar : LCModelTruck;
 	}
     }
+  }
 }
 
 
@@ -1921,8 +1940,10 @@ road.prototype.updateSpeedPositions=function(){
 
             // lateral positional update (v=fractional lane)
 
-	    this.veh[i].v=get_v(this.veh[i].dt_lastLC,this.dt_LC,
+	    this.veh[i].v=get_v(this.veh[i].dt_lastLC,
 				this.veh[i].laneOld,this.veh[i].lane);
+
+	    //if(itime==1){console.log("i=",i," speed=",this.veh[i].speed);}
 	}
 
         // periodic BC closure
@@ -1950,7 +1971,7 @@ road.prototype.updateOrientation=function(){
 
         // ego vehicles are updated separately, obstacles not at all
 	if( (this.veh[i].id!=1) && (this.veh[i].type != "obstacle")){
-            this.veh[i].dvdt=get_dvdt(this.veh[i].dt_lastLC,this.dt_LC,
+            this.veh[i].dvdt=get_dvdt(this.veh[i].dt_lastLC,
 				      this.veh[i].laneOld,
 				      this.veh[i].lane,this.veh[i].speed);
 	}
@@ -1988,22 +2009,30 @@ road.prototype.changeLanes=function(){
 
 
 road.prototype.doChangesInDirection=function(toRight){
-  var log=false;
-  //changeSuccessful=0; //return value; initially false
+var log=false;
 
-  if(log&&toRight){console.log("changeLanes: before changes to the right");}
-  if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
-  for(var i=0; i<this.veh.length; i++){
+if(log&&toRight){console.log("changeLanes: before changes to the right");}
+if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
-    // test if there is a target lane and if last change is sufficiently long ago
-      //console.log("changeLanes: i=",i," outer loop");
-  var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
-  if( (newLane>=0)&&(newLane<this.nLanes)
-      &&(this.veh[i].dt_lastLC>this.waitTime)
-      &&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime) //!! fact 0.2 ad hoc
-    ){
+for(var i=0; i<this.veh.length; i++){
 
+    // test if there is a target lane 
+    // and if last change is sufficiently long ago
+
+    var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
+    var targetLaneExists=(newLane>=0)&&(newLane<this.nLanes);
+    var lastChangeSufficTimeAgo=(this.veh[i].dt_lastLC>this.waitTime)
+	&&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime);
+    if(false){
+    //if(itime==100){
+	console.log("changeLanes: time=",time," i=",i,
+		    " targetLaneExists=",targetLaneExists,
+		    " lastChangeSufficTimeAgo=",lastChangeSufficTimeAgo);
+    }
+
+
+    if(targetLaneExists && lastChangeSufficTimeAgo){
 
       var iLead=this.veh[i].iLead;
       var iLag=this.veh[i].iLag; // actually not used
@@ -2225,27 +2254,20 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,isMerge,toRight)
 	      var speedLagNew=followerNew.speed;
 	      var speed=originVehicles[i].speed;
 
-	      var bSafeMergeMin=this.MOBIL_bSafeMandat; 
-	      var bSafeMergeMax=this.MOBIL_bSafeMax; 
-	      var bBiasMerge=(toRight) ? 0.5*bSafeMergeMax 
-		  : -0.5*bSafeMergeMax; // strong urge to change
-	      var longModel=originVehicles[i].longModel;
+              // !!! possibly define own models for merge and other mandat LC
 
-              //!!! this alt: LCModel with locally defined bSafe params 6 and 17
-	      var LCModel=new MOBIL(bSafeMergeMin,bSafeMergeMax,0,bBiasMerge);
-
-              //!!! this alt: LCModel* overwritten from top-level routines! bSafe=42
-	      //var LCModel=(toRight) ? this.LCModelMandatoryRight 
-		 // : this.LCModelMandatoryLeft; 
+	      var LCModel=(toRight) ? this.LCModelMandatoryRight 
+		  : this.LCModelMandatoryLeft; 
 
 	      var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
-	      var acc=originVehicles[i].acc;
-	      var accNew=longModel.calcAcc(sNew,speed,speedLeadNew,accLeadNew);
-              //!! assuming changing with accNew
-	      var accLagNew =longModel.calcAcc(sLagNew,speedLagNew,speed,accNew);
 
-              // lane changing to merge on new road (regular LC above)
-	      var MOBILOK=LCModel.realizeLaneChange(vrel,acc,accNew,accLagNew,toRight,false);
+	      var acc=originVehicles[i].acc;
+	      var accNew=originVehicles[i].longModel.calcAcc(
+		  sNew,speed,speedLeadNew,accLeadNew);
+	      var accLagNew =originVehicles[i].longModel.calcAcc(
+		  sLagNew,speedLagNew,speed,accNew);
+	      var MOBILOK=LCModel.realizeLaneChange(
+		  vrel,acc,accNew,accLagNew,toRight,false);
 
 	      success=MOBILOK &&(originVehicles[i].type != "obstacle")
 		  &&(sNew>0)&&(sLagNew>0)
@@ -2421,16 +2443,20 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
   // open roads: mismatchTolerated about 0.2; ring: mismatchTolerated=0
 //######################################################################
 
+//!!! only here in road
+// here global var longModelCar, -Truck from control_gui taken!
+
 road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
   if(this.veh.length>0){
-    this.updateEnvironment(); // needs veh[i].iLag etc, so actual environment needed
-    var n=this.veh.length;
-    var nTruckDesired=Math.floor(n*truckFrac);
+    this.updateEnvironment(); //needs veh[i].iLag etc, so actual environment needed
+    var nActual=0;
     var nTruck=0;
-    for(var i=0; i<n; i++){
+    for (var i=0; i<this.veh.length; i++){
+	if(this.veh[i].isRegularVeh()) nActual++;
 	if(this.veh[i].type === "truck"){nTruck++;}
     }
-    var truckFracReal=nTruck/n;  // integer division results generally in double: OK!
+    var nTruckDesired=Math.floor(nActual*truckFrac);
+    var truckFracReal=nTruck/nActual;  // int division gen. results in double: OK!
 
     // action if truck frac not as wanted; 
     // correct by one veh transformation per timestep
@@ -2452,7 +2478,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	if(truckFracTooLow){// change cars->trucks on the right lane if possible
 	  var maxSpace=0;
 	  for(var lane=this.nLanes-1; lane>=0; lane--){if(!success){
-	    for(var i=0; i<n; i++){
+	    for(var i=0; i<nActual; i++){
 	      if( (this.veh[i].lane===lane)&&(this.veh[i].type === candidateType)){
 	        var iLag= this.veh[i].iLag;
 	        var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
@@ -2466,7 +2492,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 
 	else{ // change trucks->cars: transform truck with smallest space 
 	  var minSpace=10000;
-	  for(var i=0; i<n; i++){
+	  for(var i=0; i<nActual; i++){
 	    if(this.veh[i].type === candidateType){
 	      success=1; // always true for trucks->cars if there is a truck
 	      var iLag= this.veh[i].iLag;
@@ -2499,7 +2525,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 road.prototype.updateDensity=function(density){
     var nDesired= Math.floor(this.nLanes*this.roadLen*density);
     var nActual=0;
-    var nTot=this.veh.length;
+    var nTotOld=this.veh.length;
     for (var i=0; i<this.veh.length; i++){
 	if(this.veh[i].isRegularVeh()) nActual++;
     }
@@ -2581,7 +2607,7 @@ road.prototype.updateDensity=function(density){
     // sort (re-sort) vehicles with respect to decreasing positions
     // and provide the updated local environment to each vehicle
 
-    if(this.veh.length!=nTot){
+    if(this.veh.length!=nTotOld){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
@@ -2723,15 +2749,36 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 }
 
 
+/*####################################################
+ distribute model parameters updated from  GUI to all vehicles
+
+  * LCModelMandatory will be divided into ...Right and ...Left inside
+
+  * tactical part relates to offramps, the *Mandatory* parts to all
+    mandatory changesr
 //####################################################
-// distribute model parameters updated from  GUI to all vehicles
-// at least tactical part really necessary; keep also first part as
-// future central update before calc any accelerations although
-// at present obviously not necessary (2017-03-23)
-//####################################################
+*/
 
 road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
-						  LCModelCar,LCModelTruck){
+						  LCModelCar,LCModelTruck,
+						  LCModelMandatory){
+
+ //console.log("road.updateModelsOfAllVehicles: LCModelMandatory=",
+  //		LCModelMandatory);
+
+
+  // mandatory LC: distributed to the vehicles e.g. in setLCMandatory
+
+
+  this.LCModelMandatoryRight
+	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
+  this.LCModelMandatoryLeft
+	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
+
+  // normal acc and LC: 
+  // distributed to the vehicles depending on car/truck here
 
   for(var i=0; i<this.veh.length; i++){
       if(this.veh[i].type != "obstacle"){// then do nothing
@@ -2749,9 +2796,11 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
       var iNextOff=this.getNextOffIndex(this.veh[i].u); //-1 if nothing
       var uLastExit=this.offrampLastExits[iNextOff];
 
-      if((this.veh[i].type != "obstacle")
-	 && (iNextOff>-1)
-	 && (uLastExit-this.veh[i].u<this.duTactical)){
+      var prepareForDiverge=(this.veh[i].type != "obstacle")
+	  && (iNextOff>-1)
+	  && (uLastExit-this.veh[i].u<this.duTactical);
+
+      if(prepareForDiverge){
           if(false){console.log("in road.updateModels... iveh="+i
 		      +" iNextOff="+iNextOff
 		      +" u="+this.veh[i].u
@@ -2782,15 +2831,11 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
 	  }
 
-      }
-      else{ //no mandatory LC because obstacle, no offramps, mainroad route
+      } // prepareForDiverge
+
+      else{ //no mandatory LC because obstacle or no offramps
             // (no need to reset LC models since this is done above)
 	  this.veh[i].longModel.alpha_v0 =1; 
-      //!!! works as links for all car longmodels or 
-      // truck longmodels of a road!! 
-      // DOS if reset here, all slow if not
-       // => logging of road.calcAccelerations 
-      // README set accel models individually (new?)
       }
 
   }

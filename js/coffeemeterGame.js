@@ -654,7 +654,7 @@ function update(){
    
     if(itime%50===0){
     //if(false}{
-	mainroad.writeVehicleModels();
+	mainroad.writeVehicleLongModels();
     }
 
 

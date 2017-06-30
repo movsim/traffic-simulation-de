@@ -120,8 +120,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight;
-var LCModelMandatoryLeft;
+var LCModelMandatory;
+//var LCModelMandatoryRight; // =LCModelMandatory  (biasRight>0)
+//var LCModelMandatoryLeft;  // =LCModelMandatory with other sign in biasRight
 	
 updateModels(); //  from control_gui.js  => define the 6 above models
 
@@ -245,9 +246,9 @@ function updateRing(){
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
     mainroad.updateDensity(density);
-
 
 
 
@@ -257,7 +258,10 @@ function updateRing(){
     mainroad.calcAccelerations();  
     mainroad.changeLanes();         
     mainroad.updateSpeedPositions();
-    //mainroad.writeVehicles();
+
+    //if(itime<2){mainroad.writeVehicleLongModels();}
+    //if(itime<2){mainroad.writeVehicleLCModels();}
+
 
 
     //!!!

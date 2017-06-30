@@ -465,7 +465,7 @@ var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
 var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_bias=42;
 
-var dt_LC=4; // duration of a lane change
+// var dt_LC=4; // global duration dt_LC of a lane change now in paths.js
 
 
 var factor_v0_truck=0.7;
@@ -488,10 +488,18 @@ function updateModels(){
                          MOBIL_bThr, MOBIL_bBiasRight_car);
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
-    LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
-				    MOBIL_mandat_bThr, MOBIL_mandat_bias);
-    LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
-				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
+    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe,
+			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
+
+    console.log("control_gui.updateModels: LCModelMandatory=",LCModelMandatory," MOBIL_mandat_bias=",MOBIL_mandat_bias);
+
+
+    //!!! check if better formulated w/o  explicit variants below
+    // and discriminate in road. updateModelsOfAllVehicles
+
+    //LCModelMandatoryRight=LCModelMandatory;
+    //LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+//				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 
 }
 

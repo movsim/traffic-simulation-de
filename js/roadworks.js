@@ -4,9 +4,12 @@
 // adapt standard param settings from control_gui.js
 //#############################################################
 
-MOBIL_mandat_bSafe=2;
-MOBIL_mandat_bias=0;
+MOBIL_mandat_bSafe=18;
+MOBIL_mandat_bThr=0.5;   // >0
+MOBIL_mandat_bias=1.5;
+
 MOBIL_bSafe=5;
+MOBIL_bSafeMax=17;
 
 updateModels();
 
@@ -87,8 +90,8 @@ var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 
 var uBeginRoadworks=straightLen+0.8*arcLen;
-var uEndRoadworks=straightLen+arcLen;
-
+var uEndRoadworks=straightLen+1.1*arcLen;
+var uStartLCMandatory=0.1*uBeginRoadworks; // uStart>u>uBeginR => mandat LC
 
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
@@ -101,7 +104,8 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
     mainroadLen=arcLen+2*straightLen;
 
     uBeginRoadworks=straightLen+0.8*arcLen;
-    uEndRoadworks=straightLen+arcLen;
+    uEndRoadworks=straightLen+1.1*arcLen;
+    uStartLCMandatory=0.1*uBeginRoadworks;
 
 }
 
@@ -120,8 +124,8 @@ var truck_length=15; // trucks
 var truck_width=7; 
 
 var laneRoadwork=0;  // 0=left
-var lenRoadworkElement=16;
-var wRoadworkElement=9;
+var lenRoadworkElement=7;
+var wRoadworkElement=7;
 
 
 // on constructing road, road elements are gridded and interna
@@ -192,10 +196,9 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatoryRight;
-var LCModelMandatoryLeft;
+var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 6 above models
+updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 //####################################################################
@@ -345,13 +348,14 @@ function updateU(){
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck);
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
     // externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
     // starting at 0 up to the position uBeginRoadworks
 
-    mainroad.setLCMandatory(0, uBeginRoadworks, true);
+    mainroad.setLCMandatory(uStartLCMandatory, uBeginRoadworks, true);
 
 
     // do central simulation update of vehicles
@@ -397,11 +401,12 @@ function drawU() {
 
     var hasChanged=false;
 
-    console.log(" new total inner window dimension: ",
+    if(false){
+        console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
 		" (full hd 16:9 e.g., 1120:630)",
 		" canvas: ",canvas.width," X ",canvas.height);
-
+    }
 
 
     if ((canvas.width!=simDivWindow.clientWidth)
