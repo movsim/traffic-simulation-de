@@ -87,6 +87,9 @@ var offRadius=3*arcRadius;
 
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
+    center_xPhys=center_xRel*refSizePhys; //[m]
+    center_yPhys=center_yRel*refSizePhys;
+
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
@@ -165,8 +168,8 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
-                      // sudden changes with new incoming/outgoing vehicles
+var truckFracToleratedMismatch=0.2; // open system: updateU:  need tolerance,
+             // otherwise sudden changes with new incoming/outgoing vehicles
 
 var speedInit=20; // IC for speed
 
@@ -209,9 +212,6 @@ var LCModelMandatoryLeft;
 	
 updateModels(); //  from control_gui.js  => define the 6 above models
 
-mainroad.LCModelMandatoryRight=LCModelMandatoryRight; //unique mandat LC model
-mainroad.LCModelMandatoryLeft=LCModelMandatoryLeft; //unique mandat LC model
-
 
 //####################################################################
 // Global graphics specification and image file settings
@@ -241,7 +241,6 @@ var obstacle_srcFiles = [];
 obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
 for (var i=1; i<10; i++){
     obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    //console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
 }
 
 var obstacle_srcFile='figs/obstacleImg.png';
@@ -254,20 +253,23 @@ var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
 var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
 var ramp_srcFile='figs/road1lanesCrop.png';
 
+//#########################################################
+// The images
+//#########################################################
 
-// init background image
+// background image
 
 background = new Image();
 background.src =background_srcFile;
 
-// init vehicle image(s)
+// vehicle image(s)
 
 carImg = new Image();
 carImg.src = car_srcFile;
 truckImg = new Image();
 truckImg.src = truck_srcFile;
 
-// init special objects images
+// special objects images
 
 traffLightRedImg = new Image();
 traffLightRedImg.src=traffLightRed_srcFile;
@@ -281,7 +283,7 @@ for (var i=0; i<obstacle_srcFiles.length; i++){
 }
 
 
-// init road image(s)
+// road image(s)
 
 roadImg1 = new Image();
 roadImg1.src=(nLanes_main===1)
@@ -302,7 +304,9 @@ rampImg.src=ramp_srcFile;
 
 
 
+//####################################################################
 //!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+//####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
@@ -331,7 +335,7 @@ function updateU(){
     itime++;
 
     // transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models: 
+    // to the vehicles and models
 
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
@@ -463,53 +467,41 @@ function drawU() {
 
     // (6) draw some running-time vars
 
-  if(true){
-    ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
+    if(true){
+      ctx.setTransform(1,0,0,1,0,0); 
+      var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
 
-    ctx.font=textsize+'px Arial';
+      ctx.font=textsize+'px Arial';
 
-    var timeStr="Time="+Math.round(10*time)/10;
-    var timeStr_xlb=textsize;
+      var timeStr="Time="+Math.round(10*time)/10;
+      var timeStr_xlb=textsize;
 
-    var timeStr_ylb=1.8*textsize;
-    var timeStr_width=6*textsize;
-    var timeStr_height=1.2*textsize;
+      var timeStr_ylb=1.8*textsize;
+      var timeStr_width=6*textsize;
+      var timeStr_height=1.2*textsize;
 
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timeStr_xlb,timeStr_ylb-timeStr_height,
+      ctx.fillStyle="rgb(255,255,255)";
+      ctx.fillRect(timeStr_xlb,timeStr_ylb-timeStr_height,
 		 timeStr_width,timeStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
-		 timeStr_ylb-0.2*textsize);
-
-/*
-    var scaleStr=" scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=8*textsize;
-    var scaleStr_ylb=timeStr_ylb;
-    var scaleStr_width=5*textsize;
-    var scaleStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,
-		 scaleStr_width,scaleStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
-		 scaleStr_ylb-0.2*textsize);
-    */
-
+      ctx.fillStyle="rgb(0,0,0)";
+      ctx.fillText(timeStr, timeStr_xlb+0.2*textsize,
+  		   timeStr_ylb-0.2*textsize);
+    }
 
     // (6) draw the speed colormap
 
-    if(drawColormap) displayColormap(0.22*refSizePix,
-                 0.43*refSizePix,
-                 0.1*refSizePix, 0.2*refSizePix,
-		 vmin_col,vmax_col,0,100/3.6);
+    if(drawColormap){ 
+	displayColormap(0.22*refSizePix,
+			0.43*refSizePix,
+			0.1*refSizePix, 0.2*refSizePix,
+			vmin_col,vmax_col,0,100/3.6);
+    }
 
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
-  }
-}
+ 
+} // drawU
  
 
 //##################################################

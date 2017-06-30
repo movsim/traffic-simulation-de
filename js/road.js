@@ -70,8 +70,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     // model parameters
 
-    this.MOBIL_bSafeMandat=4; // mandat LC and merging for v=v0
-    this.MOBIL_bSafeMax=17; //!! mandat LC and merging for v=0
+    //this.MOBIL_bSafeMandat=4; // mandat LC and merging for v=v0
+    //this.MOBIL_bSafeMax=17; //!! mandat LC and merging for v=0
 
     // default LC models for mandatory lane changes 
     // MOBIL(bSafe,bThr,bias)
@@ -1557,6 +1557,8 @@ road.prototype.setLCMandatory=function(umin,umax,toRight){
 	    this.veh[i].toRight=toRight;
 	    this.veh[i].LCModel=(toRight) 
 		? this.LCModelMandatoryRight : this.LCModelMandatoryLeft;
+            console.log("in road.setLCMandatory: this.veh[i].LCModel=",
+			this.veh[i].LCModel);
 	}
     }
 }

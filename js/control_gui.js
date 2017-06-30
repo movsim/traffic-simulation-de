@@ -508,7 +508,7 @@ function updateModelsUphill(){
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCarUphill=LCModelCar;
     LCModelTruckUphill=LCModelTruck;
-    LCModelTruckLCban=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
+    LCModelTruckLCban=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe,
 				MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
 }
 

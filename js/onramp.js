@@ -105,6 +105,9 @@ var rampRadius=4*arcRadius;
 
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
+    center_xPhys=center_xRel*refSizePhys; //[m]
+    center_yPhys=center_yRel*refSizePhys;
+
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
