@@ -3,7 +3,7 @@
 
 # creates German html and js files from all files containing 
 # language-specific words" all html files, 
-# the js/<proj>.js, js/<proj>_gui.js files, and the js/redirect.js file
+# the js/<proj>.js, and all dependent js files
 
 
 
@@ -13,8 +13,8 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp onrampHOT offramp roadworks uphill routing"
-#projects="ring"
+#projects="ring onramp offramp roadworks uphill routing"
+projects="ring"
 
 cd $startDir
 
@@ -36,6 +36,7 @@ htmlfilesGer=""
 cp js/redirect.js js/redirect_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
 
+
 for proj in $projects; do
     
   htmlfile="${proj}.html"
@@ -55,8 +56,6 @@ for proj in $projects; do
 
 #  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
 #  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
-#  if test -f js/${proj}_gui_ger.js; then cp js/${proj}_gui_ger.js $backupdir/js; fi
-
 
 
 
@@ -65,11 +64,9 @@ for proj in $projects; do
   htmlfilesGer="$htmlfilesGer $htmlfile_ger"
   cp $htmlfile $htmlfile_ger
   cp js/${proj}.js js/${proj}_ger.js
-  cp js/${proj}_gui.js  js/${proj}_gui_ger.js
 
   perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $htmlfile_ger
   perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
-  perl -i -p -e "s/${proj}_gui\.js/${proj}_gui_ger.js/g" $htmlfile_ger
 
 done
 
@@ -128,7 +125,7 @@ done
 # change js files (incl link targets in redirect.js)
 #############################################
 
-jsfiles="js/redirect_ger.js js/${proj}_ger.js js/${proj}_gui_ger.js"
+jsfiles="js/redirect_ger.js js/${proj}_ger.js"
 
 for file in "$jsfiles"; do
   perl -i -p -e 's/times\"/fach\"/g' $file
@@ -145,10 +142,7 @@ for file in "$jsfiles"; do
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
 
-perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html js/uphill_gui_ger.js
-perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_gui_ger.js
+perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html
+perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_ger.js
 
 cd $wd
-
-
-
