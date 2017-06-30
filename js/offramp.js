@@ -3,14 +3,20 @@
 // adapt standard param settings from control_gui.js
 //#############################################################
 
-qIn=4000./3600; 
+qIn=3500./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
+densityInit=0.015;
 
 truckFrac=0.15;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
+
+IDM_a=0.7; // low to allow stopGo
+slider_IDM_a.value=IDM_a;
+slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
 MOBIL_mandat_bSafe=22; // standard 42
 MOBIL_mandat_bThr=0;   
@@ -73,11 +79,11 @@ var offLenRel=0.9;
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
+
 var offLen=offLenRel*refSizePhys; 
 var divergeLen=0.5*offLen;
 
@@ -86,7 +92,7 @@ var taperLen=0.2*offLen;
 var offRadius=3*arcRadius;
 
 
-function updatePhysicalDimensions(){ // only if sizePhys changed
+function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
     center_xPhys=center_xRel*refSizePhys; //[m]
     center_yPhys=center_yRel*refSizePhys;
 
@@ -173,7 +179,7 @@ var truckFracToleratedMismatch=0.2; // open system: updateU:  need tolerance,
 
 var speedInit=20; // IC for speed
 
-duTactical=150; // anticipation distance for applying mandatory LC rules
+duTactical=250; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
@@ -356,6 +362,7 @@ function updateU(){
     mainroad.updateBCdown();
     var route=(Math.random()<fracOff) ? route2 : route1;
     mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
+    //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
     offramp.updateLastLCtimes(dt); // needed since LC from main road!!
     offramp.calcAccelerations();  

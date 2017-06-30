@@ -432,6 +432,33 @@ road.prototype.writeVehiclesSimple= function() {
 
 
 //######################################################################
+// write the routes of the vehicles
+//######################################################################
+
+road.prototype.writeVehicleRoutes= function(umin,umax) {
+    console.log("\nin road.writeVehicleRoutes=(): nveh=",this.veh.length,
+		" itime="+itime);
+    var uminLoc=(umin!==undefined) ? umin : 0;
+    var umaxLoc=(umax!==undefined) ? umax : this.roadLen;
+    for(var i=0; i<this.veh.length; i++){
+	var u=this.veh[i].u;
+	if((u>umin) && (u<umax) && (this.veh[i].isRegularVeh())
+	   &&(this.veh[i].route.length===2)){
+
+	    console.log(" veh["+i+"].type="+this.veh[i].type
+		        +"  id="+this.veh[i].id
+		        +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		        +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
+		        +"  route=",this.veh[i].route
+			+" bBiasRight=",this.veh[i].LCModel.bBiasRight
+		        +"");
+	}
+    }
+}
+
+
+
+//######################################################################
 // write vehicle longmodel info
 //######################################################################
 
@@ -1562,8 +1589,7 @@ road.prototype.setLCModelsInRange
 //#####################################################
 
 road.prototype.setLCMandatory=function(umin,umax,toRight){
-  for(var i=0; i<this.veh.length; i++){
-    if(this.veh[i].isRegularVeh()){
+    for(var i=0; i<this.veh.length; i++) if(this.veh[i].isRegularVeh()){
 	var u=this.veh[i].u;
 	if((u>umin)&&(u<umax)){
 	    this.veh[i].mandatoryLCahead=true; 
@@ -1573,14 +1599,14 @@ road.prototype.setLCMandatory=function(umin,umax,toRight){
             //console.log("in road.setLCMandatory: this.veh[i].LCModel=",
 	//		this.veh[i].LCModel);
 	}
-	else{
-	    this.veh[i].mandatoryLCahead=false; 
-	    this.veh[i].LCModel=(this.veh[i].type=="car") 
-		? LCModelCar : LCModelTruck;
-	}
+
+    // !! do NOT reset to normal otherwise! 
+    // side effects with other mandat regions!
+    // updateModelsOfAllVehicles redefines the models at beg of each timestep 
+
     }
-  }
 }
+
 
 
 
@@ -2754,8 +2780,15 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 
   * LCModelMandatory will be divided into ...Right and ...Left inside
 
-  * tactical part relates to offramps, the *Mandatory* parts to all
-    mandatory changesr
+  * For preparing offramp diverges, a pair of new tactical models 
+    LCModelTactical and longModelTacticalCar/Truck  
+    will be constructed from the mandatory LC models and the longModels
+    with the "new" operator. Necessary because otherwise v0 reduction
+    of tactical models will be "copied" to all models since references!
+
+  * Mandatory models apply to all vehicles in a certain range, tactical
+    models only for the vehicles with corresponding routes in a certain range
+
 //####################################################
 */
 
@@ -2769,32 +2802,50 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   // mandatory LC: distributed to the vehicles e.g. in setLCMandatory
 
-
-  this.LCModelMandatoryRight
+    this.longModelTacticalCar=new ACC(longModelCar.v0,longModelCar.T,
+				      longModelCar.s0,longModelCar.a,
+				      longModelCar.b);
+    this.longModelTacticalTruck=new ACC(longModelTruck.v0,longModelTruck.T,
+				      longModelTruck.s0,longModelTruck.a,
+				      longModelTruck.b);
+ 
+    this.LCModelMandatoryRight
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
-  this.LCModelMandatoryLeft
+    this.LCModelMandatoryLeft
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
+
+    this.LCModelTacticalRight
+	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
+    this.LCModelTacticalLeft
+	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
+
+
 
   // normal acc and LC: 
   // distributed to the vehicles depending on car/truck here
 
   for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].type != "obstacle"){// then do nothing
-        this.veh[i].longModel=(this.veh[i].type === "car")
-	  ? longModelCar : longModelTruck;
-        this.veh[i].LCModel=(this.veh[i].type === "car")
-	  ? LCModelCar : LCModelTruck;
+      if(this.veh[i].isRegularVeh()){// then do nothing
+          this.veh[i].longModel=(this.veh[i].type === "car")
+	    ? longModelCar : longModelTruck;
+          this.veh[i].LCModel=(this.veh[i].type === "car")
+	    ? LCModelCar : LCModelTruck;
       }
   }
 
 
-  // update tactical info for mandatory lane changes upstream of offramps
+  // check if on this road the driver should possibly prepare for diverging
 
   if(this.duTactical>0) for(var i=0; i<this.veh.length; i++){
+  if(this.veh[i].isRegularVeh()){
       var iNextOff=this.getNextOffIndex(this.veh[i].u); //-1 if nothing
       var uLastExit=this.offrampLastExits[iNextOff];
+
+      // test if an off-ramp is nearby (dist< duTactical)
 
       var prepareForDiverge=(this.veh[i].type != "obstacle")
 	  && (iNextOff>-1)
@@ -2806,39 +2857,53 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 		      +" u="+this.veh[i].u
 		      +" uLastExit="+uLastExit);
 		   }
+
+          // test if the vehicle's route contains this off-ramp
+
 	  var offID=this.offrampIDs[iNextOff];
 	  var route=this.veh[i].route;
-	  var mandatoryLC=false;
+	  var tacticalLC=false;
 	  for(var ir=0; ir<route.length; ir++){
-	      if(offID===route[ir]){mandatoryLC=true;}
+	      if(offID===route[ir]){tacticalLC=true;}
 	  }
-	  if(mandatoryLC){
-	      this.veh[i].mandatoryLCahead=true;
-	      var toRight=this.offrampToRight[iNextOff];
-	      this.veh[i].longModel.alpha_v0=1;// reduce speed before diverging
 
-	      this.veh[i].LCModel=(toRight) ? this.LCModelMandatoryRight
-	          : this.LCModelMandatoryLeft;
-	      if(false){console.log("apply mandatoryLC to Vehicle "+i+"!"
-			  +"route="+this.veh[i].route
-			  +" offID="+offID
-			  +" uLastExit="+uLastExit
-			  +" u="+this.veh[i].u
-			  +" alpha_v0="+this.veh[i].longModel.alpha_v0
-			  +" bBiasRight="+this.veh[i].LCModel.bBiasRight
-				   );
-		       }
+          // if so, change lanes in the direction of the diverge 
+          // and reduce speed if coming very near to "last exit"
+
+	  if(tacticalLC){
+	      var thisVeh=this.veh[i];
+	      var toRight=this.offrampToRight[iNextOff];
+	      var duRemaining=uLastExit-thisVeh.u;
+	      thisVeh.mandatoryLCahead=true; // only one boolean mand,tact
+	      thisVeh.longModel=(thisVeh.type==="truck")
+		  ? this.longModelTacticalCar : this.longModelTacticalTruck;
+	      thisVeh.longModel.alpha_v0
+		  =Math.max(0.1, 0.5*duRemaining/this.duTactical); //!!!
+
+	      thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
+	          : this.LCModelTacticalLeft;
+
+	      if(false){console.log(
+		  "apply tacticalLC to Vehicle "+i+"!"
+		      +" id="+thisVeh.id
+		      + " route="+thisVeh.route
+		      +" offID="+offID
+		      +" u="+parseFloat(thisVeh.u).toFixed(1)
+		      +" uLastExit="+parseFloat(uLastExit).toFixed(1)
+		      +" bBiasRight="+thisVeh.LCModel.bBiasRight
+	      );
+		      }
 
 	  }
 
       } // prepareForDiverge
 
-      else{ //no mandatory LC because obstacle or no offramps
-            // (no need to reset LC models since this is done above)
-	  this.veh[i].longModel.alpha_v0 =1; 
+      else{ //no mandatory LC. reset desired speed reduction factor
+          //!!! check if then all vehicles stop!!!
+	  //this.veh[i].longModel.alpha_v0 =1; 
       }
 
-  }
+  }} // tactical accel and LC for diverges
 
 }
 

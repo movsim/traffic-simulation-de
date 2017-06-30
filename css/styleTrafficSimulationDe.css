@@ -213,6 +213,15 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2d) position of the enforce truck overtaking ban in uphill scen*/
+
+#buttonsInsideSimulations{
+  position: absolute;
+  top: 6vmin;
+  left: 50vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 /* (3) position of the flags for language selection: right top of simCanvas */
 
 #infoFlags{
@@ -310,7 +319,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #colorBox{
   position: absolute;
-  top:   79vmin;
+  top:   45vmin;
   left: 103vmin;
   width:  15vmin; /* no height */
   z-index: 2;
@@ -398,6 +407,17 @@ img.title{
   width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+
+
+/* (2d) position of the enforce truck overtaking ban in uphill scen*/
+
+#buttonsInsideSimulations{
+  position: absolute;
+  top: 6vmin;
+  left: 40vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 
 /* (3) position of the flags for language selection: right top of simCanvas */
 
@@ -522,9 +542,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #colorBox{
   position: absolute;
-  top:   79vmin;
-  left: 103vmin;
-  width:  15vmin; /* no height */
+  top:   45vmin;
+  left: 83vmin;
+  width:  14vmin; /* no height */
   z-index: 2;
 }
 

@@ -11,10 +11,8 @@ MOBIL_mandat_bias=1.5;
 MOBIL_bSafe=5;
 MOBIL_bSafeMax=17;
 
-updateModels();
+densityInit=0;
 
-
-density=densityInit=0.
 qIn=qInInit=1600./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
@@ -115,7 +113,6 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var laneWidthRamp=5;
 var nLanes=2;
 
 var car_length=7; // car length in m
@@ -202,7 +199,7 @@ updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 //####################################################################
-// Global graphics specification and image file settings
+// Global graphics specification 
 //####################################################################
 
 
@@ -212,7 +209,7 @@ var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
 var userCanvasManip; // true only if used-driven geometry changes finished
 
-var drawColormap=false;
+var drawColormap=false; // now drawn as png from html 
 var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
@@ -295,17 +292,6 @@ roadImg2.src=(nLanes===1)
 	: (nLanes===2) ? road2lanesWithout_srcFile
 	: (nLanes===3) ? road3lanesWithout_srcFile
 	: road4lanesWithout_srcFile;
-
-
-
-//#########################################################
-// The images
-//#########################################################
-
-
-
-
-// road image(s)
 
 
 
@@ -463,8 +449,9 @@ function drawU() {
 
  
     // (4) draw vehicles
-//!!!
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col, vmax_col);
+
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			  vmin_col, vmax_col);
     
     // (4a) implement varying speed-limit signs! -> uphill as template
 
@@ -492,6 +479,9 @@ function drawU() {
     // (5) !!! draw depot vehicles
 
     depot.draw(obstacleImgs,scale,canvas);
+
+
+    // (6) draw simulated time
 
     if(true){
       ctx.setTransform(1,0,0,1,0,0); 
@@ -548,7 +538,7 @@ function main_loop() {
 // only functions/definitions
 // triggers:
 // (i) automatically when loading the simulation 
-// (ii) when pressing the start button defined in onramp_gui.js
+// (ii) when pressing the start button 
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
