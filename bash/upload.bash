@@ -16,7 +16,7 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp onrampHOT offramp roadworks uphill routing"
+projects="ring onramp offramp roadworks uphill routing"
 targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 # targetDir="$startDir/trafficSimulationLocalVersion"
 
@@ -38,7 +38,8 @@ mkdir $targetDir/js
 #############################################
 
 
-html_files="impressum.html infoLinks.html infoModels.html infoScenarios.html"
+html_files="impressum.html info_ring.html info_gui.html info_onramp.html info_IDM.html info_MOBIL.html info_links.html"
+
 for proj in $projects; do
   htmlfile="${proj}.html"
   htmlfile_ger="${proj}_ger.html"
@@ -52,10 +53,10 @@ for proj in $projects; do
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done
 
-js_files="canvasresize.js colormanip.js dw_slider.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js canvas_gui.js"
+js_files="colormanip.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js canvas_gui.js control_gui.js vehicleDepot.js"
 
 for proj in $projects; do
-  js_files="${js_files} ${proj}.js ${proj}_gui.js ${proj}_ger.js ${proj}_gui_ger.js";
+  js_files="${js_files} ${proj}.js ${proj}_ger.js";
 done
 
 
@@ -73,12 +74,12 @@ cd $startDir
 cp -rp css $targetDir
 cp -rp figs $targetDir
 cp -rp icons $targetDir
-cp -rp info $targetDir
-cp -rp wm-html-include $targetDir
+#cp -rp info $targetDir
 
-echo "packing target in a zip file for allowing the users local runs ..."
-zip -r $targetDir.zip $targetDir
-echo "created $targetDir.zip"
+
+#echo "packing target in a zip file for allowing the users local runs ..."
+#zip -r $targetDir.zip $targetDir
+#echo "created $targetDir.zip"
 
  
 #############################################
@@ -86,7 +87,7 @@ echo "created $targetDir.zip"
 #############################################
 
 echo "Testing uploaded package:"
-echo "notice: zip download of sources only works in upload target"
+#echo "notice: zip download of sources only works in upload target"
 firefox $targetDir/index.html
 
 
@@ -94,11 +95,15 @@ firefox $targetDir/index.html
 # (5) prepare for upload
 #############################################
 
-targetForUpload="$HOME/public_html/professional/trafficSimulationDe_html5"
+targetForUpload="$HOME/public_html/professional/trafficSimulationDe_html5_`date +20%y_%m_%d`"
 
-cp -r $targetDir/* $targetDir.zip $targetForUpload
+if test -d $targetForUpload; then echo "$targetForUpload already exists";
+  else mkdir $targetForUpload;
+fi
+#cp -r $targetDir/* $targetDir.zip $targetForUpload
+cp -r $targetDir/*  $targetForUpload
 
-echo "upload via filezilla from $targetForUpload:"
+echo "upload via filezilla from $targetForUpload"
 echo "Host: sftp://mtreiber.de"
 echo "Username: p537815"
 echo "Password: schwerster Onsight gross mit Frz Grad"
