@@ -58,6 +58,73 @@ function showInfo(){
 }
 
 
+/*#########################################################
+ lane add/subtract callbacks
+#########################################################*/
+
+var nLanesMin=1;
+var nLanesMax=4; 
+
+function addOneLane(){ 
+    if(mainroad.nLanes<nLanesMax){
+	userCanvasManip=true; // causes drawing background, resampling road
+	mainroad.addOneLane();     // changes mainroad.nLanes
+	nLanes_main++;             // needed for defining geometry
+	roadImg1=roadImgs1[mainroad.nLanes-1];
+	roadImg2=roadImgs2[mainroad.nLanes-1];
+
+        // only ramp adapts to nLanes
+	if(typeof ramp!=="undefined"){// ramp!==undefined => DOS!
+	    ramp.gridTrajectories(trajRamp_x,trajRamp_y);
+	}
+	updateSim();
+    }
+
+    else{console.log("addOneLane(): maximum of ",nLanesMax,
+		     " lanes reached!");}
+
+    console.log("addOneLane: mainroad.nLanes=",mainroad.nLanes);
+    if(mainroad.nLanes===nLanesMax){
+	document.getElementById("lanePlusDiv").style.visibility="hidden";
+    }
+    if(mainroad.nLanes>nLanesMin){
+        document.getElementById("laneMinusDiv").style.visibility="visible";
+    }
+}
+
+
+
+function subtractOneLane(){ 
+    if(mainroad.nLanes>nLanesMin){
+	userCanvasManip=true;  // causes drawing background, resampling road
+	mainroad.subtractOneLane(); // changes mainroad.nLanes
+	nLanes_main--;             // needed for defining geometry
+	roadImg1=roadImgs1[mainroad.nLanes-1];
+	roadImg2=roadImgs2[mainroad.nLanes-1];
+
+        // only ramp adapts to nLanes
+	if(typeof ramp!=="undefined"){   // ramp!==undefined => DOS!
+	    ramp.gridTrajectories(trajRamp_x,trajRamp_y);
+	}
+	updateSim();
+    }
+
+    else{console.log("subtractOneLane(): minimum of ",nLanesMax,
+		     " lanes reached!");}
+
+    console.log("subtractOneLane: mainroad.nLanes=",mainroad.nLanes);
+
+    if(mainroad.nLanes===nLanesMin){
+	document.getElementById("laneMinusDiv").style.visibility="hidden";
+    }
+    if(mainroad.nLanes<nLanesMax){
+	console.log("in setting lanePlus visible!!!");
+        document.getElementById("lanePlusDiv").style.visibility="visible";
+    }
+
+}
+
+
 
 //#############################################
 // callback of "enforce Overtaking Ban" button

@@ -145,7 +145,7 @@ function traj_y(u){ // physical coordinates
 }
 
 
-function trajOff_x(u){ // physical coordinates
+function trajRamp_x(u){ // physical coordinates
 	var xDivergeBegin=traj_x(mainRampOffset);
 	return (u<divergeLen)
 	    ? xDivergeBegin+u
@@ -154,7 +154,7 @@ function trajOff_x(u){ // physical coordinates
 }
 
 
-function trajOff_y(u){ // physical coordinates
+function trajRamp_y(u){ // physical coordinates
     	var yDivergeBegin=traj_y(mainRampOffset)
 	    -0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 	return (u<taperLen)
@@ -174,7 +174,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: updateU:  need tolerance,
+var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
              // otherwise sudden changes with new incoming/outgoing vehicles
 
 var speedInit=20; // IC for speed
@@ -184,7 +184,7 @@ duTactical=250; // anticipation distance for applying mandatory LC rules
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
 
-var offramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajOff_x,trajOff_y,
+var ramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
 		     0.1*densityInit,speedInit,truckFracInit,isRing);
 
 var offrampIDs=[2];
@@ -197,7 +197,7 @@ mainroad.duTactical=duTactical;
 //console.log("mainroad.offrampLastExits[0]=",mainroad.offrampLastExits[0]);
 //console.log("fracOff="+fracOff);
 var route1=[1];  // stays on mainroad
-var route2=[1,2]; // takes offramp
+var route2=[1,2]; // takes ramp
 for (var i=0; i<mainroad.veh.length; i++){
     mainroad.veh[i].route=(Math.random()<fracOff) ? route2 : route1;
     //console.log("mainroad.veh["+i+"].route="+mainroad.veh[i].route);
@@ -219,7 +219,7 @@ updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 //####################################################################
-// Global graphics specification and image file settings
+// Global graphics specification
 //####################################################################
 
 var hasChanged=true; // window dimensions have changed (responsive design)
@@ -233,81 +233,67 @@ var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
-// image source files
 
-var background_srcFile='figs/backgroundGrass.jpg'; 
 
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var traffLightGreen_srcFile='figs/trafficLightGreen_affine.png';
-var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
+//####################################################################
+// Images
+//####################################################################
 
-var obstacle_srcFiles = [];
-obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){
-    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-}
 
-var obstacle_srcFile='figs/obstacleImg.png';
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-var ramp_srcFile='figs/road1lanesCrop.png';
+// init background image
 
-//#########################################################
-// The images
-//#########################################################
+var background = new Image();
+background.src ='figs/backgroundGrass.jpg'; 
+ 
 
-// background image
-
-background = new Image();
-background.src =background_srcFile;
-
-// vehicle image(s)
+// init vehicle image(s)
 
 carImg = new Image();
-carImg.src = car_srcFile;
+carImg.src = 'figs/blackCarCropped.gif';
 truckImg = new Image();
-truckImg.src = truck_srcFile;
+truckImg.src = 'figs/truck1Small.png';
 
-// special objects images
+
+// init traffic light images
 
 traffLightRedImg = new Image();
-traffLightRedImg.src=traffLightRed_srcFile;
+traffLightRedImg.src='figs/trafficLightRed_affine.png';
 traffLightGreenImg = new Image();
-traffLightGreenImg.src=traffLightGreen_srcFile;
+traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
+
+
+// init obstacle images
 
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<obstacle_srcFiles.length; i++){
+for (var i=0; i<10; i++){
     obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = obstacle_srcFiles[i];
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
 }
 
 
-// road image(s)
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
 
 roadImg1 = new Image();
-roadImg1.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWith_srcFile
-	: (nLanes_main===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
+roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
-roadImg2.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWithout_srcFile
-	: (nLanes_main===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
+roadImg2=roadImgs2[nLanes_main-1];
 
 rampImg = new Image();
-rampImg.src=ramp_srcFile;
+rampImg=roadImgs1[nLanes_rmp-1];
 
-
+console.log("roadImg1=",roadImg1," rampImg=",rampImg);
 
 //####################################################################
 //!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
@@ -317,7 +303,7 @@ var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
-			   20,20,true);
+			   30,30,true);
 
 
 //############################################
@@ -331,7 +317,7 @@ var dt=timewarp/fps;
 
 
 //#################################################################
-function updateU(){
+function updateSim(){
 //#################################################################
 
     // update times
@@ -347,8 +333,8 @@ function updateU(){
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
-    offramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    offramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
@@ -364,16 +350,16 @@ function updateU(){
     mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
     //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
-    offramp.updateLastLCtimes(dt); // needed since LC from main road!!
-    offramp.calcAccelerations();  
-    offramp.updateSpeedPositions();
-    offramp.updateBCdown();
+    ramp.updateLastLCtimes(dt); // needed since LC from main road!!
+    ramp.calcAccelerations();  
+    ramp.updateSpeedPositions();
+    ramp.updateBCdown();
 
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
     var u_antic=20;
-    mainroad.mergeDiverge(offramp,-mainRampOffset,
+    mainroad.mergeDiverge(ramp,-mainRampOffset,
 			  mainRampOffset+taperLen,
 			  mainRampOffset+divergeLen-u_antic,
 			  false,true);
@@ -386,13 +372,13 @@ function updateU(){
     }
 
 
-}//updateU
+}//updateSim
 
 
 
 
 //##################################################
-function drawU() {
+function drawSim() {
 //##################################################
 
     /* (0) redefine graphical aspects of road (arc radius etc) using
@@ -454,14 +440,14 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-    offramp.draw(rampImg,rampImg,scale,changedGeometry);
-    offramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
+    ramp.draw(rampImg,rampImg,scale,changedGeometry);
+    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
     mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     // (4) draw vehicles
 
-    offramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     // (5) !!! draw depot vehicles
@@ -505,7 +491,7 @@ function drawU() {
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
  
-} // drawU
+} // drawSim
  
 
 //##################################################
@@ -513,8 +499,8 @@ function drawU() {
 //##################################################
 
 function main_loop() {
-    updateU();
-    drawU();
+    updateSim();
+    drawSim();
     userCanvasManip=false;
 }
  

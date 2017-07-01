@@ -136,9 +136,9 @@ var truck_width=7;
 
 
 // on constructing road, road elements are gridded and interna
-// road.traj_xy(u) are generated. The, traj_xy*Init(u) obsolete
+// road.traj_xy(u) are generated. The, traj_xy*(u) obsolete
 
-function traj_xInit(u){ // physical coordinates
+function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
 	    (u<straightLen) ? straightLen-u
 	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
@@ -146,7 +146,7 @@ function traj_xInit(u){ // physical coordinates
 	return center_xPhys+dxPhysFromCenter;
 }
 
-function traj_yInit(u){ // physical coordinates
+function traj_y(u){ // physical coordinates
         var dyPhysFromCenter=
  	    (u<straightLen) ? arcRadius
 	  : (u>straightLen+arcLen) ? -arcRadius
@@ -155,9 +155,9 @@ function traj_yInit(u){ // physical coordinates
 }
 
 
-function trajRamp_xInit(u){ // physical coordinates
-	//var xMergeBegin=traj_xInit(mainroadLen-straightLen);
-	var xMergeBegin=traj_xInit(mainRampOffset+rampLen-mergeLen);
+function trajRamp_x(u){ // physical coordinates
+	//var xMergeBegin=traj_x(mainroadLen-straightLen);
+	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
 	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
 	return (u<rampLen-taperLen) 
 	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
@@ -166,11 +166,11 @@ function trajRamp_xInit(u){ // physical coordinates
 
 // indefining dependent geometry,
 //  do not refer to mainroad or onramp!! may not be defined: 
-// mainroad.nLanes => nLanes_main, onramp.nLanes=>nLanes_onramp1!!
+// mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1!!
 
-function trajRamp_yInit(u){ // physical coordinates
+function trajRamp_y(u){ // physical coordinates
 
-    var yMergeBegin=traj_yInit(mainRampOffset+rampLen-mergeLen)
+    var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
     var yMergeEnd=yMergeBegin+laneWidth;
@@ -198,20 +198,20 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
 var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_xInit,traj_yInit,
+		      traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
 
-var onramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_xInit,trajRamp_yInit,
+var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
+		    trajRamp_x,trajRamp_y,
 		    0*densityInit, speedInit, truckFracInit, isRing);
 
 
-// add standing virtual vehicle at the end of onramp (1 lane)
+// add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
 
-var virtualStandingVeh=new vehicle(2, laneWidth, onramp.roadLen-0.6*taperLen, 0, 0, "obstacle");
+var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.6*taperLen, 0, 0, "obstacle");
 
-onramp.veh.unshift(virtualStandingVeh);
+ramp.veh.unshift(virtualStandingVeh);
 
 
 
@@ -230,7 +230,7 @@ updateModels(); //  from control_gui.js  => define the 5 above models
 
 
 //####################################################################
-// Global graphics specification and image file settings
+// Global graphics specification
 //####################################################################
 
 var hasChanged=true; // window dimensions have changed (responsive design)
@@ -244,86 +244,75 @@ var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
-// image source files
-
-var background_srcFile='figs/backgroundGrass.jpg'; 
-
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var traffLightGreen_srcFile='figs/trafficLightGreen_affine.png';
-var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
-
-var obstacle_srcFiles = [];
-obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){ 
-    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    //console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
-}
-
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-var ramp_srcFile='figs/road1lanesCrop.png';
+//####################################################################
+// Images
+//####################################################################
 
 
 // init background image
 
-background = new Image();
-background.src =background_srcFile;
+var background = new Image();
+background.src ='figs/backgroundGrass.jpg'; 
+ 
 
 // init vehicle image(s)
 
 carImg = new Image();
-carImg.src = car_srcFile;
+carImg.src = 'figs/blackCarCropped.gif';
 truckImg = new Image();
-truckImg.src = truck_srcFile;
+truckImg.src = 'figs/truck1Small.png';
 
-// init special objects images
+
+// init traffic light images
 
 traffLightRedImg = new Image();
-traffLightRedImg.src=traffLightRed_srcFile;
+traffLightRedImg.src='figs/trafficLightRed_affine.png';
 traffLightGreenImg = new Image();
-traffLightGreenImg.src=traffLightGreen_srcFile;
+traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
+
+
+// init obstacle images
 
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<obstacle_srcFiles.length; i++){
+for (var i=0; i<10; i++){
     obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = obstacle_srcFiles[i];
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
 }
 
 
-// init road image(s)
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
 
 roadImg1 = new Image();
-roadImg1.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWith_srcFile
-	: (nLanes_main===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
+roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
-roadImg2.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWithout_srcFile
-	: (nLanes_main===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
+roadImg2=roadImgs2[nLanes_main-1];
 
 rampImg = new Image();
-rampImg.src=ramp_srcFile;
+rampImg=roadImgs1[nLanes_rmp-1];
 
 
 
+//####################################################################
 //!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+//####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
-			   20,20,true);
+			   30,30,true);
 
 
 
@@ -339,7 +328,7 @@ var dt=timewarp/fps;
 
 
 //#################################################################
-function updateU(){
+function updateSim(){
 //#################################################################
 
     // update times
@@ -355,15 +344,15 @@ function updateU(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    onramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
     // externally impose mandatory LC behaviour
-    // all onramp vehicles must change lanes to the left (last arg=false)
+    // all ramp vehicles must change lanes to the left (last arg=false)
 
-    onramp.setLCMandatory(0, onramp.roadLen, false);
+    ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
     // do central simulation update of vehicles
@@ -384,15 +373,15 @@ function updateU(){
     }
 
 
-    onramp.calcAccelerations();  
-    onramp.updateSpeedPositions();
-    onramp.updateBCdown();
-    onramp.updateBCup(qOn,dt); // argument=total inflow
+    ramp.calcAccelerations();  
+    ramp.updateSpeedPositions();
+    ramp.updateBCdown();
+    ramp.updateBCup(qOn,dt); // argument=total inflow
 
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    onramp.mergeDiverge(mainroad,mainRampOffset,
-			onramp.roadLen-mergeLen,onramp.roadLen,true,false);
+    ramp.mergeDiverge(mainroad,mainRampOffset,
+			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
     //!!!
@@ -403,13 +392,13 @@ function updateU(){
     }
 
 
-}//updateU
+}//updateSim
 
 
 
 
 //##################################################
-function drawU() {
+function drawSim() {
 //##################################################
 
     //!! test relative motion isMoving
@@ -474,11 +463,11 @@ function drawU() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
-    onramp.draw(rampImg,rampImg,scale,changedGeometry,
+    ramp.draw(rampImg,rampImg,scale,changedGeometry,
 		movingObserver,0, 
-		center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
-		center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0)); 
-    onramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
+		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
@@ -488,11 +477,11 @@ function drawU() {
  
     // (4) draw vehicles
 
-    onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
-			vmin_col,vmax_col,0,onramp.roadLen,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			vmin_col,vmax_col,0,ramp.roadLen,
 			movingObserver,0,
-			center_xPhys-mainroad.traj_x(uObs)+onramp.traj_x(0),
-			center_yPhys-mainroad.traj_y(uObs)+onramp.traj_y(0));
+			center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+			center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
 
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
@@ -561,8 +550,8 @@ function drawU() {
 //##################################################
 
 function main_loop() {
-    updateU();
-    drawU();
+    updateSim();
+    drawSim();
     userCanvasManip=false;
 }
  
@@ -573,7 +562,7 @@ function main_loop() {
 // only functions/definitions
 // triggers:
 // (i) automatically when loading the simulation 
-// (ii) when pressing the start button defined in onramp_gui.js
+// (ii) when pressing the start button in *gui.js
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 

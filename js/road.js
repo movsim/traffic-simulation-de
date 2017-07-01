@@ -259,7 +259,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-    //console.log("in road.gridTrajectories: this.nSegm=",this.nSegm);
+    console.log("in road.gridTrajectories: this.nLanes=",this.nLanes,
+		" traj_yExt=",traj_yExt);
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
@@ -411,12 +412,36 @@ road.prototype.writeVehicles= function() {
 
 
 //######################################################################
+// change number of lanes
+//######################################################################
+
+road.prototype.addOneLane = function(){
+    this.nLanes++;  // initially empty
+}
+
+// need to eliminate vehicles on the to be deleted lane
+// !! need to count backwards since array is changed in size during
+// its traversal; otherwise, not all old this.nveh.length vehs checked!
+
+road.prototype.subtractOneLane = function(){
+
+    for(var i=this.veh.length-1; i>=0; i--){ 
+	console.log("road.subtractOneLane: old nLanes=",this.nLanes);
+	if(this.veh[i].lane=== (this.nLanes-1)){
+	    this.veh.splice(i,1);
+	}
+    }
+    this.nLanes--; 
+}
+
+
+//######################################################################
 // simple write vehicle info
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function() {
     console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
-		" itime="+itime);
+		" nLanes=",this.nLanes," itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +"  id="+this.veh[i].id
@@ -2869,7 +2894,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
           // if so, change lanes in the direction of the diverge 
           // and reduce speed if coming very near to "last exit"
-
+ 
 	  if(tacticalLC){
 	      var thisVeh=this.veh[i];
 	      var toRight=this.offrampToRight[iNextOff];

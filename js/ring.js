@@ -77,7 +77,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 // => road becomes more compact for smaller screens
 
 var laneWidth=8; // remains constant => road becomes more compact for smaller
-var nLanes=3;
+var nLanes_main=3;
 
 var car_length=7; // car length in m
 var car_width=6; // car width in m
@@ -106,7 +106,7 @@ var roadID=1;
 var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
 
-var mainroad=new road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
+var mainroad=new road(roadID,roadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit,speedInit,truckFracInit,isRing);
 
 
@@ -129,7 +129,7 @@ updateModels(); //  from control_gui.js  => define the 6 above models
 
 
 //####################################################################
-// Global graphics specification and image file settings
+// Global graphics specification
 //####################################################################
 
 
@@ -147,79 +147,67 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
 
-// Notice: set drawBackground=false if no bg wanted
-var background_srcFile='figs/backgroundGrass.jpg'; 
-
-var car_srcFile='figs/blackCarCropped.gif';
-var truck_srcFile='figs/truck1Small.png';
-var traffLightGreen_srcFile='figs/trafficLightGreen_affine.png';
-var traffLightRed_srcFile='figs/trafficLightRed_affine.png';
-
-var obstacle_srcFiles = [];
-obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){ //!!!
-    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
-}
-
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-
+//####################################################################
+// Images
+//####################################################################
 
 
 // init background image
 
 var background = new Image();
-background.src =background_srcFile;
+background.src ='figs/backgroundGrass.jpg'; 
  
 
 // init vehicle image(s)
 
 carImg = new Image();
-carImg.src = car_srcFile;
+carImg.src = 'figs/blackCarCropped.gif';
 truckImg = new Image();
-truckImg.src = truck_srcFile;
+truckImg.src = 'figs/truck1Small.png';
 
-// init special objects images
+
+// init traffic light images
 
 traffLightRedImg = new Image();
-traffLightRedImg.src=traffLightRed_srcFile;
+traffLightRedImg.src='figs/trafficLightRed_affine.png';
 traffLightGreenImg = new Image();
-traffLightGreenImg.src=traffLightGreen_srcFile;
+traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
+
+
+// init obstacle images
 
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<obstacle_srcFiles.length; i++){
+for (var i=0; i<10; i++){
     obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = obstacle_srcFiles[i];
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
 }
 
 
-// init road image(s)
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
 
 roadImg1 = new Image();
-roadImg1.src=(nLanes===1)
-	? road1lanes_srcFile
-	: (nLanes===2) ? road2lanesWith_srcFile
-	: (nLanes===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
+roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
-roadImg2.src=(nLanes===1)
-	? road1lanes_srcFile
-	: (nLanes===2) ? road2lanesWithout_srcFile
-	: (nLanes===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
+roadImg2=roadImgs2[nLanes_main-1];
+
 
 //!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 
 var depot=new vehicleDepot(obstacleImgs.length,5,2,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
-			   20,20,true);
+			   30,30,true);
 
 
 //############################################
@@ -233,7 +221,7 @@ var dt=timewarp/fps;
 
 
 //############################################
-function updateRing(){
+function updateSim(){
 //############################################
 
 // update times
@@ -273,7 +261,7 @@ function updateRing(){
     }
 
 
-}  // updateRing
+}  // updateSim
 
 
 
@@ -283,7 +271,7 @@ function updateRing(){
 
 
 //##################################################
-function drawRing() {
+function drawSim() {
 //##################################################
 
 
@@ -392,8 +380,8 @@ function drawRing() {
 
 function main_loop() {
 
-    updateRing();
-    drawRing();
+    updateSim();
+    drawSim();
     userCanvasManip=false;
 }
 

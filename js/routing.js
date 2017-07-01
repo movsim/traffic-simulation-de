@@ -97,6 +97,7 @@ var mainroadLen=arcLen+2*straightLen;
 var laneWidth=7;  // needed to define deviation geometry 
 var laneWidthRamp=5;
 var nLanes_main=3;
+var nLanes_rmp=1;
 
 var umainDiverge=0.65*straightLen-0.15*arcLen; // main coord where diverge zone ends
 var rDev=0.1*refSizePhys;        // radius of curves on deviation route
@@ -205,7 +206,7 @@ function traj_y(u){ // physical coordinates
 	return center_yPhys+dyPhysFromCenter;
 }
 
-function trajDeviation_x(u){ // physical coordinates
+function trajRamp_x(u){ // physical coordinates
     var calpha=Math.cos(alpha);
     var salpha=Math.sin(alpha);
 
@@ -251,7 +252,7 @@ function trajDeviation_x(u){ // physical coordinates
 }
 
 
-function trajDeviation_y(u){ // physical coordinates
+function trajRamp_y(u){ // physical coordinates
     var calpha=Math.cos(alpha);
     var salpha=Math.sin(alpha);
 
@@ -313,7 +314,7 @@ duTactical=300; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit,speedInit,truckFracInit,isRing);
-var deviation=new road(2,lDev,laneWidthRamp,1,trajDeviation_x,trajDeviation_y,
+var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
 		       0.1*densityInit,speedInit,truckFracInit,isRing);
 
 var offrampIDs=[2];
@@ -342,7 +343,7 @@ var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;
-deviation.veh.unshift(virtualStandingVeh); // prepending=unshift
+ramp.veh.unshift(virtualStandingVeh); // prepending=unshift
 
 // add standing virtual vehicles at position of road works 
 // (nr=number of virtual "roadwork" vehicles)
@@ -398,36 +399,21 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 //#########################################################
 
 
-// background image
+// init background image
 
-background = new Image();
-background.src='figs/backgroundGrass.jpg'; 
+var background = new Image();
+background.src ='figs/backgroundGrass.jpg'; 
+ 
 
-
-// vehicle image(s)
+// init vehicle image(s)
 
 carImg = new Image();
-carImg.src='figs/blackCarCropped.gif';
+carImg.src = 'figs/blackCarCropped.gif';
 truckImg = new Image();
-truckImg.src='figs/truck1Small.png';
+truckImg.src = 'figs/truck1Small.png';
 
 
-// obstacle (TL,caterpillar etc images srcfiles
-
-var obstacle_srcFiles = [];
-obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){ 
-    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
-}
-
-obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<obstacle_srcFiles.length; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = obstacle_srcFiles[i];
-}
-
-// Traffic light images
+// init traffic light images
 
 traffLightRedImg = new Image();
 traffLightRedImg.src='figs/trafficLightRed_affine.png';
@@ -435,33 +421,37 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
+// init obstacle images
 
-// road section images 
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
+for (var i=0; i<10; i++){
+    obstacleImgs[i]=new Image();
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
+}
 
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
+
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
 
 roadImg1 = new Image();
-roadImg1.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWith_srcFile
-	: (nLanes_main===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
+roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
-roadImg2.src=(nLanes_main===1)
-	? road1lanes_srcFile
-	: (nLanes_main===2) ? road2lanesWithout_srcFile
-	: (nLanes_main===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
+roadImg2=roadImgs2[nLanes_main-1];
 
 rampImg = new Image();
-rampImg.src='figs/road1lanesCrop.png';
+rampImg=roadImgs1[nLanes_rmp-1];
+
 
 
 //####################################################################
@@ -472,7 +462,7 @@ var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
-			   20,20,true);
+			   40,40,true);
 
 
 //############################################
@@ -488,7 +478,7 @@ var dt=timewarp/fps;
 
 
 //#################################################################
-function updateU(){
+function updateSim(){
 //#################################################################
 
     // update times
@@ -519,20 +509,20 @@ function updateU(){
    mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
 			    false);
 
-    deviation.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    deviation.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
 
     // implement flow-conserving bottleneck 
     // arg list: (umin,umax, CFModelCar,CFModelTruck)
-    deviation.setCFModelsInRange(udevBottlBeg,udevBottlEnd,
+    ramp.setCFModelsInRange(udevBottlBeg,udevBottlEnd,
 				 longModelBottl,longModelBottl);
 
     // externally impose mandatory LC behaviour
     // all deviation vehicles must change lanes to the left (last arg=false)
-    deviation.setLCMandatory(lDev-lrampDev, lDev, false);
+    ramp.setLCMandatory(lDev-lrampDev, lDev, false);
 
 
 
@@ -547,10 +537,10 @@ function updateU(){
     mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
 
 
-    deviation.updateLastLCtimes(dt); // needed since LC from main road!!
-    deviation.calcAccelerations();  
-    deviation.updateSpeedPositions();
-    deviation.updateBCdown();
+    ramp.updateLastLCtimes(dt); // needed since LC from main road!!
+    ramp.calcAccelerations();  
+    ramp.updateSpeedPositions();
+    ramp.updateBCdown();
 
     var du_antic=20; //shift anticipation decision point upstream by du_antic
 
@@ -558,39 +548,39 @@ function updateU(){
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
 
-    mainroad.mergeDiverge(deviation,-umainDiverge,
+    mainroad.mergeDiverge(ramp,-umainDiverge,
 			  umainDiverge+taperLen,
 			  umainDiverge+lrampDev-du_antic,
 			  false,true);
-    deviation.mergeDiverge(mainroad, umainMerge-(deviation.roadLen-lrampDev),
-			   deviation.roadLen-lrampDev, 
-			   deviation.roadLen-taperLen, 
+    ramp.mergeDiverge(mainroad, umainMerge-(ramp.roadLen-lrampDev),
+			   ramp.roadLen-lrampDev, 
+			   ramp.roadLen-taperLen, 
 			   true,false);
  
 
 
     //logging
 
-    //deviation.writeVehiclesSimple();
+    //ramp.writeVehiclesSimple();
 
     if(false){
-        console.log("\nafter updateU: itime="+itime+" deviation.nveh="+deviation.nveh);
-	for(var i=0; i<deviation.veh.length; i++){
-	    console.log("i="+i+" deviation.veh[i].u="+deviation.veh[i].u
-			+" deviation.veh[i].v="+deviation.veh[i].v
-			+" deviation.veh[i].lane="+deviation.veh[i].lane
-			+" deviation.veh[i].laneOld="+deviation.veh[i].laneOld);
+        console.log("\nafter updateSim: itime="+itime+" ramp.nveh="+ramp.veh.length);
+	for(var i=0; i<ramp.veh.length; i++){
+	    console.log("i="+i+" ramp.veh[i].u="+ramp.veh[i].u
+			+" ramp.veh[i].v="+ramp.veh[i].v
+			+" ramp.veh[i].lane="+ramp.veh[i].lane
+			+" ramp.veh[i].laneOld="+ramp.veh[i].laneOld);
 	}
  	console.log("\n");
     }
 
-}//updateU
+}//updateSim
 
 
 
 
 //##################################################
-function drawU() {
+function drawSim() {
 //##################################################
 
 
@@ -620,7 +610,7 @@ function drawU() {
 
 	updatePhysicalDimensions();
         mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
-        deviation.gridTrajectories(trajDeviation_x,trajDeviation_y);
+        ramp.gridTrajectories(trajRamp_x,trajRamp_y);
     }
 
  
@@ -653,17 +643,17 @@ function drawU() {
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
-    deviation.draw(rampImg,rampImg,scale,changedGeometry);
-    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+    ramp.draw(rampImg,rampImg,scale,changedGeometry);
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
  
-    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin_col,vmax_col,0,lrampDev);
-    deviation.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			   vmin_col,vmax_col,lDev-lrampDev, lDev);
 
     // (5) !!! draw depot vehicles
@@ -706,7 +696,7 @@ function drawU() {
 
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
-}// drawU
+}// drawSim
  
 
  //##################################################
@@ -714,8 +704,8 @@ function drawU() {
 //##################################################
 
 function main_loop() {
-    updateU();
-    drawU();
+    updateSim();
+    drawSim();
     userCanvasManip=false;
 }
  

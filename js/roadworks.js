@@ -113,7 +113,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var nLanes=2;
+var nLanes_main=2;
 
 var car_length=7; // car length in m
 var car_width=5; // car width in m
@@ -155,10 +155,10 @@ function traj_y(u){ // physical coordinates
 var isRing=false;  // 0: false; 1: true
 var roadID=1;
 var speedInit=20; // IC for speed
-var truckFracToleratedMismatch=0.2; // open system: updateU:  need tolerance,
+var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
              // otherwise sudden changes with new incoming/outgoing vehicles
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
 
 //#########################################################
@@ -219,41 +219,59 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 //#########################################################
 
 
-// background image
-
-background = new Image();
-background.src='figs/backgroundGrass.jpg'; 
 
 
-// vehicle image(s)
+// init background image
+
+var background = new Image();
+background.src ='figs/backgroundGrass.jpg'; 
+ 
+
+// init vehicle image(s)
 
 carImg = new Image();
-carImg.src='figs/blackCarCropped.gif';
+carImg.src = 'figs/blackCarCropped.gif';
 truckImg = new Image();
-truckImg.src='figs/truck1Small.png';
+truckImg.src = 'figs/truck1Small.png';
 
 
-// obstacle (TL,caterpillar etc images srcfiles
-
-var obstacle_srcFiles = [];
-obstacle_srcFiles[0]='figs/obstacleImg.png'; // standard black bar or nothing
-for (var i=1; i<10; i++){ //!!!
-    obstacle_srcFiles[i]="figs/constructionVeh"+i+".png";
-    console.log("i=",i," obstacle_srcFiles[i]=", obstacle_srcFiles[i]);
-}
-
-obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<obstacle_srcFiles.length; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = obstacle_srcFiles[i];
-}
-
-// Traffic light images
+// init traffic light images
 
 traffLightRedImg = new Image();
 traffLightRedImg.src='figs/trafficLightRed_affine.png';
 traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
+
+
+// init obstacle images
+
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
+for (var i=0; i<10; i++){
+    obstacleImgs[i]=new Image();
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
+}
+
+
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
+
+roadImg1 = new Image();
+roadImg1=roadImgs1[nLanes_main-1];
+roadImg2 = new Image();
+roadImg2=roadImgs2[nLanes_main-1];
+
+
 
 
 //speedlimit images 
@@ -269,32 +287,6 @@ speedL_srcFiles[13]=speedL_free_srcFile;
 var speedlimitImg = new Image();  // defined just in time in sim threed 
 
 
-// road section images 
-
-var road1lanes_srcFile='figs/road1lanesCrop.png';
-var road2lanesWith_srcFile='figs/road2lanesCropWith.png';
-var road3lanesWith_srcFile='figs/road3lanesCropWith.png';
-var road4lanesWith_srcFile='figs/road4lanesCropWith.png';
-var road2lanesWithout_srcFile='figs/road2lanesCropWithout.png';
-var road3lanesWithout_srcFile='figs/road3lanesCropWithout.png';
-var road4lanesWithout_srcFile='figs/road4lanesCropWithout.png';
-
-roadImg1 = new Image();
-roadImg1.src=(nLanes===1)
-	? road1lanes_srcFile
-	: (nLanes===2) ? road2lanesWith_srcFile
-	: (nLanes===3) ? road3lanesWith_srcFile
-	: road4lanesWith_srcFile;
-
-roadImg2 = new Image();
-roadImg2.src=(nLanes===1)
-	? road1lanes_srcFile
-	: (nLanes===2) ? road2lanesWithout_srcFile
-	: (nLanes===3) ? road3lanesWithout_srcFile
-	: road4lanesWithout_srcFile;
-
-
-
 //####################################################################
 //!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
@@ -303,7 +295,7 @@ var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
-			   20,20,true);
+			   30,30,true);
 
 
 
@@ -320,7 +312,7 @@ var dt=timewarp/fps;
 
 
 //#################################################################
-function updateU(){
+function updateSim(){
 //#################################################################
 
 
@@ -372,13 +364,13 @@ function updateU(){
     }
 
 
-}//updateU
+}//updateSim
 
 
 
 
 //##################################################
-function drawU() {
+function drawSim() {
 //##################################################
 
     /* (0) redefine graphical aspects of road (arc radius etc) using
@@ -465,7 +457,7 @@ function drawU() {
 	console.log("speedlimitImg.src=",speedlimitImg.src);
 
 	var sizeSignPix=0.12*refSizePix;
-	var vOffset=-1.8*nLanes*laneWidth; // in v direction, pos if right
+	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
 
 	var xPix=mainroad.get_xPix(0.16*mainroadLen,vOffset,scale);
 	var yPix=mainroad.get_yPix(0.16*mainroadLen,vOffset,scale);
@@ -517,7 +509,7 @@ function drawU() {
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
  
-} // drawU
+} // drawSim
  
 
  //##################################################
@@ -525,8 +517,8 @@ function drawU() {
 //##################################################
 
 function main_loop() {
-    updateU();
-    drawU();
+    updateSim();
+    drawSim();
     userCanvasManip=false;
 }
  

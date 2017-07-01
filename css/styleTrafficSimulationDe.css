@@ -213,12 +213,32 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2d) position of the enforce truck overtaking ban in uphill scen*/
+/* (2d) add/subtract one lane: just to the left of start/stop button */
+
+#lanePlusDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 7vmin;
+  left: 91vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#laneMinusDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 7vmin;
+  left: 81vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2e) position of the enforce truck overtaking ban in uphill scen*/
 
 #buttonsInsideSimulations{
   position: absolute;
   top: 6vmin;
-  left: 50vmin;
+  left: 40vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
@@ -414,7 +434,7 @@ img.title{
 #buttonsInsideSimulations{
   position: absolute;
   top: 6vmin;
-  left: 40vmin;
+  left: 30vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 

@@ -57,7 +57,7 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
     this.lVeh=lVeh;
     this.wVeh=wVeh;
     this.containsObstacles=containsObstacles;
-    this.gapRel=-0.1; // lateral gap [veh width] between the vehicles in the depot
+    this.gapRel=0.02; // lateral gap [veh width] between the vehicles in the depot
 
     // determine vehicle id and image number
 

@@ -60,9 +60,10 @@ var secondaryRoad;     // defined in onmouseenter callback
 
 function defineSecondaryRoad(event){
     isNetworkScenario=true;
-    if(scenarioString==="OnRamp"){secondaryRoad=onramp;}
-    else if(scenarioString==="OffRamp"){secondaryRoad=offramp;}
-    else if(scenarioString==="Deviation"){secondaryRoad=deviation;}
+    if((scenarioString==="OnRamp")||(scenarioString==="OffRamp")
+       || (scenarioString==="Deviation")){
+	   secondaryRoad=ramp;
+    }
     else {
 	isNetworkScenario=false;
 	secondaryRoad='undefined';
@@ -383,13 +384,13 @@ function handleDependencies(){
 
         // update end-ramp obstacle and ramp->main offset
 
-	onramp.veh[0].u=onramp.roadLen-0.6*taperLen; // shift end-obstacle
+	ramp.veh[0].u=ramp.roadLen-0.6*taperLen; // shift end-obstacle
 
         // search mainroad u-point nearest to merging point of onramp
 
-	var uMainNearest=onramp.getNearestUof(mainroad, 
-					      onramp.roadLen-mergeLen);
-	mainRampOffset=uMainNearest-(onramp.roadLen-mergeLen);
+	var uMainNearest=ramp.getNearestUof(mainroad, 
+					      ramp.roadLen-mergeLen);
+	mainRampOffset=uMainNearest-(ramp.roadLen-mergeLen);
 
     }
 
@@ -398,9 +399,9 @@ function handleDependencies(){
         // search mainroad u-point nearest to diverging point of onramp
         // and update offrampInfo
 
-	var uMainNearest=offramp.getNearestUof(mainroad,divergeLen);
+	var uMainNearest=ramp.getNearestUof(mainroad,divergeLen);
 	mainOffOffset=uMainNearest-divergeLen;
-	offrampLastExits=[mainOffOffset+divergeLen];
+	rampLastExits=[mainOffOffset+divergeLen];
 	mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
 
     }
@@ -415,13 +416,13 @@ function handleDependencies(){
        // (iii) end-deviation obstacle at onramp 
        // described by umainDiverge,umainMerge
 
-	umainDiverge=deviation.getNearestUof(mainroad,lrampDev)-lrampDev;
-	umainMerge=deviation.getNearestUof(mainroad,
-					   deviation.roadLen-lrampDev);
+	umainDiverge=ramp.getNearestUof(mainroad,lrampDev)-lrampDev;
+	umainMerge=ramp.getNearestUof(mainroad,
+					   ramp.roadLen-lrampDev);
 	offrampLastExits=[umainDiverge+lrampDev];
 	mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
 
-	deviation.veh[0].u=deviation.roadLen-0.6*taperLen;
+	ramp.veh[0].u=ramp.roadLen-0.6*taperLen;
 
 	console.log("after canvas_gui.handleDependencies for \"Deviation\"",
 		    "\n   umainMerge=",umainMerge,
@@ -494,18 +495,18 @@ function dragRoad(xUser,yUser){
 
     else if(scenarioString==="OnRamp"){
 
-	var otherRoad=(draggedRoad===mainroad) ? onramp : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
 
         // uBeginRamp always fixed since mergeLen fixed 
-        // and merge always at the end of the onramp
+        // and merge always at the end of the ramp
  
-	var uBeginRamp=onramp.roadLen-mergeLen; 
-	var uBeginMain=onramp.getNearestUof(mainroad,uBeginRamp); 
+	var uBeginRamp=ramp.roadLen-mergeLen; 
+	var uBeginMain=ramp.getNearestUof(mainroad,uBeginRamp); 
 	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
 	console.log(
 	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad===mainroad) ? "mainroad" : "onramp"),
-	    "\n  uBeginRamp=",uBeginRamp," rampLen=",onramp.roadLen,
+	    ((draggedRoad===mainroad) ? "mainroad" : "ramp"),
+	    "\n  uBeginRamp=",uBeginRamp," rampLen=",ramp.roadLen,
 	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
 	    "\n   uBegin=",uBegin);
 
@@ -516,15 +517,15 @@ function dragRoad(xUser,yUser){
 
     else if(scenarioString==="OffRamp"){ // divergeLen constant
 
-	var otherRoad=(draggedRoad===mainroad) ? offramp : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
 
 	var uBeginRamp=0; // begin diverge=>ramp.u=0
-	var uBeginMain=offramp.getNearestUof(mainroad,divergeLen)-divergeLen; 
+	var uBeginMain=ramp.getNearestUof(mainroad,divergeLen)-divergeLen; 
 	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
 	console.log(
 	    "canvas.dragRoad: draggedRoad=",
 	    ((draggedRoad===mainroad) ? "mainroad" : "offramp"),
-	    "\n   uBeginRamp=",uBeginRamp," rampLen=",offramp.roadLen,
+	    "\n   uBeginRamp=",uBeginRamp," rampLen=",ramp.roadLen,
 	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
 	    "\n   uBegin=",uBegin);
 
@@ -537,17 +538,17 @@ function dragRoad(xUser,yUser){
 
     else if(scenarioString==="Deviation"){
 
-	var otherRoad=(draggedRoad===mainroad) ? deviation : mainroad;
+	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
 
 	var uBeginDivergeRamp=0; // begin diverge=>ramp.u=0
 	var uBeginDivergeMain
-	    =deviation.getNearestUof(mainroad,lrampDev)-lrampDev;
+	    =ramp.getNearestUof(mainroad,lrampDev)-lrampDev;
 	var uBeginDiverge=(draggedRoad===mainroad)
 	    ? uBeginDivergeMain : uBeginDivergeRamp;
 
-	var uBeginMergeRamp=deviation.roadLen-lrampDev;
+	var uBeginMergeRamp=ramp.roadLen-lrampDev;
 	var uBeginMergeMain
-	    =deviation.getNearestUof(mainroad,deviation.roadLen-lrampDev);
+	    =ramp.getNearestUof(mainroad,ramp.roadLen-lrampDev);
 	var uBeginMerge=(draggedRoad===mainroad)
 	    ? uBeginMergeMain : uBeginMergeRamp;
 
@@ -561,12 +562,12 @@ function dragRoad(xUser,yUser){
 	    "canvas.dragRoad: draggedRoad=",
 	    ((draggedRoad===mainroad) ? "mainroad" : "deviation"),
 	    "\n   uBeginDivergeRamp=",uBeginDivergeRamp,
-	    " rampLen=",deviation.roadLen,
+	    " rampLen=",ramp.roadLen,
 	    "\n   uBeginDivergeMain=",uBeginDivergeMain,
 	    " mainLen=",mainroad.roadLen,
 	    "\n   uBeginDiverge=",uBeginDiverge,
 	    "\n   uBeginMergeRamp=",uBeginMergeRamp,
-	    " rampLen=",deviation.roadLen,
+	    " rampLen=",ramp.roadLen,
 	    "\n   uBeginMergeMain=",uBeginMergeMain,
 	    " mainLen=",mainroad.roadLen,
 	    "\n   uBeginMerge=",uBeginMerge,
