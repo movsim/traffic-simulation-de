@@ -46,16 +46,17 @@ but document.getElementById("infotext").load("info_ring.html"); does not work
 */
 
 var infoLevel=0;
-var nLevels=4;
+var nLevels=5;
 function showInfo(){ 
-    var scenarioFile="info_"+scenarioString+".html";
-    var scenarioFile_ger="info_"+scenarioString+"_ger.html";
-    console.log("infoLevel=",infoLevel);
+    var scenarioFile="info/info_"+scenarioString+".html";
+    console.log("scenarioFile=",scenarioFile);
+    //console.log("infoLevel=",infoLevel);
 
-    if(infoLevel===0){$("#infotext").load("info_gui.html");}
+    if(infoLevel===0){$("#infotext").load("info/info_gui.html");}
     else if(infoLevel===1){$("#infotext").load(scenarioFile);}
-    else if(infoLevel===2){$("#infotext").load("info_IDM.html");}
-    else if(infoLevel===3){$("#infotext").load("info_MOBIL.html");}
+    else if(infoLevel===2){$("#infotext").load("info/info_IDM.html");}
+    else if(infoLevel===3){$("#infotext").load("info/info_MOBIL.html");}
+    else if(infoLevel===4){$("#infotext").load("info/info_BC.html");}
     infoLevel++; infoLevel=(infoLevel%nLevels);
 }
 

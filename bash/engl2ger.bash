@@ -13,8 +13,8 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-#projects="ring onramp offramp roadworks uphill routing"
-projects="ring"
+projects="ring onramp offramp roadworks uphill routing"
+#projects="ring"
 
 cd $startDir
 
@@ -31,11 +31,20 @@ cd $startDir
 
 
 
-htmlfilesGer=""
+
+# copy+change strings for German version of control js files
 
 cp js/redirect.js js/redirect_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
 
+cp js/control_gui.js js/control_gui_ger.js
+perl -i -p -e "s/\.html/_ger.html/g" js/control_gui_ger.js
+
+
+# copy+change strings for project-specific German js and html files 
+
+htmlfilesGer=""
+jsFilesGer=""
 
 for proj in $projects; do
     
@@ -54,21 +63,22 @@ for proj in $projects; do
 
   # backup
 
-#  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
-#  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
+  #  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
+  #  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
 
 
 
-  # copy engl->ger files and do project-specific replacements
-
-  htmlfilesGer="$htmlfilesGer $htmlfile_ger"
   cp $htmlfile $htmlfile_ger
+  htmlfilesGer="$htmlfilesGer $htmlfile_ger"
+
   cp js/${proj}.js js/${proj}_ger.js
+  jsfilesGer="$jsfilesGer js/${proj}_ger.js"
 
   perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $htmlfile_ger
   perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
 
 done
+
 
 #############################################
 # change html files
@@ -95,6 +105,10 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/\>Density\</>Dichte</g' $file
   perl -i -p -e 's/\>Density\/lane\</>Dichte\/Spur</g' $file
   perl -i -p -e 's/\>Scale\</>Skala</g' $file
+
+  perl -i -p -e 's/Traffic_Flow_and_General\.png\" width=\"65\%\"/Verkehrsfluss\.png\" width=\"40\%\"/g' $file
+  perl -i -p -e 's/Car-Following_Behavior\.png\" width=\"60\%\"/Fahrstil-Parameter\.png\" width=\"55\%\"/g' $file
+  perl -i -p -e 's/Lane-Changing_Behavior\.png\" width=\"60\%\"/Spurwechsel-Parameter\.png\" width=\"65\%\"/g' $file
 
   perl -i -p -e 's/Truck Fraction/LKW-Anteil/g' $file
   perl -i -p -e 's/Truck Perc/LKW-Anteil/g' $file
@@ -125,9 +139,9 @@ done
 # change js files (incl link targets in redirect.js)
 #############################################
 
-jsfiles="js/redirect_ger.js js/${proj}_ger.js"
+#jsfiles="js/redirect_ger.js js/${proj}_ger.js"
 
-for file in "$jsfiles"; do
+for file in "$jsfilesGer"; do
   perl -i -p -e 's/times\"/fach\"/g' $file
   perl -i -p -e 's/lane\"/Spur\"/g' $file
   perl -i -p -e 's/\" veh/\" Fz/g' $file
@@ -135,7 +149,7 @@ for file in "$jsfiles"; do
 
 
   perl -i -p -e 's/\"Resume\"/\"Weiter\"/g' $file
-  perl -i -p -e 's/\"Time=/\"Zeit=/g' $file
+  perl -i -p -e 's/\"Time\=/\"Zeit=/g' $file
   perl -i -p -e 's/\"timewarp=/\"Zeitraffer=/g' $file
   perl -i -p -e 's/\"density=/\"Dichte=/g' $file
   perl -i -p -e 's/\"scale=/\"Skala=/g' $file

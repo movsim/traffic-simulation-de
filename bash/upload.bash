@@ -17,7 +17,7 @@ $startDir/bash/engl2ger.bash
 #############################################
 
 projects="ring onramp offramp roadworks uphill routing"
-targetDir="$startDir/trafficSimulationLocalVersion_`date +20%y_%m_%d`"
+targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 # targetDir="$startDir/trafficSimulationLocalVersion"
 
 cd $startDir
@@ -38,7 +38,7 @@ mkdir $targetDir/js
 #############################################
 
 
-html_files="impressum.html info_ring.html info_gui.html info_onramp.html info_IDM.html info_MOBIL.html info_links.html"
+html_files="impressum.html"  #just start
 
 for proj in $projects; do
   htmlfile="${proj}.html"
@@ -74,7 +74,7 @@ cd $startDir
 cp -rp css $targetDir
 cp -rp figs $targetDir
 cp -rp icons $targetDir
-#cp -rp info $targetDir
+cp -rp info $targetDir
 
 
 #echo "packing target in a zip file for allowing the users local runs ..."
@@ -90,6 +90,7 @@ echo "Testing uploaded package:"
 #echo "notice: zip download of sources only works in upload target"
 firefox $targetDir/index.html
 
+exit
 
 #############################################
 # (5) prepare for upload

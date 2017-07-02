@@ -15,8 +15,15 @@
 ## Figure files (no longer)
 #*.fig
 
-## generated files 
-*_ger.html
+## generated files (not info/info_*.html !)
+index_ger.html
+offramp_ger.html
+onramp_ger.html
+roadworks_ger.html
+routing_ger.html
+uphill_ger.html
+
+
 *_ger.js
 *~
 int
@@ -33,6 +40,7 @@ bash/generateSpiffyTrafficSim2.README
 bash/generateSpiffyTrafficSim2.sh.old
 old
 css_old
+info_old
 trafficSimulationLocalVersion
 testNetwork
 js/save
