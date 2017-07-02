@@ -233,6 +233,15 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+#debugDiv{
+  position: absolute;
+  top: 25vmin;
+  height: 15vmin;
+  left: 100vmin;
+  width: 15vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 /* (2e) position of the enforce truck overtaking ban in uphill scen*/
 
 #buttonsInsideSimulations{

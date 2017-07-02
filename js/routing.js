@@ -18,6 +18,20 @@ slider_IDM_a.value=IDM_a;
 slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
+MOBIL_bBiasRight_car=0.0
+slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
+slider_MOBIL_bBiasRight_carVal.innerHTML
+	=MOBIL_bBiasRight_car+" m/s<sup>2</sup>";
+
+MOBIL_bBiasRight_truck=0.0
+slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
+slider_MOBIL_bBiasRight_truckVal.innerHTML
+	=MOBIL_bBiasRight_truck+" m/s<sup>2</sup>";
+
+MOBIL_bThr=0.0
+slider_MOBIL_bThr.value=MOBIL_bThr;
+slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
+
 
 MOBIL_mandat_bSafe=15; // standard 42
 MOBIL_mandat_bThr=0;   
@@ -574,6 +588,15 @@ function updateSim(){
  	console.log("\n");
     }
 
+     //!!!
+    if(depotVehZoomBack){
+	var res=depot.zoomBackVehicle();
+	depotVehZoomBack=res;
+	userCanvasManip=true;
+    }
+
+
+
 }//updateSim
 
 
@@ -645,8 +668,11 @@ function drawSim() {
 
     ramp.draw(rampImg,rampImg,scale,changedGeometry);
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
+
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing

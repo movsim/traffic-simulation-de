@@ -384,7 +384,9 @@ function updateSim(){
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
-    //!!!
+    //!!!  without this zoomback cmd, everything works but depot vehicles
+    // just stay where they have been dropped outside of a road
+
     if(depotVehZoomBack){
 	var res=depot.zoomBackVehicle();
 	depotVehZoomBack=res;

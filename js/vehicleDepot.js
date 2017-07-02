@@ -56,6 +56,8 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
     this.yDepot=yDepot;
     this.lVeh=lVeh;
     this.wVeh=wVeh;
+    this.lVehRoad=0.5*lVeh;
+    this.wVehRoad=0.5*wVeh;
     this.containsObstacles=containsObstacles;
     this.gapRel=0.02; // lateral gap [veh width] between the vehicles in the depot
 
@@ -81,6 +83,8 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
 			 type:      (containsObstacles) ? "obstacle" : "car",
 			 lVeh:      this.lVeh,
 			 wVeh:      this.wVeh,
+			 lVehRoad:  this.lVehRoad,
+			 wVehRoad:  this.wVehRoad,
 			 inDepot:   true,
 			 x:         xVehDepot, 
 		         y:         yVehDepot, 
@@ -120,7 +124,7 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
 vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
     ctx = canvas.getContext("2d");
 
-    var lPix=scale*this.lVeh; // vehicle length in pixels
+    var lPix=scale*this.lVeh; // vehicle length in pixels (depot lVeh,wVeh)
     var wPix=scale*this.wVeh;
 
     for (var i=0; i<this.nveh; i++){

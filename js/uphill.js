@@ -454,6 +454,7 @@ function drawSim() {
     
      var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
      mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+     mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  
