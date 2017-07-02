@@ -354,7 +354,7 @@ for (var i=0; i<mainroad.veh.length; i++){
 
 var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*taperLen, 0, 0, "obstacle");
 
-// need longmodel because of lags!
+// need longmodel because of lagVeh!
 var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 var LCModelObstacle=undefined;//new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
