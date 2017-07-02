@@ -4,32 +4,19 @@
 // adapt standard param settings from control_gui.js
 //#############################################################
 
+// manually delete highscores from disk; comment out if online!
+
+//deleteHighscores("routingGame_Highscores");
+
+// further routing game controls in control_gui.js
+
+
+
 qIn=qInInit=2500./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 var isGame=false;
-
-function playRoutingGame(){
-    isGame=true;
-    time=0;
-    itime=0;
-    var nregular=mainroad.nRegularVehs();
-    console.log("nregular=",nregular);
-    mainroad.removeRegularVehs();
-    ramp.removeRegularVehs();
-}
-
-function updateGame(time){
-    qIn=(time<250) ? 2500/3600 : 0;
-    //qIn=time;
-    slider_qIn.value=3600*qIn;
-    slider_qInVal.innerHTML=3600*qIn+" veh/h";
-    //console.log("in qInGame(time), time=",time,
-//		" qIn=",qIn," slider_qIn.value=",slider_qIn.value);
-
-}
-
 
 truckFrac=0.15;
 slider_truckFrac.value=100*truckFrac;
@@ -524,7 +511,7 @@ function updateSim(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
     if(isGame){
-	updateGame(time);
+	updateRoutingGame(time);
 	if(false){
 	    console.log("in game: time=",time," qIn=",qIn,
 		    " mainroad: ",mainroad.nRegularVehs(),"vehicles",
@@ -533,10 +520,7 @@ function updateSim(){
 
 	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
 	   &&(time>30)){ // last cond necessary since initially regular vehs
-	    isGame=false;
-	    qIn=qInInit;
-	    console.log("Game finished in ",time," seconds!");
-	    myStartStopFunction(); // reset game
+	    finishRoutingGame();
 	}
 
     }

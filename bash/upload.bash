@@ -22,7 +22,7 @@ targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
 cd $startDir
 
-echo "preparingtarget Directory $targetDir"
+echo "preparing target Directory $targetDir"
 
 if test -d $targetDir; 
   then echo "$targetDir already exists; removing old files..."
@@ -53,7 +53,7 @@ for proj in $projects; do
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done
 
-js_files="colormanip.js models.js paths.js redirect.js redirect_ger.js road.js vehicle.js canvas_gui.js control_gui.js vehicleDepot.js"
+js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
@@ -66,11 +66,14 @@ done
 
 echo "copying all relevant files into $targetDir ..."
 echo "html_files=$html_files"
+cd $startDir
 cp README.md $targetDir
 cp $html_files $targetDir
+
 cd $startDir/js
 cp $js_files $targetDir/js
 cd $startDir
+
 cp -rp css $targetDir
 cp -rp figs $targetDir
 cp -rp icons $targetDir

@@ -71,11 +71,14 @@ for proj in $projects; do
   cp $htmlfile $htmlfile_ger
   htmlfilesGer="$htmlfilesGer $htmlfile_ger"
 
+  # the following change cmd needs $proj$, 
+  # therefore here, not at the change block
+  perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
+
+
   cp js/${proj}.js js/${proj}_ger.js
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
 
-  perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $htmlfile_ger
-  perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
 
 done
 
@@ -88,6 +91,8 @@ echo "changing engl->german strings in some files ..."
 
 for file in $htmlfilesGer; do
 
+  perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $file
+  perl -i -p -e "s/control_gui\.js/control_gui_ger.js/g" $file
 
   perl -i -p -e 's/\>Ringroad\</>Ringstrasse</g' $file
   perl -i -p -e 's/de\: Ring Road/de: Ringstrasse/g' $file
@@ -134,6 +139,10 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/veh\/h/Fz\/h/g' $file
 done
 
+perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html
+
+perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html
+
 
 #############################################
 # change js files (incl link targets in redirect.js)
@@ -142,6 +151,7 @@ done
 #jsfiles="js/redirect_ger.js js/${proj}_ger.js"
 
 for file in "$jsfilesGer"; do
+
   perl -i -p -e 's/times\"/fach\"/g' $file
   perl -i -p -e 's/lane\"/Spur\"/g' $file
   perl -i -p -e 's/\" veh/\" Fz/g' $file
@@ -156,7 +166,8 @@ for file in "$jsfilesGer"; do
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
 
-perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html
 perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_ger.js
+
+perl -i -p -e 's/info_routimgGame\.html/info_routimgGame_ger.html/g' js/control_gui_ger.js
 
 cd $wd
