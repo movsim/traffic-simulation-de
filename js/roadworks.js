@@ -167,7 +167,7 @@ var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 
 // number of virtual "roadwork" vehicles
 
-var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for lagVeh!
 //var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 

@@ -2272,6 +2272,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var log=false;
     if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
 
+
     // (1) get neighbourhood
 
     var uNewStart=uBegin+offset;
@@ -2337,8 +2338,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 				+" duFollower="+duFollower);
 
 		}
-
 	      }
+
 
               // get input variables for MOBIL
 
@@ -2373,10 +2374,14 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      }
 	      if(success){iMerge=i;}
 
+              // test: should pnly list reg vehicles with mergeAhead=true; 
+              // check its number if suspicious happens with this var !!
 
-	      if(success&&log){
+	      //if(success&&log){
+	      if(true){
 		console.log("testing origin veh "+i +" type="
 			    +originVehicles[i].type+" uTarget="+uTarget);
+		console.log("divergeAhead=",originVehicles[i].divergeAhead);
 	        console.log("  sNew="+sNew+" sLagNew="+sLagNew);
 	        console.log("  speed="+speed +" speedLagNew="+speedLagNew);
 	        console.log("  acc="+acc+" accNew="+accNew+" accLagNew="+accLagNew);

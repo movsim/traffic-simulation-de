@@ -193,7 +193,7 @@ var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
 var truck_width=7; 
-var laneRoadwork=nLanes_main-1;  // 0=left, nLanes_main-1=righyt
+var laneRoadwork=0;  // 0=left, nLanes_main-1=right // also setLCMandat chg!!
 var lenRoadworkElement=10;
 
 
@@ -353,8 +353,10 @@ for (var i=0; i<mainroad.veh.length; i++){
 // add standing virtual vehicle at the end of onramp (1 lane)
 
 var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*taperLen, 0, 0, "obstacle");
+
+// need longmodel because of lags!
 var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
+var LCModelObstacle=undefined;//new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
 virtualStandingVeh.longModel=longModelObstacle;
 virtualStandingVeh.LCModel=LCModelObstacle;
 ramp.veh.unshift(virtualStandingVeh); // prepending=unshift
@@ -520,8 +522,9 @@ function updateSim(){
     // implement strong urge to change lanes before roadworks
     // (umin,umax,toRight) !for all vehs in contrast to route based offramp
  
+
    mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
-			    false);
+			    true);
 
     ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
