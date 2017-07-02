@@ -1,40 +1,37 @@
-<h1>Longitudinal Traffic model: The Intelligent-Driver Model</h1>
+
+<h1>The Intelligent-Driver Model and its Variants</h1>
 <p>
-In this simulation, we have used the 
+The basis model for the longitudinal
+ dynamics, i.e., accelerations and braking decelerations of the
+ drivers, is the 
 <a href="http://xxx.uni-augsburg.de/abs/cond-mat/0002177">
-Intelligent-Driver Model (IDM)</a> to simulate the longitudinal
- dynamics, i.e., accelerations and braking decelerations of the drivers. 
-<br><br>
+Intelligent-Driver Model (IDM)</a>. In the actual simulation, we use a
+ variant of it, the Adaptive Cruise Control Model (ACC Model), see the
+ book <a href="http://www.springer.com/physics/complexity/book/978-3-642-32459-8">Traffic
+ Flow Dynamics</a>, Chapter 11 (it's a free sample chapter).
+<br>
 
 <h2> Model Structure </h2>
 
 <p> 
-The IDM is an <i>microscopic</i> traffic flow model, i.e., 
-each vehicle-driver combination constitutes an active "particle" in
-the simulation. Such model characterize the traffic state at any
-given time  by the positions and speeds of all simulated vehicles. In
-case of multi-lane traffic, the lane index complements the state
-description.
+The IDM and the ACC model are <i>car-following model</i>. In
+  such models, 
 
-<p> More specifically, the IDM is a <i>car-following model</i>. In
-  such models, the decision of any driver to accelerate or to
-brake depends only on his or her own speed, and
-on the position and speed of the "leading vehicle" immediately ahead.
-Lane-changing decisions, however,  depend on all  neighboring
-vehicles (see the lane-changing model <a href="./MOBIL.html">MOBIL</a>).
-
-<p>The model structure of the IDM can be described as follows:
 <ul class="red">
-<li> The influencing factors (model input) are the own speed v, the
-  bumper-to-bumper gap s to the leading vehicle, and the relative
-  speed (speed difference) Delta v of the two vehicles (positive when approaching).
-<li> The model output is the acceleration dv/dt chosen by the driver
+<li> The influencing factors (model input) are the own speed <i>v</i>, the
+  bumper-to-bumper gap <i>s</i> to the leading vehicle, and the relative
+  speed (speed difference) <i>&Delta; v</i> of the two vehicles (positive when approaching).
+<li> The model output is the acceleration <i>dv/dt</i> chosen by the driver
   for this situation.
 <li> The model <i> parameters</i> describe the driving style, i.e.,
   whether the simulated driver drives slow or fast, careful or
   reckless, and so on: They will be described in
   detail <a href="#IDMparameters">below.</a> 
 </ul>
+Notice that, in contrast to car-following,
+lane-changing decisions depend on all  neighboring
+vehicles (see the lane-changing model <a href="./info_MOBIL.html">MOBIL</a>).
+
 
 <h2> Model Equations </h2>
 
@@ -52,25 +49,34 @@ where
 <img src = "figs/IDMsstar.png" width="80%" align="center" 
                    alt = "relation for desired distance">
 </center>
-
-
 <p>
-The acceleration is divided into a "desired" acceleration 
-a [1&#8722; (<sup>v</sup>/<sub>v<sub>0</sub></sub>)<sup>delta</sup>] on a free
-road, and braking decelerations induced by the front vehicle.
+Furthermore, to close this system (one dynamical equation for the two
+unknown quantities v and s), the gap s obeys its own kinematic
+equation since the changing rate of the gap is just the relative speed:
+
+<br><br>
+<center>
+  <i>ds/dt=&#8722; &Delta; v</i>
+</center>
+<br><br>
+
+The IDM acceleration is divided into a "desired" acceleration 
+<i>a [1 &#8722; (<sup>v</sup>/<sub>v<sub>0</sub></sub>)<sup>&delta;</sup>]</i> on a free
+road (typically <i>&delta;=4</i>), 
+and braking decelerations induced by the front vehicle.
 The acceleration on a free road decreases from the initial
       acceleration a to zero when approaching the "desired speed"
-      v0.
+      <i>v<sub>0</sub></i>.
 <br><br>
 The braking term is based on a comparison between the "desired
-      dynamical distance" s<sup>*</sup>, and the actual gap s to the
+      dynamical distance" <i>s<sup>*</sup></i>, and the actual gap <i>s</i> to the
       preceding vehicle. If the actual gap is approximatively equal to
-      s<sup>*</sup>, then the breaking deceleration essentially
+      <i>s<sup>*</sup></i>, then the breaking deceleration essentially
       compensates the free acceleration part, so the resulting
-      acceleration is nearly zero. This means, s<sup>*</sup>
+      acceleration is nearly zero. This means, <i>s<sup>*</sup></i>
       corresponds to the gap when following other vehicles in steadily
       flowing traffic. 
-In addition, s<sup>*</sup> increases dynamically when
+In addition, <i>s<sup>*</sup></i> increases dynamically when
       approaching slower vehicles and decreases when the front vehicle
       is faster. As a consequence,
 the imposed deceleration increases with
@@ -92,13 +98,7 @@ the imposed deceleration increases with
   simultaneously.
 <li> They are coupled since, besides the speed v, the equations also
   contain the speed v<sub>l</sub>=v&#8722; Delta v of the leading
-  vehicle. Furthermore, the gap s obeys its own kinematic equation,
-<br><br>
-<center>
-  ds/dt=&#8722; Delta v
-</center>
-<br><br>
- coupling the gap s to the speeds of the two vehicles.
+  vehicle. 
 </ul>
 
 
@@ -106,30 +106,9 @@ the imposed deceleration increases with
 
 <a name = "IDMparameters"><h3> Model Parameters </h3> </a>
 
-The IDM has intuitive parameters:
-<ul class="red">
-<li> desired speed when driving on a free road, v0
-<li> desired safety time headway when following other vehicles, T
-<li> acceleration in everyday traffic, a
-<li> "comfortable" braking deceleration in everyday traffic, b
-<li> minimum bumper-to-bumper distance to the front vehicle, s0
-<li> acceleration exponent, delta.
-</ul>
-
-In general, every "driver-vehicle unit" can have its individual parameter
-apply    set, e.g.,
-<ul  class="red">
-<li> trucks are characterized by low values of v0, a, and b,
-<li> careful drivers drive at a high safety time headway T,
-<li> aggressive ("pushy") drivers
-are characterized by a low T in connection
-	with high values
-	of v0, a, and b.
-</ul>
-Often two different types are sufficient to show the main phenomena.
-The standard parameters used in the simulations are the following:
-<br>
-<br>
+The IDM and the ACC model has intuitive parameters as displayed in following
+table:
+<br><br>
 <!-- ######################################## -->
 
 <center>
@@ -182,6 +161,20 @@ The standard parameters used in the simulations are the following:
 </center>
 
 <br>
+In general, every "driver-vehicle unit" can have its individual parameter
+apply    set, e.g.,
+<ul  class="red">
+<li> trucks are characterized by low values of v0, a, and b,
+<li> careful drivers drive at a high safety time headway T,
+<li> aggressive ("pushy") drivers
+are characterized by a low T in connection
+	with high values
+	of v0, a, and b.
+</ul>
+Often two different types are sufficient to show the main phenomena.
+The standard parameters used in the simulations are the following:
+<br>
+
 <!-- ######################################## -->
 
 

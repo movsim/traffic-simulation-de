@@ -48,15 +48,23 @@ but document.getElementById("infotext").load("info_ring.html"); does not work
 var infoLevel=0;
 var nLevels=4;
 function showInfo(){ 
+    var scenarioFile="info_"+scenarioString+".html";
+    var scenarioFile_ger="info_"+scenarioString+"_ger.html";
     console.log("infoLevel=",infoLevel);
-    //var infopanel=document.getElementById("infotext");
+
     if(infoLevel===0){$("#infotext").load("info_gui.html");}
-    else if(infoLevel===1){$("#infotext").load("info_onramp.html");}
+    else if(infoLevel===1){$("#infotext").load(scenarioFile);}
     else if(infoLevel===2){$("#infotext").load("info_IDM.html");}
     else if(infoLevel===3){$("#infotext").load("info_MOBIL.html");}
     infoLevel++; infoLevel=(infoLevel%nLevels);
 }
 
+
+// w/o scrollTo, the page is not shown at top, even with html#name mechanism!
+
+function showHTMLfile(htmlfile){
+    $("#infotext").load(htmlfile);$("#infotext").scrollTop(0);
+}
 
 /*#########################################################
  lane add/subtract callbacks
