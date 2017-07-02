@@ -93,7 +93,6 @@ echo "Testing uploaded package:"
 #echo "notice: zip download of sources only works in upload target"
 firefox $targetDir/index.html
 
-exit
 
 #############################################
 # (5) prepare for upload
