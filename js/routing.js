@@ -4,9 +4,31 @@
 // adapt standard param settings from control_gui.js
 //#############################################################
 
-qIn=3500./3600; 
+qIn=qInInit=2500./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
+
+var isGame=false;
+
+function playRoutingGame(){
+    isGame=true;
+    time=0;
+    itime=0;
+    var nregular=mainroad.nRegularVehs();
+    console.log("nregular=",nregular);
+    mainroad.removeRegularVehs();
+    ramp.removeRegularVehs();
+}
+
+function updateGame(time){
+    qIn=(time<250) ? 2500/3600 : 0;
+    //qIn=time;
+    slider_qIn.value=3600*qIn;
+    slider_qInVal.innerHTML=3600*qIn+" veh/h";
+    //console.log("in qInGame(time), time=",time,
+//		" qIn=",qIn," slider_qIn.value=",slider_qIn.value);
+
+}
 
 
 truckFrac=0.15;
@@ -110,7 +132,7 @@ var mainroadLen=arcLen+2*straightLen;
 
 var laneWidth=7;  // needed to define deviation geometry 
 var laneWidthRamp=5;
-var nLanes_main=3;
+var nLanes_main=2;
 var nLanes_rmp=1;
 
 var umainDiverge=0.65*straightLen-0.15*arcLen; // main coord where diverge zone ends
@@ -501,7 +523,23 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    if(isGame){
+	updateGame(time);
+	if(false){
+	    console.log("in game: time=",time," qIn=",qIn,
+		    " mainroad: ",mainroad.nRegularVehs(),"vehicles",
+		    " deviation: ",ramp.nRegularVehs(),"vehicles");
+	}
 
+	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
+	   &&(time>30)){ // last cond necessary since initially regular vehs
+	    isGame=false;
+	    qIn=qInInit;
+	    console.log("Game finished in ",time," seconds!");
+	    myStartStopFunction(); // reset game
+	}
+
+    }
 
 
     // transfer effects from slider interaction and mandatory regions
@@ -523,7 +561,7 @@ function updateSim(){
     // (umin,umax,toRight) !for all vehs in contrast to route based offramp
  
 
-   mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
+    mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
 			    true);
 
     ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);

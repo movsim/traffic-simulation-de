@@ -384,6 +384,37 @@ road.prototype.update_nSegm_tabxy=function(){
 
 }
 
+
+
+//######################################################################
+// change number of lanes
+//######################################################################
+
+road.prototype.addOneLane = function(){
+    this.nLanes++;  // initially empty
+}
+
+// need to eliminate vehicles on the to be deleted lane
+// !! need to count backwards since array is changed in size during
+// its traversal; otherwise, not all old this.nveh.length vehs checked!
+
+road.prototype.subtractOneLane = function(){
+
+    for(var i=this.veh.length-1; i>=0; i--){ 
+	console.log("road.subtractOneLane: old nLanes=",this.nLanes);
+	if(this.veh[i].lane=== (this.nLanes-1)){
+	    this.veh.splice(i,1);
+	}
+    }
+    this.nLanes--; 
+}
+
+
+
+
+
+
+
 //######################################################################
 // write vehicle info
 //######################################################################
@@ -412,30 +443,6 @@ road.prototype.writeVehicles= function() {
 
 
 //######################################################################
-// change number of lanes
-//######################################################################
-
-road.prototype.addOneLane = function(){
-    this.nLanes++;  // initially empty
-}
-
-// need to eliminate vehicles on the to be deleted lane
-// !! need to count backwards since array is changed in size during
-// its traversal; otherwise, not all old this.nveh.length vehs checked!
-
-road.prototype.subtractOneLane = function(){
-
-    for(var i=this.veh.length-1; i>=0; i--){ 
-	console.log("road.subtractOneLane: old nLanes=",this.nLanes);
-	if(this.veh[i].lane=== (this.nLanes-1)){
-	    this.veh.splice(i,1);
-	}
-    }
-    this.nLanes--; 
-}
-
-
-//######################################################################
 // simple write vehicle info
 //######################################################################
 
@@ -461,13 +468,13 @@ road.prototype.writeVehiclesSimple= function() {
 //######################################################################
 
 road.prototype.writeVehicleRoutes= function(umin,umax) {
-    console.log("\nin road.writeVehicleRoutes=(): nveh=",this.veh.length,
+    console.log("\nin road.writeVehicleRoutes: nveh=",this.veh.length,
 		" itime="+itime);
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
-	if((u>uminLoc) && (u<umaxLoc) && (this.veh[i].isRegularVeh())
+	if((u>uminLoc) && (u<umaxLoc) 
 	   &&(this.veh[i].route.length===2)){
 
 	    console.log(" veh["+i+"].type="+this.veh[i].type
@@ -475,7 +482,7 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 		        +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		        +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		        +"  route=",this.veh[i].route
-			+" bBiasRight=",this.veh[i].LCModel.bBiasRight
+			+" divergeAhead=",this.veh[i].divergeAhead
 		        +"");
 	}
     }
@@ -486,7 +493,7 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeNonregularVehicles= function(umin,umax) {
-    console.log("\nin road.writeVehicleRoutes=(): nveh=",this.veh.length,
+    console.log("\nin road.writeNonregularVehicles: nveh=",this.veh.length,
 		" itime="+itime);
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -2377,8 +2384,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
               // test: should pnly list reg vehicles with mergeAhead=true; 
               // check its number if suspicious happens with this var !!
 
-	      //if(success&&log){
-	      if(true){
+	      if(success&&log){
+	      //if(true){
 		console.log("testing origin veh "+i +" type="
 			    +originVehicles[i].type+" uTarget="+uTarget);
 		console.log("divergeAhead=",originVehicles[i].divergeAhead);
@@ -2613,6 +2620,31 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	}
     }
   }
+}
+
+
+//######################################################################
+// get the number of regular vehicles (for a trigger to end games)
+//######################################################################
+
+road.prototype.nRegularVehs=function(){
+    var nReg=0;
+    for(var i=this.veh.length-1; i>=0; i--){
+	if(this.veh[i].isRegularVeh()){nReg++;}
+    }
+    return nReg;
+}
+
+
+//######################################################################
+// empty road of all regular vehicles
+//######################################################################
+
+road.prototype.removeRegularVehs=function(){
+    for(var i=this.veh.length-1; i>=0; i--){
+	if(this.veh[i].isRegularVeh()){this.veh.splice(i,1);}
+    }
+    //console.log("remaining number of special vehicles: ",this.veh.length);
 }
 
 
@@ -2972,9 +3004,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
       } // prepareForDiverge
 
-      else{ //no mandatory LC. reset desired speed reduction factor
-          //!!! check if then all vehicles stop!!!
-	  //this.veh[i].longModel.alpha_v0 =1; 
+      else{ // also for missed diverges
+	  this.veh[i].divergeAhead=false;
       }
 
   }} // tactical accel and LC for diverges

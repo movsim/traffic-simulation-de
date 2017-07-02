@@ -233,6 +233,15 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+#gameDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 7vmin;
+  left: 51vmin;
+  width: 28vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 #debugDiv{
   position: absolute;
   top: 25vmin;

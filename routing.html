@@ -59,10 +59,18 @@
      src="figs/autobahn_minus.png" onclick="subtractOneLane()"/>
 </div>
 
-<div id="debugDiv"> <button onclick="mainroad.writeNonregularVehicles()">Debug:
-  write mainroad vehicles</button>
+<div id="gameDiv">
+  <button onclick="playRoutingGame()">Play Routing Game</button>
 </div>
 
+<div id="debugDiv"> <button onclick="mainroad.writeVehicleRoutes(0,1000)">Debug:
+  write mainroad veh routes</button>
+</div>
+
+<!--<div id="debugDiv"> <button onclick="mainroad.writeNonregularVehicles()">Debug:
+  write mainroad vehicles</button>
+</div>
+-->
 
 
 <!-- redirects to other scenarios, defines myRedirectX -->
