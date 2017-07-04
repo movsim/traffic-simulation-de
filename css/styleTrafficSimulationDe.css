@@ -446,8 +446,45 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2d) add/subtract one lane: just to the left of start/stop button */
 
-/* (2d) position of the enforce truck overtaking ban in uphill scen*/
+#lanePlusDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 6vmin;
+  left: 74vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#laneMinusDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 6min;
+  left: 66vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#gameDiv{
+  position: absolute;
+  top: 6vmin;
+  height: 6vmin;
+  left: 40vmin;
+  width: 24vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#debugDiv{
+  position: absolute;
+  top: 25vmin;
+  height: 15vmin;
+  left: 84vmin;
+  width: 15vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2e) position of the enforce truck overtaking ban in uphill scen*/
 
 #buttonsInsideSimulations{
   position: absolute;
@@ -490,7 +527,7 @@ img.title{
   position: absolute;
   top: 98vmin;
   left: 0vmin;
-  width: 100vmin;
+  width: 54vmin;
   background-color: rgba(0,40,255,0);
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -554,8 +591,8 @@ td.important{
   border:1px solid black;
   position: absolute;   /* w/respect to outer div */
   left: 49vmin;
-  width: 45vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 18vmin;
+  width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  top: 1vmin;
   height: 26vmin;
   text-align: left;
   padding-top: 0vmin;
