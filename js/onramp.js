@@ -495,9 +495,12 @@ function drawSim() {
     depot.draw(obstacleImgs,scale,canvas);
 
 
-    // (6) draw some running-time vars
+    // (6) show simulation time
 
-  if(true){
+    displayTime(time);
+
+
+  if(false){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
@@ -531,7 +534,7 @@ function drawSim() {
     */
 
 
-    // (6) draw the speed colormap
+    // (7) draw the speed colormap
 
     if(drawColormap){
       displayColormap(0.22*refSizePix,

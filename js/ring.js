@@ -339,26 +339,13 @@ function drawSim() {
     depot.draw(obstacleImgs,scale,canvas);
 
 
-    // (6) draw some running-time vars
+    // (6) draw simulated time
 
-    ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
-
-    ctx.font=textsize+'px Arial';
-
-    var timeStr="Time="+Math.round(10*time)/10;
-    var timeStr_xlb=textsize;
-    var timeStr_ylb=2*textsize;
-    var timeStr_width=7*textsize;
-    var timeStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(timeStr_xlb,timeStr_ylb-timeStr_height,timeStr_width,timeStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(timeStr, timeStr_xlb+0.2*textsize, timeStr_ylb-0.2*textsize);
+    displayTime(time);
 
 
 
-    // (6) draw the speed colormap (text size propto widthPix
+    // (7) draw the speed colormap (text size propto widthPix
 
     if(drawColormap){
         displayColormap(scale*(center_xPhys-0.03*roadRadius), 

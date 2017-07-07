@@ -2799,7 +2799,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
   }
 
   if((emptyOverfullBuffer)&&(this.inVehBuffer>2)){this.inVehBuffer--;}
-  console.log("road.inVehBuffer=",this.inVehBuffer);
+  //console.log("road.inVehBuffer=",this.inVehBuffer);
 
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
