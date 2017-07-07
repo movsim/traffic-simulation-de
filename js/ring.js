@@ -36,7 +36,7 @@ var aspectRatio=canvas.width/canvas.height;
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=260;  // constants => all objects scale with refSizePix
+var refSizePhys=300;  // constants => all objects scale with refSizePix
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 

@@ -142,7 +142,7 @@ a:hover {
   width: 40vmin; /* needed for reference of width: */
   font-size: 4vmin;
   font-weight:bold;
-  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
+  z-index: 0;  /* above simulation canvas in rare chances of overlapping */
 }
 
 
@@ -158,9 +158,9 @@ img.title{
 #contents{
   position: absolute;
   left:   0vw;
-  top:   5vmin;
+  top:   0vmin;
   width:  120vmin;  /* 6/5 */
-  height: 95vmin;
+  height: 100vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
@@ -195,7 +195,7 @@ which always gives correct size!!
 
 #infoDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 8vmin;
   left: 111vmin;
   width: 8vmin;
@@ -206,7 +206,7 @@ which always gives correct size!!
 
 #startStopDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 8vmin;
   left: 101vmin;
   width: 8vmin;
@@ -217,7 +217,7 @@ which always gives correct size!!
 
 #lanePlusDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 7vmin;
   left: 91vmin;
   width: 7vmin;
@@ -226,7 +226,7 @@ which always gives correct size!!
 
 #laneMinusDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 7vmin;
   left: 81vmin;
   width: 7vmin;
@@ -235,7 +235,7 @@ which always gives correct size!!
 
 #gameDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 7vmin;
   left: 51vmin;
   width: 28vmin;
@@ -255,7 +255,7 @@ which always gives correct size!!
 
 #buttonsInsideSimulations{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   left: 40vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -264,8 +264,8 @@ which always gives correct size!!
 
 #infoFlags{
   position: absolute;
-  top:   1vmin;
-  left:   140vmin;
+  top:   95vmin;
+  left:   104vmin;
   width:  16vmin; /* no height */
   z-index: 2;
 }
@@ -275,7 +275,7 @@ which always gives correct size!!
 
 #scenarios{
   position: absolute;
-  top:     6vmin;
+  top:     0vmin;
   height:  20vmin;
   left: 121vmin;
   width: 50vmin;
@@ -291,7 +291,7 @@ which always gives correct size!!
 
 #sliders{ 
   position: absolute;
-  top: 19vmin;
+  top: 12vmin;
   height: 20vmin;
   left: 121vmin;
   width: 55vmin;
@@ -344,7 +344,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 #infotext{
   border:1px solid black;
   width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 32vmin;
+  height: 40vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -385,7 +385,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   width: 40vmin; /* needed for reference of width: */
   font-size: 4vmin;
   font-weight:bold;
-  z-index: 2;  /* above simulation canvas in rare chances of overlapping */
+  z-index: 0; 
 }
 
 
@@ -401,9 +401,9 @@ img.title{
 #contents{
   position: absolute;
   left:   0vw;
-  top:   5vmin;
+  top:   0vmin;
   width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
-  height: 79vmin;
+  height: 78vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
@@ -414,7 +414,7 @@ img.title{
 
 #impressum{ 
   position: absolute;
-  top: 84vmin;
+  top: 75.5vmin;
   height: 2vmin;
   left: 1vw;
   width: 12vmin;
@@ -428,7 +428,7 @@ img.title{
 
 #infoDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 6vmin;
   left: 90vmin;
   width: 6vmin;
@@ -439,7 +439,7 @@ img.title{
 
 #startStopDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 6vmin;
   left: 82vmin;
   width: 6vmin;
@@ -450,7 +450,7 @@ img.title{
 
 #lanePlusDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 6vmin;
   left: 74vmin;
   width: 6vmin;
@@ -459,7 +459,7 @@ img.title{
 
 #laneMinusDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 6min;
   left: 66vmin;
   width: 6vmin;
@@ -468,7 +468,7 @@ img.title{
 
 #gameDiv{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   height: 6vmin;
   left: 40vmin;
   width: 24vmin;
@@ -488,7 +488,7 @@ img.title{
 
 #buttonsInsideSimulations{
   position: absolute;
-  top: 6vmin;
+  top: 1vmin;
   left: 30vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -498,8 +498,8 @@ img.title{
 
 #infoFlags{
   position: absolute;
-  top:   90vmin;
-  left:   80vmin;
+  top:   73.5vmin;
+  left:   83vmin;
   width:  15vmin; /* no height */
   z-index: 2;
 }
@@ -509,7 +509,7 @@ img.title{
 
 #scenarios{
   position: absolute;
-  top:     86vmin;
+  top:     76vmin;
   height:  50vmin;
   left: 15vmin;
   width: 50vmin;
@@ -525,7 +525,7 @@ img.title{
 
 #sliders{ 
   position: absolute;
-  top: 98vmin;
+  top: 88vmin;
   left: 0vmin;
   width: 54vmin;
   background-color: rgba(0,40,255,0);
@@ -592,7 +592,7 @@ td.important{
   position: absolute;   /* w/respect to outer div */
   left: 49vmin;
   width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 1vmin;
+  top: 14vmin;
   height: 26vmin;
   text-align: left;
   padding-top: 0vmin;

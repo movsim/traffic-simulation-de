@@ -3248,6 +3248,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
 
+    var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
     if(false){
 	console.log("in road.drawVehicles:");
 	//this.writeVehiclesSimple();
@@ -3270,7 +3271,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
 	if(filterPassed){
           var type=this.veh[i].type;
-          var vehLenPix=scale*this.veh[i].length;
+          var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
           var vehWidthPix=scale*this.veh[i].width;
           var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
 
@@ -3341,14 +3342,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
 	      if(isEgo||this.veh[i].isPerturbed()){
 		  ctx.strokeStyle="rgb(0,0,0)";
+		  ctx.strokeRect(-0.50*effLenPix, -0.50*effWPix, 
+			       1.0*effLenPix, 1.0*effWPix);
 		  ctx.strokeRect(-0.55*effLenPix, -0.55*effWPix, 
 			       1.1*effLenPix, 1.1*effWPix);
-		  ctx.strokeRect(-0.6*effLenPix, -0.6*effWPix, 
+		  ctx.strokeRect(-0.60*effLenPix, -0.60*effWPix, 
 			       1.2*effLenPix, 1.2*effWPix);
-		  ctx.strokeRect(-0.65*effLenPix, -0.65*effWPix, 
-			       1.3*effLenPix, 1.3*effWPix);
-		  ctx.strokeRect(-0.7*effLenPix, -0.7*effWPix, 
-			       1.4*effLenPix, 1.4*effWPix);
 	      }
 	  }
           ctx.fillStyle="rgb(0,0,0)";
