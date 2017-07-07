@@ -82,7 +82,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.draw_scaleOld=0;
     this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
-    this.draw_curvMax=0.01; // maximum assmued curvature
+    this.draw_curvMax=0.05; // maximum assmued curvature !!!
 
     this.draw_x=[];  // arrays defined in the draw(..) method
     this.draw_y=[];
@@ -128,7 +128,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.egoVeh=new vehicle(0,0,0,0,0,"car");
 
     //########################################################
-    // !!! (jun17) transform functions traj_x, traj_y into tables 
+    // (jun17) transform functions traj_x, traj_y into tables 
     // to allow manipulation
     //########################################################
  
@@ -144,12 +144,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.gridTrajectories(traj_x,traj_y); 
 
-    if(false){
-    console.log("after gridTrajectories: this.traj_x(-1)=",this.traj_x(-1),
-		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
-    console.log("                     this.traj_y(-1)=",this.traj_y(-1),
-		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
-    }
 
     this.update_nSegm_tabxy();
 
@@ -172,7 +166,10 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // kernel width this.icKernel set at beginning, 
     // not changed with regridding!
 
-    this.kernelWidth=0.10*this.roadLen;
+    //!!! eff kernel smaller if high pow in cos-definition of kernel
+    // (this.createKernel)
+
+    this.kernelWidth=0.20*this.roadLen;  
     this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
     this.nKernel=2*this.icKernel+1; // uneven number
 
@@ -300,6 +297,7 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 
     // test code
 
+
     if(false){
         console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
 		" this.xtab[0]=",this.xtab[0],
@@ -380,6 +378,22 @@ road.prototype.update_nSegm_tabxy=function(){
 		" this.traj_y(0)=",this.traj_y(0),
 		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen)
 	       );
+    }
+
+    if(false){
+	console.log("\nafter update_nSegm_tabxy:");
+	u=this.roadLen-0.5;
+        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
+		    " this.traj_y(u)=",this.traj_y(u));
+	u=this.roadLen;
+        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
+		    " this.traj_y(u)=",this.traj_y(u));
+	var u=0;
+        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
+		    " this.traj_y(u)=",this.traj_y(u));
+	u=0.5;
+        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
+		    " this.traj_y(u)=",this.traj_y(u));
     }
 
 }
@@ -1104,18 +1118,20 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
     var deltaYmax=yUser-this.ytabOld[iPiv];
     var deltaX=[];
     var deltaY=[];
-    for (var i=imin; i<=imax; i++){
+    for (var i=imin; i<=imax; i++){ //!!! i may be >imax-1 for ring. OK?
 	deltaX[i]=deltaXmax*this.kernel[i-iPiv+ic];
 	deltaY[i]=deltaYmax*this.kernel[i-iPiv+ic];
     }
 
 
-// block for considering otherRoad
+    // block for considering otherRoad (never ring road)
+
     var inflLen=40; // max distance from merge for influence
 
     if(considerMergeRoad){
 
 	for (var i=imin; i<=imax; i++){
+
 	    var u=i*this.roadLen/this.nSegm;
 
             // test for influence and influence acordingly
@@ -1211,7 +1227,7 @@ road.prototype.createKernel=function(){
     var dphi=0.5*Math.PI/this.icKernel;
     this.kernel[this.icKernel]=1;
     for (var di=1; di<=this.icKernel; di++){
-	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),2);
+	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),4);//!!!
 	this.kernel[this.icKernel-di]=this.kernel[this.icKernel+di];
     }
 }
@@ -1233,7 +1249,10 @@ road.prototype.finishCRG=function(){
     // first smooth locally since afterwards (after resampling)
     // this.iPivot no longer valid
 
-    this.smoothLocally(this.iPivot, Math.round(0.5*this.icKernel));
+
+    //!!!
+    //this.smoothLocally(this.iPivot, Math.round(0.01*this.icKernel));
+
 
     // calculate new road length and changed u-coordinate waypoints
     // based on present xtab[],ytab[]
@@ -2357,8 +2376,6 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var speedLagNew=followerNew.speed;
 	      var speed=originVehicles[i].speed;
 
-              // !!! possibly define own models for merge and other mandat LC
-
 	      var LCModel=(toRight) ? this.LCModelMandatoryRight 
 		  : this.LCModelMandatoryLeft; 
 
@@ -2432,7 +2449,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	changingVeh.dt_lastLC=0;             // just changed
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
-//!!! get index of this.veh and splice this; otherwise probably no effect 
+
 //####################################################################
 	this.veh.splice(iOrig,1);// removes chg veh from orig.
         newRoad.veh.push(changingVeh); // appends changingVeh at last pos;
@@ -2651,7 +2668,7 @@ road.prototype.removeRegularVehs=function(){
 //######################################################################
 // update vehicle density by adding vehicles into largest gaps
 // or removing some randomly picked vehicles (one at a time)
-//!!! only regular vehicles count, no special vehicles or obstacles!
+//!only regular vehicles count, no special vehicles or obstacles!
 //######################################################################
 
 road.prototype.updateDensity=function(density){
@@ -2768,6 +2785,8 @@ road.prototype.updateBCdown=function(){
 
 road.prototype.updateBCup=function(Qin,dt,route){
 
+  var emptyOverfullBuffer=true; //!!!
+
   this.route=(typeof route === 'undefined') ? [0] : route; // handle opt. args
 
   var log=false;
@@ -2778,6 +2797,9 @@ road.prototype.updateBCup=function(Qin,dt,route){
   if(!this.isRing){
       this.inVehBuffer+=Qin*dt;
   }
+
+  if((emptyOverfullBuffer)&&(this.inVehBuffer>2)){this.inVehBuffer--;}
+  console.log("road.inVehBuffer=",this.inVehBuffer);
 
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
@@ -2827,7 +2849,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 	  //vehNew.longModel=longModelNew;
 	  vehNew.route=this.route;
 
-          //!!! define ego vehicles for testing purposes
+          //!! define ego vehicles for testing purposes
 	  if(false){
 	      var percEgo=5;
 	      if(vehNew.id%100<percEgo){vehNew.id=1;}
@@ -2980,11 +3002,11 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	      var thisVeh=this.veh[i];
 	      var toRight=this.offrampToRight[iNextOff];
 	      var duRemaining=uLastExit-thisVeh.u;
-	      thisVeh.divergeAhead=true; //!!!
+	      thisVeh.divergeAhead=true; //!!
 	      thisVeh.longModel=(thisVeh.type==="truck")
 		  ? this.longModelTacticalCar : this.longModelTacticalTruck;
 	      thisVeh.longModel.alpha_v0
-		  =Math.max(0.1, 0.5*duRemaining/this.duTactical); //!!!
+		  =Math.max(0.1, 0.5*duRemaining/this.duTactical); //!!
 
 	      thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
 	          : this.LCModelTacticalLeft;
@@ -3248,7 +3270,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
 
-    var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
+    var phiVehRelMax=0.3;          // !!! avoid vehicles turning too much
+    var vehSizeShrinkFactor=0.85;  // !!!to avoid overlapping in inner curves
     if(false){
 	console.log("in road.drawVehicles:");
 	//this.writeVehiclesSimple();
@@ -3275,6 +3298,14 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var vehWidthPix=scale*this.veh[i].width;
           var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
 
+          // prevent "jumping" in ring road due to uCenterPhys != u
+
+	  if(this.isRing){
+	      if(uCenterPhys>this.roadLen) uCenterPhys-=this.roadLen;
+	      if(uCenterPhys<0) uCenterPhys+=this.roadLen;
+	  }
+
+
           // v increasing from left to right, 0 @ road center
           // roadworks as images: shift a little bit to the boundary
 
@@ -3284,6 +3315,10 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
           var phiVehRel=(this.veh[i].speed<0.1) 
 	      ? 0
 	      : -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
+
+	  phiVehRel=Math.max(-phiVehRelMax, 
+			     Math.min(phiVehRelMax,phiVehRel));
+
           var phiVeh=phiRoad + phiVehRel;
 
           // special corrections for special (depot) obstacles 

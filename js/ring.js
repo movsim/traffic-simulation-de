@@ -254,7 +254,7 @@ function updateSim(){
 
     //!!!
     if(depotVehZoomBack){
-	console.log("ring: depotVehZoomBack=true!!! ");
+	//console.log("ring: depotVehZoomBack=true!!! ");
 	var res=depot.zoomBackVehicle();
 	depotVehZoomBack=res;
 	userCanvasManip=true;
@@ -282,10 +282,11 @@ function drawSim() {
 
     var hasChanged=false;
 
-    console.log(" new total inner window dimension: ",
+    if(false){console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
 		" (full hd 16:9 e.g., 1120:630)",
 		" canvas: ",canvas.width," X ",canvas.height);
+	     }
 
 
     if ((canvas.width!=simDivWindow.clientWidth)
