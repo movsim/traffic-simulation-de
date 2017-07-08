@@ -603,7 +603,7 @@ function dragRoad(xUser,yUser){
 
 function slowdownVehNearestTo(xUser,yUser,distCrit){
 
-    var speedReduce=10;
+    var speedReduceFactor=0.5;
 
     // all scenarios have a mainroad (road.find(...) called w/o filter fun)
 
@@ -652,7 +652,8 @@ function slowdownVehNearestTo(xUser,yUser,distCrit){
 
         if(vehPerturbed.isRegularVeh()){
 	    vehPerturbed.id=idPerturbed;  // to distinguish it by color
-	    vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
+	    //vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
+	    vehPerturbed.speed *= speedReduceFactor;
 	    idPerturbed++; if(idPerturbed===50){idPerturbed=10;}
 	}
     }

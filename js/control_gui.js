@@ -494,7 +494,7 @@ else{
 
 // IDM_a slider
 
-var IDM_a=IDM_aInit=0.4; 
+var IDM_a=IDM_aInit=0.3; 
 var slider_IDM_a,slider_IDM_aVal;
 if(document.getElementById("slider_IDM_a")===null) 
     console.log("no  IDM_a slider");
