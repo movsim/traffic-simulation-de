@@ -356,8 +356,8 @@ road.prototype.update_nSegm_tabxy=function(){
     }
     var nSegmNew=Math.round(nSegm_per_rad*phiabsCum
 			    + nSegm_per_m*this.roadLen);
-    console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
-		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
+    //console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
+//		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
 
     //re-sample (=first part of this.gridTrajectories)
     // notice that this.traj_xy depends on xtab => two for loops
@@ -755,8 +755,8 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
 	}
     }
     if(success) this.removeTrafficLight(TLreturn.id);
-    else console.log("road.pickTrafficLight: no TL found nearer than ",
-		     distCrit);
+    //else console.log("road.pickTrafficLight: no TL found nearer than ",
+//		     distCrit);
     return [success,TLreturn];
 }
 
@@ -1069,7 +1069,7 @@ road.prototype.testCRG=function(xUser,yUser){
 
     //console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
 
-    if(true){
+    if(false){
 	console.log("road.testCRG:",
 		    " success=",success,
 		    " dist_min=",Math.round(dist_min),
@@ -1247,7 +1247,7 @@ changes the number of segments if new curvature is added/removed
 */
 
 road.prototype.finishCRG=function(){
-    console.log("in finishCRG()");
+    //console.log("in finishCRG()");
 
     // first smooth locally since afterwards (after resampling)
     // this.iPivot no longer valid
@@ -2556,7 +2556,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
-    console.log("in road.pickSpecialVehicle: findResult=",findResults);
+    //console.log("in road.pickSpecialVehicle: findResult=",findResults);
     return findResults;// [success, vehReturn, dist, i for internal use]
 }
 

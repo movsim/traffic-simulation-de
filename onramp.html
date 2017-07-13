@@ -32,12 +32,12 @@
 <!-- ############################################## -->
 
 <div id="header"> 
-  <img class="title" src="figs/title.png"  width="100%"/>
+<!--  <img class="title" src="figs/title.png"  width="100%"/> -->
 </div> 
 
 
 <!-- ############################################## -->
-<!-- image Buttons                                        -->
+<!-- Buttons                                        -->
 <!-- ############################################## -->
 
 <!-- redirects to other scenarios, defines myRedirectX -->
@@ -94,11 +94,11 @@
 
 <div id="contents">
   <canvas id="canvas" 
-          onmouseenter="defineSecondaryRoad(event)"
-          onmousemove="getCoordinatesDoDragging(event)"
-          onmousedown="pickRoadOrVehicle(event)"
-          onmouseup="finishDistortOrDropVehicle()" 
-          onclick="influenceClickedVeh(event)"
+          onmouseenter="handleMouseEnter(event)"
+          onmousemove="handleMouseMove(event)"
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)" 
+          onclick="handleClick(event)"
           onmouseout="cancelActivities(event)"
           style="border:1px solid #d3d3d3;">
 
@@ -289,8 +289,9 @@
 <!-- specific scripts; position below any simulation elements ! -->
 <!-- ########################################################## -->
 
-<script src="js/control_gui.js"></script> 
 <script src="js/timeView.js" type="text/javascript"></script>
+
+<script src="js/control_gui.js"></script> 
 <script src="js/canvas_gui.js"></script> 
 <script src="js/vehicleDepot.js"></script> 
 <script src="js/colormanip.js"></script>

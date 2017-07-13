@@ -65,11 +65,11 @@ manipulate biasRight for trucks!
 
 <div id="contents">
   <canvas id="canvas_onramp" width="800" height="600"
-          onmousemove="getCoordinatesDoDragging(event)"
+          onmousemove="handleMouseMove(event)"
           onmouseout="cancelActivities(event)"
           onclick="slowDownClickedVeh(event)"
-          onmousedown="pickRoadOrVehicle(event)"
-          onmouseup="finishDistortOrDropVehicle()" 
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)" 
           style="border:1px solid #d3d3d3;">
 
 

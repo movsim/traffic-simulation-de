@@ -71,6 +71,11 @@ canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
+console.log("before addTouchListeners()");
+addTouchListeners();
+console.log("after addTouchListeners()");
+
+
 
 //##################################################################
 // overall scaling (critAspectRatio should be consistent with 
@@ -272,21 +277,26 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 //speedlimit images 
 
-var speedL_srcFileIndexOld=8;
+var speedL_srcFileIndexOld=8; //  start with index8 = 80 km/h
 var speedL_srcFileIndex=8;
-var speedL_free_srcFile='figs/sign_free_282_small.png'; 
 var speedL_srcFiles = [];
 for (var i=0; i<13; i++){
     speedL_srcFiles[i]="figs/Tempo"+i+"0.png";
 }
-speedL_srcFiles[13]=speedL_free_srcFile;
-var speedlimitImg = new Image();  // defined just in time in sim threed 
+speedL_srcFiles[13]='figs/sign_free_282_small.png'; 
+var speedlimitImgs = [];
+for (var i=0; i<=13; i++){
+    speedlimitImgs[i]=new Image();
+    speedlimitImgs[i].src=speedL_srcFiles[i];
+}
+var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
+
 
 
 //uphill-related sign images 
 
 var signUphillImg = new Image();
-    signUphillImg.src ='figs/Zeichen_Steigung4.svg';
+    signUphillImg.src ='figs/Zeichen_Steigung4_small.png';
 
 var signFreeImg = new Image();
     signFreeImg.src ='figs/sign_free_282_small.png'; 

@@ -94,11 +94,11 @@
 
 <div id="contents">
   <canvas id="canvas" 
-          onmouseenter="defineSecondaryRoad(event)"
-          onmousemove="getCoordinatesDoDragging(event)"
-          onmousedown="pickRoadOrVehicle(event)"
-          onmouseup="finishDistortOrDropVehicle()" 
-          onclick="influenceClickedVeh(event)"
+          onmouseenter="handleMouseEnter(event)"
+          onmousemove="handleMouseMove(event)"
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)" 
+          onclick="handleClick(event)"
           onmouseout="cancelActivities(event)"
           style="border:1px solid #d3d3d3;">
 

@@ -48,18 +48,10 @@ canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
-console.log("start main: canvas.width=",canvas.width,
-	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
 
-console.log("window.innerWidth=",window.innerWidth,
-	    " window.innerHeight=",window.innerHeight);
-
-console.log("$(window).width()=",$(window).width(), // nearly the same
-	    " $(window).height()=",$(window).height());
-
-
-console.log("after adaptation: canvas.width=",canvas.width,
-	    " simDivWindow.clientWidth=",simDivWindow.clientWidth);
+console.log("before addTouchListeners()");
+addTouchListeners();
+console.log("after addTouchListeners()");
 
 
 //##################################################################
@@ -413,11 +405,6 @@ function drawSim() {
      */
 
     var hasChanged=false;
-
-    console.log(" new total inner window dimension: ",
-		window.innerWidth," X ",window.innerHeight,
-		" (full hd 16:9 e.g., 1120:630)",
-		" canvas: ",canvas.width," X ",canvas.height);
 
 
     if ((canvas.width!=simDivWindow.clientWidth)

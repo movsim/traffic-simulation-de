@@ -51,6 +51,11 @@ canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
 
+console.log("before addTouchListeners()");
+addTouchListeners();
+console.log("after addTouchListeners()");
+
+
 //##################################################################
 // overall scaling (critAspectRatio should be consistent with 
 // width/height in css.#contents)
