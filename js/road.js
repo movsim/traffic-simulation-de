@@ -1069,13 +1069,16 @@ road.prototype.testCRG=function(xUser,yUser){
 
     //console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
 
-    if(success){
-	console.log("road.testCRG: new CRG event initiated!",
+    if(true){
+	console.log("road.testCRG:",
+		    " success=",success,
 		    " dist_min=",Math.round(dist_min),
+		    " xUser=",xUser,
+		    " yUser=",yUser,
 		    " iPivot=",this.iPivot,
 		    " xPivot=",Math.round(this.xPivot),
 		    " yPivot=",Math.round(this.yPivot)
-		   )
+		   );
     }
     return[success,dist_min,
 	   this.xPivot-this.xtab[this.iPivot],

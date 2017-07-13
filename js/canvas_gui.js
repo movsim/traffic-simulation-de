@@ -25,7 +25,7 @@
 
 
 console.log("reading canvas_gui.js");
-var xPixLeft, yPixTop;   // left-upper corner of the canvas in browser reference system
+//var xPixLeft, yPixTop;   // left-upper corner of the canvas in browser reference system
 var xPixUser, yPixUser; // from actual interactive mouse or touch actions (canvas system)
 var xUser, yUser;       // physical coordinates corresponding to xPixUser, yPixUser
 var xUserDown, yUserDown; // physical coordinates at (first) mousedown/touch event
@@ -66,7 +66,7 @@ function addTouchListeners() {
     canvas.addEventListener("touchstart", handleTouchStart, false);
     canvas.addEventListener("touchmove", handleTouchMove, false);
     canvas.addEventListener("touchend", handleTouchEnd, false);
-    //canvas.addEventListener("touchcancel", handleTouchCancel, false);
+    canvas.addEventListener("touchcancel", cancelActivities, false);
     console.log("addTouchListeners(): initialized some touch listeners");
 }
 
@@ -76,41 +76,55 @@ function addTouchListeners() {
 //#####################################################
 
 function handleTouchStart(evt) {
-    console.log("in handleTouchStart(evt)");
     evt.preventDefault();
 
-    var touch = evt.changedTouches[0]; // multitouch: several components
+    getTouchCoordinates(evt);  // xUser, yUser
+    console.log("in handleTouchStart(evt): xUser=",xUser," yUser=",yUser);
 
-    // always update user client-pixel and physical coordinates
+    // memorize starting touch point (vars also used for mousedown event)
+
+    touchdown=true;
+    xUserDown=xUser;
+    yUserDown=yUser;
+
+    // do the actual action (=> mouse section)
+ 
+    defineSzenarioBasedVariables(scenarioString);
+    pickRoadOrVehicle(xUser, yUser); 
+
+    // test
+
+    if(true){
+        ctx.beginPath();
+        ctx.arc(xPixUser,yPixUser,
+	    4, 0, 2 * Math.PI, false);  // a circle at the start
+        ctx.fillStyle = "rgb(0,255,0)";
+        ctx.fill();
+    }
+
+}
+
+
+// gets physical coordinates corresponding to actually touched point
+
+function getTouchCoordinates(event){
+    var touch = event.changedTouches[0]; // multitouch: several components
 
     var rect = canvas.getBoundingClientRect();
-    xPixLeft=rect.left;
-    yPixTop=rect.top;
+    var xPixLeft=rect.left;
+    var yPixTop=rect.top;
     xPixUser = touch.clientX-xPixLeft; 
     yPixUser = touch.clientY-yPixTop; 
     xUser=xPixUser/scale;   //scale from main js onramp.js etc
     yUser=-yPixUser/scale;   //scale from main js onramp.js etc
-    xUserDown=xUser;
-    yUserDown=yUser;
-    touchdown=true;
 
     if(true){
-	console.log("handleTouchStart: xUser=",xUser," yUser=",yUser,
-		    " touchdown=",touchdown);
+	console.log("getTouchCoordinates: xUser=",xUser," yUser=",yUser);
     }
 
-
-    pickRoadOrVehicle(evt); // = onmousedown callback (!!! side effect: mousedown=true)
-
-    // test
-
-    ctx.beginPath();
-    ctx.arc(xPixUser,yPixUser,
-	    4, 0, 2 * Math.PI, false);  // a circle at the start
-    ctx.fillStyle = "rgb(0,255,0)";
-    ctx.fill();
-
 }
+
+
 
 //#####################################################
 // touchmove event callback
@@ -120,25 +134,22 @@ function handleTouchMove(evt) {
     console.log("in handleTouchMove(evt)");
     evt.preventDefault();
 
-    var touch = evt.changedTouches[0]; // multitouch: several components
+    getTouchCoordinates(evt); // xUser, yUser
 
-    var rect = canvas.getBoundingClientRect();
-    xPixLeft=rect.left;
-    yPixTop=rect.top;
-    xPixUser = touch.clientX-xPixLeft; 
-    yPixUser = touch.clientY-yPixTop; 
-    xUser=xPixUser/scale;   //scale from main js onramp.js etc
-    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
+    // do the actual action (=> mouse section)
+    // [xy]UserDown from handleTouchStart
 
-    //getCoordinatesDoDragging(evt); //!!! separate get xUser etc and following to reuse mouse event callbacks
+    doDragging(xUser,yUser,xUserDown,yUserDown);
 
-// test
-
-    ctx.beginPath();
-    ctx.arc(xPixUser,yPixUser,
+    // test
+    if(true){
+        ctx.beginPath();
+        ctx.arc(xPixUser,yPixUser,
 	    4, 0, 2 * Math.PI, false);  // a circle at the start
-    ctx.fillStyle = "rgb(0,0,255)";
-    ctx.fill();
+        ctx.fillStyle = "rgb(0,0,255)";
+        ctx.fill();
+    }
+
 }
 
 
@@ -151,14 +162,29 @@ function handleTouchEnd(evt) {
     console.log("in handleTouchEnd(evt)");
     evt.preventDefault();
 
-    // finishDistortOrDropVehicle(); // should be OK
+    getTouchCoordinates(evt); // xUser, yUser
 
-    // test (a square at the end)
-    //ctx.beginPath();
-    ctx.fillStyle = "rgb(255,0,0)";
-    ctx.fillRect(xPixUser - 4,yPixUser - 4, 8, 8); 
+    // do the action (=> see mouse section)
+
+    finishDistortOrDropVehicle(xUser, yUser); 
+    influenceClickedVehOrTL(xUser,yUser);
+
+    // test
+
+    if(true){
+        // test (a square at the end)
+        //ctx.beginPath();
+        ctx.fillStyle = "rgb(255,0,0)";
+        ctx.fillRect(xPixUser - 4,yPixUser - 4, 8, 8); 
+    }
 }
  
+
+//#####################################################
+//touchcancel => cancelActivities(event) at the end of mouse section
+//#####################################################
+
+
 
 
 
@@ -167,7 +193,14 @@ function handleTouchEnd(evt) {
 // canvas onmouseenter callback
 //#####################################################
 
-function defineSecondaryRoad(event){
+function handleMouseEnter(event){
+    defineSzenarioBasedVariables(scenarioString);
+}
+
+
+// define some global scenario-related network variables
+
+function defineSzenarioBasedVariables(scenarioString){
     isNetworkScenario=true;
     if((scenarioString==="OnRamp")||(scenarioString==="OffRamp")
        || (scenarioString==="Deviation")){
@@ -177,42 +210,72 @@ function defineSecondaryRoad(event){
 	isNetworkScenario=false;
 	secondaryRoad='undefined';
     }
-    //console.log("onmouseenter: isNetworkScenario=",isNetworkScenario,
-//		" secondaryRoad=",secondaryRoad);
 }
+
 
 
 //#####################################################
 // canvas onmousedown callback
 //#####################################################
 
-/* priorities (at most one action initiated at a given time):
+function handleMouseDown(event){
+    getMouseCoordinates(event); //=> xUser,yUser;
+    console.log("\n\nafter getMouseCoordinates: xUser=",xUser);
+    xUserDown=xUser; // memorize starting point of mouse drag
+    yUserDown=yUser;
+    pickRoadOrVehicle(xUser,yUser);
+}
 
-(1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
-(2) pick/drag depot vehicle: depotObjDragged=true
-(3) drag on road less than crit and then mouse up: roadVehSelected=true
-(4) drag on road more than crit: roadDragged=true
 
-*/
+// get coordinates for all mousemove, drag, click, touch events
 
-//!!! change order to match priorities! introduce roadVehSelected!!
 
-function pickRoadOrVehicle(event){
-    console.log("\nonmousedown: entering pickRoadOrVehicle");
+function getMouseCoordinates(event){
+
+    // always use canvas-related pixel and physical coordinates
+
+    var rect = canvas.getBoundingClientRect();
+    var xPixLeft=rect.left;
+    var yPixTop=rect.top;
+    xPixUser = event.clientX-xPixLeft; 
+    yPixUser = event.clientY-yPixTop; 
+    xUser=xPixUser/scale;   //scale from main js onramp.js etc
+    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
+
+    if(false){
+	console.log("getMouseCoordinates: xUser=",xUser," yUser=",yUser);
+    }
+}
+
+
+// do the action
+
+function pickRoadOrVehicle(xUser,yUser){
+
+    /* priorities (at most one action initiated at a given time):
+
+    (1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
+    (2) pick/drag depot vehicle: depotObjDragged=true
+    (3) drag on road less than crit and then mouse up: roadVehSelected=true
+    (4) drag on road more than crit: roadDragged=true
+
+    */
+
+    //!!! change order to match priorities! introduce roadVehSelected!!
+
+    console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrVehicle");
+    console.log(" xUser=",xUser," yUser=",yUser);
     console.log(" depotObjDragged=",depotObjDragged,
 		" roadVehSelected=",roadVehSelected,
 		" roadDragged=",roadDragged);
 
-    mousedown=true;
-    xUserDown=xUser;
-    yUserDown=yUser;
 
     // (1a) pick/drag a traffic light
     // (need to do it separately since green TL have no road-vehicle objects)
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
     // critical drag distance distCrit defined by road
 
-    console.log("  pickRoadOrVehicle: (1a) test for nearby traffic light");
+    console.log("  pickRoadOrVehicle: (1a) test for nearby traffic light on road");
     var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
     if(pickResults[0]){
 	var TL=pickResults[1];
@@ -222,7 +285,7 @@ function pickRoadOrVehicle(event){
 	    if(success) depot.veh[i].inDepot=true;
 	}
 	if(!success) console.log(
-	    "canvas.pickRoadOrVehicle: no corresp depot veh found!");
+	    "canvas.pickRoadOrVehicle: no nearby TL on road found!");
 
 	depotObjDragged=true;
 	//specRoadObjDragged=true;
@@ -236,10 +299,10 @@ function pickRoadOrVehicle(event){
     // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
  
-    console.log("  (1b) test for special road object");
+    console.log("  (1b) test for a depot obstacle on road");
     pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
     if(pickResults[0]){
-	console.log("  (1b) picked a special road object");
+	console.log("  (1b) picked a depot obstacle on the road");
 	specialRoadObject=pickResults[1];
 	transformToDepotObject(specialRoadObject,mainroad,depot);
 
@@ -249,12 +312,13 @@ function pickRoadOrVehicle(event){
 	roadDragged=false;
 	return;
     }
+    else console.log("no depot obstacle on a road found");
 
 
     // (2) pick/drag depot vehicle: test for depotObjDragged
     // depot.pickVehicle returns [successFlag, thePickedDepotVeh]
  
-    console.log("  (2) test for depot vehicle");
+    console.log("  (2) test for depot obstacle/TL outside road");
     var distCrit=10;
     pickResults=depot.pickVehicle(xUser, yUser, distCrit);
     if(pickResults[0]){
@@ -265,6 +329,7 @@ function pickRoadOrVehicle(event){
 	roadDragged=false;
 	return;
     }
+    else console.log("no obstacle or TL outside road found");
 
 
     // (3) pick normal road vehicle to slowing it down: 
@@ -282,7 +347,11 @@ function pickRoadOrVehicle(event){
 
     console.log("  (4) test for a road section nearby");
 
+
     var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
+    console.log("pickresults for main road: xUser=",xUser," yUser=",yUser,
+		" pickResults1=",pickResults1);
+
     var pickResults2=[false,1e6,1e6,1e6];
     if(isNetworkScenario){
 	pickResults2=secondaryRoad.testCRG(xUser, yUser);
@@ -298,6 +367,7 @@ function pickRoadOrVehicle(event){
 	roadVehSelected=false;
 	roadDragged=true;
     }
+    else console.log("also no road nearby to drag found!");
 
 } // canvas onmousedown: pickRoadOrVehicle
 
@@ -307,30 +377,28 @@ function pickRoadOrVehicle(event){
 // canvas onmousemove callback
 //#####################################################
 
-function getCoordinatesDoDragging(event){
+// [xy]UserDown from touchinit/mousedown
+
+function handleMouseMove(event){
+    getMouseCoordinates(event); //=> xUser,yUser;
+    doDragging(xUser,yUser,xUserDown,yUserDown);
+}
 
 
-    // always update user client-pixel and physical coordinates
-
-    var rect = canvas.getBoundingClientRect();
-    xPixLeft=rect.left;
-    yPixTop=rect.top;
-    xPixUser = event.clientX-xPixLeft; 
-    yPixUser = event.clientY-yPixTop; 
-    xUser=xPixUser/scale;   //scale from main js onramp.js etc
-    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
-
-    if(false){
-	console.log("mousemove: xUser=",xUser," yUser=",yUser,
-		    " mousedown=",mousedown);
-    }
 
 
-    // do drag actions if onmousemove&&mousedown
-    // which action(s) (depotObjDragged,roadDragged) 
-    // is determined by onmousedown callback
+/*##############################################################
+ do drag actions if onmousemove&&mousedown or if touchdown=true
+##############################################################
 
-    if(mousedown){ // boolean mousedown, depotObjDragged, roadDragged
+which action(s) (booleans depotObjDragged,roadDragged) 
+is determined by onmousedown/touchStart  callback
+*/
+
+
+function doDragging(xUser,yUser,xUserDown,yUserDown){
+
+    if(mousedown||touchdown){ 
         userCanvasManip=true; // if true, new backgr, new road drawn
 
 	distDrag=Math.sqrt(Math.pow(xUser-xUserDown,2)
@@ -368,11 +436,12 @@ function getCoordinatesDoDragging(event){
 //#####################################################
 
 function finishDistortOrDropVehicle(){
-    console.log("onmouseup: in finishDistortOrDropVehicle:",
+    console.log("onmouseup/touchEnd: in finishDistortOrDropVehicle:",
     		" roadDragged=",roadDragged,
     		" depotObjDragged=",depotObjDragged);
 
     mousedown=false;
+    touchdown=false;
  
     if(roadDragged&&(distDrag>distDragCrit)){
         userCanvasManip=true; // if true, new backgr, new road drawn
@@ -421,11 +490,18 @@ function finishDistortOrDropVehicle(){
 
 
 //#####################################################
-// canvas onclick callback (onmouseup afteronmousedown)
+// canvas onclick and part of touchEnd callback
 //#####################################################
 
-function influenceClickedVeh(event){
-    console.log("onclick: in influenceClickedVeh");
+function handleClick(event){
+    console.log("in handleClick(event)");
+    getMouseCoordinates(event); //=> xUser,yUser;
+    influenceClickedVehOrTL(xUser,yUser);
+}
+
+
+function influenceClickedVehOrTL(xUser,yUser){
+    console.log("onclick: in influenceClickedVehOrTL");
 
     // first change lights if a traffic light is nearby (crit dist def in road)
 
@@ -456,12 +532,13 @@ function influenceClickedVeh(event){
 
 
 //#####################################################
-// canvas onmouseout callback
+// canvas onmouseout/ callback
 //#####################################################
 
 function cancelActivities(event){
     //console.log("in cancelActivities");
     mousedown=false;
+    touchdown=false;
     depotObjDragged=false;
     roadVehSelected=false;
     roadDragged=false;
