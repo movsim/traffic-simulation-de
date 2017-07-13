@@ -24,12 +24,16 @@ var scenarioString="Ring";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 var simDivWindow=document.getElementById("contents");
+   // following cmd defines also mouse listeners from html 
 var canvas = document.getElementById("canvas"); 
 var ctx = canvas.getContext("2d"); // graphics context
 canvas.width  = simDivWindow.clientWidth; 
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
+console.log("before addTouchListeners()");
+addTouchListeners();
+console.log("after addTouchListeners()");
 
 //##################################################################
 // overall scaling (critAspectRatio should be consistent with 

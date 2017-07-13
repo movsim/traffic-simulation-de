@@ -25,11 +25,12 @@
 
 
 console.log("reading canvas_gui.js");
-var xPixLeft, yPixTop;
-var xPixMouse, yPixMouse;
-var xUser, yUser;
-var xUserDown, yUserDown; // physical coordinates at (first) mousedown event
+var xPixLeft, yPixTop;   // left-upper corner of the canvas in browser reference system
+var xPixUser, yPixUser; // from actual interactive mouse or touch actions (canvas system)
+var xUser, yUser;       // physical coordinates corresponding to xPixUser, yPixUser
+var xUserDown, yUserDown; // physical coordinates at (first) mousedown/touch event
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
+var touchdown=false; //true if touchstart event fired, but not yet touchend
 
 var depotObjDragged=false; //true if a depot object is <distmin at mousedown
 var roadVehSelected=false; // NOW NOT USED true if none of the above and 
@@ -52,6 +53,114 @@ var isNetworkScenario; // scenarios with two or more roads
 var draggedRoad;       // defined in onmousedown callback
 var secondaryRoad;     // defined in onmouseenter callback
                        // (mainroad always exists in main js under this name)
+
+
+
+//#####################################################
+// register touch listeners (does not seem to work directly in html
+// as for the mouse listeners), called in the main.js files after defining canvas
+//#####################################################
+
+function addTouchListeners() {
+    console.log("in gui.addTouchListeners()");
+    canvas.addEventListener("touchstart", handleTouchStart, false);
+    canvas.addEventListener("touchmove", handleTouchMove, false);
+    canvas.addEventListener("touchend", handleTouchEnd, false);
+    //canvas.addEventListener("touchcancel", handleTouchCancel, false);
+    console.log("addTouchListeners(): initialized some touch listeners");
+}
+
+
+//#####################################################
+// touchstart event callback
+//#####################################################
+
+function handleTouchStart(evt) {
+    console.log("in handleTouchStart(evt)");
+    evt.preventDefault();
+
+    var touch = evt.changedTouches[0]; // multitouch: several components
+
+    // always update user client-pixel and physical coordinates
+
+    var rect = canvas.getBoundingClientRect();
+    xPixLeft=rect.left;
+    yPixTop=rect.top;
+    xPixUser = touch.clientX-xPixLeft; 
+    yPixUser = touch.clientY-yPixTop; 
+    xUser=xPixUser/scale;   //scale from main js onramp.js etc
+    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
+    xUserDown=xUser;
+    yUserDown=yUser;
+    touchdown=true;
+
+    if(true){
+	console.log("handleTouchStart: xUser=",xUser," yUser=",yUser,
+		    " touchdown=",touchdown);
+    }
+
+
+    pickRoadOrVehicle(evt); // = onmousedown callback (!!! side effect: mousedown=true)
+
+    // test
+
+    ctx.beginPath();
+    ctx.arc(xPixUser,yPixUser,
+	    4, 0, 2 * Math.PI, false);  // a circle at the start
+    ctx.fillStyle = "rgb(0,255,0)";
+    ctx.fill();
+
+}
+
+//#####################################################
+// touchmove event callback
+//#####################################################
+
+function handleTouchMove(evt) {
+    console.log("in handleTouchMove(evt)");
+    evt.preventDefault();
+
+    var touch = evt.changedTouches[0]; // multitouch: several components
+
+    var rect = canvas.getBoundingClientRect();
+    xPixLeft=rect.left;
+    yPixTop=rect.top;
+    xPixUser = touch.clientX-xPixLeft; 
+    yPixUser = touch.clientY-yPixTop; 
+    xUser=xPixUser/scale;   //scale from main js onramp.js etc
+    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
+
+    //getCoordinatesDoDragging(evt); //!!! separate get xUser etc and following to reuse mouse event callbacks
+
+// test
+
+    ctx.beginPath();
+    ctx.arc(xPixUser,yPixUser,
+	    4, 0, 2 * Math.PI, false);  // a circle at the start
+    ctx.fillStyle = "rgb(0,0,255)";
+    ctx.fill();
+}
+
+
+//#####################################################
+// touchend event callback
+//#####################################################
+
+
+function handleTouchEnd(evt) {
+    console.log("in handleTouchEnd(evt)");
+    evt.preventDefault();
+
+    // finishDistortOrDropVehicle(); // should be OK
+
+    // test (a square at the end)
+    //ctx.beginPath();
+    ctx.fillStyle = "rgb(255,0,0)";
+    ctx.fillRect(xPixUser - 4,yPixUser - 4, 8, 8); 
+}
+ 
+
+
 
 
 //#####################################################
@@ -206,10 +315,10 @@ function getCoordinatesDoDragging(event){
     var rect = canvas.getBoundingClientRect();
     xPixLeft=rect.left;
     yPixTop=rect.top;
-    xPixMouse = event.clientX-xPixLeft; 
-    yPixMouse = event.clientY-yPixTop; 
-    xUser=xPixMouse/scale;   //scale from main js onramp.js etc
-    yUser=-yPixMouse/scale;   //scale from main js onramp.js etc
+    xPixUser = event.clientX-xPixLeft; 
+    yPixUser = event.clientY-yPixTop; 
+    xUser=xPixUser/scale;   //scale from main js onramp.js etc
+    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
 
     if(false){
 	console.log("mousemove: xUser=",xUser," yUser=",yUser,
