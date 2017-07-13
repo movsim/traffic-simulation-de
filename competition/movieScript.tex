@@ -1,0 +1,152 @@
+%########################################################
+% skeletons fuer latex2e documente
+% AUSFUEHRLICHERE Version: skeletonAusfuehrlich.tex (dec04)
+%########################################################
+\documentclass[12pt,a4paper]{scrartcl}  
+%\documentclass[twocolumn,showpacs,preprintnumbers,amsmath,amssymb]{revtex4}
+%\documentclass[preprint,showpacs,preprintnumbers,amsmath,amssymb]{revtex4}
+%\documentclass[a4paper]{foils}
+     % Praesentation a la "Powerpoint", vgl. ~/prosperPraesentation/          
+%\documentclass[tu,colorBG,slideColor,pdf]{prosper} 
+
+\usepackage{graphicx} % definiert \includegraphics[width=???mmm]{eps Bild}
+\usepackage[dvips]{color}     %Definiert \definecolor und 
+                              % red,yellow,green,blue,black,gray,white
+\usepackage{lscape} % provides landscape environment fuer txt rotieren:
+%\begin{landscape}.. \end{landscape}
+
+%\usepackage{german}  %Fuck all german options do not work any more (9/2015)
+                      % need defs.tex or defsSkript.tex to correct/circumvent;
+                      % defsSubmit.tex does not have it (since English)
+\usepackage{units} %\unit[3]{m/s^2} => 3 m/s^2 etc!
+\usepackage{amsfonts,amsmath,amssymb} % crucial for correct setting of
+                                % vectors etc
+
+\usepackage{eurosym}  %Euro-Symbol: \euro{Zahl} oder euro{}
+
+\usepackage{hyperref} 
+%                  Internet-Link: \href{http://www.WasAuchImmer.html}
+%                  {\blue{\underline{TextDesLinks} }}
+%                  Lokaler Link: \hyperlink{targetName}{TextDesLinks}
+%                  Link-Target: \hypertarget{targetName}
+%                  Lokaler File-Link: \href{file:///home/ ...}
+%  Info: \myHyperlink{http..}{Linktext}
+
+\usepackage{cite} % z.B. Refs 1,2,3,5 werden zu [1-3,5]  zusammengefasst
+
+%\textheight220mm
+%\textwidth150mm
+%\oddsidemargin0mm
+%\topmargin0mm
+%\parindent0mm
+
+
+%\input{defs}          % includes auch ``colors.st''
+\input{defsSkript}          % includes auch ``colors.st''
+%\input{defsSubmit}          % includes auch ``colors.st''
+
+\renewcommand{\textfraction}{0.2}  % Figures: At least 20% text at each page
+\setlength{\parindent}{0.9em} %horizontal indentation first line
+\setlength{\parskip}{0.5em}  %addtl. vertical space between paragraphs
+
+\usepackage{psfrag}
+
+
+
+
+%########################################################
+
+\begin{document}
+\title{Latex skeleton}
+\author{Treibi}
+\author{\large\sf\textbf{Martin Treiber}}
+\date{\normalsize\sf\textbf{\today}}
+%\date{\normalsize\sf\textbf{32.01.2019}} % if ``timestamp'' fixed
+
+\maketitle % sonst wird nix gemacht!
+
+
+% oder eigene Titelseite:
+\thispagestyle{empty}
+\begin{center}
+\LARGE\sf\textbf{Titel}
+\\[5mm]
+\large\sf\textbf{Martin Treiber}
+\\
+\large\sf\textbf{\today}
+\end{center}
+
+%Inhaltsverzeichnis (selbe Schriftart wie \section, \mysection etc, 
+% aber normalgross)
+
+\tableofcontents
+
+\section{Figures}
+%###########################################################
+\begin{figure}
+%\fig{0.7\textwidth}{ASM_TrivialModel2sketch.eps}
+\caption{\label{fig:sketchGen}Sketch of the traffic state estimation
+  problem}
+\end{figure}
+%###########################################################
+
+\section{Text und Formeln}
+
+{\large\sf\textbf{Serifenlose gro\3e fette Schrift nur so:
+Makro  $\backslash\!\!$ bfblack!}}
+
+\section{Hyperlinks}
+Nur im pdf!
+
+
+Link auf 
+\myHyperlink{http://www.mtreiber.de/movie3d/index.html}{www.traffic-simulation.de/movie3d}
+mit {\tt $\backslash\!\!\!$ myHyperlink}.
+
+Link auf
+\href{http://www.mtreiber.de/movie3d/index.html}{www.traffic-simulation.de/movie3d}
+mit {\tt $\backslash\!\!\!$ href} direkt.
+
+Link auf \myHyperlink{http://www.traffic-simulation.de/index.html}
+{www.traffic-simulation.de}.
+
+Lokaler Link auf
+\myHyperlink{file:///home/vwitme/staff/treiber/talks/LatexBeamerClass/Applet2d/Ramp/Ramp.html}{Onramp-Java-Simulation}.
+
+
+%##########################################################
+% References
+%##########################################################
+
+%(1) Erstellen
+
+% bibstyles (voller Pfad noetig!): /home/vwitme/staff/treiber/tex/inputs/*.bst
+% bib-Datenbanken (voller Pfad noetig!): /home/vwitme/data/books/bibtex/bibtex/*.bib
+
+%\bibliographystyle{/home/vwitme/staff/treiber/tex/inputs/prsty} 
+\bibliographystyle{/home/vwitme/staff/treiber/tex/inputs/alphadin}
+
+%\bibliography{refs,/home/vwitme/data/books/bibtex/bibtex/database}  %TU
+%\bibliography{refs,databaseLoc}  %Notebook
+
+%(2a) Wenn fertig:
+
+%\include{references.tex}
+
+%(2b) oder (besser!) direktes Einbinden .bbl File
+
+%(3) explizit:
+\begin{thebibliography}{10}
+\bibitem{Einstein-SRT}
+A. Einstein, {\it Zur Elektrodynamik bewegter K\"orper}, 
+Annalen der Physik {\bf 17}, 891-921 (1905).
+% siehe http://de.wikipedia.org/wiki/Albert_Einstein#Werk
+\bibitem{Einstein-Emc2}
+A. Einstein, {\it Ist die Tr\"agheit eines K\"orpers von seinem 
+Energieinhalt abh\"angig?}, Annalen der Physik {\bf 18}, 639-641 (1905).
+
+\end{thebibliography}
+
+\end{document}
+%########################################################
+

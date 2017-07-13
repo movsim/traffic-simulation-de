@@ -1,0 +1,14 @@
+
+
+Standard ring
+=============
+
+Hi everybody,
+
+with this simulator, I want to demonstrate the mechanisms behind
+traffic jams 
+
+Let's begin with a ring road which is the scenario you will get when
+starting the simulation
+
+In this 
