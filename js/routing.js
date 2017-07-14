@@ -516,7 +516,7 @@ function updateSim(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
     if(isGame){
-	updateRoutingGame(time);
+	updateRoutingGame(time);  // from control_gui.js
 	if(false){
 	    console.log("in game: time=",time," qIn=",qIn,
 		    " mainroad: ",mainroad.nRegularVehs(),"vehicles",

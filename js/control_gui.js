@@ -55,7 +55,10 @@ function playRoutingGame(){
 }
 
 function updateRoutingGame(time){
-    qIn=(time<20) ? 2500/3600 : 0;
+    qIn=(time<30) ? 3600/3600 : 
+	(time<50) ? 1800/3600 : 
+	(time<60) ? 3600/3600 :
+	(time<90) ? 2400/3600 : 0;
     slider_qIn.value=3600*qIn;
     slider_qInVal.innerHTML=3600*qIn+" veh/h";
 }
