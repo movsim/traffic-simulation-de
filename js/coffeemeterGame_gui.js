@@ -140,17 +140,17 @@ function displayEgoVehInfo(){
 // slider*.value gives actual value (e.g. for use in html and sim js)
 
 
-// refSizePhys (=scale) slider
+// sizePhys (=scale) slider
 
-var slider_refSizePhys = document.getElementById("slider_refSizePhys");
-var slider_refSizePhysVal = document.getElementById("slider_refSizePhysVal");
-slider_refSizePhys.oninput = function() {
-    //console.log("in slider_refSizePhys.oninput: this.value="
-//		+ slider_refSizePhys.value);
-    slider_refSizePhysVal.innerHTML = this.value;
-    refSizePhys=this.value;
+var slider_sizePhys = document.getElementById("slider_sizePhys");
+var slider_sizePhysVal = document.getElementById("slider_sizePhysVal");
+slider_sizePhys.oninput = function() {
+    //console.log("in slider_sizePhys.oninput: this.value="
+//		+ slider_sizePhys.value);
+    slider_sizePhysVal.innerHTML = this.value;
+    sizePhys=this.value;
     resize();
 }
 
-slider_refSizePhysVal.innerHTML=slider_refSizePhys.value;
+slider_sizePhysVal.innerHTML=slider_sizePhys.value;
 

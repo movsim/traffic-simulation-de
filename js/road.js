@@ -356,8 +356,8 @@ road.prototype.update_nSegm_tabxy=function(){
     }
     var nSegmNew=Math.round(nSegm_per_rad*phiabsCum
 			    + nSegm_per_m*this.roadLen);
-    //console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
-//		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
+    console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
+		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
 
     //re-sample (=first part of this.gridTrajectories)
     // notice that this.traj_xy depends on xtab => two for loops
@@ -430,7 +430,7 @@ road.prototype.subtractOneLane = function(){
 
 
 //######################################################################
-// write vehicle info
+// write/print/display vehicle info
 //######################################################################
 
 road.prototype.writeVehicles= function() {
@@ -755,8 +755,8 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
 	}
     }
     if(success) this.removeTrafficLight(TLreturn.id);
-    //else console.log("road.pickTrafficLight: no TL found nearer than ",
-//		     distCrit);
+    else console.log("road.pickTrafficLight: no TL found nearer than ",
+		     distCrit);
     return [success,TLreturn];
 }
 
@@ -1069,16 +1069,13 @@ road.prototype.testCRG=function(xUser,yUser){
 
     //console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
 
-    if(false){
-	console.log("road.testCRG:",
-		    " success=",success,
+    if(success){
+	console.log("road.testCRG: new CRG event initiated!",
 		    " dist_min=",Math.round(dist_min),
-		    " xUser=",xUser,
-		    " yUser=",yUser,
 		    " iPivot=",this.iPivot,
 		    " xPivot=",Math.round(this.xPivot),
 		    " yPivot=",Math.round(this.yPivot)
-		   );
+		   )
     }
     return[success,dist_min,
 	   this.xPivot-this.xtab[this.iPivot],
@@ -1247,7 +1244,7 @@ changes the number of segments if new curvature is added/removed
 */
 
 road.prototype.finishCRG=function(){
-    //console.log("in finishCRG()");
+    console.log("in finishCRG()");
 
     // first smooth locally since afterwards (after resampling)
     // this.iPivot no longer valid
@@ -1567,7 +1564,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
     if(false){
         console.log("road.initializeMicro: initialized with ", 
 		    this.veh.length," vehicles");
-	this.writeVehicles();
+	this.writeVehiclesSimple();
     }
 }  //initializeMicro
 
@@ -2556,7 +2553,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
-    //console.log("in road.pickSpecialVehicle: findResult=",findResults);
+    console.log("in road.pickSpecialVehicle: findResult=",findResults);
     return findResults;// [success, vehReturn, dist, i for internal use]
 }
 
@@ -3281,7 +3278,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	this.writeTrucksLC();
     }
     var noRestriction=(typeof umin === 'undefined'); 
-    var movingObserver=(typeof movingObs === 'undefinedn')
+    var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
     var uRef=(movingObserver) ? uObs : 0;
     var xRef=(movingObserver) ? xObs : this.traj_x(0);
@@ -3294,6 +3291,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	var filterPassed=(!this.veh[i].isTrafficLight())
 	    && (noRestriction // default: noRestriction=true
 		|| ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
+
+	//filterPassed=true; //!!!
 
 	if(filterPassed){
           var type=this.veh[i].type;

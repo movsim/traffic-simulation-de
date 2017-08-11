@@ -8,10 +8,10 @@
 
 // space and time
 
-var refSizePhys=slider_refSizePhys.value;  // visible road section [m] 
-                   // (scale=min(canvas.width,height/refSizePhys))
+var sizePhys=slider_sizePhys.value;  // visible road section [m] 
+                   // (scale=min(canvas.width,height/sizePhys))
 var timewarp=1;
-var scale;        // pixel/m defined in draw() by min(canvas.width,height)/refSizePhys
+var scale;        // pixel/m defined in draw() by min(canvas.width,height)/sizePhys
 var scaleBg;      // pixel bg Img/m defined in draw()
 var fps=20; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
@@ -110,7 +110,7 @@ var yMouseCanvas;
 // physical geometry settings [m]
 //#############################################################
 
-var sizeBgPhys=1.2*refSizePhys;  // physical length [m] of the (square) bg image
+var sizeBgPhys=1.2*sizePhys;  // physical length [m] of the (square) bg image
 
 // 'S'-shaped mainroad
 
@@ -188,19 +188,43 @@ var background = new Image();
 var carImg = new Image();
 var truckImg = new Image();
 var obstacleImg = new Image();
-var roadImg1 = new Image();
+
+// init obstacle images
+
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
+for (var i=0; i<10; i++){
+    obstacleImgs[i]=new Image();
+    obstacleImgs[i].src = (i==0)
+	? 'figs/obstacleImg.png'
+	: "figs/constructionVeh"+i+".png";
+}
+
+
+// init road images
+
+roadImgs1 = []; // road with lane separating line
+roadImgs2 = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+    roadImgs1[i]=new Image();
+    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImgs2[i]=new Image();
+    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+}
+
+roadImg1 = new Image();
+roadImg1=roadImgs1[nLanes-1];
+roadImg2 = new Image();
+roadImg2=roadImgs2[nLanes-1];
+
 
 //background.src ='figs/backgroundGrassTest.jpg';
 background.src ='figs/backgroundGrass.jpg';
 
 carImg.src='figs/blackCarCropped.gif';
 truckImg.src='figs/truck1Small.png';
-obstacleImg.src='figs/obstacleImg.png';
 
-roadImg1.src=
-    (nLanes===1) ? 'figs/road1lanesCrop.png' :
-    (nLanes===2) ? 'figs/road2lanesCropWith.png' :
-    'figs/road3lanesCropWith.png';
+
 
 
 
@@ -370,10 +394,10 @@ function init(){
     // introduces external traffic and ego vehicle to the road's veh array 
     // and also provides the ego vehicle  as external reference
 
-     mainroad.initializeMicro(types,lengths,widths,
+    mainroad.initializeMicro(types,lengths,widths,
 			     longPos,lanesReal,speeds,iEgo);
 
-
+  
     // add models to non-obstacles and non-ego vehicles:
     // common LC models for trucks,cars and individual CF models 
 
@@ -408,10 +432,10 @@ function init(){
 
     }
 
-    // rename non-ego vehicle IDs 
+    // !! rename non-ego vehicle IDs 
     // for better and deteministic identification
 
-    var id=101;
+    var id=1001; //!!!
     for(var i=0; i<mainroad.veh.length; i++){
         if((mainroad.veh[i].type != "obstacle")
 	   &&(mainroad.veh[i].id != 1)){// otherwise no id changed
@@ -427,13 +451,10 @@ function init(){
     coffeemeter.setLevelSurface();
 
 
-    mainroad.writeVehiclesSimple();
-
-
 
     //!!! test localStorage (a html5/js keyword) for highscores
 
-    if (typeof(Storage) !=== "undefined") {
+    if (typeof(Storage) !== "undefined") {
 	var scores =[];
 
         // if coffeemeterGame_HighScores exists, get the stored scores 
@@ -462,7 +483,8 @@ function init(){
 	localStorage.coffeemeterGame_HighScores = JSON.stringify(scores); 
     }
 
-
+   console.log("end init: initial veh configuration:"); mainroad.writeVehiclesSimple();
+ 
 }//init
 
 
@@ -605,7 +627,7 @@ function update(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
 
-    refSizePhys=slider_refSizePhys.value;
+    sizePhys=slider_sizePhys.value;
     resize();
 
     // !! update models =>mainroad.updateModelsOfAllVehicles 
@@ -652,8 +674,8 @@ function update(){
     }
 
    
-    if(itime%50===0){
-    //if(false}{
+    //if(itime%50===0){
+    if(false){
 	mainroad.writeVehicleLongModels();
     }
 
@@ -699,14 +721,14 @@ function draw() {
 //##################################################
 
 function resize() { 
-    sizeBgPhys=1.2*refSizePhys; // physical length [m] of the (square) bg image
-    scale=Math.min(canvas.height,canvas.width)/refSizePhys;
+    sizeBgPhys=1.2*sizePhys; // physical length [m] of the (square) bg image
+    scale=Math.min(canvas.height,canvas.width)/sizePhys;
     xBegin=0.6*canvas.width/scale;
     yBegin=-canvas.height/scale;
     uObs=mainroad.egoVeh.u-ego_yRelPosition*canvas.height/scale;
     draw();
     if(false){
-	console.log("resize(): refSizePhys=",refSizePhys,
+	console.log("resize(): sizePhys=",sizePhys,
 		    " canvas.height=",canvas.height,
 		    " canvas.width=",canvas.width,
 		    " scale=",scale,
