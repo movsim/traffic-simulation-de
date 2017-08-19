@@ -385,6 +385,14 @@ function updateSim(){
 	userCanvasManip=true;
     }
 
+    // write vehicle positions of mainroad and onramp to console for external use
+
+    if(true){
+	console.log("\nmainroad vehicles, simulation time=",time,":");
+	mainroad.writeVehiclesSimple();
+	console.log("\nonramp vehicles, simulation time=",time,":");
+	ramp.writeVehiclesSimple();
+    }
 
 }//updateSim
 
