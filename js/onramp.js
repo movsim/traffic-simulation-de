@@ -387,7 +387,7 @@ function updateSim(){
 
     // write vehicle positions of mainroad and onramp to console for external use
 
-    if(true){
+    if(false){
 	console.log("\nmainroad vehicles, simulation time=",time,":");
 	mainroad.writeVehiclesSimple();
 	console.log("\nonramp vehicles, simulation time=",time,":");
