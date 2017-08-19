@@ -1,0 +1,120 @@
+Sehr geehrter Herr Morgenthal,
+
+leider existiert diese Simulation, oder eine aehnliche, nicht in
+Matlab, Python oder C. Ich koennte Ihnen allerdings auf drei Wegen
+weiterhelfen:
+
+Zunaechst einmal existiert eine 1-Fahrstreifen-Version (ohne
+Spurwechsel, aber mit vereinfachtem Modell fuer das Einfahren von
+Fahrzeugen von einer Einfahrt) in C++. Diese Version beinhaltet auch
+Routinen fuer den Export von Trajektoriendaten im einfachen
+tab-separierten Text-Format. Wenn Ihnen das hilft, koennte ich Ihnen
+die Quellen geben (ist allerdings rein textbasiert)
+
+Es gibt auch eine voll funktionale Version in der Sprache Java, deren
+Verhalten (einschl. Ausgabe in Files) per xml gesteuert wird : unser
+Projekt MovSim, siehe https://github.com/movsim/movsim
+
+Schliesslich habe ich als Quick-Hack im JavaScript-Code von
+traffic-simulation.de 
+eine einfache Ausgaberoutine auf die Browser-Konsole eingebaut. Sie
+ist beispielhaft fuer die Onramp-Simulation in onramp.js am ende der
+updateSim-Funktion implementiert:
+
+    // write vehicle positions of mainroad and onramp to console for external use
+
+    if(false){
+	console.log("\nmainroad vehicles, simulation time=",time,":");
+	mainroad.writeVehiclesSimple();
+	console.log("\nonramp vehicles, simulation time=",time,":");
+	ramp.writeVehiclesSimple();
+    }
+
+Standardmaessig ist sie deaktiviert ("if(false){....}"). Nach
+Aktivierung ("if(true){....}") gibt sie in jedem Zeitschritt die
+Simulationszeit, die Strasse (mainroad oder onramp) und fuer jedes
+Fahrzeug den Typ, die ID, die longitudinale Position u (in m), die
+transversale Position v (evtl. fraktionaler Fahrstreifenindex, 0=linke
+Spur), die Geschwindigkeit und die Beschleunigung auf die
+JavaScript-Konsole aus. Standardmaessig ist die Konsole unsichtbar. In Firefox
+wird sie beispielsweise durch die Tastenkombination
+Shift-Ctrl-k aktiviert und der Inhalt kann durch Copy+Paste in eine
+Textdatei gebracht werden. Hinweise:
+
+* Aus Sicherheitsgruenden ist in JavaScript die File-Manipulation,
+speziell die schreibende, stark eingeschraenkt. Es gibt zwar eine
+Datei-Schreib-Funktionalitaet (localStorage), aber sie ist
+browser-spezifisch und hat keinen vorbestimmten Namen, siehe
+https://stackoverflow.com/questions/8634058/where-the-sessionstorage-and-localstorage-stored .
+Firefox findet sie jedoch zuverlaessig.
+
+* Der obige Codeschnipsel kann auch in andere Szenarien wie ring.js,
+offramp.js am Ende der jeweiligen updateSim-Methode eingebaut
+werden, nur die Strassennamen sind ggf zu aendern (nur mainroad fuer
+ring.js, roadworks.js, uphill.js; die Szenarien offramp.js, routing.js
+haben als zweite Strasse ebenfalls "ramp")
+
+* Ueber den "Timewarp" bzw. "Zeitraffer" Schieber lassen sich die
+  Zeitschritte einstellen, da die Framerate (30 fps) konstant gehalten
+  wird.
+
+* Bei Bedarf kann ich andere Formate (z.B. ein fortlaufendes Format mit
+  Zeit und Strassenname als Spalten) oder ein localStorage Objekt
+  (siehe oben) leicht realisieren (Ihre
+  Studenten koennen das sicher auch, da dazu einfach nur
+  writeVehiclesSimple in road.js geaendert werden muss bzw. dort eine neue
+  Methode wie "writeVehicleTrajectories" definiert werden muss)  
+
+Mit freundlichen Gruessen,
+
+Martin Treiber
+
+===========================================================
+
+
+Sehr geehrter Herr Dr. Treiber,
+
+in meiner Arbeitsgruppe an der Bauhaus-Uni in Weimar beschäftigen wir
+uns unter anderem mit vielfältigen Fragen des Brückenbaus aus
+konstruktiver Sicht, d.h. Standsicherheit, Dauerhaftigkeit, Monitoring etc.
+
+Wir sind auch in der Baudynamik unterwegs und haben numerische
+Zeitintegrationsverfahren entwickelt, mit denen die Überfahrt von
+Fahrzeugen auf Brücken und die dabei auftretenden gekoppelten
+Schwingungen von Fahrzeug und Brücke berechnt werden können.
+
+Wir würden dies nun gern einmal mit realistischen Verkehrsszenarien
+koppeln und ich war daher auf der Suche nach existierenden Codes, die
+uns Zeitverläufe von Fahrzeugen in Verkehrsflüssen liefern können. Dabei
+bin ich auf Ihren sehr schönen Code unter
+http://www.traffic-simulation.de/ gestoßen.
+
+Ich habe auf GitHub auch den Quellcode gefunden, allerdings nun das
+Problem, dass ich diesen nicht (ohne weiteres) mit unserem Matlab-Code
+koppeln kann. Daher die Frage, ob
+(1) vielleicht eine ähnliche Implementierung in Matlab, Python oder C
+existiert oder
+(2) Sie auf Anhieb wüssten, wie man die von Ihrem Code generierten
+Verläufe der Fahrzeug-Positionen exportieren könnte. Es würde mir
+zunächst schon weiterhelfen, wenn ich entsprechende Zeitschriebe als
+Input für unsere Simulationen hätte.
+
+Es würde mich freuen, wenn Sie mir hier weiterhelfen könnten. Gern
+können wir bei Interesse natürlich über gemeinsame Initiativen
+nachdenken. Ich würde z.B. gern eine Masterarbeit zu dem Thema
+ausschreiben und habe auch zwei Doktoranden, die sich mit dem Thema
+befassen könnten.
+
+Herzliche Grüße,
+Guido Morgenthal
+
+---
+Univ.-Prof. Dr. Guido Morgenthal
+Chair: Modelling and Simulation of Structures
+Institute of Structural Engineering
+Bauhaus University : Marienstr. 13 : D-99421 Weimar/Germany
+Tel +49 3643 584417 : Direct +49 3643 584418
+Fax +49 3643 584422
+Email guido.morgenthal@uni-weimar.de
+Web http://www.uni-weimar.de/Bauing/MSK/-en.html
+---
