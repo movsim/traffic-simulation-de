@@ -1,8 +1,0 @@
-1. Fz etwas kleiner, so dass auch in de rInnenkurve kein Ueberfahren
-(s<0)
-
-2. keine querstehende Fz bei Spurwechsel stehend
-
-3. kein Buffer bei onramp (sonst wenig responsive) 
-
-4. Ring: kein Springen bei Verbindung
