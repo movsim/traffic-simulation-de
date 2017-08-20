@@ -1,0 +1,3 @@
+Interactive Traffic Simulation
+
+Traffic and congestion phenomena belong to our everyday experience. In our simulation, you have the possibility to control traffic and create your own traffic jam. Find out how to trigger a traffic breakdown and how to resolve it. Observe how traffic jams can be seen as collective phenomena with waves propagating backwards from the bottleneck.

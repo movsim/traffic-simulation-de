@@ -11,6 +11,7 @@
 *.fls
 *.out
 *.toc
+*.dvi
 
 ## Figure files (no longer)
 #*.fig
@@ -48,3 +49,7 @@ js/save
 testfile
 documentation
 *save.*
+
+# eclipse settings
+/.settings/
+/.project
