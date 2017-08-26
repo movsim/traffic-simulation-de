@@ -67,13 +67,13 @@ var roadRadiusRel=0.42;
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 var roadRadius=roadRadiusRel*refSizePhys;
-var roadLen=roadRadius*2*Math.PI;
+var mainroadLen=roadRadius*2*Math.PI;
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
     center_xPhys=center_xRel*refSizePhys; //[m]
     center_yPhys=center_yRel*refSizePhys;
     roadRadius=roadRadiusRel*refSizePhys;
-    roadLen=roadRadius*2*Math.PI;
+    mainroadLen=roadRadius*2*Math.PI;
 }
 
 
@@ -110,10 +110,15 @@ var roadID=1;
 var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
 
-var mainroad=new road(roadID,roadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit,speedInit,truckFracInit,isRing);
 
 
+// !! introduce stationary detectors (aug17)
+
+var nDet=1;
+var mainDetectors=[];
+mainDetectors[0]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
 //#########################################################
@@ -254,6 +259,9 @@ function updateSim(){
     //if(itime<2){mainroad.writeVehicleLongModels();}
     //if(itime<2){mainroad.writeVehicleLCModels();}
 
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].update(time,dt);
+    }
 
 
     //!!!
@@ -343,9 +351,12 @@ function drawSim() {
     depot.draw(obstacleImgs,scale,canvas);
 
 
-    // (6) draw simulated time
+    // (6) draw simulated time and detector displays
 
     displayTime(time);
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].display();
+    }
 
 
 

@@ -166,6 +166,7 @@ var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      densityInit, speedInit,truckFracInit, isRing);
 
+
 //#########################################################
 // add standing virtual vehicles at position of road works 
 //#########################################################
@@ -188,6 +189,15 @@ for (var ir=0; ir<nr; ir++){
 
 mainroad.sortVehicles();
 mainroad.updateEnvironment();
+
+
+// !! introduce stationary detectors (aug17)
+
+var nDet=3;
+var mainDetectors=[];
+mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
+mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
+mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
 //#########################################################
@@ -365,7 +375,13 @@ function updateSim(){
     }
 
 
-     //!!!
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].update(time,dt);
+    }
+
+
+    // see onramp.js why this is necessary
+
     if(depotVehZoomBack){
 	var res=depot.zoomBackVehicle();
 	depotVehZoomBack=res;
@@ -481,10 +497,12 @@ function drawSim() {
 
     depot.draw(obstacleImgs,scale,canvas);
 
-    // (6) show simulation time
+    // (6) show simulation time and detector displays
 
     displayTime(time);
-
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].display();
+    }
 
 
     // (7) draw the speed colormap

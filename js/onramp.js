@@ -205,6 +205,13 @@ var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.6*taperLen, 0, 0
 
 ramp.veh.unshift(virtualStandingVeh);
 
+// !! introduce stationary detectors (aug17)
+
+var nDet=3;
+var mainDetectors=[];
+mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
+mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
+mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
 
 
 //#########################################################
@@ -376,6 +383,11 @@ function updateSim(){
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].update(time,dt);
+    }
+
+
     //!!!  without this zoomback cmd, everything works but depot vehicles
     // just stay where they have been dropped outside of a road
 
@@ -490,10 +502,12 @@ function drawSim() {
     depot.draw(obstacleImgs,scale,canvas);
 
 
-    // (6) show simulation time
+    // (6) show simulation time and detector displays
 
     displayTime(time);
-
+    for(var iDet=0; iDet<nDet; iDet++){
+	mainDetectors[iDet].display();
+    }
 
   if(false){
     ctx.setTransform(1,0,0,1,0,0); 

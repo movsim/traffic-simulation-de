@@ -924,6 +924,10 @@ road.prototype.getNearestUof=function(otherRoad, u){
 @param  filterFun: (optional) restrict search to filterFun(veh)=true
         !!! this.veh[i].filterFun() does not work!! need direct fun name!
 @return [success flag, the nearest vehicle which is no obstacle, dist_min,i]
+
+!!! check if restriction to regular vehicles [vehicle.isRegularVeh()]
+should be performed
+
 */
 road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
     var dist2_min=1e9;
@@ -961,6 +965,117 @@ road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
 
 
 #############################################################
+(aug17) find nearest regular leaders or followers 
+at position u on a given lane
+#############################################################
+
+@param  longitudinal physical position
+@return the nearest vehicle to this position, regardless of lane 
+        (id=-1 if none)
+
+*/
+
+road.prototype.findLeaderAt=function(u){
+    //console.log("in road.findLeaderAt");
+
+
+    // initialize for "no success"
+
+    var vehLead=new vehicle(0,0,0,0,0,"car"); // new necessary here![];
+    vehLead.id=-1;
+
+
+    // do the actual finding
+
+    var i=0;
+    while ((i<this.veh.length) && (this.veh[i].u>u)){
+	if(this.veh[i].isRegularVeh()){
+	    vehLead=this.veh[i];
+	}
+	i++; 
+    }
+
+
+    if(vehLead.id==-1){
+	console.log("road.findLeadersAt: warning: no leader found");
+    }
+
+    return vehLead;
+}
+
+//######################################
+// nearest followers
+//######################################
+
+road.prototype.findFollowerAt=function(u){
+
+    //console.log("in road.findFollowerAt");
+
+
+    // initialize for "no success"
+
+    var vehFollow=new vehicle(0,0,0,0,0,"car"); // new necessary here!
+
+
+    // do the actual finding
+
+    var i=this.veh.length-1;
+    while ((i>=0) && (this.veh[i].u<u)){
+	if(this.veh[i].isRegularVeh()){
+	    vehFollow=this.veh[i];
+	}
+	i--; 
+    }
+
+
+    if(vehFollow.id==-1){
+	console.log("road.findFollowersAt: warning: no follower at lane ",il);
+    }
+
+    return vehFollow;
+}
+
+
+/* old
+// nearest followers
+
+road.prototype.findFollowersAt=function(u){
+    //console.log("in road.findFollowersAt");
+    var vehFollow=[];
+
+    // initialize for "no success"
+
+    for (var i=0; i<this.nLanes; i++){
+	vehFollow[i]=new vehicle(0,0,0,0,0,"car"); // new necessary here!
+	vehFollow[i].id=-1;
+    }
+
+
+    // do the actual finding
+
+    var i=this.veh.length-1;
+    while ((i>=0) && (this.veh[i].u<u)){
+	if(this.veh[i].isRegularVeh()){
+	    vehFollow[this.veh[i].lane]=this.veh[i];
+	}
+	i--; 
+    }
+
+
+    for (var il=0; il<this.nLanes; il++){
+	if(vehFollow[il].id==-1){
+	    console.log("road.findFollowersAt: warning: no follower at lane ",il);
+	}
+    }
+
+    return vehFollow;
+}
+
+*/
+
+/**
+
+#############################################################
 (jun17) find nearest leader at position u on a given lane
 #############################################################
 
@@ -968,11 +1083,12 @@ road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
 @param  xUser,yUser: the external physical position
 @return [success flag, the nearest vehicle which is no obstacle, dist_min]
 */
-road.prototype.findLeaderAt=function(u,lane){
+
+road.prototype.findLeaderAtLane=function(u,lane){
     var success=false;
     var i=0;
     var iLead;
-    while ((i<this.veh.length) && (this.veh[i].u<u)){
+    while ((i<this.veh.length) && (this.veh[i].u>u)){
 	if(this.veh[i].lane===lane){
 	    success=true;
 	    iLead=i;
@@ -981,6 +1097,8 @@ road.prototype.findLeaderAt=function(u,lane){
     }
    return [success,iLead];
 }
+
+
 
 
 
@@ -2490,7 +2608,7 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
     console.log("in road.dropDepotVehicle: u=",u," v=",v," this.nLanes=",this.nLanes);
     var leadGap=1; // drop just leadGap behind rear bumper of leader
     var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
-    var findResult=this.findLeaderAt(u, lane);  // [success,iLead]
+    var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
     var uDrop=u; // OK if no leader <=> findResult[0]=false
     if(findResult[0]){
 	var iLead=findResult[1];
