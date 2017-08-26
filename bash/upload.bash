@@ -53,7 +53,7 @@ for proj in $projects; do
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js timeView.js"
+js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
@@ -110,4 +110,7 @@ echo "upload via filezilla from $targetForUpload"
 echo "Host: sftp://mtreiber.de"
 echo "Username: p537815"
 echo "Password: schwerster Onsight gross mit Frz Grad"
-
+echo "hint: When uploading to top-level traffic-simulation.de"
+echo " just rename $targetForUpload to "
+echo " $HOME/public_html/professional/trafficSimulationDe_html5"
+echo " and upload (contains everything, incl info files)" 

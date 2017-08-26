@@ -44,7 +44,11 @@ perl -i -p -e "s/\.html/_ger.html/g" js/control_gui_ger.js
 # copy+change strings for project-specific German js and html files 
 
 htmlfilesGer=""
-jsFilesGer=""
+
+jsfilesGer="js/timeView_ger.js js/stationaryDetector_ger.js"
+cp js/timeView.js js/timeView_ger.js 
+cp js/stationaryDetector.js js/stationaryDetector_ger.js 
+
 
 for proj in $projects; do
     
@@ -91,8 +95,14 @@ echo "changing engl->german strings in some files ..."
 
 for file in $htmlfilesGer; do
 
+   # change links to js files
+
   perl -i -p -e "s/redirect\.js/redirect_ger\.js/g" $file
   perl -i -p -e "s/control_gui\.js/control_gui_ger.js/g" $file
+  perl -i -p -e "s/timeView\.js/timeView_ger.js/g" $file
+  perl -i -p -e "s/stationaryDetector\.js/stationaryDetector_ger.js/g" $file
+
+  # change text
 
   perl -i -p -e 's/\>Ringroad\</>Ringstrasse</g' $file
   perl -i -p -e 's/de\: Ring Road/de: Ringstrasse/g' $file
@@ -150,6 +160,7 @@ perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html
 
 #jsfiles="js/redirect_ger.js js/${proj}_ger.js"
 
+echo "jsfilesGer=$jsfilesGer"
 for file in "$jsfilesGer"; do
 
   perl -i -p -e 's/times\"/fach\"/g' $file
@@ -160,6 +171,8 @@ for file in "$jsfilesGer"; do
 
   perl -i -p -e 's/\"Resume\"/\"Weiter\"/g' $file
   perl -i -p -e 's/\"Time\=/\"Zeit=/g' $file
+  perl -i -p -e 's/\"Flow/\"Fluss/g' $file
+  perl -i -p -e 's/\"Speed/\"Geschw/g' $file
   perl -i -p -e 's/\"timewarp=/\"Zeitraffer=/g' $file
   perl -i -p -e 's/\"density=/\"Dichte=/g' $file
   perl -i -p -e 's/\"scale=/\"Skala=/g' $file
