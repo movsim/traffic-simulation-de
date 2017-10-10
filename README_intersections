@@ -1,0 +1,97 @@
+Specification of Simple X Intersections
+
+First, one needs to specify the kind of intersection. A fully fledged
+X intersection with 12 origin-destination pairs (4 times right turn,
+straight on, and left turn, respectively) will probably be too complex
+for the intention of this project: a simple interactive traffic flow
+simulator with realistic models  that runs in any browser without
+add-ons. A very limited X intersection with only right turns is
+already available since these are just four merging roads. A
+generalisation of intermediate complexity and moderate programming
+effort would be straight-on-only X intersections in three variants
+(keeping aside signalized intersections that can be easily added later
+on): (i) mainroad crosses secondary road (secondary road with or
+without stop signs),  (ii) roads of equal priority where vehicles
+coming from the right have the right of way (widespread in Europe),
+(iii) 4-way stop X-ings (widespread in the US). 
+
+Type (i) is the easiest to model: Mainroad traffic just passes the
+intersection as though no secondary road exists. If there are stop
+signs, secondary traffic decelerates to a stop just as it would do
+behind a red traffic light (standing virtual vehicle of length zero at
+the stop line). As soon as a vehicle on the secondary road has
+stopped, a binary decision will be taken at every time step: Move on
+(as though the main road does not exist) if there is a sufficiently
+large gap, otherwise wait. The definition of a "sufficiently large
+gap" is nontrivial and cannot simply reduced to some condition for the
+longitudinal accelerations (as would be the case for lane changing and
+merging). A simple heuristics would be as follows: 
+
+move on if (C1 AND C2)
+
+C1 (obstruction criterion) is true if the spatial area covered when
+crossing the intersection is currently not occupied by any mainroad
+vehicle 
+
+C2 (gap criterion) is true if any incoming mainroad vehicle is
+sufficiently far away. 
+
+
+The gap-acceptance criterion C2is more tricky. A plausible ansatz
+would be the following: "The lowest value of the anticipated times-to-collision (TTC) should exceed a critical value TTC_crit" (of the order of 3 seconds).
+
+The simplest heuristic assumptions to make the necessary anticipation are the following
+
+(i) the speed v_main of the relevant mainroad vehicle and its actual
+distance s_main to the first possible collision point  is known; the
+speed is expected to remain unchanged 
+
+(ii) the own acceleration in case of a "go" is the free-flow
+acceleration which can be approximated by a constant acceleration with
+the IDM parameter value a_IDM 
+
+Since the distance s_cross between the stopping position and the last
+possible collision point (where the crossing vehicle leaves the
+respective lane of the crossing road) is known, we derive following
+explicit rule: 
+
+t_cross=sqrt(2*s_cross/a_IDM)  (1)
+
+s_min=s_main-v_main*t_cross  (2)
+
+TTC=s_min/v_main   (3)
+
+C2=(TTC>TTC_crit)   (4)
+
+This reflects a rather defensive behaviour since the secondary driver
+will not start if (TTC<=TTC_crit) AND (TTC+(L_main+w_cross)/v_main<0)
+although this means no collision since the approaching vehicle has
+already passed when the crossing vehicle intersects with its
+trajectory. However, the simple rule (4) is practicable, in most
+cases. 
+
+
+Remarks:
+
+
+(a) this model has a single parameter TTC_crit and inherits the free
+acceleration a_IDM from the longitudinal model. Both the intersection
+geometry and the lengths and widths of all cars must be known 
+
+(b) (C1 AND C2) must be satisfied for all lanes of both mainroad directions
+
+(c) with no stop signs (type III), the secondary traffic can cross at
+full speed, or at a predefined reduced speed. The stopping line is
+then replaced by a fixed "decision point", say, 20-50 m
+upstream. Criterium (4) is then checked with an adapted kinematics
+(1). If true, accelerate freely, if not, stop at the stopping line and
+proceed as in the case of stop signs 
+
+(d) in "right-has -priority" intersections, the roles "mainroad" or
+"secondary road w/o stop signs" depends on the considered OD 
+
+(e) right turns can be added independently
+
+(f) left turns can be decided with a similar rule as (4) but the
+specifications become more complex and there are many variants. 
+
