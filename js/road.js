@@ -3057,16 +3057,20 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
  
     this.LCModelMandatoryRight
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
     this.LCModelMandatoryLeft
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
 
     this.LCModelTacticalRight
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
     this.LCModelTacticalLeft
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
+		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
 
 

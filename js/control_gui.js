@@ -647,6 +647,29 @@ else{
 }
 
 
+// MOBIL_p slider politeness factor
+
+var MOBIL_p=MOBIL_pInit=0.1; 
+var slider_MOBIL_p,slider_MOBIL_pVal;
+if(document.getElementById("slider_MOBIL_p")===null) 
+    console.log("no  MOBIL_p slider");
+else{
+    slider_MOBIL_p 
+	=document.getElementById("slider_MOBIL_p");
+    slider_MOBIL_pVal
+	=document.getElementById("slider_MOBIL_pVal");
+    slider_MOBIL_p.value=MOBIL_pInit;
+    slider_MOBIL_pVal.innerHTML
+	=MOBIL_pInit+" m/s<sup>2</sup>";
+
+    slider_MOBIL_p.oninput = function() {
+        slider_MOBIL_pVal.innerHTML = this.value+" m/s<sup>2</sup>";
+        MOBIL_p=parseFloat(this.value);
+        updateModels();
+    }
+}
+
+
 
 
 //#########################################################
@@ -680,29 +703,23 @@ function updateModels(){
     var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedL_truck);
     var T_truck=factor_T_truck*IDM_T;
     var a_truck=factor_a_truck*IDM_a;
-
+    console.log("updateModels: MOBIL_p=",MOBIL_p);
     //var longModelCar etc defined (w/o value) in onramp.js 
     // var MOBIL_bBiasRight and other MOBIL params defined in onramp.js 
     longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelCar.speedlimit=speedL;
     longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
     longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
-    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
-                         MOBIL_bThr, MOBIL_bBiasRight_car);
-    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, 
+    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
+                        MOBIL_bThr, MOBIL_bBiasRight_car);
+ 
+    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
-    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe,
+    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 0,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
-    console.log("control_gui.updateModels: LCModelMandatory=",LCModelMandatory," MOBIL_mandat_bias=",MOBIL_mandat_bias);
+    console.log("control_gui.updateModels: LCModelCar=",LCModelCar);
 
-
-    //!!! check if better formulated w/o  explicit variants below
-    // and discriminate in road. updateModelsOfAllVehicles
-
-    //LCModelMandatoryRight=LCModelMandatory;
-    //LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
-//				    MOBIL_mandat_bThr, -MOBIL_mandat_bias);
 
 }
 

@@ -174,14 +174,14 @@ var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 // number of virtual "roadwork" vehicles
 
 var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for lagVeh!
-//var LCModelObstacle=new MOBIL(MOBIL_bSafe,MOBIL_bSafe,1000,MOBIL_bBiasRight_car);
+
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
 for (var ir=0; ir<nr; ir++){
     var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
     var virtualVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
 					u,laneRoadwork, 0, "obstacle");
-
+    virtualVeh.longModel=longModelObstacle;
     mainroad.veh.push(virtualVeh); // append; prepend=unshift
 }
 

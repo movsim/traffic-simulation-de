@@ -53,6 +53,7 @@ var IDMtruck_a=0.8;
 var MOBIL_bSafe=4;    // bSafe if v to v0
 var MOBIL_bSafeMax=17; // bSafe if v to 0
 var MOBIL_bThr=0.2;
+var MOBIL_b=0.1;
 var MOBIL_bBiasRight_car=0.2;
 var MOBIL_bBiasRight_truck=1.0;
 
@@ -66,14 +67,14 @@ var MOBIL_mandat_biasRight=20;
 
 //var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
 //var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
-var LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+var LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_b,
                          MOBIL_bThr, MOBIL_bBiasRight_car);
-var LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax,
+var LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_b,
                            MOBIL_bThr, MOBIL_bBiasRight_truck);
 var LCModelMandatoryRight=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
-                                    MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
+                                    0,MOBIL_mandat_bThr, MOBIL_mandat_biasRight);
 var LCModelMandatoryLeft=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafeMax,
-                                    MOBIL_mandat_bThr, -MOBIL_mandat_biasRight);
+                                   0, MOBIL_mandat_bThr, -MOBIL_mandat_biasRight);
 
 
  
