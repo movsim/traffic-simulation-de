@@ -106,6 +106,13 @@ fi
 #cp -r $targetDir/* $targetDir.zip $targetForUpload
 cp -r $targetDir/*  $targetForUpload
 
+# set accessing rights for internet access
+
+chmod o+x $targetForUpload
+chmod o+x `find $targetForUpload -type d`
+chmod o+r `find $targetForUpload -type f`
+
+
 echo "upload via filezilla from $targetForUpload"
 echo "Host: sftp://mtreiber.de"
 echo "Username: p537815"

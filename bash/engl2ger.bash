@@ -127,6 +127,7 @@ for file in $htmlfilesGer; do
 
   perl -i -p -e 's/Truck Fraction/LKW-Anteil/g' $file
   perl -i -p -e 's/Truck Perc/LKW-Anteil/g' $file
+  perl -i -p -e 's/Politeness/H&ouml;flichkeitsfaktor/g' $file
   perl -i -p -e 's/LC Threshold/Wechselschwelle/g' $file
   perl -i -p -e 's/Right Bias Cars/Rechtsfahren PKW/g' $file
   perl -i -p -e 's/Right Bias Trucks/Rechtsfahren LKW/g' $file
