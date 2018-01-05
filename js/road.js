@@ -519,6 +519,7 @@ road.prototype.writeNonregularVehicles= function(umin,umax) {
 		        +"  id="+this.veh[i].id
 		        +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		        +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
+		        +"  longModel=",this.veh[i].longModel
 		        +"  LC=",this.veh[i].LCModel
 		        +"");
 	}
@@ -856,6 +857,8 @@ road.prototype.changeTrafficLight=function(id,state){
 	    //for(var il=0; il<1; il++){
 		var virtVeh=new vehicle(1,this.laneWidth,
 					pickedTL.u, il, 0, "obstacle");
+                //(dec17) need longModel for later LC as lagVeh!! 
+		virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 		virtVeh.id=id;
 		this.veh.push(virtVeh);
 	    }
@@ -2297,6 +2300,10 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
          // it assumes new acceleration of changing veh
 
 	 var speedLagNew=this.veh[iLagNew].speed;
+	  if(this.veh[iLagNew].longModel===undefined){
+	      console.log("vehicle ",iLagNew," has no longModel! vehicle=",this.veh[iLagNew]);
+	      this.writeNonregularVehicles(0,this.roadLen);
+	  } 
  	 var accLagNew 
 	      =this.veh[iLagNew].longModel.calcAcc(sLagNew,speedLagNew,speed,accNew); 
       
@@ -2615,12 +2622,15 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 	uDrop=this.veh[iLead].u+this.veh[iLead].length+leadGap;
     }
 
-    // construct normal road vehicle from depot vehicle if id<100
+    // construct normal road vehicle/obstacle from depot vehicle if id<100
 
     if(depotVehicle.id<100){
 	var roadVehicle=new vehicle(depotVehicle.lVehRoad,
 				    depotVehicle.wVehRoad,
 				    u, lane, 0, depotVehicle.type);
+        //(dec17) need for LC as lagVeh!! up to now id<100 only obstacles
+	roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+
 	roadVehicle.id=depotVehicle.id; // controls the vehicle image
 
         // insert vehicle (array position does not matter since sorted anyway)
