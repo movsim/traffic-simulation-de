@@ -2197,7 +2197,7 @@ road.prototype.updateOrientation=function(){
 
 
 //######################################################################
-// main lane changing routine (model MOBIL without politeness)
+// main lane changing routine (model MOBIL, now with politeness)
 // toRight=true: tests/performs change to the right; otherwise to the left
 // returns true if change took place
 //######################################################################

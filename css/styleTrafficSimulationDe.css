@@ -330,7 +330,7 @@ td.important{
 }
 
 
-/* (6) infotext div-box  (no pos info, just below the sliders*/
+/* (6) infotext div-box landscape (sub-div! no pos info, just below the sliders*/
 
 ul { margin-left: 2vmin; padding: 0vmin; }
 
@@ -344,7 +344,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 #infotext{
   border:1px solid black;
   width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 40vmin;
+  height: 31vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -585,15 +585,15 @@ td.important{
 }
 
 
-/* (6) infotext div-box  (sub-div, no pos info, just below the sliders*/
+/* (6) infotext div-box portrait (sub-div!, in contrast to landscape pos info*/
 
 #infotext{
   border:1px solid black;
   position: absolute;   /* w/respect to outer div */
   left: 49vmin;
   width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 14vmin;
-  height: 26vmin;
+  top: 0vmin;
+  height: 27vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;

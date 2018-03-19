@@ -138,6 +138,16 @@ an additional lane-changing threshold
 <font color="#0000AA"><i>a<sub>thr</sub></i></font>
 has been added to the balance of the above equation.
 
+<li>There are some situations where high-frequency lane hopping may
+  occur triggered, e.g., when a faster vehicle
+  follows a slower one and the leader changes due to politeness while
+  the follower changes to move ahead faster with the result that both
+  drivers find themselves in the same situation, and so on. Therefore,
+  I do not allow lane changes if the actual vehicle, or one in the
+  immediate neighbourhood, changed lanes less than vehicle.dt_lastLC
+  or  vehicle.dt_lastPassiveLC ago for active and passive lane
+  changes, respectively.
+
 </ul></ul>
 
 <h2> Model Parameters and Typical Values</h2>

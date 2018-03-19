@@ -26,6 +26,7 @@ function hslToRgb(h, s, l) {
 
   if(myVersion){
 
+    h=(h-Math.floor(h)); // make it periodic 1; works for negative input
 
     var r_smax=Math.max(0, 1-6*Math.pow(h,2), 1-9*Math.pow(h-1,2));
     var g_smax=Math.max(0, 1-9*Math.pow(h-1/3,2));
