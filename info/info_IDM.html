@@ -1,3 +1,4 @@
+<!-- edit in development directory; copied to public html -->
 
 <h1>The Intelligent-Driver Model and its Variants</h1>
 <p>
@@ -20,7 +21,8 @@ The IDM and the ACC model are <i>car-following model</i>. In
 <ul class="red">
 <li> The influencing factors (model input) are the own speed <i>v</i>, the
   bumper-to-bumper gap <i>s</i> to the leading vehicle, and the relative
-  speed (speed difference) <i>&Delta; v</i> of the two vehicles (positive when approaching).
+  speed (speed difference) <i>&Delta; v = v-v<sub>lead</sub></i> of
+  the two vehicles (positive when approaching). 
 <li> The model output is the acceleration <i>dv/dt</i> chosen by the driver
   for this situation.
 <li> The model <i> parameters</i> describe the driving style, i.e.,
@@ -38,7 +40,8 @@ vehicles (see the lane-changing model <a href="./info_MOBIL.html">MOBIL</a>).
 <p>The IDM model equations read as follows:
 <center>
 <p>
-<img src = "IDMv.png" width="80%" align="center" 
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "http://www.traffic-simulation.de/info/IDMv.png" width="80%" align="center" 
                           alt = "IDM acceleration equation">
 </center>
 <p> 
@@ -46,7 +49,8 @@ where
 
 <center>
 <p>
-<img src = "IDMsstar.png" width="80%" align="center" 
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "http://www.traffic-simulation.de/info/IDMsstar.png" width="80%" align="center" 
                    alt = "relation for desired distance">
 </center>
 <p>
@@ -147,14 +151,13 @@ table:
   <td> 0.3 m/s<sup>2</sup> </td>
   <td> 0.3 m/s<sup>2</sup> </td>
   <td> Very low values to enhance the formation of stop-and go
-	    traffic. Realistic  values are 1-2 m/s<sup>2</sup> </td>
+	    traffic. Realistic  values are 0.8 to 2.5 m/s<sup>2</sup> </td>
 </tr>
 <tr>
   <td> Deceleration <font color="#0000AA">b</font></td>
   <td> 3.0 m/s<sup>2</sup> </td>
   <td> 2.0 m/s<sup>2</sup> </td>
-  <td> Very high values to enhance the formation of stop-and go
-	    traffic. Realistic  values are 1-2 m/s<sup>2</sup> </td>
+  <td> Realistic  values are around 2 m/s<sup>2</sup> </td>
 </tr>
 
 </table>
@@ -172,7 +175,6 @@ are characterized by a low T in connection
 	of v0, a, and b.
 </ul>
 Often two different types are sufficient to show the main phenomena.
-The standard parameters used in the simulations are the following:
 <br>
 
 <!-- ######################################## -->

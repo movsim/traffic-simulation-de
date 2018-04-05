@@ -124,6 +124,16 @@ a:hover {
 	color: #07A;
 }
 
+table.infoTable {
+   border: 0px ridge rgb(130,130,130); /* spacing, padding DOS with border-collapse */
+   border-collapse: collapse; 
+   background-color: rgba(255,255,255,0.7);
+}
+table.infoTable td {
+   border: 2px ridge rgb(130,130,130);
+}
+
+
 
 /*#############################################################*/
 /* basic settings for landscape formats */
@@ -177,7 +187,7 @@ which always gives correct size!!
 */
 
 
-/* (2a) position of the copyright: left bottom of simCanvas */
+/* (2a) position of the copyright: left bottom of simCanvas landscape*/
 
 #impressum{ 
   position: absolute;
@@ -185,13 +195,13 @@ which always gives correct size!!
   height: 2vmin;
   left: 0vw;
   width: 10vw;
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255,255,255,0.7);
   font-size: 1.5vmin;
-  z-index: 1; /* the higher the integer, the more on top */
+  z-index: 1; /* the higher the integer, the more on top landscape */
 }
 
 
-/* (2b) position of the info button: right top of simCanvas */
+/* (2b) position of the info button: right top of simCanvas landscape*/
 
 #infoDiv{
   position: absolute;
@@ -259,6 +269,17 @@ which always gives correct size!!
   left: 40vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+
+/* (2f) position of the general link list landscape (table.infoTable top-level)*/
+
+#linkDiv{
+  position: absolute;
+  top:   94.5vmin;
+  left:   20vmin;
+  width:  80vmin; /* no height */
+  z-index: 2;
+} 
+
 
 /* (3) position of the flags for language selection: right top of simCanvas */
 
@@ -493,6 +514,15 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2f) position of the general link list square/portrait */
+
+#linkDiv{
+  position: absolute;
+  top:   79vmin;
+  left:   51vmin;
+  width:  47.5vmin; /* no height */
+  z-index: 2;
+} 
 
 /* (3) position of the flags for language selection: right top of simCanvas */
 
@@ -511,8 +541,8 @@ img.title{
   position: absolute;
   top:     76vmin;
   height:  50vmin;
-  left: 15vmin;
-  width: 50vmin;
+  left: 1vmin;
+  width: 49vmin;
   z-index: 2;
 }
 
@@ -590,9 +620,9 @@ td.important{
 #infotext{
   border:1px solid black;
   position: absolute;   /* w/respect to outer div */
-  left: 49vmin;
-  width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 0vmin;
+  left: 51vmin;
+  width: 43vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  top: 1vmin;
   height: 27vmin;
   text-align: left;
   padding-top: 0vmin;
