@@ -406,7 +406,18 @@ road.prototype.update_nSegm_tabxy=function(){
 
 road.prototype.addOneLane = function(){
     this.nLanes++;  // initially empty
+
+    // MT Bugfix  2018-04-23
+
+    for(var i=0; i<this.trafficLights.length; i++){
+        var TL=this.trafficLights[i];
+        if(TL.state=="red"){
+	    this.changeTrafficLight(TL.id,"green");
+	    this.changeTrafficLight(TL.id,"red");
+	}
+    }
 }
+
 
 // need to eliminate vehicles on the to be deleted lane
 // !! need to count backwards since array is changed in size during
@@ -2646,7 +2657,7 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 			     imgRed,imgGreen);
 
     }
-}
+}// dropDepotVehicle
 
 
 
