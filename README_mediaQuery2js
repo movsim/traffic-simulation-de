@@ -1,0 +1,31 @@
+https://modernweb.com/using-media-queries-in-javascript/
+
+Motivation: Do not display all elements if small screen such as
+smartphone
+
+var mq = window.matchMedia('@media all and (max-width: 700px)');
+if(mq.matches) {
+    // the width of browser is more then 700px
+} else {
+    // the width of browser is less then 700px
+}
+
+
+// listener for changes: mq->nameOfFunction (here "changed")
+
+mq.addListener(function(changed) {
+    if(changed.matches) {
+        // the width of browser is more then 700px
+    } else {
+        // the width of browser is less then 700px
+    }
+});
+
+// also works for more complex filters:
+@media all and (orientation: portrait) { ... }
+@media screen and (min-resolution: 2dppx) { ... }
+
+var mq1 = window.matchMedia('@media all and (orientation: portrait)');
+var mq2 = window.matchMedia('@media screen and (min-resolution: 2dppx)');
+
+//!! 2dppx resolution

@@ -1,0 +1,28 @@
+Filter out some components for smartphones using passed media query:
+README_mediaQuery2js
+
+Hi Carl,
+
+at the moment, this is not programmed to be within user interaction but it is a good idea for the next version. In the meantime, I did a hack to reproduce the HOT dynamics, including less-than optimal lane usage, by changing some constants in the js/onramp.js and js/onramp_gui.js files and creating a temporary scenario "onrampHOT" (4-lane mainroad+onramp) which can be simulated at http://www.traffic-simulation.de/onrampHOT.html (you can also download the corresponding *HOT* html and js files from my github site and fiddle with the constants, including the number of lanes, which are marked by comments containing HOT).
+
+The main thing I did in the quick hack is to reverted the trucks to car dimensions and driving behaviour and to set a strong bias to the right such that the "trucks" which are now the non-HOT vehicles, nearly exclusively use the two right lanes. By using the "truck percentage" slider, which has now the meaning of a "non-HOV percentage" slider, you can change the fraction of these vehicles. For percentages below about 50-60%, no breakdown occurs but it occurs nearly always if the  non-HOT percentages exceeds 70-80%. Then, you can also  clearly see the inadequate lane usage.
+
+
+I hope this helps,
+
+Martin
+> "Carl Henderson (SD)" <carl.henderson@silvertipdesign.com> hat am 16. Mai 2017 um 17:32 geschrieben:
+>
+> Martin,
+>  
+> Thank you for replying and sorry if I misplaced you.
+>  
+> Yes,  Walter is interested in the relative throughput (people) with the introduction of High-Occupancy lanes.  These lanes are often empty while the other lanes are stood still in traffic.  I see his point.
+>  
+> You use the term efficiency to represent the useful capacity of the road and hence to increase the maximum acceleration parameter (a) traffic becomes more stable and the effective throughput improves.
+>  
+> Could we give a percentage of cars left or right bias in the lane change parameters so that a proportion remain in the "HOT" lane while the others are crammed into the remaining lanes?  We can assume that those in the HOT lanes have two or more and those in the other lanes only have one and count them.
+>  
+> ~Carl
+>
+>      
