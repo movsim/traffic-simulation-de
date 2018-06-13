@@ -13,7 +13,7 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing"
+projects="ring onramp offramp roadworks uphill routing routingGame"
 #projects="ring"
 
 cd $startDir
@@ -152,8 +152,9 @@ done
 
 perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html
 
-perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html
+perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html routingGame_ger.html
 
+perl -i -p -e 's/only info/Info/g' routingGame_ger.html
 
 #############################################
 # change js files (incl link targets in redirect.js)
@@ -182,6 +183,6 @@ done
 
 perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_ger.js
 
-perl -i -p -e 's/info_routimgGame\.html/info_routimgGame_ger.html/g' js/control_gui_ger.js
+perl -i -p -e 's/info_routingGame\.html/info_routingGame_ger.html/g' js/control_gui_ger.js js/routingGame_ger.js
 
 cd $wd

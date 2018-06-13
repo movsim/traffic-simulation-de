@@ -168,41 +168,14 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   left:   0vw;
   top:   0vmin;
   width:  99vw;  /* 6/5 */
-  height: 97vh;
+  height: 99vh;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
 
 
-
-/* (2a) position of the copyright landscape: left bottom of simCanvas*/
-
-#impressum{ /*landscape*/
-  position: absolute;
-  bottom: 0.5vmin;
-  height: 2vmin;
-  left: 0.5vw;
-  width: 10vw;
-  background-color: rgba(255,255,255,0.7);
-  font-size: 1.5vmin;
-  z-index: 1; /* the higher the integer, the more on top landscape */
-}
-
-
-
-/* (2c) position of the start/stop sign: just to the left of info button */
-
-#startStopDiv{ /*landscape*/
-  position: absolute;
-  top: 18vmin;
-  height: 8vmin;
-  left: 76vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-/* (2e) play button  */
+/* (2a) play button  */
 
 #gameDiv{ /*landscape*/
   position: absolute;
@@ -211,6 +184,17 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   left: 51vmin;
   width: 28vmin;
   font-size: 2.2vmin; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2b) position of the start/stop button */
+
+#startStopDiv{ /*landscape*/
+  position: absolute;
+  top: 18vmin;
+  height: 8vmin;
+  left: 80vmin;
+  width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
@@ -243,31 +227,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-
-/* (4) pos of the general link list (table.infoTable top-level)*/
-
-#linkDiv{ /*landscape*/
-  position: absolute;
-  bottom:   0.5vmin;
-  left:   25vmin;
-  width:  80vmin; /* no height */
-  z-index: 2;
-} 
-
-
-/* (5) position of the flags: right top of simCanvas */
-
-#infoFlags{ /*landscape*/
-  position: absolute;
-  top:   95vmin;
-  left:   104vmin;
-  width:  16vmin; /* no height */
-  z-index: 2;
-}
-
-
-
-/* (6) infotext (layout of ul's in infotext in top-level ul, ul.noindent)*/
+/* (4) infotext (layout of ul's in infotext in top-level ul, ul.noindent)*/
 
 
 #infotextGame{ /*landscape*/
@@ -287,6 +247,47 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; 
 
 }
+
+
+
+
+/* (5a) position of the copyright: left bottom of simCanvas*/
+
+#impressum{ /*landscape*/
+  position: absolute;
+  bottom: 0.5vmin;
+  height: 2vmin;
+  left: 0.5vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+/* (5b) pos of the general link list (table.infoTable top-level)*/
+
+#linkDiv{ /*landscape*/
+  position: absolute;
+  bottom:   1vmin;
+  left:   80vmin;
+  width:  80vmin; /* no height */
+  z-index: 2;
+} 
+
+
+/* (5c) position of the flags: right top of simCanvas */
+
+#infoFlags{ /*landscape*/
+  position: absolute;
+  bottom:   1vmin;
+  right:   2vmin;
+  width:  16vmin; /* no height */
+  z-index: 2;
+}
+
+
 
 
 } /* end @media filter landscape normal */
