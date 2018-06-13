@@ -11,35 +11,22 @@
 // further routing game controls in control_gui.js
 
 
+var isGame=false;
+
+// override standard settings in control_gui.js
 
 qIn=qInInit=2200./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-var isGame=false;
 
 truckFrac=0.15;
-slider_truckFrac.value=100*truckFrac;
-slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
-IDM_a=0.9; // low to allow stopGo
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
-factor_a_truck=1; // to allow faster slowing down of the uphill trucks
+IDM_a=0.9; 
 
 MOBIL_bBiasRight_car=0.0
-slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
-slider_MOBIL_bBiasRight_carVal.innerHTML
-	=MOBIL_bBiasRight_car+" m/s<sup>2</sup>";
-
 MOBIL_bBiasRight_truck=0.0
-slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
-slider_MOBIL_bBiasRight_truckVal.innerHTML
-	=MOBIL_bBiasRight_truck+" m/s<sup>2</sup>";
-
 MOBIL_bThr=0.0
-slider_MOBIL_bThr.value=MOBIL_bThr;
-slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
 
 
 MOBIL_mandat_bSafe=15; // standard 42
@@ -91,9 +78,9 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=350;  // constants => all objects scale with refSizePix
+var refSizePhys=320;  // constants => all objects scale with refSizePix
 
-var critAspectRatio=120./95.; // from css file width/height of #contents
+var critAspectRatio=1.7; // from css file width/height of #contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
@@ -108,7 +95,7 @@ var scale=refSizePix/refSizePhys;
 
 var center_xRel=0.43;
 var center_yRel=-0.5;
-var arcRadiusRel=0.35;
+var arcRadiusRel=0.39;
 var offLenRel=0.9;
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
@@ -488,12 +475,12 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
 
-var smallerDimPix=Math.min(canvas.width,canvas.height);
+/*var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   40,40,true);
-
+*/
 
 //############################################
 // run-time specification and functions
@@ -525,7 +512,7 @@ function updateSim(){
 
 	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
 	   &&(time>30)){ // last cond necessary since initially regular vehs
-	    finishRoutingGame("infotext");
+	    finishRoutingGame("infotextGame");
 	}
 
     }
@@ -618,13 +605,13 @@ function updateSim(){
  	console.log("\n");
     }
 
-     //!!!
+     /*
     if(depotVehZoomBack){
 	var res=depot.zoomBackVehicle();
 	depotVehZoomBack=res;
 	userCanvasManip=true;
     }
-
+*/
 
 
 }//updateSim
@@ -712,10 +699,11 @@ function drawSim() {
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			   vmin_col,vmax_col,lDev-lrampDev, lDev);
 
-    // (5) !!! draw depot vehicles
+ /*   // (5) !!! draw depot vehicles
 
     depot.draw(obstacleImgs,scale,canvas);
-
+ */
+    
     // (6) draw simulated time
 
     displayTime(time);
@@ -759,7 +747,10 @@ function main_loop() {
 //############################################
 
 console.log("first main execution");
-showInfo();
+
+$("#infotextGame").load("info/info_routingGame.html");
+//showInfo();
+
 var myRun=setInterval(main_loop, 1000/fps);
 
 

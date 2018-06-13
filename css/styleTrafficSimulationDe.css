@@ -81,6 +81,16 @@ body{
      padding-top:0px;
  }
 
+button{
+     font-size: 2.2vmin; 
+}
+
+ #gameSliderTitle{
+     font-size: 2.5vmin; 
+     font-weight: bold; 
+     color: #dd0033;
+ }
+ 
 /* standard: white */
 
 #container{
@@ -187,13 +197,13 @@ which always gives correct size!!
 */
 
 
-/* (2a) position of the copyright: left bottom of simCanvas landscape*/
+/* (2a) position of the copyright landscape: left bottom of simCanvas*/
 
 #impressum{ 
   position: absolute;
-  bottom: 0vmin;
+  bottom: 0.5vmin;
   height: 2vmin;
-  left: 0vw;
+  left: 0.5vw;
   width: 10vw;
   background-color: rgba(255,255,255,0.7);
   font-size: 1.5vmin;
@@ -243,12 +253,13 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#gameDiv{
+#gameDiv{ /* button text inside button environment */
   position: absolute;
   top: 1vmin;
   height: 7vmin;
   left: 51vmin;
   width: 28vmin;
+  font-size: 2.2vmin; 
   z-index: 2; /* the higher the integer, the more on top */
 }
 
@@ -274,8 +285,8 @@ which always gives correct size!!
 
 #linkDiv{
   position: absolute;
-  top:   94.5vmin;
-  left:   20vmin;
+  bottom:   0.5vmin;
+  left:   25vmin;
   width:  80vmin; /* no height */
   z-index: 2;
 } 
@@ -374,6 +385,18 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   overflow:auto;
 }
 
+#infotextGame{
+  border:1px solid black;
+  width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  height: 50vmin;
+  text-align: left;
+  padding-top: 0vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
+  background-color: rgba(0,40,255,0.0);
+  overflow:auto;
+}
+
 /* (7) position/size of the colorbox */
 
 #colorBox{
@@ -431,7 +454,7 @@ img.title{
 }
 
 
-/* (2a) position of the copyright: left bottom of simCanvas */
+/* (2a) position of the copyright portrait: left bottom of simCanvas */
 
 #impressum{ 
   position: absolute;

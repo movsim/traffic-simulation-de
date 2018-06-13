@@ -10,7 +10,7 @@ truckFrac=0.25;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
-qIn=3000./3600; 
+qIn=2600./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 

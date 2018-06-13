@@ -13,7 +13,7 @@ MOBIL_bSafeMax=17;
 
 densityInit=0;
 
-qIn=qInInit=1600./3600; 
+qIn=qInInit=1500./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 

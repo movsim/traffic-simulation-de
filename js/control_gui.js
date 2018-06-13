@@ -43,14 +43,14 @@ at present only routing game for routing.js
 */
 
 var nick="Voldemort";
-function playRoutingGame(){
+function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
     isGame=true;
     time=0;
     itime=0;
     var nregular=mainroad.nRegularVehs();
     mainroad.removeRegularVehs();
     ramp.removeRegularVehs();
-    $("#infotext").load("info/info_routingGame.html");
+    $(infotextID).load("info/info_routingGame.html");
     nick = prompt("Please enter your nick", "Voldemort");
 }
 
@@ -63,13 +63,13 @@ function updateRoutingGame(time){
     slider_qInVal.innerHTML=3600*qIn+" veh/h";
 }
 
-function finishRoutingGame(){
+function finishRoutingGame(infotextID){
     isGame=false;
     qIn=qInInit;
     var roundedTime=parseFloat(time).toFixed(1);
     var messageText=updateHighscores(nick,roundedTime,
 				     "routingGame_Highscores");
-    document.getElementById("infotext").innerHTML=messageText;
+    document.getElementById(infotextID).innerHTML=messageText;
     console.log("Game finished in ",time," seconds!");
     myStartStopFunction(); // reset game
 }
@@ -303,11 +303,11 @@ if(document.getElementById("slider_timewarp")==null)
 else{
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
-    slider_timewarpVal.innerHTML=timewarpInit;
+    slider_timewarpVal.innerHTML=timewarpInit +" times";
     slider_timewarp.value=timewarpInit;
 
     slider_timewarp.oninput = function() {
-        slider_timewarpVal.innerHTML = this.value;
+        slider_timewarpVal.innerHTML = this.value +" times";
         timewarp=parseFloat(this.value);
         dt=timewarp/fps;
     }
@@ -332,9 +332,9 @@ else{
 }
 
 
-// inflow slider
+// inflow slider 
 
-var qIn=qInInit=4/3.6;    // 1.0 total mainroad inflow [veh/s] 
+var qIn=qInInit=4.4/3.6;    //total inflow, overridden in roadworks.js, routing.js
 var slider_qIn,slider_qInVal;
 if(document.getElementById("slider_qIn")===null) 
     console.log("no qIn slider");
@@ -353,7 +353,7 @@ else{
 
 // ramp flow slider
 
-var qOn=qOnInit=0.25; //  0.2total onramp inflow [veh/s] 
+var qOn=qOnInit=0.9/3.6; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
 if(document.getElementById("slider_qOn")===null) 
     console.log("no qOn slider");
@@ -457,7 +457,7 @@ else{
 
 // IDM_T slider
 
-var IDM_T=IDM_TInit=1.2; 
+var IDM_T=IDM_TInit=1.4; 
 var slider_IDM_T,slider_IDM_TVal;
 if(document.getElementById("slider_IDM_T")===null) 
     console.log("no IDM_T slider");

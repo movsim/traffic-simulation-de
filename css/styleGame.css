@@ -1,0 +1,444 @@
+/* (2018-06-14) adapted from styleTrafficSimulationDe.css
+for routing game
+*/
+
+
+/*#############################################################*/
+/* basic settings for all aspect ratios */
+/*#############################################################*/
+
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+
+/* <h2>, <h3> not used in the main sim page but in some help pages */
+
+ h1{
+     font-family: helvetica, sans-serif;
+     font-size: 2.6vmin;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h2{
+     font-family: helvetica, sans-serif;
+     font-size: 2.4vmin;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h3{ 
+     font-family: sans-serif;
+     font-size: 2.2vmin; 
+     font-weight: bold;
+     font-style: italic;
+     color: #446;
+     padding-top:0px;
+ }
+
+button{
+     font-size: 2.2vmin; 
+}
+
+ #gameSliderTitle{
+     font-size: 2.5vmin; 
+     font-weight: bold; 
+     color: #dd0033;
+ }
+ 
+/* standard: white */
+
+#container{
+    margin: 0em auto;
+    width: 98vw;
+    text-align: left;
+    background-color: #FFFFFF;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+    border-width: 0;
+}
+
+
+/* general links */
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+
+th{                    /* only used in infotext */
+  font-size: 2.2vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #000000;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+table.infoTable {
+   border: 0px ridge rgb(130,130,130); /* spacing, padding DOS with border-collapse */
+   border-collapse: collapse; 
+   background-color: rgba(255,255,255,0.7);
+}
+table.infoTable td {
+   border: 2px ridge rgb(130,130,130);
+}
+
+ul { margin-left: 2vmin; padding: 0vmin; }
+
+ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
+    margin-left: 5px;
+    margin-right: 0px;
+    padding-left: 10px;
+    padding-right: 0px;
+}
+
+
+/*#############################################################*/
+/* basic settings for landscape formats */
+/*#############################################################*/
+
+@media all and  (min-aspect-ratio: 6/5){
+
+
+/* (1) the title */
+
+#header{ /*landscape*/
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 0;  /* above simulation canvas in rare chances of overlapping */
+}
+
+
+
+/* (2) the simulation canvas */
+
+#contents{ /*landscape*/
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  99vw;  /* 6/5 */
+  height: 97vh;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+
+/* (2a) position of the copyright landscape: left bottom of simCanvas*/
+
+#impressum{ /*landscape*/
+  position: absolute;
+  bottom: 0.5vmin;
+  height: 2vmin;
+  left: 0.5vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top landscape */
+}
+
+
+
+/* (2c) position of the start/stop sign: just to the left of info button */
+
+#startStopDiv{ /*landscape*/
+  position: absolute;
+  top: 18vmin;
+  height: 8vmin;
+  left: 76vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2e) play button  */
+
+#gameDiv{ /*landscape*/
+  position: absolute;
+  top: 20vmin;
+  height: 7vmin;
+  left: 51vmin;
+  width: 28vmin;
+  font-size: 2.2vmin; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+/* (3a) main slider for deviation uses
+/* Notice: table elements relevant for font size */
+
+
+#sliderMain{ /*landscape*/
+  position: absolute;
+  top: 18vmin;
+  height: 8vmin;
+  left: 101vmin;
+  width: 50vmin;
+  background-color: rgba(255,255,255,1);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (3b) secondary sliders info inflow, timewarp */
+
+#sliders2{ /*landscape*/
+  position: absolute;
+  top: 72vmin;
+  height: 7vmin;
+  left: 101vmin;
+  width: 50vmin;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (4) pos of the general link list (table.infoTable top-level)*/
+
+#linkDiv{ /*landscape*/
+  position: absolute;
+  bottom:   0.5vmin;
+  left:   25vmin;
+  width:  80vmin; /* no height */
+  z-index: 2;
+} 
+
+
+/* (5) position of the flags: right top of simCanvas */
+
+#infoFlags{ /*landscape*/
+  position: absolute;
+  top:   95vmin;
+  left:   104vmin;
+  width:  16vmin; /* no height */
+  z-index: 2;
+}
+
+
+
+/* (6) infotext (layout of ul's in infotext in top-level ul, ul.noindent)*/
+
+
+#infotextGame{ /*landscape*/
+
+  position: absolute;
+  border:1px solid black;
+  top: 27vmin;
+  left: 41vmin;
+  width: 49vmin;
+  height: 40vmin;
+  text-align: left;
+  padding-top: 0vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+
+}
+
+
+} /* end @media filter landscape normal */
+
+
+
+
+/*#############################################################*/
+/* basic settings for square/portrait formats */
+/*#############################################################*/
+
+@media all and  (max-aspect-ratio: 6/5){
+
+/* (1) the title */
+
+#header{ /*portrait*/
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 0; 
+}
+
+
+/* (2) the simulation canvas */
+
+#contents{ /*portrait*/
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
+  height: 78vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (2a) position of the copyright: left bottom of simCanvas */
+
+#impressum{  /*portrait*/
+  position: absolute;
+  top: 75.5vmin;
+  height: 2vmin;
+  left: 1vw;
+  width: 12vmin;
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+
+/* (2b) position of the info button: right top of simCanvas */
+
+#infoDiv{ /*portrait*/
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 90vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2c) position of the start/stop sign: just to the left of info button */
+
+#startStopDiv{ /*portrait*/
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 82vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+#gameDiv{ /*portrait*/
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 40vmin;
+  width: 24vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (2f) position of the general link list */
+
+#linkDiv{ /*portrait*/
+  position: absolute;
+  top:   79vmin;
+  left:   51vmin;
+  width:  47.5vmin; /* no height */
+  z-index: 2;
+} 
+
+/* (3) position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{ /*portrait*/
+  position: absolute;
+  top:   73.5vmin;
+  left:   83vmin;
+  width:  15vmin; /* no height */
+  z-index: 2;
+}
+
+
+
+
+/* (5) sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+#sliders{ /*portrait*/
+  position: absolute;
+  top: 88vmin;
+  left: 0vmin;
+  width: 54vmin;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+
+/* (6) infotext */
+
+#infotextGame{ /*portrait */
+  border:1px solid black;
+  position: absolute;   /* w/respect to outer div */
+  left: 51vmin;
+  width: 43vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  top: 1vmin;
+  height: 27vmin;
+  text-align: left;
+  padding-top: 0vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
+  background-color: rgba(0,40,255,0.0);
+  overflow:auto;
+}
+
+
+} /* end @media filter square/portrait  */
+
+
+
+
+/*#########################################################*/
+/* addl settings hendheld-type devices with small screen */
+/*#########################################################*/
+
+@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
+
