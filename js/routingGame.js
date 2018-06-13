@@ -1,12 +1,16 @@
 
+//#############################################################
+// manually delete highscores from disk; comment out if online/game active!
+//#############################################################
+
+//deleteHighscores("routingGame_Highscores");
+
+
 
 //#############################################################
 // adapt standard param settings from control_gui.js
 //#############################################################
 
-// manually delete highscores from disk; comment out if online!
-
-//deleteHighscores("routingGame_Highscores");
 
 // further routing game controls in control_gui.js
 
@@ -35,7 +39,7 @@ MOBIL_mandat_bias=10;
 
 // behavior during bottlenecks (car and trucks)
 
-var longModelBottl=new ACC(0.4*IDM_v0,8*IDM_T,1*IDM_s0,2*IDM_a,0.5*IDM_b); 
+var longModelBottl=new ACC(0.2*IDM_v0,8*IDM_T,1*IDM_s0,2*IDM_a,0.5*IDM_b); 
 updateModels(); 
 
 
@@ -125,7 +129,6 @@ var lParallel=0.2*refSizePhys;   // length parallel to mainroad before merg.
 
 var lDev=2*(lrampDev+arcRadius)+laneWidth*(nLanes_main+1)+lParallel
     +rDev*(4*alpha+Math.PI+2-4*Math.cos(alpha)); 
-console.log("lDev=",lDev);
 
 // difference between first diverge and first merge point in mainroad coords
 
@@ -138,15 +141,19 @@ var umainMerge=umainDiverge+dumainDivergeMerge;
 
 // region of flow-conserving bottleneck to create jams on deviations 
 
-var udevBottlBeg=lDev-lrampDev-2*rDev*alpha-lParallel;
-var udevBottlEnd=udevBottlBeg+1.0*lParallel;
+var udevBottlBeg=lDev-lrampDev-rDev*(2*alpha+Math.PI)-lParallel;
+//var udevBottlBeg=lrampDev;
+var udevBottlEnd=lDev-lrampDev;
 
 
-console.log(" deviation properties: length lDev="+lDev
-	    +" dumainDivergeMerge="+dumainDivergeMerge
-	    +" umainDiverge="+umainDiverge
-	    +" umainMerge="+umainMerge
-	   );
+console.log(" deviation properties: length lDev=",lDev,
+	    " dumainDivergeMerge=",dumainDivergeMerge,
+	    " umainDiverge=",umainDiverge,
+	    " umainMerge=",umainMerge);
+console.log("lDev=",lDev,
+	    " udevBottlBeg=",udevBottlBeg,
+	    " udevBottlEnd=",udevBottlEnd);
+
 
 // roadworks properties (mainroad coordinates)
 
@@ -178,9 +185,9 @@ function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
     +lParallel+ 2*(straightLen-umainDiverge);
     umainMerge=umainDiverge+dumainDivergeMerge;
 
-    udevBottlBeg=lDev-lrampDev-2*rDev*alpha-lParallel;
-    udevBottlEnd=udevBottlBeg+1.0*lParallel;
-
+    // only if sizePhys changed, init sttings above in var def
+    udevBottlBeg=lDev-lrampDev-rDev*(2*alpha+0.5*Math.PI)-lParallel;
+    udevBottlEnd=lDev-lrampDev;
     uBeginRoadworks=straightLen+0.9*arcLen;
     uEndRoadworks=uBeginRoadworks+0.2*arcLen;
 }

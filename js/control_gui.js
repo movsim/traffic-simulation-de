@@ -50,15 +50,17 @@ function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
     var nregular=mainroad.nRegularVehs();
     mainroad.removeRegularVehs();
     ramp.removeRegularVehs();
-    $(infotextID).load("info/info_routingGame.html");
+    $("#"+infotextID).load("info/info_routingGame.html");
+    //$("#infotextGame").load("info/info_routingGame.html"); // only here
+    console.log("playRoutingGame: target ID to load to: "+ "#"+infotextID);
     nick = prompt("Please enter your nick", "Voldemort");
 }
 
 function updateRoutingGame(time){
-    qIn=(time<30) ? 3600/3600 : 
-	(time<50) ? 1800/3600 : 
-	(time<60) ? 3600/3600 :
-	(time<90) ? 2400/3600 : 0;
+    qIn=(time<50) ? 3000/3600 : 
+	(time<90) ? 600/3600 : 
+	(time<120) ? 3300/3600 :
+	(time<125) ? 900/3600 : 0;
     slider_qIn.value=3600*qIn;
     slider_qInVal.innerHTML=3600*qIn+" veh/h";
 }
@@ -105,7 +107,7 @@ function updateHighscores(nickName,newScore,storageName){
 
     var date=new Date();
     var year=date.getFullYear();
-    var month=date.getMonth(); if(month<10){month="0"+month;}
+    var month=date.getMonth()+1; if(month<10){month="0"+month;}
     var day=date.getDate(); if(day<10){day="0"+day;}
     var hours=date.getHours(); if(hours<10){hours="0"+hours;}
     var minutes=date.getMinutes(); if(minutes<10){minutes="0"+minutes;}
@@ -119,7 +121,7 @@ function updateHighscores(nickName,newScore,storageName){
 		 date:dateStr
 		});
 
-    scores.sort(function(a,b){return a.score < b.score});
+    scores.sort(function(a,b){return a.score > b.score});
 
     // save the updated highscore list and return string for html display 
 
@@ -130,15 +132,20 @@ function updateHighscores(nickName,newScore,storageName){
 	+newScore+" Seconds"
 	+"<h2>Highscore list:</h2>"
 	+"<table border=\"0\" cellspacing=\"1\" cellpadding=\"3\">"
-	+"<tr><th> name</th><th>score [s]</th><th>time</th></tr>";
+	//+"<tr><th> name</th><th>score [s]</th><th>time</th></tr>";
+	+"<tr><th>rank</th><th> name</th><th>score [s]</th></tr>";
 
-    for(var i=0; i<scores.length; i++){
+    //for(var i=0; i<scores.length; i++){
+    for(var i=0; i<Math.min(scores.length,10); i++){
 	console.log("name:",scores[i].name,
 		    " score:",scores[i].score,
 		    " date:",scores[i].date);
-	str_highScores += "<tr><td>"+scores[i].name+"</td>"
+	str_highScores += "<tr>"
+            + "<td>"+(i+1)+"</td>"
+            + "<td>"+scores[i].name+"</td>"
 	    + "<td>"+scores[i].score+"</td>"
-	    + "<td>"+scores[i].date+"</td></tr>"
+	   // + "<td>"+scores[i].date+"</td>"
+            +  "</tr>"
     }
     str_highScores += "</table>";
 
@@ -146,7 +153,7 @@ function updateHighscores(nickName,newScore,storageName){
 }
 
 
-// manually delete highscores from disk; comment out in routing.js if online!
+// manually delete highscores from disk; comment out in routing[Game].js if online!
 
 function deleteHighscores(storageName){
     if (typeof(Storage) === "undefined") {
