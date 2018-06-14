@@ -1,6 +1,7 @@
 
 //#############################################################
-// manually delete highscores from disk; comment out if online/game active!
+// manually delete highscores from disk [loeschen remove]
+// comment out if online/game active!
 //#############################################################
 
 //deleteHighscores("routingGame_Highscores");

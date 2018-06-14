@@ -1,0 +1,32 @@
+Hallo Lange LNdW-Bestreiter,
+
+anbei der Link zu meinem neuen Routing-Spiel:
+
+http://www.traffic-simulation.de/routingGame_ger.html
+
+Its's also possible to switch it to English with the flags at the right bottom corner. Ist unter Firefox und Chrome getestet. Fuer den lokalen Download habe ich es auch als zip File beigepackt. Nach Entpacken  auf trafficSimulationDe_html5_2018_06_14/ gehen und routingGame_ger.html in einem Brauser oeffnen. (unter trafficSimulationDe_html5_2018_06_14/index.html gibt es auch lokalen Zugang zu meiner normalen Online-Simulations-Package).
+
+Joerg: Bitte auf die Praesentationscomputer laden und testen. Es ist fuer Landscape im Vollbildmodus optimiert, aber je nach Aspekt-Verhaeltnis muss man ggf am .css noch etwas frickeln.
+
+Uebrigens: Will man die Highscore-Liste aus irgendwelchen Gruenden zuruecksetzen (sie wird lokal auf jedem Computer gespeichert), in js/routingGame.js   die Kommentarzeichen "//" der Zeile
+
+//deleteHighscores("routingGame_Highscores");
+
+entfernen, einmal routingGame.html laufen lassen und danach die Zeile wieder kommentieren (die deutsche und englische Version teilen sich eine gemeinsame Highscore-Liste)
+
+
+Besten Gruss,
+
+Martin
+
+> Stefanie Lösch <stefanie.loesch@tu-dresden.de> hat am 13. Juni 2018 um 10:39 geschrieben:
+>
+> Dear colleagues,
+>
+> on this friday, 15th June 2018, is going to be the "Lange Nacht der Wissenschaften". Attached please find the current manning table (small changes compared with the prior version).
+>
+> I wish us an exciting evening or rather night!
+>
+> See you on Friday!
+>
+> Stefanie

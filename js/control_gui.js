@@ -153,7 +153,8 @@ function updateHighscores(nickName,newScore,storageName){
 }
 
 
-// manually delete highscores from disk; comment out in routing[Game].js if online!
+// manually delete highscores from disk [loeschen remove]
+// comment out in routing[Game].js if online!
 
 function deleteHighscores(storageName){
     if (typeof(Storage) === "undefined") {
