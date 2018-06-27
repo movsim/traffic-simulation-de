@@ -155,6 +155,7 @@ perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g
 perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html routingGame_ger.html
 
 perl -i -p -e 's/only info/Info/g' routingGame_ger.html
+perl -i -p -e 's/routing\.html/routing_ger.html/g' routingGame_ger.html
 
 #############################################
 # change js files (incl link targets in redirect.js)

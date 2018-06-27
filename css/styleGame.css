@@ -255,7 +255,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #impressum{ /*landscape*/
   position: absolute;
-  bottom: 0.5vmin;
+  top: 96vmin;  /* bottom: bug in Safari */
   height: 2vmin;
   left: 0.5vw;
   width: 10vw;
@@ -270,9 +270,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #linkDiv{ /*landscape*/
   position: absolute;
-  bottom:   1vmin;
-  left:   80vmin;
-  width:  80vmin; /* no height */
+  top: 95vmin;  /* bottom: bug in Safari */
+  left:   20vmin;
+  width:  90vmin; /* no height */
   z-index: 2;
 } 
 

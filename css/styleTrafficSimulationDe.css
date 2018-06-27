@@ -179,7 +179,7 @@ img.title{
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  120vmin;  /* 6/5 */
+  width:  112vmin; 
   height: 100vmin;
   margin-right: 0vw;
   margin-left: 0vw;
@@ -217,7 +217,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 8vmin;
-  left: 111vmin;
+  left: 102vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -228,7 +228,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 8vmin;
-  left: 101vmin;
+  left: 93vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -239,7 +239,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 91vmin;
+  left: 84vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -248,7 +248,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 81vmin;
+  left: 75vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -257,7 +257,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 51vmin;
+  left: 42vmin;
   width: 28vmin;
   font-size: 2.2vmin; 
   z-index: 2; /* the higher the integer, the more on top */
@@ -267,7 +267,7 @@ which always gives correct size!!
   position: absolute;
   top: 25vmin;
   height: 15vmin;
-  left: 100vmin;
+  left: 92vmin;
   width: 15vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -277,7 +277,7 @@ which always gives correct size!!
 #buttonsInsideSimulations{
   position: absolute;
   top: 1vmin;
-  left: 40vmin;
+  left: 32vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
@@ -285,8 +285,8 @@ which always gives correct size!!
 
 #linkDiv{
   position: absolute;
-  bottom:   0.5vmin;
-  left:   25vmin;
+  top:   95vmin; /* bottom attribute error in Safari */
+  left:   20vmin;
   width:  80vmin; /* no height */
   z-index: 2;
 } 
@@ -297,7 +297,7 @@ which always gives correct size!!
 #infoFlags{
   position: absolute;
   top:   95vmin;
-  left:   104vmin;
+  left:   95vmin;
   width:  16vmin; /* no height */
   z-index: 2;
 }
@@ -307,10 +307,10 @@ which always gives correct size!!
 
 #scenarios{
   position: absolute;
-  top:     0vmin;
-  height:  20vmin;
-  left: 121vmin;
-  width: 50vmin;
+  top:     -1vmin;
+  height:  22vmin;
+  left: 113vmin;
+  width: 40vmin;
   z-index: 2;
 }
 
@@ -325,7 +325,7 @@ which always gives correct size!!
   position: absolute;
   top: 12vmin;
   height: 20vmin;
-  left: 121vmin;
+  left: 110vmin;
   width: 55vmin;
   background-color: rgba(0,40,255,0);
   z-index: 2; /* the higher the integer, the more on top */
@@ -374,9 +374,10 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 #infotext{
-  border:1px solid black;
+  border:0px solid black; /* 1px with frame */
   width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
   height: 31vmin;
+  left: 4vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -419,7 +420,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 @media all and  (max-aspect-ratio: 6/5){
 
-/* (1) the title */
+/* (1) portrait:  the title */
 
 #header{
   position: absolute;
@@ -433,14 +434,14 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* title image */
+/* portrait: title image */
 
 img.title{
   max-height: 5vmin;  z-index: 2;
 }
 
 
-/* (2) the simulation canvas */
+/* (2) portrait: the simulation canvas */
 
 #contents{
   position: absolute;
@@ -454,7 +455,7 @@ img.title{
 }
 
 
-/* (2a) position of the copyright portrait: left bottom of simCanvas */
+/* (2a) portrait: position of the copyright: left bottom of simCanvas*/
 
 #impressum{ 
   position: absolute;
@@ -468,7 +469,7 @@ img.title{
 }
 
 
-/* (2b) position of the info button: right top of simCanvas */
+/* (2b) portrait: position of the info button: right top of simCanvas*/
 
 #infoDiv{
   position: absolute;
@@ -479,7 +480,7 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) position of the start/stop sign: just to the left of info button */
+/* (2c) portrait: position of the start/stop sign: just to the left of info button*/
 
 #startStopDiv{
   position: absolute;
@@ -490,7 +491,7 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2d) add/subtract one lane: just to the left of start/stop button */
+/* (2d) portrait: add/subtract one lane: just to the left of start/stop button */
 
 #lanePlusDiv{
   position: absolute;
@@ -528,7 +529,7 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) position of the enforce truck overtaking ban in uphill scen*/
+/* (2e) portrait: position of the enforce truck overtaking ban in uphill scen*/
 
 #buttonsInsideSimulations{
   position: absolute;
@@ -537,7 +538,7 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2f) position of the general link list square/portrait */
+/* (2f) portrait: position of the general link list square/portrait */
 
 #linkDiv{
   position: absolute;
@@ -547,7 +548,7 @@ img.title{
   z-index: 2;
 } 
 
-/* (3) position of the flags for language selection: right top of simCanvas */
+/* (3) portrait: position of the flags for language selection: right top of simCanvas */
 
 #infoFlags{
   position: absolute;
@@ -558,7 +559,7 @@ img.title{
 }
 
 
-/* (4) the field for selecting the scenarios; */
+/* (4) portrait: the field for selecting the scenarios; */
 
 #scenarios{
   position: absolute;
@@ -573,7 +574,7 @@ img.title{
 
 
 
-/* (5) sliders: top-div for all three slider fields */
+/* (5) portrait: sliders: top-div for all three slider fields */
 /* Notice: table elements relevant for font size */
 
 #sliders{ 
@@ -607,7 +608,7 @@ td.important{
 }
 
 
-/* (5a-c) nested div's single slider-areas. In landscape, just let them flow
+/* (5a-c) portrait: nested div's single slider-areas. In landscape, just let them flow
 (no spec), in portrait,  unfortunately DOS  => position by brute force  */
 
 #slidersGen{ 
@@ -638,7 +639,7 @@ td.important{
 }
 
 
-/* (6) infotext div-box portrait (sub-div!, in contrast to landscape pos info*/
+/* (6) portrait: infotext div-box portrait (sub-div!, in contrast to landscape pos info*/
 
 #infotext{
   border:1px solid black;
@@ -666,7 +667,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* (7) position/size of the colorbox */
+/* (7) portrait: position/size of the colorbox */
 
 #colorBox{
   position: absolute;
@@ -677,7 +678,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-} /* end @media filter landscape normal */
+} /* end @media filter portrait */
 
 
 

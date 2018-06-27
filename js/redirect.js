@@ -27,8 +27,8 @@ function myRedirectRouting(){
     window.location.href = "./routing.html";
 }
 
-function myRedirectUphill(){
-    window.location.href = "./uphill.html";
+function myRedirectGame(){
+    window.location.href = "./routingGame.html";
 }
 
 function myRedirectTrafficlight(){
