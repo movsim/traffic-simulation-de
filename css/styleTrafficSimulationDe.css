@@ -197,19 +197,6 @@ which always gives correct size!!
 */
 
 
-/* (2a) position of the copyright landscape: left bottom of simCanvas*/
-
-#impressum{ 
-  position: absolute;
-  bottom: 0.5vmin;
-  height: 2vmin;
-  left: 0.5vw;
-  width: 10vw;
-  background-color: rgba(255,255,255,0.7);
-  font-size: 1.5vmin;
-  z-index: 1; /* the higher the integer, the more on top landscape */
-}
-
 
 /* (2b) position of the info button: right top of simCanvas landscape*/
 
@@ -285,11 +272,25 @@ which always gives correct size!!
 
 #linkDiv{
   position: absolute;
-  top:   95vmin; /* bottom attribute error in Safari */
+  top:   97vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  80vmin; /* no height */
   z-index: 2;
 } 
+
+/* (2g) landscape: position of the copyright left bottom of simCanvas*/
+/* Safari bug with using bottom => use always top */
+
+#impressum{ 
+  position: absolute;
+  top: 98vmin;
+  height: 2vmin;
+  left: 0.5vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top landscape */
+}
 
 
 /* (3) position of the flags for language selection: right top of simCanvas */
