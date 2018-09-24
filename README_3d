@@ -1,0 +1,6 @@
+FeelingShred
+If you can manage to build a real-time 3D simulation of cars in traffic for games that manages to use low CPU resources, there's a demand for this at the moment. At the moment, games have to rely on cars that only choose path at the start of the trip, not adjusting dynamically on the way (for example, changing lanes) because high CPU usage bottleneck.﻿
+
+Der Physiker
+1 second ago
+In fact, even in an interpreter language like JavaScript used in this simulation, the computational cost of lane changing, re-routing, or other sorts of  decision making is negligible, even on smartphones. A 3d graphics representation has a multiple computational cost. In the next version, I will add a scenario with limited 3d perspective (from the driver's and the drone flyer's view)﻿ 
