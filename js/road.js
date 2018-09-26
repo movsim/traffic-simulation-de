@@ -256,7 +256,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-    console.log("in road.gridTrajectories: this.nLanes=",this.nLanes,
+    console.log("in road.gridTrajectories: roadID=",this.roadID,
+		" this.nLanes=",this.nLanes,
 		" traj_yExt=",traj_yExt);
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
@@ -275,6 +276,7 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 	var iUpper=Math.min(iLower+1, this.nSegm);
 	var rest=this.nSegm*uLoc/this.roadLen-iLower;
 	if(false){
+	//if(this.roadID==10){
 	//if((uLoc<2)||(uLoc>this.roadLen-2)){
 	    console.log("in road.gridTrajectories def this.traj_x: u=",u,
 			" roadLen=",this.roadLen, " this.nSegm=",this.nSegm,

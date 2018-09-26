@@ -693,7 +693,7 @@ function dragVehicle(xUser,yUser){
 }
 
 function dragRoad(xUser,yUser){
-    //console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
+    console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
 
     userCanvasManip=true; // if true, new backgr, new road drawn
 

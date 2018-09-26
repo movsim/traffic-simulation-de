@@ -173,7 +173,7 @@ img.title{
 }
 
 
-/* (2) the simulation canvas */
+/* (2) landscape: the simulation canvas */
 
 #contents{
   position: absolute;
@@ -304,7 +304,7 @@ which always gives correct size!!
 }
 
 
-/* (4) the field for selecting the scenarios; */
+/* (4) the field for selecting the scenarios */
 
 #scenarios{
   position: absolute;
@@ -312,7 +312,7 @@ which always gives correct size!!
   height:  22vmin;
   left: 113vmin;
   width: 40vmin;
-  z-index: 2;
+  z-index: 4;  /*top-always focussed! */
 }
 
 

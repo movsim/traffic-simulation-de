@@ -436,6 +436,43 @@ else{
     }
 }
 
+// asymmetry slider (only 4-arm roundabout): 0=symm, 1=only 2 oppos. inflows
+
+var asymmFrac=asymmFracInit=0.10; // 0.10
+var slider_asymmFrac, slider_asymmFracVal;
+if(document.getElementById("slider_asymmFrac")===null) 
+    console.log("no asymmFrac slider");
+else{
+    slider_asymmFrac = document.getElementById("slider_asymmFrac");
+    slider_asymmFracVal = document.getElementById("slider_asymmFracVal");
+    slider_asymmFrac.value=100*asymmFracInit;
+    slider_asymmFracVal.innerHTML=100*asymmFracInit+"%";
+
+    slider_asymmFrac.oninput = function() {
+        slider_asymmFracVal.innerHTML = this.value+"%";
+        asymmFrac=parseFloat(this.value/100.);
+    }
+}
+
+
+// frac left turn slider (only 4-arm roundabout): fraction of total flow
+
+var leftTurnFrac=leftTurnFracInit=0.10; // 0.10
+var slider_leftTurnFrac, slider_leftTurnFracVal;
+if(document.getElementById("slider_leftTurnFrac")===null) 
+    console.log("no leftTurnFrac slider");
+else{
+    slider_leftTurnFrac = document.getElementById("slider_leftTurnFrac");
+    slider_leftTurnFracVal = document.getElementById("slider_leftTurnFracVal");
+    slider_leftTurnFrac.value=100*leftTurnFracInit;
+    slider_leftTurnFracVal.innerHTML=100*leftTurnFracInit+"%";
+
+    slider_leftTurnFrac.oninput = function() {
+        slider_leftTurnFracVal.innerHTML = this.value+"%";
+        leftTurnFrac=parseFloat(this.value/100.);
+    }
+}
+
 
 
 

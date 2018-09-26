@@ -27,6 +27,10 @@ function myRedirectRouting(){
     window.location.href = "./routing.html";
 }
 
+function myRedirectRoundabout(){
+    window.location.href = "./roundabout.html";
+}
+
 function myRedirectGame(){
     window.location.href = "./routingGame.html";
 }
