@@ -116,27 +116,6 @@ var scale=refSizePix/refSizePhys;
 // If refSizePhys changes, change them all => updatePhysicalDimensions();
 //##################################################################
 
-// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
-
-var center_xRel=0.63;
-var center_yRel=-0.55;
-
-var center_xPhys=center_xRel*refSizePhys; //[m]
-var center_yPhys=center_yRel*refSizePhys;
-var rRing=0.15*refSizePhys; // roundabout radius [m] (laneWidth=width variable)
-var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-var lArm=4*rRing;
-
-function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
-    center_xPhys=center_xRel*refSizePhys;
-    center_yPhys=center_yRel*refSizePhys;
-    rRing=0.15*refSizePhys; // roundabout radius [m] (laneWidth=width variable)
-    r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-    lArm=4*rRing;
-}
-
-
-
 // the following remains constant 
 // => road becomes more compact for smaller screens
 
@@ -145,6 +124,28 @@ var car_width=3; // car width in m
 var truck_length=12; // trucks
 var truck_width=4; 
 var laneWidth=4; 
+
+
+// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+
+var center_xRel=0.63;
+var center_yRel=-0.55;
+
+var center_xPhys=center_xRel*refSizePhys; //[m]
+var center_yPhys=center_yRel*refSizePhys;
+var rRing=0.15*refSizePhys; // roundabout radius [m]
+var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
+var lArm=4*rRing;
+
+function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
+    center_xPhys=center_xRel*refSizePhys;
+    center_yPhys=center_yRel*refSizePhys;
+    rRing=0.15*refSizePhys; 
+    r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
+    lArm=4*rRing;
+}
+
+
 
 
 
@@ -496,17 +497,25 @@ function updateSim(){
     // (2) do central simulation update of vehicles
     //##############################################################
 
-    var routeIn=(Math.random()<0.5) ? route1L : route1C; //!!!
+    var route1In=(Math.random()<0.5) ? route1L : route1C; //!!!
+    var route3In=(Math.random()<0.5) ? route3L : route3C; //!!!
+    var route5In=(Math.random()<0.5) ? route5L : route5C; //!!!
+    var route7In=(Math.random()<0.5) ? route7L : route7C; //!!!
 
-    arm[0].calcAccelerations();  
-    arm[0].updateSpeedPositions();
-    arm[0].updateBCdown();
-    arm[0].updateBCup(0.5*qIn,dt,routeIn);
+    for(var i=0; i<arm.length; i++){
+      arm[i].calcAccelerations();  
+      arm[i].updateSpeedPositions();
+    }
 
-    arm[1].updateLastLCtimes(dt); // needed since LC from ring!!?
+    arm[0].updateBCup(0.5*qIn,dt,route1In);
+    arm[2].updateBCup(0.5*qIn,dt,route3In);
+    arm[4].updateBCup(0.5*qIn,dt,route5In);
+    arm[6].updateBCup(0.5*qIn,dt,route7In);
+
+    //arm[1].updateLastLCtimes(dt); // needed since LC from ring!!?
 
     
-    var du_antic=20; //shift anticipation decision point upstream by du_antic
+    //var du_antic=20; //shift anticipation decision point upstream by du_antic
 
     // umainDiverge, umainMerge updated in canvas_gui.handleDependencies
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
@@ -572,7 +581,7 @@ function drawSim() {
 	updatePhysicalDimensions();
 
         // gridTrajectories only needed if roads can be distorted by mouse
-
+	ring.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj1_x,traj1_y);
         arm[1].gridTrajectories(traj2_x,traj2_y);
         arm[2].gridTrajectories(traj3_x,traj3_y);
@@ -615,6 +624,7 @@ function drawSim() {
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     for(var i=0; i<arm.length; i++){
+	//console.log("draw: i=",i," arm[i].roadLen=",arm[i].roadLen);
 	arm[i].draw(armImg1,armImg2,scale,changedGeometry);
     }
     ring.draw(ringImg1,ringImg2,scale,changedGeometry);

@@ -51,7 +51,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.roadLen=roadLen;
     this.laneWidth=laneWidth;
     this.nLanes=nLanes;
-
     var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
     // network related properties
@@ -137,23 +136,15 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.xtabOld=[]; // tables before begin of user-change action
     this.ytabOld=[];
 
-    //initializes tables tab_x, tab_y, defines this.traj_xy
+    //initializes tables tab_x, tab_y, 
+    // defines this.traj_x, this.traj_y = basis of this.get_phi 
     //  and then re-samples them (the error by resampling is OK 
     // since initialization with smooth curves)
 
 
     this.gridTrajectories(traj_x,traj_y); 
-
-
     this.update_nSegm_tabxy();
 
-    if(false){
-    console.log("after update_nSegm_tabxy: this.traj_x(-1)=",this.traj_x(-1),
-		" this.traj_x(this.roadLen+1)=",this.traj_x(this.roadLen+1));
-    console.log("                     this.traj_y(-1)=",this.traj_y(-1),
-		" this.traj_y(this.roadLen+1)=",this.traj_y(this.roadLen+1));
-    }
- 
 
     // defines the variables for user-driven change in road geometry
 
@@ -177,76 +168,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.createKernel();
     // end transform functions kin road.cstr
 
-
-    //!!! test code
-
-    if(false){
-
-        //(1) test code
-	if(false){
-	  console.log("\n(1)old roadLen=",this.roadLen);
-	  for (var i=0; i<=this.nSegm; i++){
-	    console.log("i=",i,
-			" xtab=",Math.round(this.xtab[i]),
-			" ytab=",Math.round(this.ytab[i]));
-	  }
-	  console.log("this.traj_x(0)=",this.traj_x(0));
-	  console.log("this.traj_x(this.roadLen)=",this.traj_x(this.roadLen));
-
-	  console.log("kernel:");
-	  for (var i=0; i<this.nKernel; i++){
-	      console.log("this.kernel[i]=",this.kernel[i]);
-	  }
-	}
-
-        //(2) test code
-
-	var xUserTest=this.xtab[this.nSegm/2]+20;//!!!
-	var yUserTest=this.ytab[this.nSegm/2]-20;
-	var res=this.testCRG(xUserTest,yUserTest);
-
-	if(true){
-	  console.log("\n(2) result testCRG: (xUserTest=",xUserTest,
-	  	    ", yUserTest=", yUserTest,"):");
-	  console.log("success=",res[0],
-		    " Delta x=",res[1],
-		    " Delta y=",res[2],
-		    " iPivot=",this.iPivot);
-	}
-
-        //(3) test code
-
-	this.doCRG(xUserTest,yUserTest);
-	if(false){
-	  console.log(" \n(3) after doCRG: xtab-xtabOld, ytab-ytabOld after user-drag:");
-	  for (var i=0; i<=this.nSegm; i++){
-	    console.log("i=",i,
-			" xtab-xtabOld=",
-			Math.round(this.xtab[i]-this.xtabOld[i]),
-			" ytab-ytabOld=",
-			Math.round(this.ytab[i]-this.ytabOld[i])
-		       );
-	  }
-	}
-
-
-
-        //(4) test code
-	//console.log("\n(4) before finishCRG();");
-	this.finishCRG();
-
-	if(false){
-	  console.log("\n(4) after finishCRG(): new roadLen=",this.roadLen);
-
-	  for (var i=0; i<=this.nSegm; i++){
-	    console.log("i=",i,
-			" new xtab=",Math.round(this.xtab[i]),
-			" new ytab=",Math.round(this.ytab[i]));
-	  }
-	}
-
-    } // end  test code
-
 } // cstr
 
 
@@ -256,9 +177,9 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-    console.log("in road.gridTrajectories: roadID=",this.roadID,
-		" this.nLanes=",this.nLanes,
-		" traj_yExt=",traj_yExt);
+    //console.log("in road.gridTrajectories: roadID=",this.roadID,
+//		" this.nLanes=",this.nLanes,
+//		" traj_yExt=",traj_yExt);
     for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
@@ -355,11 +276,10 @@ road.prototype.update_nSegm_tabxy=function(){
 	var phi=this.get_phi((i+0.5)*this.roadLen/this.nSegm);
 	phiabsCum += Math.abs(phi-phiOld);
 	phiOld=phi;
+	//console.log("road.update_nSegm_tabxy: i=",i," phi=",phi);
     }
     var nSegmNew=Math.round(nSegm_per_rad*phiabsCum
 			    + nSegm_per_m*this.roadLen);
-    console.log("in road.update_nSegm: phiabsCum=",phiabsCum,
-		" nSegmOld=this.nSegm=",this.nSegm," nSegmNew=",nSegmNew);
 
     //re-sample (=first part of this.gridTrajectories)
     // notice that this.traj_xy depends on xtab => two for loops
@@ -3338,7 +3258,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     var duLine=15; // distance between two middle-lane lines
     var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
     nSegmLine=Math.max(2, nSegmLine);
-
+    //console.log("road.draw: ID=",this.roadID," nSegm=",this.nSegm);
     for (var iSegm=0; iSegm<this.nSegm; iSegm++){
 	var cosphi=this.draw_cosphi[iSegm];
 	var sinphi=this.draw_sinphi[iSegm];
@@ -3353,7 +3273,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 	var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
 	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 	if(false){
-	  console.log("road.draw: iSegm="+iSegm+
+	//if(this.roadID<10){
+	    console.log("road.draw: ID=",this.roadID," iSegm="+iSegm+
 		      " cosphi="+cosphi+" factor="+factor+
 		      " lSegmPix="+lSegmPix+" wSegmPix="+wSegmPix+
 		      " xCenterPix="+xCenterPix+" yCenterPix="+yCenterPix);
