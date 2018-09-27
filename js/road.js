@@ -1972,13 +1972,16 @@ road.prototype.updateEnvironment=function(){
 // only vehicles with id>=100 <=> no externally controlled ego-vehicles 
 //######################################################################
 
+//!!! TODO do a proper organisation when to apply this.updateEnvironment()
+//!!! TODO do a road.prototype.update combining several specific updates
 
 road.prototype.calcAccelerations=function(){
+    this.updateEnvironment(); //!!! sometimes not initialized, just in case
     for(var i=0; i<this.veh.length; i++){
 	var speed=this.veh[i].speed;
 	var iLead= this.veh[i].iLead;
 	if(iLead===-100){console.log("road.calcAccelerations: i=",i,
-				    " iLead=",iLead," should not happen!!");}
+				    " iLead=",iLead," should not happen!! possibly this.updateEnvironment() missing!");}
 	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
 	var speedLead=this.veh[iLead].speed;;
 	var accLead=this.veh[iLead].acc;
@@ -2713,6 +2716,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 
 road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
   if(this.veh.length>0){
+    //console.log("road.updateTruckFrac: ID=",this.roadID," #vehs=",this.veh.length);
     this.updateEnvironment(); //needs veh[i].iLag etc, so actual environment needed
     var nActual=0;
     var nTruck=0;
@@ -2930,8 +2934,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
   this.route=(typeof route === 'undefined') ? [0] : route; // handle opt. args
 
-  var log=false;
-  //if(log){console.log("in road.updateBCup: inVehBuffer="+this.inVehBuffer);}
+   //console.log("in road.updateBCup: inVehBuffer="+this.inVehBuffer);
 
   var smin=15; // only inflow if largest gap is at least smin
   var success=0; // false initially
@@ -2998,13 +3001,15 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1
 	  this.inVehBuffer -=1;
-	  if(false){
-	      console.log("road.updateBCup: new vehicle at pos u=0, lane "+lane
-			  +", type "+vehType+", s="+space+", speed="+speedNew);
+	  if(true){
+	      console.log("road.updateBCup: ID=",this.roadID,
+			  " new vehicle at pos u=0, lane=",lane,
+			  " type=",vehType," s=",space," speed=",speedNew);
 	      console.log(this.veh.length); 
 	      for(var i=0; i<this.veh.length; i++){
-	        console.log("i="+i+" this.veh[i].u="+this.veh[i].u
-+" this.veh[i].route="+this.veh[i].route);
+	          console.log("i=",i," u=",this.veh[i].u,
+			      " route=",this.veh[i].route,
+			      " longModel=",this.veh[i].longModel);
 	      }
 	  }
 	  //if(this.route.length>0){console.log("new veh entered: route="+this.veh[this.veh.length-1].route);}//!!

@@ -436,21 +436,21 @@ else{
     }
 }
 
-// asymmetry slider (only 4-arm roundabout): 0=symm, 1=only 2 oppos. inflows
+// main percentage slider (only 4-arm roundabout): 0.5=symm, 1=only 2 oppos. inflows
 
-var asymmFrac=asymmFracInit=0.10; // 0.10
-var slider_asymmFrac, slider_asymmFracVal;
-if(document.getElementById("slider_asymmFrac")===null) 
-    console.log("no asymmFrac slider");
+var mainFrac=mainFracInit=0.75; 
+var slider_mainFrac, slider_mainFracVal;
+if(document.getElementById("slider_mainFrac")===null) 
+    console.log("no mainFrac slider");
 else{
-    slider_asymmFrac = document.getElementById("slider_asymmFrac");
-    slider_asymmFracVal = document.getElementById("slider_asymmFracVal");
-    slider_asymmFrac.value=100*asymmFracInit;
-    slider_asymmFracVal.innerHTML=100*asymmFracInit+"%";
+    slider_mainFrac = document.getElementById("slider_mainFrac");
+    slider_mainFracVal = document.getElementById("slider_mainFracVal");
+    slider_mainFrac.value=100*mainFracInit;
+    slider_mainFracVal.innerHTML=100*mainFracInit+"%";
 
-    slider_asymmFrac.oninput = function() {
-        slider_asymmFracVal.innerHTML = this.value+"%";
-        asymmFrac=parseFloat(this.value/100.);
+    slider_mainFrac.oninput = function() {
+        slider_mainFracVal.innerHTML = this.value+"%";
+        mainFrac=parseFloat(this.value/100.);
     }
 }
 
@@ -470,6 +470,25 @@ else{
     slider_leftTurnFrac.oninput = function() {
         slider_leftTurnFracVal.innerHTML = this.value+"%";
         leftTurnFrac=parseFloat(this.value/100.);
+    }
+}
+
+
+// focus outflow slider (only 4-arm roundabout): 0=isotropic distribution, 1=max focus
+
+var focusFrac=focusFracInit=0.50;
+var slider_focusFrac, slider_focusFracVal;
+if(document.getElementById("slider_focusFrac")===null) 
+    console.log("no focusFrac slider");
+else{
+    slider_focusFrac = document.getElementById("slider_focusFrac");
+    slider_focusFracVal = document.getElementById("slider_focusFracVal");
+    slider_focusFrac.value=100*focusFracInit;
+    slider_focusFracVal.innerHTML=100*focusFracInit+"%";
+
+    slider_focusFrac.oninput = function() {
+        slider_focusFracVal.innerHTML = this.value+"%";
+        focusFrac=parseFloat(this.value/100.);
     }
 }
 
