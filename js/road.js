@@ -56,7 +56,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // network related properties
 
     this.isRing=isRing;
-    this.inVehBuffer=0; // number of waiting vehicles; if>=1, updateBCup called
+    this.inVehBuffer=0.9; // number of waiting vehicles; if>=1, updateBCup called
     this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 
     this.offrampIDs=[]; // which offramps are attached to this road?
@@ -415,22 +415,28 @@ road.prototype.writeVehiclesSimple= function() {
 //######################################################################
 
 road.prototype.writeVehicleRoutes= function(umin,umax) {
-    console.log("\nin road.writeVehicleRoutes: nveh=",this.veh.length,
-		" itime="+itime);
+    console.log("\nin road.writeVehicleRoutes: ID=",this.roadID,
+		" length=",parseFloat(this.roadLen).toFixed(1),
+		" nveh=",this.veh.length,
+		" itime=",itime, "\n",
+		"  duTactical=",this.duTactical,
+		"  offrampIDs=",this.offrampIDs,
+		"  lastExits=",this.offrampLastExits);
+
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
 	if((u>uminLoc) && (u<umaxLoc) 
-	   &&(this.veh[i].route.length===2)){
+	   &&(this.veh[i].route.length>0)){
 
-	    console.log(" veh["+i+"].type="+this.veh[i].type
-		        +"  id="+this.veh[i].id
-		        +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
-		        +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
-		        +"  route=",this.veh[i].route
-			+" divergeAhead=",this.veh[i].divergeAhead
-		        +"");
+	    console.log(" veh[",i,"].type=",this.veh[i].type,
+		        "  id=",this.veh[i].id,
+		        "  u=",parseFloat(this.veh[i].u,10).toFixed(1),
+		        "  v=",parseFloat(this.veh[i].v,10).toFixed(1),
+		        "  route=",this.veh[i].route,
+			"  divergeAhead=",this.veh[i].divergeAhead,
+		        "");
 	}
     }
 }
@@ -1632,8 +1638,12 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 road.prototype.setOfframpInfo
  =function(offrampIDs,offrampLastExits,offrampToRight){
      this.offrampIDs=offrampIDs;  
-     this.offrampLastExits=offrampLastExits; // road.u at begin of diverge
+     this.offrampLastExits=offrampLastExits; // road.u at end of diverge
      this.offrampToRight=offrampToRight; // whether offramp is to the right
+     console.log("\nin road.setOfframpInfo: ID=",this.roadID,
+		 "  offrampIDs=",offrampIDs,
+		 "  this.offrampIDs=",this.offrampIDs);
+
  }
 
 
@@ -1660,11 +1670,14 @@ road.prototype.sortVehicles=function(){
 road.prototype.getNextOffIndex=function(u){
     var index=-1;
     var success=false;
+    var duNearest=this.roadLen;
 
     // this.offrampLastExits[iOff] increasing with iOff
-    for(var iOff=0; (!success)&&(iOff<this.offrampIDs.length); iOff++){
-	success=(this.offrampLastExits[iOff]>u);
-	if(success){index=iOff;}
+    for(var iOff=0; iOff<this.offrampIDs.length; iOff++){
+	var uExit=this.offrampLastExits[iOff];
+	var du=(uExit>u) ? uExit-u : 10000*this.roadLen;
+	if((this.isRing)&&(uExit<u)){du=uExit-u+this.roadLen;}
+	if(du<duNearest){index=iOff; duNearest=du;}
     }
     return index;
       
@@ -2092,7 +2105,7 @@ road.prototype.updateSpeedPositions=function(){
             // lateral positional update (v=fractional lane)
 
 	    this.veh[i].v=get_v(this.veh[i].dt_lastLC,
-				this.veh[i].laneOld,this.veh[i].lane);
+				this.veh[i].laneOld,this.veh[i].lane,0.);//!!!
 
 	    //if(itime==1){console.log("i=",i," speed=",this.veh[i].speed);}
 	}
@@ -2104,7 +2117,6 @@ road.prototype.updateSpeedPositions=function(){
 	}
     }
 
-    this.updateOrientation(); // drawing: get heading relative to road
     this.sortVehicles(); // positional update may have disturbed sorting (if passing)
     this.updateEnvironment();// crucial!!
 }
@@ -2124,7 +2136,8 @@ road.prototype.updateOrientation=function(){
 	if( (this.veh[i].id!=1) && (this.veh[i].isRegularVeh())){
             this.veh[i].dvdt=get_dvdt(this.veh[i].dt_lastLC,
 				      this.veh[i].laneOld,
-				      this.veh[i].lane,this.veh[i].speed);
+				      this.veh[i].lane,this.veh[i].speed,
+				      0.3);//!!!
 	}
     }
 }
@@ -2353,10 +2366,13 @@ the route-specific tactical LC behaviour
 
 road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute){
+
+    var log=false;
+    //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
+
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
 	? false : ignoreRoute; // default: routes  matter at diverges
     if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
-    var log=false;
     if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
 
 
@@ -2390,8 +2406,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
 		  && originVehicles[0].isRegularVeh()
 		  && (loc_ignoreRoute||originVehicles[0].divergeAhead));
+    if(log){console.log("road.mergeDiverge: 2a:  success=",success);}
     if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
-
 
     // (2b) otherwise select the first suitable candidate of originVehicles
 
@@ -2453,7 +2469,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      success=MOBILOK &&(originVehicles[i].isRegularVeh())
 		  &&(sNew>0)&&(sLagNew>0);
 	  
-	      if(log&&(this.roadID===2)){
+	      if(log&&(this.roadID===10)){
 		  console.log("in road.mergeDiverge: roadID="+this.roadID
 			      +" LCModel.bSafeMax="+LCModel.bSafeMax);
 	      }
@@ -2921,7 +2937,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1
 	  this.inVehBuffer -=1;
-	  if(true){
+	  if(false){
 	      console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);
@@ -3040,16 +3056,20 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   if(this.duTactical>0) for(var i=0; i<this.veh.length; i++){
   if(this.veh[i].isRegularVeh()){
-      var iNextOff=this.getNextOffIndex(this.veh[i].u); //-1 if nothing
+
+      // get next offramp, whether on route or not (index=-1 if nothing)
+
+      var iNextOff=this.getNextOffIndex(this.veh[i].u);
       var uLastExit=this.offrampLastExits[iNextOff];
 
-      // test if an off-ramp is nearby (dist< duTactical)
+      // test if the next off-ramp is nearby (dist< duTactical)
 
-      var prepareForDiverge=(this.veh[i].isRegularVeh())
+      var nextOfframpNearby=(this.veh[i].isRegularVeh())
 	  && (iNextOff>-1)
 	  && (uLastExit-this.veh[i].u<this.duTactical);
 
-      if(prepareForDiverge){
+
+      if(nextOfframpNearby){
           if(false){console.log("in road.updateModels... iveh="+i
 		      +" iNextOff="+iNextOff
 		      +" u="+this.veh[i].u
@@ -3081,20 +3101,21 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	      thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
 	          : this.LCModelTacticalLeft;
 
-	      if(false){console.log(
-		  "apply tacticalLC to Vehicle "+i+"!"
+	      if(false){
+		  console.log(
+		  "road.updateModelsOfAllVehicles: apply tacticalLC to Veh "+i
+	              +"!"
 		      +" id="+thisVeh.id
 		      + " route="+thisVeh.route
 		      +" offID="+offID
 		      +" u="+parseFloat(thisVeh.u).toFixed(1)
 		      +" uLastExit="+parseFloat(uLastExit).toFixed(1)
-		      +" bBiasRight="+thisVeh.LCModel.bBiasRight
-	      );
-		      }
+		      +" bBiasRight="+thisVeh.LCModel.bBiasRight);
+	      }
 
 	  }
 
-      } // prepareForDiverge
+      } // nextOfframpNearby
 
       else{ // also for missed diverges
 	  this.veh[i].divergeAhead=false;
@@ -3340,6 +3361,16 @@ have special appearance according to
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
+
+    // get fractional lane  for drawing and heading relative to road axis
+
+    this.updateOrientation(); // drawing: get heading relative to road
+    for(var i=0; i<this.veh.length; i++){
+	this.veh[i].v=get_v(this.veh[i].dt_lastLC,
+			    this.veh[i].laneOld,this.veh[i].lane,1);//!!!
+    }
+
+    // general drawing defs
 
     var phiVehRelMax=0.3;          // !!! avoid vehicles turning too much
     var vehSizeShrinkFactor=0.85;  // !!!to avoid overlapping in inner curves

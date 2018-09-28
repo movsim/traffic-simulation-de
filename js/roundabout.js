@@ -259,6 +259,14 @@ function traj8_y(u){
 
 //##################################################################
 // Specification of logical road network
+// template new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
+//		     densityInit,speedInit,truckFracInit,isRing);
+// road with inflow/outflow: just add updateBCup/down at simulation time
+// road with passive merge/diverge: nothing needs to be added
+// road with active merge (ramp): road.mergeDiverge at sim time
+// road with active diverge (mainroad, more generally when routes are relevant): 
+//   road.setOfframpInfo at init time and road.mergeDiverge at sim time
+
 //##################################################################
 
 
@@ -268,9 +276,26 @@ var densityInit=0.00;
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
 //		       densityInit,speedInit,truckFracInit,isRing);
 
+// need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
+
 
 var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,trajRing_x,trajRing_y,
 		  0,0,0,true);
+
+var divLen=0.15*Math.PI*rRing;
+uLastExits=[];
+uLastExits[0]=rRing*1.75*Math.PI+divLen;
+uLastExits[1]=rRing*1.25*Math.PI+divLen;
+uLastExits[2]=rRing*0.75*Math.PI+divLen;
+uLastExits[3]=rRing*0.25*Math.PI+divLen;
+
+
+
+ring.setOfframpInfo([2,4,6,8], uLastExits, [true,true,true,true]);
+console.log("ring.offrampIDs=",ring.offrampIDs);
+console.log("ring.offrampLastExits=",ring.offrampLastExits);
+ring.duTactical=20;
+
 
 var arm=[]; 
 arm[0]=new road(1,lArm,laneWidth,nLanes_arm,traj1_x,traj1_y,0,0,0,false);
@@ -283,12 +308,6 @@ arm[6]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
 arm[7]=new road(8,lArm,laneWidth,nLanes_arm,traj8_x,traj8_y,0,0,0,false);
 
 
-//var offrampIDs=[2];
-//var offrampLastExits=[umainDiverge+lrampDev];
-//var offrampToRight=[true];
-//ring.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
-//ring.duTactical=duTactical;
-
 
 //################################################################
 // define routes
@@ -299,6 +318,7 @@ arm[7]=new road(8,lArm,laneWidth,nLanes_arm,traj8_x,traj8_y,0,0,0,false);
 var route1L=[1,10,4];  // in E-arm, left turn
 var route1C=[1,10,6];  // in E-arm, straight ahead
 var route1R=[1,10,8];  // in E-arm, right turn
+var route1U=[1,10,2];  // in E-arm, U-tern
 var route3L=[3,10,6];  // in E-arm, left turn
 var route3C=[3,10,8];  // in E-arm, straight ahead
 var route3R=[3,10,2];  // in E-arm, right turn
@@ -479,6 +499,7 @@ function updateSim(){
  
     // updateModelsOfAllVehicles also selectively sets LCModelMandatory
     // to offramp vehs based on their routes!
+    // !! needed even for single-lane roads to trigger diverge actions!
 
     ring.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
@@ -489,49 +510,84 @@ function updateSim(){
 					 LCModelMandatory);
     }
 
-     //such things as road.setLCMandatory(lArm-lrampDev, lDev, false); needed?
-
 
 
     //##############################################################
     // (2) do central simulation update of vehicles
     //##############################################################
 
-    var route1In=(Math.random()<0.5) ? route1L : route1C; //!!!
-    var route3In=(Math.random()<0.5) ? route3L : route3C; //!!!
-    var route5In=(Math.random()<0.5) ? route5L : route5C; //!!!
-    var route7In=(Math.random()<0.5) ? route7L : route7C; //!!!
 
+    // acceleration and motion (no interaction between roads at this point)
+
+    ring.calcAccelerations();
+    ring.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
-      arm[i].calcAccelerations();  
+      arm[i].calcAccelerations(); 
       arm[i].updateSpeedPositions();
+    } 
+
+    // inflow BC
+
+    var ran=Math.random();
+    //var route1In=(ran<0.33) ? route1R : (ran<0.67) ? route1C : route1L; //!!!
+    var route1In=route1R;
+    var route3In=(ran<0.33) ? route3L : (ran<0.67) ? route3C : route3L; //!!!
+    var route5In=(ran<0.33) ? route5L : (ran<0.67) ? route5C : route5L; //!!!
+    var route7In=(ran<0.33) ? route7L : (ran<0.67) ? route7C : route7L; //!!!
+
+    arm[0].updateBCup(0.2*qIn,dt,route1In);
+    arm[2].updateBCup(0.0*qIn,dt,route3In);
+    arm[4].updateBCup(0.0*qIn,dt,route5In);
+    arm[6].updateBCup(0.0*qIn,dt,route7In);
+
+    // outflow BC
+
+    for(var i=1; i<8; i+=2){
+	arm[i].updateBCdown();
     }
 
-    arm[0].updateBCup(0.5*qIn,dt,route1In);
-    arm[2].updateBCup(0.5*qIn,dt,route3In);
-    arm[4].updateBCup(0.5*qIn,dt,route5In);
-    arm[6].updateBCup(0.5*qIn,dt,route7In);
 
-    //arm[1].updateLastLCtimes(dt); // needed since LC from ring!!?
+    //##############################################################
+    // merges into the roundabout ring
+    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    //##############################################################
 
-    
-    //var du_antic=20; //shift anticipation decision point upstream by du_antic
+    ring.updateLastLCtimes(dt); // needed on target road for graphical merging
+    //ring.changeLanes(); // only if multilane;  not needed for diverge
 
-    // umainDiverge, umainMerge updated in canvas_gui.handleDependencies
-    //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    arm[0].mergeDiverge(ring, 0.30*Math.PI*rRing-lArm, 
+			0.87*lArm, lArm, true, false);
+    arm[2].mergeDiverge(ring, 0.80*Math.PI*rRing-lArm, 
+			0.87*lArm, lArm, true, false);
+    arm[4].mergeDiverge(ring, 1.30*Math.PI*rRing-lArm, 
+			0.87*lArm, lArm, true, false);
+    arm[6].mergeDiverge(ring, 1.80*Math.PI*rRing-lArm, 
+			0.87*lArm, lArm, true, false);
 
 
-    /*
-    ring.mergeDiverge(arm[1],-umainDiverge,
-			  umainDiverge+taperLen,
-			  umainDiverge+lrampDev-du_antic,
-			  false,true);
-    arm[1].mergeDiverge(ring, umainMerge-(arm[1].roadLen-lrampDev),
-			   arm[1].roadLen-lrampDev, 
-			   arm[1].roadLen-taperLen, 
-			   true,false);
- 
-*/
+    //##############################################################
+    // diverges out of the  roundabout ring
+    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    //##############################################################
+
+    // Besides targetRoad.updateLastLCtimes(dt) as in merge case, 
+    // addtl provisions necessary:
+
+    // (1) origRoad.setOfframpInfo(...) needs to be added, 
+    //     best at road cstr time. Iincludes setting origRoad.duTactical>0!
+    // (2) origRoad.updateModelsOfAllVehicles(...) needed to trigger diverge, 
+    //     even for single lane
+
+    for(var i=1; i<8; i+=2){arm[i].updateLastLCtimes(dt);} // needed for graphical LC
+
+    ring.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
+		      uLastExits[0]-divLen+5, uLastExits[0], false, true);
+    ring.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
+		      uLastExits[1]-divLen+5, uLastExits[1], false, true);
+    ring.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
+		      uLastExits[2]-divLen+5, uLastExits[2], false, true);
+    ring.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
+		      uLastExits[3]-divLen+5, uLastExits[3], false, true);
 
  
      //!!!

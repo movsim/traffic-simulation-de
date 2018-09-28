@@ -374,10 +374,10 @@ function updateSim(){
 
     ramp.calcAccelerations();  
     ramp.updateSpeedPositions();
-    ramp.updateBCdown();
+    //ramp.updateBCdown();
     ramp.updateBCup(qOn,dt); // argument=total inflow
 
-    //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
     ramp.mergeDiverge(mainroad,mainRampOffset,
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
