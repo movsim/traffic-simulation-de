@@ -26,6 +26,7 @@ function vehicle(length, width, u, lane, speed, type){
     this.route=[]; // route=sequence of road IDs (optional)
     this.divergeAhead=false; // if true, the next diverge can/must be used
     this.toRight=false; // set strong urge to toRight,!toRight IF divergeAhead
+    this.fractOpticalLCDelay=1; // default display slow graphical LC over whole lane
 
 
     this.dt_lastLC=10;

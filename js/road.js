@@ -2102,12 +2102,6 @@ road.prototype.updateSpeedPositions=function(){
 	    this.veh[i].speed 
 		= Math.max(this.veh[i].speed+this.veh[i].acc*dt, 0);
 
-            // lateral positional update (v=fractional lane)
-
-	    this.veh[i].v=get_v(this.veh[i].dt_lastLC,
-				this.veh[i].laneOld,this.veh[i].lane,0.);//!!!
-
-	    //if(itime==1){console.log("i=",i," speed=",this.veh[i].speed);}
 	}
 
         // periodic BC closure
@@ -2128,6 +2122,9 @@ road.prototype.updateSpeedPositions=function(){
 // using get_dvdt from paths.js
 //######################################################################
 
+road.prototype.updateOrientation=function(){;}
+
+/*
 road.prototype.updateOrientation=function(){
     for(var i=0; i<this.veh.length; i++){
 	//console.log("iveh=",i," this.veh.length=",this.veh.length);
@@ -2141,7 +2138,7 @@ road.prototype.updateOrientation=function(){
 	}
     }
 }
-
+*/
 
 
 
@@ -3364,10 +3361,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
     // get fractional lane  for drawing and heading relative to road axis
 
-    this.updateOrientation(); // drawing: get heading relative to road
     for(var i=0; i<this.veh.length; i++){
-	this.veh[i].v=get_v(this.veh[i].dt_lastLC,
-			    this.veh[i].laneOld,this.veh[i].lane,1);//!!!
+	update_v_dvdt_optical(this.veh[i]);
     }
 
     // general drawing defs

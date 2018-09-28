@@ -624,6 +624,9 @@ function drawSim() {
     }
 
 
+    // (1) define global properties;
+    // gridTrajectories only needed if roads can be distorted by mouse
+
     if ((canvas.width!=simDivWindow.clientWidth)
 	||(canvas.height != simDivWindow.clientHeight)){
 	hasChanged=true;
@@ -636,7 +639,6 @@ function drawSim() {
 
 	updatePhysicalDimensions();
 
-        // gridTrajectories only needed if roads can be distorted by mouse
 	ring.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj1_x,traj1_y);
         arm[1].gridTrajectories(traj2_x,traj2_y);
@@ -648,15 +650,10 @@ function drawSim() {
         arm[7].gridTrajectories(traj8_x,traj8_y);
     }
 
- 
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
-
-    ring.updateOrientation();  // check if needed
-
 
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
+
     // "%20-or condition"
     //  because some older firefoxes do not start up properly?
 
@@ -687,6 +684,21 @@ function drawSim() {
 
 
     // vehicles
+
+    // optical: set all ring vehicles fractOpticalLCDelay=0.7,
+    // all (outgoing)  arm vehicles fractOpticalLCDelay=0.1
+
+    for(var iveh=0; iveh<ring.veh.length; iveh++){
+	ring.veh[iveh].fractOpticalLCDelay=0.7;
+    }
+
+    for(var i=1; i<arm.length; i+=2){
+	for(var iveh=0; iveh<arm[i].veh.length; iveh++){
+	    arm[i].veh[iveh].fractOpticalLCDelay=0.1;
+	}
+    }
+
+    // actual drawing
 
     for(var i=0; i<arm.length; i++){
         arm[i].drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
