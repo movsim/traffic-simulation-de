@@ -29,6 +29,7 @@ function vehicle(length, width, u, lane, speed, type){
     this.fractOpticalLCDelay=1; // default display slow graphical LC over whole lane
 
 
+    this.dt_LC=4;
     this.dt_lastLC=10;
     this.dt_lastPassiveLC=10;
     this.acc=0;

@@ -755,9 +755,6 @@ var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
 var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_bias=42;
 
-// var dt_LC=4; // global duration dt_LC of a lane change now in paths.js
-
-
 var factor_v0_truck=0.7;
 var factor_a_truck=0.8;
 var factor_T_truck=1.2;

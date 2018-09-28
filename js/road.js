@@ -69,8 +69,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // tactical and LC related global aspects
 
 
-    this.waitTime=dt_LC;   // waiting time after passive LC to do an active LC
-                           //!!! dt_LC is global var in paths.js
+    this.waitTime=4;   // waiting time after passive LC to do an active LC
+                       //similar value as default vehicle.dt_LC at cstr
 
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
@@ -2115,30 +2115,6 @@ road.prototype.updateSpeedPositions=function(){
     this.updateEnvironment();// crucial!!
 }
 
-
-
-//######################################################################
-// get heading (relative to road)
-// using get_dvdt from paths.js
-//######################################################################
-
-road.prototype.updateOrientation=function(){;}
-
-/*
-road.prototype.updateOrientation=function(){
-    for(var i=0; i<this.veh.length; i++){
-	//console.log("iveh=",i," this.veh.length=",this.veh.length);
-
-        // ego vehicles are updated separately, obstacles not at all
-	if( (this.veh[i].id!=1) && (this.veh[i].isRegularVeh())){
-            this.veh[i].dvdt=get_dvdt(this.veh[i].dt_lastLC,
-				      this.veh[i].laneOld,
-				      this.veh[i].lane,this.veh[i].speed,
-				      0.3);//!!!
-	}
-    }
-}
-*/
 
 
 

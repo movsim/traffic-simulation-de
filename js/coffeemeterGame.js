@@ -703,8 +703,7 @@ function draw() {
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,relObserver,
 		  uObs,xObsRel,yBegin); //
 
-    mainroad.updateOrientation(); //(for some reason, strange rotations at beginning)
-    mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
+        mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
 			  vmin_colColormap,vmax_colColormap,0,lenMainroad,relObserver,
 			  uObs,xObsRel,yBegin);
     displayEgoVehInfo();

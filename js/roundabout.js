@@ -119,10 +119,10 @@ var scale=refSizePix/refSizePhys;
 // the following remains constant 
 // => road becomes more compact for smaller screens
 
-var car_length=5; // car length in m
-var car_width=3; // car width in m
-var truck_length=12; // trucks
-var truck_width=4; 
+var car_length=4.5; // car length in m
+var car_width=2.5; // car width in m
+var truck_length=10; // trucks
+var truck_width=3; 
 var laneWidth=4; 
 
 
@@ -174,10 +174,10 @@ function trajRing_y(u){
 
 // arms 1 and 2 (ingoing/outgoing east arms)
 
-var uc1=lArm-0.25*Math.PI*r1;
+var uc1=lArm-0.30*Math.PI*r1;
 var xc1=(rRing+r1)/Math.sqrt(2)
 var yc1=(rRing+r1)/Math.sqrt(2)
-var x01=xc1+lArm-0.25*Math.PI*r1
+var x01=xc1+uc1
 
 function traj1_x(u){ 
     var dxPhysFromCenter=(u<uc1) ? x01-u : xc1-r1*Math.sin((u-uc1)/r1);
@@ -334,27 +334,14 @@ var route7R=[7,10,6];  // in E-arm, right turn
 //############################################################
 // add standing virtual vehicle at the end of the merging arms
 // new vehicle (length, width, u, lane, speed, type)
-// prepending=unshift
+// prepending=unshift; lArm-6: obstacle 6 m before end 
+// since ingoing arm a bit longer than merge for optical reasons
 //############################################################
 
-var virtualStandingVeh1=new vehicle(2, laneWidth, lArm-2, 0, 0, "obstacle");
-var virtualStandingVeh3=new vehicle(2, laneWidth, lArm-2, 0, 0, "obstacle");
-var virtualStandingVeh5=new vehicle(2, laneWidth, lArm-2, 0, 0, "obstacle");
-var virtualStandingVeh7=new vehicle(2, laneWidth, lArm-2, 0, 0, "obstacle");
-
-// need longmodel because of lagVeh?
-var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=undefined;
-//virtualStandingVeh2.longModel=longModelObstacle; // check if needed
-//virtualStandingVeh2.LCModel=LCModelObstacle;
-
-// prepending=unshift
 
 for(var i=0; i<8; i+=2){
-    arm[i].veh.unshift(new vehicle(2, laneWidth, lArm-2, 0, 0, "obstacle"));
+    arm[i].veh.unshift(new vehicle(1, laneWidth, lArm-6, 0, 0, "obstacle"));
 }
-
-
 
 
 
@@ -529,16 +516,17 @@ function updateSim(){
     // inflow BC
 
     var ran=Math.random();
-    //var route1In=(ran<0.33) ? route1R : (ran<0.67) ? route1C : route1L; //!!!
-    var route1In=route1R;
-    var route3In=(ran<0.33) ? route3L : (ran<0.67) ? route3C : route3L; //!!!
-    var route5In=(ran<0.33) ? route5L : (ran<0.67) ? route5C : route5L; //!!!
-    var route7In=(ran<0.33) ? route7L : (ran<0.67) ? route7C : route7L; //!!!
+    var route1In=(ran<0.33) ? route1R : (ran<0.67) ? route1C : route1L;
+    //var route1In=route1C;
+    var route3In=(ran<0.33) ? route3R : (ran<0.67) ? route3C : route3L;
+    var route5In=(ran<0.33) ? route5R : (ran<0.67) ? route5C : route5L;
+    //var route7In=(ran<0.33) ? route7R : (ran<0.67) ? route7C : route7L;
+    var route7In=route7R;
 
-    arm[0].updateBCup(0.2*qIn,dt,route1In);
-    arm[2].updateBCup(0.0*qIn,dt,route3In);
+    arm[0].updateBCup(0.0*qIn,dt,route1In);
+    arm[2].updateBCup(0.0*qIn,dt,route3In);// bug merge nur hier
     arm[4].updateBCup(0.0*qIn,dt,route5In);
-    arm[6].updateBCup(0.0*qIn,dt,route7In);
+    arm[6].updateBCup(0.50*qIn,dt,route7In);// ... und hier: swap!
 
     // outflow BC
 
@@ -555,14 +543,18 @@ function updateSim(){
     ring.updateLastLCtimes(dt); // needed on target road for graphical merging
     //ring.changeLanes(); // only if multilane;  not needed for diverge
 
-    arm[0].mergeDiverge(ring, 0.30*Math.PI*rRing-lArm, 
-			0.87*lArm, lArm, true, false);
-    arm[2].mergeDiverge(ring, 0.80*Math.PI*rRing-lArm, 
-			0.87*lArm, lArm, true, false);
-    arm[4].mergeDiverge(ring, 1.30*Math.PI*rRing-lArm, 
-			0.87*lArm, lArm, true, false);
-    arm[6].mergeDiverge(ring, 1.80*Math.PI*rRing-lArm, 
-			0.87*lArm, lArm, true, false);
+    //!! fiddle such that min graphical jerks (depends on uc1 of traj1_x(u))
+
+    var addtlOffset=0.12*Math.PI*rRing; 
+
+    arm[0].mergeDiverge(ring, 0.25*Math.PI*rRing-lArm+addtlOffset, 
+			0.84*lArm, lArm, true, false);
+    arm[2].mergeDiverge(ring, 0.75*Math.PI*rRing-lArm+addtlOffset, 
+			0.84*lArm, lArm, true, false);
+    arm[4].mergeDiverge(ring, 1.25*Math.PI*rRing-lArm+addtlOffset, 
+			0.84*lArm, lArm, true, false);
+    arm[6].mergeDiverge(ring, 1.75*Math.PI*rRing-lArm+addtlOffset, 
+			0.84*lArm, lArm, true, false);
 
 
     //##############################################################
@@ -580,13 +572,17 @@ function updateSim(){
 
     for(var i=1; i<8; i+=2){arm[i].updateLastLCtimes(dt);} // needed for graphical LC
 
-    ring.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
+    //!! fiddle such that min graphical jerks (depends on uc1 of traj1_x(u))
+
+    addtlOffset=0.10*Math.PI*rRing; 
+
+    ring.mergeDiverge(arm[1], -uLastExits[0]+divLen+addtlOffset, 
 		      uLastExits[0]-divLen+5, uLastExits[0], false, true);
-    ring.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
+    ring.mergeDiverge(arm[3], -uLastExits[1]+divLen+addtlOffset, 
 		      uLastExits[1]-divLen+5, uLastExits[1], false, true);
-    ring.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
+    ring.mergeDiverge(arm[5], -uLastExits[2]+divLen+addtlOffset, 
 		      uLastExits[2]-divLen+5, uLastExits[2], false, true);
-    ring.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
+    ring.mergeDiverge(arm[7], -uLastExits[3]+divLen+addtlOffset, 
 		      uLastExits[3]-divLen+5, uLastExits[3], false, true);
 
  
@@ -666,14 +662,8 @@ function drawSim() {
     }
 
 
-    // (3) draw mainroad and arms (deviation "bridge" => draw last)
-    // and vehicles (directly after frawing resp road or separately, depends)
-    // (always drawn; changedGeometry only triggers building a new lookup table)
-    //!!! sometimes road elements are moved as though they were vehicles
-    // check/debug with omitting drawing of the road (changedGeometry=false)!
+    // (3) draw mainroad and arms 
 
-
-    // roads
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     for(var i=0; i<arm.length; i++){
@@ -683,18 +673,20 @@ function drawSim() {
     ring.draw(ringImg1,ringImg2,scale,changedGeometry);
 
 
-    // vehicles
+    // (4) draw vehicles
 
-    // optical: set all ring vehicles fractOpticalLCDelay=0.7,
+    // optical!!!: set all ring vehicles fractOpticalLCDelay=0.7,
     // all (outgoing)  arm vehicles fractOpticalLCDelay=0.1
 
     for(var iveh=0; iveh<ring.veh.length; iveh++){
-	ring.veh[iveh].fractOpticalLCDelay=0.7;
+	ring.veh[iveh].fractOpticalLCDelay=0.5; // lower than default 1 [lane]
+	ring.veh[iveh].dt_LC=2; // lower than default 4 [s]
     }
 
     for(var i=1; i<arm.length; i+=2){
 	for(var iveh=0; iveh<arm[i].veh.length; iveh++){
-	    arm[i].veh[iveh].fractOpticalLCDelay=0.1;
+	    arm[i].veh[iveh].fractOpticalLCDelay=0;
+	    arm[i].veh[iveh].dt_LC=2;
 	}
     }
 

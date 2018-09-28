@@ -665,8 +665,7 @@ function drawSim() {
     // (1) update heading of all vehicles rel. to road axis
     // (for some reason, strange rotations at beginning)
 
-    mainroad.updateOrientation(); 
-
+    
 
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
