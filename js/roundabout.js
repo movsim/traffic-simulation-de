@@ -17,20 +17,26 @@
 truckFrac=0.15; // overrides control_gui
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
+IDM_b=2;
 
-MOBIL_mandat_bSafe=1; // normal: bSafe=1, rFirst: bSafe=42
+MOBIL_mandat_bSafe=0.1; // very small value because ringRoafd vehs slow
 MOBIL_mandat_bThr=0;  
 MOBIL_mandat_bias=0.1; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0.2;  // normal: p=0.2, rFirst: p=0;
+
+//!!! Switch "ring priority,<=>right priority not yet implemented
 
 //MOBIL_mandat_bSafe=42; // normal: bSafe=1, rFirst: bSafe=42
 //MOBIL_mandat_bThr=0;  
 //MOBIL_mandat_bias=42; // normal: bias=0.1, rFirst: bias=42
 //MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
+
 qIn=qInInit=2000./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
+
+//!!! following 2 sliders not yet implemented
 
 mainFrac=mainFracInit=0.8;
 slider_mainFrac.value=100*mainFrac;
@@ -368,6 +374,7 @@ updateModels(); //  from control_gui.js  => define the 5 standard  models
 // behavior if driving through ring and merge/diverges (car and trucks)
 // |lateral accel| <= comf deceleration b
 
+//!!! not yet implemented
 var v0CarRing=Math.min(IDM_v0, Math.sqrt(longModelCar.b*rRing));
 var v0TruckRing=Math.min(factor_v0_truck*IDM_v0, Math.sqrt(longModelTruck.b*rRing));
 var longModelCarRing=new ACC(v0CarRing,IDM_T,IDM_s0,IDM_a,IDM_b); 
@@ -686,10 +693,7 @@ function drawSim() {
     ring.draw(ringImg1,ringImg2,scale,changedGeometry);
 
 
-    // (4) draw vehicles
-
-    // optical!!!: set all ring vehicles fracLaneOptical=0.7,
-    // all (outgoing)  arm vehicles fracLaneOptical=0.1
+    // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
 
     for(var iveh=0; iveh<ring.veh.length; iveh++){
 	ring.veh[iveh].fracLaneOptical=1; // lower than default 1 [lane]
