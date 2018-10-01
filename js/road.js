@@ -367,7 +367,8 @@ road.prototype.subtractOneLane = function(){
 //######################################################################
 
 road.prototype.writeVehicles= function() {
-    console.log("\nin road.writeVehicles(): nveh=",this.veh.length,
+    console.log("\nin road.writeVehicles(): ID=",this.roadID,
+		" nveh=",this.veh.length,
 		" roadLen="+this.roadLen);
     for(var i=0; i<this.veh.length; i++){
       console.log(" veh["+i+"].id="+this.veh[i].id
@@ -394,7 +395,8 @@ road.prototype.writeVehicles= function() {
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function() {
-    console.log("\nin road.writeVehiclesSimple(): nveh=",this.veh.length,
+    console.log("\nin road.writeVehiclesSimple(): ID=",this.roadID,
+		" nveh=",this.veh.length,
 		" nLanes=",this.nLanes," itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
@@ -472,7 +474,8 @@ road.prototype.writeNonregularVehicles= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeVehicleLongModels= function() {
-    console.log("\nin road.writeVehicleLongModels(): nveh=",this.veh.length,
+    console.log("\nin road.writeVehicleLongModels(): ID=",this.roadID,
+		" nveh=",this.veh.length,
 		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
@@ -495,7 +498,8 @@ road.prototype.writeVehicleLongModels= function() {
 //######################################################################
 
 road.prototype.writeVehicleLCModels= function() {
-    console.log("\nin road.writeVehicleLCModels(): nveh=",this.veh.length,
+    console.log("\nin road.writeVehicleLCModels(): ID=",this.roadID,
+		" nveh=",this.veh.length,
 		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){
 	console.log(" veh["+i+"].type="+this.veh[i].type
@@ -1653,7 +1657,7 @@ road.prototype.setOfframpInfo
 //#####################################################
 
 road.prototype.sortVehicles=function(){
-    if(this.veh.length>2){
+    if(this.veh.length>1){
 	this.veh.sort(function(a,b){
 	    return b.u-a.u;
 	})
@@ -1923,6 +1927,8 @@ road.prototype.calcAccelerations=function(){
 	    else{s=10000;accLead=0;} // free outflow BC: virt veh 10km away
 	}
 
+	//if(this.roadID==10){console.log("i=",i," u=",this.veh[i].u," s=",s);}
+
         // obstacles: set acc=0 explicitely
         // (it may have truck model by this.updateModelsOfAllVehicles)
         // do not accelerate programmatically the ego vehicle(s)
@@ -1951,6 +1957,7 @@ road.prototype.calcAccelerations=function(){
 
 
 	if(false){
+	//if(this.roadID==10){
 	    console.log("after calcAccelerations: i="+i+" iLead="+iLead
 			+" pos="+this.veh[i].u
 			+" lane="+this.veh[i].v
@@ -2111,7 +2118,7 @@ road.prototype.updateSpeedPositions=function(){
 	}
     }
 
-    this.sortVehicles(); // positional update may have disturbed sorting (if passing)
+    this.sortVehicles(); // positional update may have disturbed order
     this.updateEnvironment();// crucial!!
 }
 
@@ -3000,7 +3007,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
-
+    //console.log("road.LCModelMandatoryLeft=",this.LCModelMandatoryLeft);
     this.LCModelTacticalRight
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,

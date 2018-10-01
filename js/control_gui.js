@@ -753,6 +753,7 @@ var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
 
 var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
 var MOBIL_mandat_bThr=0;   // to be specified below
+var MOBIL_mandat_p=0;
 var MOBIL_mandat_bias=42;
 
 var factor_v0_truck=0.7;
@@ -776,7 +777,8 @@ function updateModels(){
  
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
-    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 0,
+    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+			       MOBIL_mandat_p,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
     console.log("control_gui.updateModels: LCModelCar=",LCModelCar);

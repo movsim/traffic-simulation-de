@@ -13,7 +13,7 @@ function update_v_dvdt_optical(vehicle){
 
     if( (vehicle.id!=1) && (vehicle.isRegularVeh)){
 
-        var laneFraction=vehicle.fractOpticalLCDelay;
+        var laneFraction=vehicle.fracLaneOptical;
         var laneStart=vehicle.laneOld;
         var laneEnd=vehicle.lane;
         var speed=vehicle.speed;
