@@ -17,12 +17,20 @@
 truckFrac=0.15; // overrides control_gui
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
-IDM_b=2;
+IDM_b=1;
+
+//!!! ignoring ring priority due to MOBIL's increased disadvantage 
+// if decelerating (difference approx b+a) while stopped => diff a
+// OK but MOBIL has no priority handling:
+// add third condition acc_prioveh-acc'_prioVeh<0.1*accFree_prioVeh
+// as absolute condition not depending on bias or p
+// then mandat_bias=0.2 or so OK
+// then also right prio w/resp to left realizable!
 
 MOBIL_mandat_bSafe=0.1; // very small value because ringRoafd vehs slow
 MOBIL_mandat_bThr=0;  
-MOBIL_mandat_bias=0.1; // normal: bias=0.1, rFirst: bias=42
-MOBIL_mandat_p=0.2;  // normal: p=0.2, rFirst: p=0;
+MOBIL_mandat_bias=-1; // normal: bias=0.1, rFirst: bias=42
+MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 //!!! Switch "ring priority,<=>right priority not yet implemented
 
@@ -36,15 +44,17 @@ qIn=qInInit=2000./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-//!!! following 2 sliders not yet implemented
-
 mainFrac=mainFracInit=0.8;
 slider_mainFrac.value=100*mainFrac;
 slider_mainFracVal.innerHTML=100*mainFrac+"%";
 
-leftTurnFrac=leftTurnFracInit=0.25;
-slider_leftTurnFrac.value=100*leftTurnFrac;
-slider_leftTurnFracVal.innerHTML=100*leftTurnFrac+"%";
+leftTurnBias=leftTurnBiasInit=0;
+slider_leftTurnBias.value=leftTurnBias;
+slider_leftTurnBiasVal.innerHTML=leftTurnBias;
+
+focusFrac=focusFracInit=0.25;
+slider_focusFrac.value=100*focusFrac;
+slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
 timewarp=timewarpInit=5;
 slider_timewarp.value=timewarpInit;
@@ -548,27 +558,40 @@ function updateSim(){
 
     // inflow BC
 
-    // !!! route fractions depend on slider-controlled mainFrac and leftTurnFrac
+    // route fractions depend on slider-controlled 
+    // mainFrac, focusFrac  and leftTurnBias
     // main routes: route1C (=[1,10,6], inflow E-arm, straight ahead) 
     //              route5C (=[5,10,2], inflow W-arm, opposite direction)
     // road label 1=inflow E-arm
     // road label 2=outflow E-arm
     // road label 3=inflow S-arm etc
 
+    var q1=0.5*mainFrac*qIn;
+    var q5=q1;
+    var q3=0.5*(1-mainFrac)*qIn;
+    var q7=q3;
+
+    var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
+    var lFrac=(1-cFrac)/2.*(1+leftTurnBias);
+    var rFrac=(1-cFrac)/2.*(1-leftTurnBias);
+    var clFrac=cFrac+lFrac;
+
+    console.log("roundabout:updateSim: cFrac=",cFrac," lFrac=",lFrac," rFrac=",rFrac);
 
     var ran=Math.random();
-    //var route1In=(ran<0.33) ? route1R : (ran<0.67) ? route1C : route1L;
-    var route1In=route1C;
-    var route3In=(ran<0.33) ? route3R : (ran<0.67) ? route3C : route3L;
-    //var route3In=route3C;
-    var route5In=(ran<0.33) ? route5R : (ran<0.67) ? route5C : route5L;
-    var route7In=(ran<0.33) ? route7R : (ran<0.67) ? route7C : route7L;
-    //var route7In=route7R;
 
-    arm[0].updateBCup(0.25*qIn,dt,route1In);
-    arm[2].updateBCup(0.25*qIn,dt,route3In);// bug merge nur hier
-    arm[4].updateBCup(0.25*qIn,dt,route5In);
-    arm[6].updateBCup(0.25*qIn,dt,route7In);// ... und hier: swap!
+    //var route1In=route1C;
+    //var route3In=route3C;
+    var route1In=(ran<cFrac) ? route1C : (ran<clFrac) ? route1L : route1R;
+    var route3In=(ran<cFrac) ? route3C : (ran<clFrac) ? route3L : route3R;
+    var route5In=(ran<cFrac) ? route5C : (ran<clFrac) ? route5L : route5R;
+    var route7In=(ran<cFrac) ? route7C : (ran<clFrac) ? route7L : route7R;
+
+
+    arm[0].updateBCup(q1,dt,route1In);
+    arm[2].updateBCup(q3,dt,route3In);
+    arm[4].updateBCup(q5,dt,route5In);
+    arm[6].updateBCup(q7,dt,route7In);
 
     // outflow BC
 

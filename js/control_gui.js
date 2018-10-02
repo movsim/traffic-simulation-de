@@ -455,21 +455,21 @@ else{
 }
 
 
-// frac left turn slider (only 4-arm roundabout): fraction of total flow
+// left turn bias slider (only 4-arm roundabout): -1...1
 
-var leftTurnFrac=leftTurnFracInit=0.10; // 0.10
-var slider_leftTurnFrac, slider_leftTurnFracVal;
-if(document.getElementById("slider_leftTurnFrac")===null) 
-    console.log("no leftTurnFrac slider");
+var leftTurnBias=leftTurnBiasInit=0.10; // 0.10
+var slider_leftTurnBias, slider_leftTurnBiasVal;
+if(document.getElementById("slider_leftTurnBias")===null) 
+    console.log("no leftTurnBias slider");
 else{
-    slider_leftTurnFrac = document.getElementById("slider_leftTurnFrac");
-    slider_leftTurnFracVal = document.getElementById("slider_leftTurnFracVal");
-    slider_leftTurnFrac.value=100*leftTurnFracInit;
-    slider_leftTurnFracVal.innerHTML=100*leftTurnFracInit+"%";
+    slider_leftTurnBias = document.getElementById("slider_leftTurnBias");
+    slider_leftTurnBiasVal = document.getElementById("slider_leftTurnBiasVal");
+    slider_leftTurnBias.value=leftTurnBiasInit;
+    slider_leftTurnBiasVal.innerHTML=leftTurnBiasInit;
 
-    slider_leftTurnFrac.oninput = function() {
-        slider_leftTurnFracVal.innerHTML = this.value+"%";
-        leftTurnFrac=parseFloat(this.value/100.);
+    slider_leftTurnBias.oninput = function() {
+        slider_leftTurnBiasVal.innerHTML = this.value;
+        leftTurnBias=parseFloat(this.value);
     }
 }
 
