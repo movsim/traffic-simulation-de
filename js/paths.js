@@ -18,7 +18,7 @@ function update_v_dvdt_optical(vehicle){
         var laneEnd=vehicle.lane;
         var speed=vehicle.speed;
 	var dt_LC=vehicle.dt_LC;
-        var dt_afterLC=vehicle.dt_lastLC;
+        var dt_afterLC=vehicle.dt_afterLC;
 
         // fractional optical lane 
 

@@ -189,13 +189,15 @@ var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
 
 var speedInit=20; // IC for speed
 
+// last arg = doGridding (true: user can change road geometry)
+
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing);
+		      densityInit, speedInit,truckFracInit, isRing,true);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		    0*densityInit, speedInit, truckFracInit, isRing);
+		  0*densityInit, speedInit, truckFracInit, isRing,true);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)

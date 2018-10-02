@@ -38,13 +38,16 @@ they are specially drawn and externally influenced from the main program
 @param speedInit:       initial longitudinal speed [m/s]
 @param truckFracInit:   initial truck fraction [0-1]
 @param isRing:          true if periodic BC, false if open BC
+@param doGridding (opt):  true: user can change road geometry !!! does not work
+                        in combination with using traj of other roads
+                        (roundabout); sometimes also not wanted
 
 @return:                road segment instance
 */
 
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
-	      densInitPerLane,speedInit,truckFracInit,isRing){
+	      densInitPerLane,speedInit,truckFracInit,isRing,doGridding){
 
     //console.log("1. in road cstr: traj_x(0)=",traj_x(0));
     this.roadID=roadID;
@@ -56,6 +59,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // network related properties
 
     this.isRing=isRing;
+    this.doGridding=(typeof doGridding === 'undefined') ? false : doGridding;
     this.inVehBuffer=0.9; // number of waiting vehicles; if>=1, updateBCup called
     this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 
@@ -81,7 +85,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.draw_scaleOld=0;
     this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
-    this.draw_curvMax=0.05; // maximum assmued curvature !!!
+    this.draw_curvMax=0.05; // maximum assmued curvature !!
 
     this.draw_x=[];  // arrays defined in the draw(..) method
     this.draw_y=[];
@@ -129,8 +133,16 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     //########################################################
     // (jun17) transform functions traj_x, traj_y into tables 
     // to allow manipulation
+    // !!! (oct18) non-controllable obscure side effects 
+    // when using external traj for drawing (roundabout scenario)
+    // => doGridding=false
+    // NICE: just set doGridding=false deactivates distorting trajectories 
+    // but does not produce any errors!
     //########################################################
- 
+
+    this.traj_x=traj_x; // will be redefined if doGridding
+    this.traj_y=traj_y;
+
     this.xtab=[];
     this.ytab=[];
     this.xtabOld=[]; // tables before begin of user-change action
@@ -140,32 +152,33 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // defines this.traj_x, this.traj_y = basis of this.get_phi 
     //  and then re-samples them (the error by resampling is OK 
     // since initialization with smooth curves)
+    if(this.doGridding){
+
+        this.gridTrajectories(traj_x,traj_y); 
+        this.update_nSegm_tabxy();
 
 
-    this.gridTrajectories(traj_x,traj_y); 
-    this.update_nSegm_tabxy();
+        // defines the variables for user-driven change in road geometry
 
-
-    // defines the variables for user-driven change in road geometry
-
-    this.iPivot=0; // index of nearest element of a user mouse/touchdown
+        this.iPivot=0; // index of nearest element of a user mouse/touchdown
                    // event in {0, ..., nSegm}
-    this.xPivot=0; // x coordinate of this event
-    this.yPivot=0; // y coordinate of this event
+        this.xPivot=0; // x coordinate of this event
+        this.yPivot=0; // y coordinate of this event
 
     // helper array: normalized shift kernel, icKernel=center index of kernel
     // kernel width this.icKernel set at beginning, 
     // not changed with regridding!
 
-    //!!! eff kernel smaller if high pow in cos-definition of kernel
+    //!! eff kernel smaller if high pow in cos-definition of kernel
     // (this.createKernel)
 
-    this.kernelWidth=0.20*this.roadLen;  
-    this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
-    this.nKernel=2*this.icKernel+1; // uneven number
+        this.kernelWidth=0.20*this.roadLen;  
+        this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
+        this.nKernel=2*this.icKernel+1; // uneven number
 
-    this.kernel=[];
-    this.createKernel();
+        this.kernel=[];
+        this.createKernel();
+    }
     // end transform functions kin road.cstr
 
 } // cstr
@@ -681,7 +694,7 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
     var success=false;
     var TLreturn;
 
-    //!!! chose a very small distCrit since otherwise conflict with 
+    //!! chose a very small distCrit since otherwise conflict with 
     // user-clicked changeState!
     // (once selected here, it is removed, later dropped=>created new,  and ch    // angeState does no longer know the TLs pixel pos!
 
@@ -868,10 +881,10 @@ road.prototype.getNearestUof=function(otherRoad, u){
 
 @param  xUser,yUser: the external physical position
 @param  filterFun: (optional) restrict search to filterFun(veh)=true
-        !!! this.veh[i].filterFun() does not work!! need direct fun name!
+        !! this.veh[i].filterFun() does not work!! need direct fun name!
 @return [success flag, the nearest vehicle which is no obstacle, dist_min,i]
 
-!!! check if restriction to regular vehicles [vehicle.isRegularVeh()]
+!! check if restriction to regular vehicles [vehicle.isRegularVeh()]
 should be performed
 
 */
@@ -1102,7 +1115,7 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
 
 /**
 #############################################################
-(jun17) !!!test whether user initiated a change of road geometry (CRG)
+(jun17) !!! test whether user initiated a change of road geometry (CRG)
 #############################################################
 
 triggered by a mousedown or touchdown (first touch)
@@ -1182,7 +1195,7 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
     var deltaYmax=yUser-this.ytabOld[iPiv];
     var deltaX=[];
     var deltaY=[];
-    for (var i=imin; i<=imax; i++){ //!!! i may be >imax-1 for ring. OK?
+    for (var i=imin; i<=imax; i++){ 
 	deltaX[i]=deltaXmax*this.kernel[i-iPiv+ic];
 	deltaY[i]=deltaYmax*this.kernel[i-iPiv+ic];
     }
@@ -1279,7 +1292,7 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
 road.prototype.testForNaN=function(){ // detect the fucking NaN's 
     for(var i=0; i<this.nSegm; i++){
 	if(isNaN(this.xtab[i]) ||isNaN(this.ytab[i])){
-	    console.log("!!! i=",i," NaN's in xtab or ytab!!");
+	    console.log("!! i=",i," NaN's in xtab or ytab!!");
 	}
     }
 }
@@ -1291,7 +1304,7 @@ road.prototype.createKernel=function(){
     var dphi=0.5*Math.PI/this.icKernel;
     this.kernel[this.icKernel]=1;
     for (var di=1; di<=this.icKernel; di++){
-	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),4);//!!!
+	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),4);//!!
 	this.kernel[this.icKernel-di]=this.kernel[this.icKernel+di];
     }
 }
@@ -1313,9 +1326,6 @@ road.prototype.finishCRG=function(){
     // first smooth locally since afterwards (after resampling)
     // this.iPivot no longer valid
 
-
-    //!!!
-    //this.smoothLocally(this.iPivot, Math.round(0.01*this.icKernel));
 
 
     // calculate new road length and changed u-coordinate waypoints
@@ -1909,11 +1919,11 @@ road.prototype.updateEnvironment=function(){
 // only vehicles with id>=100 <=> no externally controlled ego-vehicles 
 //######################################################################
 
-//!!! TODO do a proper organisation when to apply this.updateEnvironment()
-//!!! TODO do a road.prototype.update combining several specific updates
+//!! TODO do a proper organisation when to apply this.updateEnvironment()
+//!! TODO do a road.prototype.update combining several specific updates
 
 road.prototype.calcAccelerations=function(){
-    this.updateEnvironment(); //!!! sometimes not initialized, just in case
+    this.updateEnvironment(); //!! sometimes not initialized, just in case
     for(var i=0; i<this.veh.length; i++){
 	var speed=this.veh[i].speed;
 	var iLead= this.veh[i].iLead;
@@ -2168,7 +2178,7 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
     var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
     var targetLaneExists=(newLane>=0)&&(newLane<this.nLanes);
-    var lastChangeSufficTimeAgo=(this.veh[i].dt_lastLC>this.waitTime)
+    var lastChangeSufficTimeAgo=(this.veh[i].dt_afterLC>this.waitTime)
 	&&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime);
     if(false){
     //if(itime==100){
@@ -2187,12 +2197,12 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
       // check if also the new leader/follower did not change recently
 
-	//console.log("iLeadNew=",iLeadNew," dt_lastLC_iLeadNew=",this.veh[iLeadNew].dt_lastLC," dt_lastLC_iLagNew=",this.veh[iLag].dt_lastLC); 
+	//console.log("iLeadNew=",iLeadNew," dt_afterLC_iLeadNew=",this.veh[iLeadNew].dt_afterLC," dt_afterLC_iLagNew=",this.veh[iLag].dt_afterLC); 
 
       if((this.veh[i].id!=1) // not an ego-vehicle
 	 &&(iLeadNew>=0)       // target lane allowed (otherwise iLeadNew=-10)
-	 &&(this.veh[iLeadNew].dt_lastLC>this.waitTime)  // lower time limit
-	 &&(this.veh[iLagNew].dt_lastLC>this.waitTime)){ // for serial LC
+	 &&(this.veh[iLeadNew].dt_afterLC>this.waitTime)  // lower time limit
+	 &&(this.veh[iLagNew].dt_afterLC>this.waitTime)){ // for serial LC
       
          //console.log("changeLanes: i=",i," cond 2 passed");
          var acc=this.veh[i].acc;
@@ -2287,7 +2297,7 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
              // do lane change in the direction toRight (left if toRight=0)
 	     //!! only regular lane changes within road; merging/diverging separately!
 
-           this.veh[i].dt_lastLC=0;                // active LC
+           this.veh[i].dt_afterLC=0;                // active LC
 	   this.veh[iLagNew].dt_lastPassiveLC=0;   // passive LC
            this.veh[iLeadNew].dt_lastPassiveLC=0; 
 	   this.veh[iLead].dt_lastPassiveLC=0; 
@@ -2323,7 +2333,7 @@ strategic/tactical lane-change behaviour of the drivers:
 long models set to longModelTactical* and LC models to LCModelTactical*
 if the route of vehicles contains next off-ramp in distance < duTactcal ahead
 
-!!!Note: if ignoreRoute=false, a diverge can only happen for vehicles with 
+!!Note: if ignoreRoute=false, a diverge can only happen for vehicles with 
 routes containing this offramp and not for other/undefined routes. The default is ignoreRoute=true. This is favourable for 
 interactive routing games ("routing by traffic lights"). Also in this case, 
 the probability for vehicles to diverge is greater if on the route because of
@@ -2503,7 +2513,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	changingVeh.laneOld =vOld; // following for  drawing purposes
 	changingVeh.v =vOld;  // real lane position (graphical)
 
-	changingVeh.dt_lastLC=0;             // just changed
+	changingVeh.dt_afterLC=0;             // just changed
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
 
@@ -2627,7 +2637,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
   // open roads: mismatchTolerated about 0.2; ring: mismatchTolerated=0
 //######################################################################
 
-//!!! only here in road
+//!! only here in road
 // here global var longModelCar, -Truck from control_gui taken!
 
 road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
@@ -2846,7 +2856,7 @@ road.prototype.updateBCdown=function(){
 
 road.prototype.updateBCup=function(Qin,dt,route){
 
-  var emptyOverfullBuffer=true; //!!!
+  var emptyOverfullBuffer=true; //!!
 
   this.route=(typeof route === 'undefined') ? [0] : route; // handle opt. args
 
@@ -3111,7 +3121,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
 road.prototype.updateLastLCtimes=function(dt){
     for(var i=0; i<this.veh.length; i++){
-      this.veh[i].dt_lastLC +=dt;
+      this.veh[i].dt_afterLC +=dt;
       this.veh[i].dt_lastPassiveLC +=dt;
     }
 }
@@ -3334,122 +3344,218 @@ have special appearance according to
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-//road.prototype.drawVehicles=function(carImg, truckImg, obstacleImgs, scale,
-//				     speedmin,speedmax,umin,umax,
-//				     movingObs, uObs, xObs, yObs){
+
+
 
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
 
-    // get fractional lane  for drawing and heading relative to road axis
-
-    for(var i=0; i<this.veh.length; i++){
-	update_v_dvdt_optical(this.veh[i]);
-    }
-
-    // general drawing defs
-
-    var phiVehRelMax=0.3;          // !!! avoid vehicles turning too much
-    var vehSizeShrinkFactor=0.85;  // !!!to avoid overlapping in inner curves
-    if(false){
-	console.log("in road.drawVehicles:");
-	//this.writeVehiclesSimple();
-	this.writeTrucksLC();
-    }
     var noRestriction=(typeof umin === 'undefined'); 
     var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
     var uRef=(movingObserver) ? uObs : 0;
     var xRef=(movingObserver) ? xObs : this.traj_x(0);
     var yRef=(movingObserver) ? yObs : this.traj_y(0);
+    var xOffset=this.traj_x(uRef)-xRef; // =0 for !movingObserver
+    var yOffset=this.traj_y(uRef)-yRef;
+
 
     for(var i=0; i<this.veh.length; i++){
 
-        // do not draw virtual traffic-light vehicle if red
+        // do not draw vehicles outside limits
+        //  or if it is a virtual traffic-light vehicle (if TL is red)
 
-	var filterPassed=(!this.veh[i].isTrafficLight())
+        var filterPassed=(!this.veh[i].isTrafficLight())
 	    && (noRestriction // default: noRestriction=true
 		|| ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
+	if(filterPassed){
+	    this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
+			     speedmin,speedmax,xOffset,yOffset,this,0);
+	}
+    }
+}
 
-	//filterPassed=true; //!!!
+//######################################################################
+// draw vehicles using general transitions from old to new trajectories 
+// during merging/diverging (only stationary observer)
+//######################################################################
+
+/**
+carImg, truckImg, obstacleImg, scale, speedmin,speedmax,umin,umax as above
+@param otherRoad:  another road (mandatory because of obscure js working): 
+                   use trajectory of that road instead of own
+                   if not yet completely changed lane (optically)
+                    - useful for roundabout scenario
+                    - just enter "this" if no other road desired
+@param uOffset:    opt: use traj of other road at u+uOffset (default=0)
+
+*/
+
+
+road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale,
+					    speedmin,speedmax,umin,umax,
+					    otherRoad, uOffset){
+
+    if(this.doGridding){
+	console.log("Error: cannot use drawVehiclesGenTraj with active gridding ");
+	console.log(" (user-can change road geometry): ");
+	console.log(" use road.drawVehicles instead !! ");
+    }
+
+    var xOffset=0; // stationary observer
+    var yOffset=0;
+
+    for(var i=0; i<this.veh.length; i++){
+
+        // do not draw vehicles outside limits
+        //  or if it is a virtual traffic-light vehicle (if TL is red)
+
+        var filterPassed=(!this.veh[i].isTrafficLight())
+	    && ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax));
 
 	if(filterPassed){
-          var type=this.veh[i].type;
-          var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
-          var vehWidthPix=scale*this.veh[i].width;
-          var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
-
-          // prevent "jumping" in ring road due to uCenterPhys != u
-
-	  if(this.isRing){
-	      if(uCenterPhys>this.roadLen) uCenterPhys-=this.roadLen;
-	      if(uCenterPhys<0) uCenterPhys+=this.roadLen;
-	  }
+	    this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
+			     speedmin,speedmax,xOffset,yOffset,otherRoad,uOffset);
+	}
+    }
+}
 
 
-          // v increasing from left to right, 0 @ road center
-          // roadworks as images: shift a little bit to the boundary
 
-          var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
- 
-          var phiRoad=this.get_phi(uCenterPhys);
-          var phiVehRel=(this.veh[i].speed<0.1) 
-	      ? 0
-	      : -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
 
-	  phiVehRel=Math.max(-phiVehRelMax, 
-			     Math.min(phiVehRelMax,phiVehRel));
+//###############################################################
+// draw a single vehicle into the graphics context
+//###############################################################
 
-          var phiVeh=phiRoad + phiVehRel;
+/**
+@param i:           Vehicke index to be drawn
+@param carImg, etc: see above at drawVehicles
+@param otherRoad:  another road (mandatory because of obscure js working): 
+                   use trajectory of that road instead of own
+                   if not yet completely changed lane (optically)
+                    - useful for roundabout scenario
+                    - just enter "this" if no other road desired
+@param uOffset:    opt: use traj of other road at u+uOffset (default=0)
+*/
 
-          // special corrections for special (depot) obstacles 
-          // normal obstacles are drawn with obstacleImgs[0]=black box
+road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
+				    speedmin,speedmax,xOffset,yOffset,
+				    otherRoad, uOffset){
 
-	  var obstacleImgIndex=(this.veh[i].isSpecialVeh())
+    var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
+    var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
+
+    // determine which trajectory to use: own or external traj
+    // only external if no gridding, in lane change, and otherRoad in route
+
+    var du=(typeof uOffset === 'undefined') ? 0 : uOffset;
+    var duringLC=(this.veh[i].dt_afterLC<this.veh[i].dt_LC);
+    var otherRoadInRoute=(this.veh[i].route.indexOf(otherRoad.roadID)>=0);
+    var useOtherTraj=(!this.doGridding) && duringLC && otherRoadInRoute;
+    var trajLoc_x=(useOtherTraj) ? otherRoad.traj_x : this.traj_x;
+    var trajLoc_y=(useOtherTraj) ? otherRoad.traj_y : this.traj_y;
+    if(!useOtherTraj){du=0;}
+
+
+    //console.log("this.traj_x=",this.traj_x);
+    //console.log("trajLoc_x=",trajLoc_x);
+
+    // don't use smooth lane shifting if external trajectory used
+
+    if(useOtherTraj||(!otherRoadInRoute)){
+	this.veh[i].v=this.veh[i].lane;
+	this.veh[i].dvdt=0;
+    }
+    else{
+        update_v_dvdt_optical(this.veh[i]);
+    }
+
+
+    var type=this.veh[i].type;
+    var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
+    var vehWidthPix=scale*this.veh[i].width;
+    var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
+
+
+    // v increasing from left to right, 0 @ road center
+    // roadworks as images: shift a little bit to the boundary
+
+    var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
+
+    var phiRoad=(useOtherTraj) 
+	? otherRoad.get_phi(uCenterPhys+du)
+	: this.get_phi(uCenterPhys);
+
+    var phiVehRel=(this.veh[i].speed<0.1)
+	? 0
+	: -Math.atan(this.veh[i].dvdt*this.laneWidth/this.veh[i].speed);
+    
+    phiVehRel=Math.max(-phiVehRelMax,
+		       Math.min(phiVehRelMax,phiVehRel));
+
+    var phiVeh=phiRoad + phiVehRel;
+
+    // special corrections for special (depot) obstacles 
+    // normal obstacles are drawn with obstacleImgs[0]=black box
+
+    var obstacleImgIndex=(this.veh[i].isSpecialVeh())
 		? this.veh[i].id % obstacleImgs.length : 0;
-
-	  if(type==="obstacle"){
+    
+    if(type==="obstacle"){
 	      //console.log("obstacle id=",this.veh[i].id);
 
 
-	      if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){ 
+	    if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){
 		  phiVeh-=Math.PI;}
-	      if(obstacleImgIndex!=0){ // index 0: black bar for ramp ends, OK
+	    if(obstacleImgIndex!=0){ // index 0: black bar for ramp ends, OK
 		  phiVeh -=0.2;
 		  vCenterPhys -=0.1*this.laneWidth;
-	      }
-          } 
+	    }
+    }
 
-          var cphiRoad=Math.cos(phiRoad);
-          var sphiRoad=Math.sin(phiRoad);
-          var cphiVeh=Math.cos(phiVeh);
-          var sphiVeh=Math.sin(phiVeh);
-          var xCenterPix= scale*(this.traj_x(uCenterPhys) + vCenterPhys*sphiRoad
-				 -this.traj_x(uRef)+xRef);
-          var yCenterPix=-scale*(this.traj_y(uCenterPhys) - vCenterPhys*cphiRoad
-				 -this.traj_y(uRef)+yRef);
+    var cphiRoad=Math.cos(phiRoad);
+    var sphiRoad=Math.sin(phiRoad);
+    var cphiVeh=Math.cos(phiVeh);
+    var sphiVeh=Math.sin(phiVeh);
+
+          //last two terms cancel for normal fixed viewpoint 
+          // (movingObserver=false)
+
+
+
+
+    var xCenterPix= scale*(this.traj_x(uCenterPhys+du) + vCenterPhys*sphiRoad
+			   -xOffset); // -xOffset=-this.traj_x(uRef)+xRef)
+    var yCenterPix=-scale*(this.traj_y(uCenterPhys+du) - vCenterPhys*cphiRoad
+			   -yOffset);
+    if(useOtherTraj){
+        xCenterPix= scale*(otherRoad.traj_x(uCenterPhys+du) + vCenterPhys*sphiRoad
+			   -xOffset); // -xOffset=-this.traj_x(uRef)+xRef)
+        yCenterPix=-scale*(otherRoad.traj_y(uCenterPhys+du) - vCenterPhys*cphiRoad
+			   -yOffset);
+    }
 
           // (1) draw vehicles as images
 
-	  var obstacleImg;
-	  if(type==="obstacle"){
+    var obstacleImg;
+    if(type==="obstacle"){
 	      obstacleImg=obstacleImgs[obstacleImgIndex];
-	  }
-
-          vehImg=(type==="car")
+    }
+				
+    vehImg=(type==="car")
 	      ? carImg : (type==="truck")
 	      ? truckImg : obstacleImg;
-          ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
+    ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
 			   xCenterPix, yCenterPix);
-          ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
+    ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
 			vehLenPix,vehWidthPix);
 
           // (2) draw semi-transp boxes of speed-dependent color 
           //     over the images
           //     (different size of box because of mirrors of veh images)
 
-	  if(type!="obstacle"){
+    if(type!="obstacle"){
               var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
               var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
               var speed=this.veh[i].speed;
@@ -3466,11 +3572,11 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 		  ctx.strokeRect(-0.60*effLenPix, -0.60*effWPix, 
 			       1.2*effLenPix, 1.2*effWPix);
 	      }
-	  }
-          ctx.fillStyle="rgb(0,0,0)";
+    }
+    ctx.fillStyle="rgb(0,0,0)";
 
-
-	  if(false){
+	
+    if(false){
 	  //if(this.veh[i].v>2){
 	      console.log("in road.drawVehicles: itime=",itime,
 			  +" u="+this.veh[i].u
@@ -3478,7 +3584,5 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 			  +" xCenterPix="+xCenterPix
 			  +" yCenterPix="+yCenterPix
 			 );
-	  }
-      }
     }
 }

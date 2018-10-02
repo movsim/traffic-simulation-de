@@ -30,7 +30,7 @@ function vehicle(length, width, u, lane, speed, type){
 
 
     this.dt_LC=4;
-    this.dt_lastLC=10;
+    this.dt_afterLC=10;
     this.dt_lastPassiveLC=10;
     this.acc=0;
     this.iLead=-100;
