@@ -285,7 +285,7 @@ function traj8_y(u){
 //##################################################################
 // Specification of logical road network
 // template new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		     densityInit,speedInit,truckFracInit,isRing);
+//		     densityInit,speedInit,truckFracInit,isRing,doGridding[opt]);
 // road with inflow/outflow: just add updateBCup/down at simulation time
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
@@ -299,7 +299,7 @@ var speedInit=20; // m/s
 var densityInit=0.00;
 
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		       densityInit,speedInit,truckFracInit,isRing);
+//		       densityInit,speedInit,truckFracInit,isRing,doGridding[opt]);
 
 // need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 
@@ -307,9 +307,18 @@ var densityInit=0.00;
 var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,trajRing_x,trajRing_y,
 		  0,0,0,true);
 
-var divLen=0.15*Math.PI*rRing;
+// diverge length: 
+// anything above 0.15*Pi*rRing and 1/4 ring length=0.5*Pi*rRing works
+
+var divLen=0.25*Math.PI*rRing; 
+
+// uLastExits[i] such that FIRST exit at rRing*1.75*PI, rRing*1.25*PI etc
+// for optical reasons
+// this definition  also influences also ring.mergeDiverge
+
 uLastExits=[];
-uLastExits[0]=rRing*1.75*Math.PI+divLen;
+
+uLastExits[0]=rRing*1.75*Math.PI+divLen; 
 uLastExits[1]=rRing*1.25*Math.PI+divLen;
 uLastExits[2]=rRing*0.75*Math.PI+divLen;
 uLastExits[3]=rRing*0.25*Math.PI+divLen;
@@ -319,7 +328,7 @@ uLastExits[3]=rRing*0.25*Math.PI+divLen;
 ring.setOfframpInfo([2,4,6,8], uLastExits, [true,true,true,true]);
 console.log("ring.offrampIDs=",ring.offrampIDs);
 console.log("ring.offrampLastExits=",ring.offrampLastExits);
-ring.duTactical=20;
+ring.duTactical=divLen;
 
 
 var arm=[]; 
@@ -340,29 +349,26 @@ arm[7]=new road(8,lArm,laneWidth,nLanes_arm,traj8_x,traj8_y,0,0,0,false);
 // 2=E-arm, outgoing, 4=S-arm, outgoing,  6=W-arm, outgoing, 8=N-arm, outgoing
 //################################################################
 
-var route1L=[1,10,4];  // in E-arm, left turn
-var route1C=[1,10,6];  // in E-arm, straight ahead
-var route1R=[1,10,8];  // in E-arm, right turn
-var route1U=[1,10,2];  // in E-arm, U-tern
-var route3L=[3,10,6];  // in E-arm, left turn
-var route3C=[3,10,8];  // in E-arm, straight ahead
-var route3R=[3,10,2];  // in E-arm, right turn
-var route5L=[5,10,8];  // in E-arm, left turn
-var route5C=[5,10,2];  // in E-arm, straight ahead
-var route5R=[5,10,4];  // in E-arm, right turn
-var route7L=[7,10,2];  // in E-arm, left turn
-var route7C=[7,10,4];  // in E-arm, straight ahead
-var route7R=[7,10,6];  // in E-arm, right turn
+var route1L=[1,10,4];  // inflow E-arm, left turn
+var route1C=[1,10,6];  // inflow E-arm, straight ahead
+var route1R=[1,10,8];  // inflow E-arm, right turn
+var route1U=[1,10,2];  // inflow E-arm, U-tern
+var route3L=[3,10,6];  // inflow S-arm, left turn
+var route3C=[3,10,8];  // inflow S-arm, straight ahead
+var route3R=[3,10,2];  // inflow S-arm, right turn
+var route5L=[5,10,8];  // inflow W-arm, left turn
+var route5C=[5,10,2];  // inflow W-arm, straight ahead
+var route5R=[5,10,4];  // inflow W-arm, right turn
+var route7L=[7,10,2];  // inflow N-arm, left turn
+var route7C=[7,10,4];  // inflow N-arm, straight ahead
+var route7R=[7,10,6];  // inflow N-arm, right turn
 
 
 
 //############################################################
 // add standing virtual vehicle at the end of the merging arms
 // new vehicle (length, width, u, lane, speed, type)
-// prepending=unshift; lArm-6: obstacle 6 m before end 
-// since ingoing arm a bit longer than merge for optical reasons
-// => tune mergeEnd
-// with mergeBegin in arm[?].mergeDiverge(...) and fracLaneOptical
+// prepending=unshift; 
 //############################################################
 
 for(var i=0; i<8; i+=2){
@@ -542,6 +548,14 @@ function updateSim(){
 
     // inflow BC
 
+    // !!! route fractions depend on slider-controlled mainFrac and leftTurnFrac
+    // main routes: route1C (=[1,10,6], inflow E-arm, straight ahead) 
+    //              route5C (=[5,10,2], inflow W-arm, opposite direction)
+    // road label 1=inflow E-arm
+    // road label 2=outflow E-arm
+    // road label 3=inflow S-arm etc
+
+
     var ran=Math.random();
     //var route1In=(ran<0.33) ? route1R : (ran<0.67) ? route1C : route1L;
     var route1In=route1C;
@@ -598,14 +612,16 @@ function updateSim(){
     for(var i=1; i<8; i+=2){arm[i].updateLastLCtimes(dt);} // needed for graph LC
 
  
+
     ring.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
-		      uLastExits[0]-divLen+5, uLastExits[0], false, true);
+		      uLastExits[0]-divLen, uLastExits[0], false, true);
     ring.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
-		      uLastExits[1]-divLen+5, uLastExits[1], false, true);
+		      uLastExits[1]-divLen, uLastExits[1], false, true);
     ring.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
-		      uLastExits[2]-divLen+5, uLastExits[2], false, true);
+		      uLastExits[2]-divLen, uLastExits[2], false, true);
     ring.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
-		      uLastExits[3]-divLen+5, uLastExits[3], false, true);
+		      uLastExits[3]-divLen, uLastExits[3], false, true);
+
 
 
 

@@ -2,8 +2,6 @@
 // Physical dynamics of the vehicles on a road section
 //#############################################################
 
-//!!! => plan: see README_routing
-
 
 /**
 ##########################################################
@@ -134,7 +132,8 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // (jun17) transform functions traj_x, traj_y into tables 
     // to allow manipulation
     // !!! (oct18) non-controllable obscure side effects 
-    // when using external traj for drawing (roundabout scenario)
+    // when using external traj for drawing 
+    // (roundabout scenario, this.drawVehiclesGenTraj)
     // => doGridding=false
     // NICE: just set doGridding=false deactivates distorting trajectories 
     // but does not produce any errors!
@@ -1115,7 +1114,7 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
 
 /**
 #############################################################
-(jun17) !!! test whether user initiated a change of road geometry (CRG)
+(jun17) test whether user initiated a change of road geometry (CRG)
 #############################################################
 
 triggered by a mousedown or touchdown (first touch)
@@ -3398,9 +3397,8 @@ road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale
 					    otherRoad, uOffset){
 
     if(this.doGridding){
-	console.log("Error: cannot use drawVehiclesGenTraj with active gridding ");
-	console.log(" (user-can change road geometry): ");
-	console.log(" use road.drawVehicles instead !! ");
+	console.log("Error: cannot use road.drawVehiclesGenTraj with active gridding"," (user-can change road geometry): ");
+	console.log("  use road.drawVehicles instead !! ");
     }
 
     var xOffset=0; // stationary observer
