@@ -200,72 +200,58 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 generalized lane-changing model MOBIL:
 at present no politeness but speed dependent safe deceleration 
 
-@param bSafe:      safe deceleration [m/s^2] at maximum speed v=v0
-@param bSafeMax:   safe deceleration [m/s^2]  at speed zero (gen. higher)
-@param p:          politeness factor (0=egoistic driving)
-@param bThr:       lane-changing threshold [m/s^2] 
-@param bBiasRight: bias [m/s^2] to the right
-@return:           MOBIL instance (constructor)
+@param bSafe:          safe deceleration [m/s^2] at maximum speed v=v0
+@param bSafeMax:       safe deceleration [m/s^2]  at speed zero (gen. higher)
+@param p:              politeness factor (0=egoistic driving)
+@param bThr:           lane-changing threshold [m/s^2] 
+@param bBiasRight:     bias [m/s^2] to the right
+@param targetLanePrio: vehicles on target lane have priority
+@return:               MOBIL instance (constructor)
 */
 
 function MOBIL(bSafe, bSafeMax, p, bThr, bBiasRight){
-//function MOBIL(bSafe, bSafeMax, bThr, bBiasRight){
+
     this.bSafe=bSafe;
-    this.bSafeMax=bSafeMax; //!!! transfer into arg list of cstr later on
+    this.bSafeMax=bSafeMax; 
     this.p=p;
     this.bThr=bThr;
     this.bBiasRight=bBiasRight;
+}
 
 
+/**
+generalized MOBIL lane chaning decision
+with bSafe increasing with decrease vrel=v/v0
+but at present w/o politeness
 
-    /**
-    generalized MOBIL lane chaning decision
-    with bSafe increasing with decrease vrel=v/v0
-    but at present w/o politeness
+@param vrel:            v/v0; increase bSave with decreasing vrel
+@param acc:             own acceleration at old lane
+@param accNew:          prospective own acceleration at new lane
+@param accLagNew:       prospective accel of new leader
+@param toRight:         1 if true, 0 if not
+@return: whether an immediate lane change is safe and desired
+*/
 
-    @param vrel:            v/v0; increase bSave with decreasing vrel
-    @param acc:             own acceleration at old lane
-    @param accNew:          prospective own acceleration at new lane
-    @param accLagTargetNew: prospective accel of new leader
-    @param toRight:         1 if true, 0 if not
-    @return: whether an immediate lane change is safe and desired
-    */
+MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
+					   toRight,log){
 
-    MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,toRight,log){
+    // safety criterion
 
- 	if(false){
- 	//if(log|| (this.bSafe>24)){
-          console.log("\nIn MOBIL.realizeLaneChange");
-	  console.log("  vrel="+vrel
-	              +" acc="+acc+" accNew="+accNew
-		      +" accLagNew="+accLagNew);
-	  console.log("  toRight="+toRight);
-	  console.log("  this.bSafe="+this.bSafe+" this.bThr="+this.bThr
-		      +" this.bBiasRight="+this.bBiasRight);
-	}
+    var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
+    if(accLagNew<-bSafeActual){return false;}
 
- 
-      // safety criterion
 
-	var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
+    // incentive criterion
 
-	if(accLagNew<-bSafeActual){return false;}
+    var dacc=accNew-acc+this.p*accLagNew //!! new
+	+ this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
 
- 
-       // incentive criterion
 
-	var dacc=accNew-acc+this.p*accLagNew //!! new
-	    + this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
+    // debug before return
 
- 	if(false){
- 	//if(log|| (this.bSafe>24)){
-	  console.log("...dacc="+dacc);
-	  if(dacc>0){console.log("  positive MOBIL LC decision!");}
-	}
-
-	//if(dacc>0){
-	if(false){
-	    console.log(
+    if(false){
+    //if(dacc>0){console.log("positive MOBIL LC decision!");
+	console.log(
 		"positive MOBIL LC decision!",
 		"\n vrel=",parseFloat(vrel).toFixed(2),
 		" bSafeActual=",parseFloat(bSafeActual).toFixed(2),
@@ -273,10 +259,29 @@ function MOBIL(bSafe, bSafeMax, p, bThr, bBiasRight){
 		" accNew=",parseFloat(accNew).toFixed(2),
 		" bBiasRight=",parseFloat(this.bBiasRight).toFixed(2),
 		" bThr=",parseFloat(this.bThr).toFixed(2)
-	    );
-	}
+	);
+    }
 
 
-	return (dacc>0);
+
+    return (dacc>0);
+}
+
+
+
+/**
+check first for priority if merging to a priority lane.
+In contrast to the safety criterion (critical deceleration), 
+the criterion here is a rather small critical acceleration *change*
+
+@param accLag:    actual acceleration of the target lag vehicle
+@param accLagNew: acceleration of this vehicle after a prospective change
+
+*/
+
+MOBIL.prototype.respectPriority=function(accLag,accLagNew){
+
+    if(this.targetLanePrio){
+	return(accLag-accLagNew>0.1);
     }
 }

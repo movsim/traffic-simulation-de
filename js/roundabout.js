@@ -27,9 +27,9 @@ IDM_b=1;
 // then mandat_bias=0.2 or so OK
 // then also right prio w/resp to left realizable!
 
-MOBIL_mandat_bSafe=0.1; // very small value because ringRoafd vehs slow
+MOBIL_mandat_bSafe=4; // very small value because ringRoafd vehs slow
 MOBIL_mandat_bThr=0;  
-MOBIL_mandat_bias=-1; // normal: bias=0.1, rFirst: bias=42
+MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 //!!! Switch "ring priority,<=>right priority not yet implemented
@@ -85,7 +85,7 @@ MOBIL_bThr=0.0
 slider_MOBIL_bThr.value=MOBIL_bThr;
 slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
 
-
+var respectRingPrio=true; // !!! put into a GUI switch
 
 
 /*######################################################
@@ -185,24 +185,22 @@ var nLanes_arm=1;
 var nLanes_ring=1;
 
 
-//!! fiddle to optimize de-facto anticipation of merging vehs 
-// and last stopping in order to prevent crashes while waiting
-
-var mergeBegin=lArm-0.25*Math.PI*rRing;     // logical merges
-var mergeEnd=lArm-0.12*Math.PI*rRing;       // logical diverges
 
 
 
 
 // central ring (all in physical coordinates)
+// stitchAngleOffset brings stitch of ring as far upstream of merge as possible 
+
+var stitchAngleOffset=-0.20*Math.PI; 
 
 function trajRing_x(u){ 
-    var dxPhysFromCenter=rRing*Math.cos(u/rRing);
+    var dxPhysFromCenter=rRing*Math.cos(u/rRing+stitchAngleOffset);
     return center_xPhys+dxPhysFromCenter;
 }
 
 function trajRing_y(u){ 
-    var dyPhysFromCenter=rRing*Math.sin(u/rRing);
+    var dyPhysFromCenter=rRing*Math.sin(u/rRing+stitchAngleOffset);
     return center_yPhys+dyPhysFromCenter;
 }
 
@@ -289,6 +287,11 @@ function traj8_y(u){
 }
 
 
+//!! fiddle to optimize de-facto anticipation of merging vehs 
+// and last stopping in order to prevent crashes while waiting
+
+var mergeBegin=lArm-0.25*Math.PI*rRing; // logical merges
+var mergeEnd=lArm-0.12*Math.PI*rRing;   
 
 
 
@@ -323,15 +326,15 @@ var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,trajRing_x,trajRing_y
 var divLen=0.25*Math.PI*rRing; 
 
 // uLastExits[i] such that FIRST exit at rRing*1.75*PI, rRing*1.25*PI etc
-// for optical reasons
-// this definition  also influences also ring.mergeDiverge
+// (+stitchAngleOffset) for optical reasons
+
 
 uLastExits=[];
 
-uLastExits[0]=rRing*1.75*Math.PI+divLen; 
-uLastExits[1]=rRing*1.25*Math.PI+divLen;
-uLastExits[2]=rRing*0.75*Math.PI+divLen;
-uLastExits[3]=rRing*0.25*Math.PI+divLen;
+uLastExits[0]=rRing*(1.75*Math.PI-stitchAngleOffset)+divLen; 
+uLastExits[1]=rRing*(1.25*Math.PI-stitchAngleOffset)+divLen;
+uLastExits[2]=rRing*(0.75*Math.PI-stitchAngleOffset)+divLen;
+uLastExits[3]=rRing*(0.25*Math.PI-stitchAngleOffset)+divLen;
 
 
 
@@ -601,27 +604,29 @@ function updateSim(){
 
 
     //##############################################################
-    // merges into the roundabout ring
-    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    // merges into the roundabout ring (respecting prio)
+    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,
+    //                             toRight,[ignoreRoute,respectPrio])
     //##############################################################
 
     ring.updateLastLCtimes(dt); // needed on target road for graphical merging
     //ring.changeLanes(); // only if multilane;  not needed for diverge
 
 
-    arm[0].mergeDiverge(ring, 0.25*Math.PI*rRing-lArm, 
-			mergeBegin, lArm, true, false);
-    arm[2].mergeDiverge(ring, 1.75*Math.PI*rRing-lArm, 
-			mergeBegin, lArm, true, false);
-    arm[4].mergeDiverge(ring, 1.25*Math.PI*rRing-lArm, 
-			mergeBegin, lArm, true, false);
-    arm[6].mergeDiverge(ring, 0.75*Math.PI*rRing-lArm, 
-			mergeBegin, lArm, true, false);
+    arm[0].mergeDiverge(ring, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
+			mergeBegin, lArm, true, false, false, respectRingPrio);
+    arm[2].mergeDiverge(ring, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
+			mergeBegin, lArm, true, false, false, respectRingPrio);
+    arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
+			mergeBegin, lArm, true, false, false, respectRingPrio);
+    arm[6].mergeDiverge(ring, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
+			mergeBegin, lArm, true, false, false, respectRingPrio);
 
 
     //##############################################################
     // diverges out of the  roundabout ring
-    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,
+    //                             toRight,[ignoreRoute,respectPrio])
     //##############################################################
 
     // Besides targetRoad.updateLastLCtimes(dt) as in merge case, 
@@ -758,36 +763,45 @@ function drawSim() {
 
     // end arm 0 attached at 0.25*Math.PI*rRing
 
-    var uOffset0_merge=lArm-0.25*Math.PI*rRing; 
+    var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
 
     // draw ring vehicles in 8 sectors: 
     // sectors 0,2,4,6: merging vehs on otherRoad=arm[sector]
     // sectors 1,3,5,7: no mergings (otherRoad=actualRoad=ring
 
+//ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+
+var du=-stitchAngleOffset*rRing
+
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.00*ring.roadLen, 0.125*ring.roadLen,
+			     0, 1./8*ring.roadLen+du, // between stitch
 			     arm[0], uOffset0_merge);
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.125*ring.roadLen, 0.25*ring.roadLen,
-			     ring, 0);
+			     du+ring.roadLen, ring.roadLen, // between stitch
+			     arm[0], uOffset0_merge);
+    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     1./8*ring.roadLen+du, 2./8*ring.roadLen+du);
+
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.25*ring.roadLen, 0.375*ring.roadLen,
+			     2./8*ring.roadLen+du, 3./8*ring.roadLen+du,
 			     arm[6], uOffset0_merge-0.25*ring.roadLen);
+    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     3./8*ring.roadLen+du, 4./8*ring.roadLen+du);
+
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.375*ring.roadLen, 0.50*ring.roadLen,
-			     ring, 0);
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.50*ring.roadLen, 0.625*ring.roadLen,
+			     4./8*ring.roadLen+du, 5./8*ring.roadLen+du,
 			     arm[4], uOffset0_merge-0.50*ring.roadLen);
+    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     5./8*ring.roadLen+du, 6./8*ring.roadLen+du);
+
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.625*ring.roadLen, 0.75*ring.roadLen,
-			     ring, 0);
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.75*ring.roadLen, 0.875*ring.roadLen,
+			     6./8*ring.roadLen+du, 7./8*ring.roadLen+du,
 			     arm[2], uOffset0_merge-0.75*ring.roadLen);
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0.875*ring.roadLen, 1.00*ring.roadLen,
-			     ring, 0);
+    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     7./8*ring.roadLen+du, 8./8*ring.roadLen+du);
+
+
+
     
     // (5) !!! draw depot vehicles
 

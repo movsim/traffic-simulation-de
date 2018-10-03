@@ -2348,13 +2348,17 @@ the route-specific tactical LC behaviour
 @param isMerge: if true, merge; otherwise diverge. 
 @param toRight: direction of the merge/diverge.
 @param ignoreRoute: (optional) if true, diverges take place 
-                whenever MOBIL agrees
+                whenever MOBIL agrees 
+                (default: false for diverging, true for merging)
+@param respectPrio: (optional) if true, respect the priority of the 
+                target-lane vehicles (default: false)
 
 @return:        void. Both roads are affected!
 */
 
 road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
-				     isMerge,toRight,ignoreRoute){
+				     isMerge,toRight,ignoreRoute,
+				     respectPrio){
 
     var log=false;
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
@@ -2362,6 +2366,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
 	? false : ignoreRoute; // default: routes  matter at diverges
     if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
+    var loc_respectPrio=(typeof respectPrio==='undefined')
+	? false : respectPrio;
     if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
 
 
@@ -2434,6 +2440,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
 
               // get input variables for MOBIL
+              // qualifiers for state var s,acc: 
+              // [nothing] own vehicle before LC
+              // New=own vehicle after LC
+              // LeadNew= new leader (not affected by LC but acc needed)
+              // Lag=new lag vehicle before LC
+              // LagNew=new lag vehicle after LC
 
 	      var sNew=duLeader-leaderNew.length;
 	      var sLagNew=-duFollower-originVehicles[i].length;
@@ -2450,13 +2462,20 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var acc=originVehicles[i].acc;
 	      var accNew=originVehicles[i].longModel.calcAcc(
 		  sNew,speed,speedLeadNew,accLeadNew);
+	      var accLag=followerNew.acc;
 	      var accLagNew =originVehicles[i].longModel.calcAcc(
 		  sLagNew,speedLagNew,speed,accNew);
+
+              // MOBIL decisions
+
+	      var prio_OK=(!loc_respectPrio)
+		  ||(!LCModel.respectPriority(accLag,accLagNew));
+
 	      var MOBILOK=LCModel.realizeLaneChange(
 		  vrel,acc,accNew,accLagNew,toRight,false);
 
-	      success=MOBILOK &&(originVehicles[i].isRegularVeh())
-		  &&(sNew>0)&&(sLagNew>0);
+	      success=prio_OK && MOBILOK && (originVehicles[i].isRegularVeh())
+		  && (sNew>0) && (sLagNew>0);
 	  
 	      if(log&&(this.roadID===10)){
 		  console.log("in road.mergeDiverge: roadID="+this.roadID
@@ -2948,6 +2967,8 @@ road.prototype.updateBCup=function(Qin,dt,route){
 // returns targetVehicles, an array of all vehicles on the target lane 
 // inside the arclength range [umin, umax].
 // Also sets iTargetFirst, the first vehicle (smallest i) within range
+//!!! does not consider ring roads
+// => set "stitch" of ring road far away from merges
 //######################################################################
 
 road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
