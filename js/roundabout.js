@@ -13,21 +13,15 @@
 
 // sliders with default inits need not to be reassigned here
 
+var respectRingPrio=false; // !!! put into a GUI switch
+var respectRightPrio=true; // !!! put into a GUI switch
 
 truckFrac=0.15; // overrides control_gui
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
 IDM_b=1;
 
-//!!! ignoring ring priority due to MOBIL's increased disadvantage 
-// if decelerating (difference approx b+a) while stopped => diff a
-// OK but MOBIL has no priority handling:
-// add third condition acc_prioveh-acc'_prioVeh<0.1*accFree_prioVeh
-// as absolute condition not depending on bias or p
-// then mandat_bias=0.2 or so OK
-// then also right prio w/resp to left realizable!
-
-MOBIL_mandat_bSafe=4; // very small value because ringRoafd vehs slow
+MOBIL_mandat_bSafe=4; // >b, <physical limit
 MOBIL_mandat_bThr=0;  
 MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
@@ -85,7 +79,6 @@ MOBIL_bThr=0.0
 slider_MOBIL_bThr.value=MOBIL_bThr;
 slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
 
-var respectRingPrio=true; // !!! put into a GUI switch
 
 
 /*######################################################
@@ -550,14 +543,16 @@ function updateSim(){
     //##############################################################
 
 
-    // acceleration and motion (no interaction between roads at this point)
+    //acceleration (no interaction between roads at this point)
+    // !!! (motion at the end?)
 
     ring.calcAccelerations();
-    ring.updateSpeedPositions();
+    //ring.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
       arm[i].calcAccelerations(); 
-      arm[i].updateSpeedPositions();
+      //arm[i].updateSpeedPositions();
     } 
+
 
     // inflow BC
 
@@ -583,12 +578,16 @@ function updateSim(){
 
     var ran=Math.random();
 
-    //var route1In=route1C;
-    //var route3In=route3C;
+
     var route1In=(ran<cFrac) ? route1C : (ran<clFrac) ? route1L : route1R;
     var route3In=(ran<cFrac) ? route3C : (ran<clFrac) ? route3L : route3R;
     var route5In=(ran<cFrac) ? route5C : (ran<clFrac) ? route5L : route5R;
     var route7In=(ran<cFrac) ? route7C : (ran<clFrac) ? route7L : route7R;
+
+    // following 2 lines debug
+
+    q1=0.5*qIn; q3=0.5*qIn; q5=q7=0;
+    route1In=route1C;route3In=route3C;
 
 
     arm[0].updateBCup(q1,dt,route1In);
@@ -614,13 +613,17 @@ function updateSim(){
 
 
     arm[0].mergeDiverge(ring, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, respectRingPrio);
+			mergeBegin, lArm, true, false, false, 
+			respectRingPrio, respectRightPrio);
     arm[2].mergeDiverge(ring, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, respectRingPrio);
+			mergeBegin, lArm, true, false, false, 
+			respectRingPrio, respectRightPrio);
     arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, respectRingPrio);
+			mergeBegin, lArm, true, false, false, 
+			respectRingPrio, respectRightPrio);
     arm[6].mergeDiverge(ring, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, respectRingPrio);
+			mergeBegin, lArm, true, false, false, 
+			respectRingPrio, respectRightPrio);
 
 
     //##############################################################
@@ -651,9 +654,13 @@ function updateSim(){
 		      uLastExits[3]-divLen, uLastExits[3], false, true);
 
 
+     // motion at the end?!!!
 
+    ring.updateSpeedPositions();
+    for(var i=0; i<arm.length; i++){
+        arm[i].updateSpeedPositions();//!!!
+    } 
 
- 
      //!!!
 /*
     if(depotVehZoomBack){

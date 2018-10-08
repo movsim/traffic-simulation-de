@@ -2325,19 +2325,23 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 // functionality for merging and diverging to another road. 
 //######################################################################
 /**
-In both cases, the road change is from the actual road 
+In both cases, the road change is from the road calling this function
 to the road in the argument list. Only the immediately neighboring 
 lanes of the two roads interact. The rest must be handled in the
 strategic/tactical lane-change behaviour of the drivers: 
 long models set to longModelTactical* and LC models to LCModelTactical*
 if the route of vehicles contains next off-ramp in distance < duTactcal ahead
 
-!!Note: if ignoreRoute=false, a diverge can only happen for vehicles with 
+!!Note1: if ignoreRoute=false, a diverge can only happen for vehicles with 
 routes containing this offramp and not for other/undefined routes. The default is ignoreRoute=true. This is favourable for 
 interactive routing games ("routing by traffic lights"). Also in this case, 
 the probability for vehicles to diverge is greater if on the route because of
 the route-specific tactical LC behaviour 
 (at the moment, feature, not bug because of routing games/playing with TL)
+
+Note2: If neither the changing vehicles have priority (prioOwn=false) 
+nor the through-lane vehicles (prioOther=false), 
+discretionary or forced merging takes place depending on bSafe*
 
 @param newRoad: the road to which to merge or diverge
 @param offset:  difference[m] in the arclength coordinate u 
@@ -2350,15 +2354,17 @@ the route-specific tactical LC behaviour
 @param ignoreRoute: (optional) if true, diverges take place 
                 whenever MOBIL agrees 
                 (default: false for diverging, true for merging)
-@param respectPrio: (optional) if true, respect the priority of the 
-                target-lane vehicles (default: false)
+@param prioOther: (optional) if true, respect the priority of the 
+                target-lane (through-lane) vehicles (default: false)
+@param prioOwn: (optional) if true, trespect the priority of the 
+                own merging lane (default: false)
 
 @return:        void. Both roads are affected!
 */
 
 road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute,
-				     respectPrio){
+				     prioOther, prioOwn){
 
     var log=false;
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
@@ -2366,8 +2372,18 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
 	? false : ignoreRoute; // default: routes  matter at diverges
     if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
-    var loc_respectPrio=(typeof respectPrio==='undefined')
-	? false : respectPrio;
+
+    var loc_prioOther=(typeof prioOther==='undefined')
+	? false : prioOther;
+
+    var loc_prioOwn=(typeof prioOwn==='undefined')
+	? false : prioOwn;
+    if(loc_prioOwn&&loc_prioOther){
+	console.log("road.mergeDiverge: Warning: prioOther and prioOwn",
+		    " cannot be true simultaneously; setting prioOwn=false");
+	loc_prioOwn=false;
+    }
+
     if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
 
 
@@ -2406,11 +2422,18 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
     // (2b) otherwise select the first suitable candidate of originVehicles
 
-    else if(originVehicles.length>0){  // or >1 necessary? !!
+    else if(originVehicles.length>0){  
+
+        // initializing of interacting partners with virtual vehicles
+        // having no interaction because of their positions
+        // default models also initialized in the constructor
+
 	var duLeader=1000; // initially big distances w/o interaction
 	var duFollower=-1000;
 	var leaderNew=new vehicle(0,0,uNewStart+10000,targetLane,0,"car");
 	var followerNew=new vehicle(0,0,uNewStart-10000,targetLane,0,"car");
+
+
 	if(log){console.log("entering origVeh loop");}
 
         // loop over originVehicles for merging veh candidates
@@ -2421,15 +2444,20 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      uTarget=originVehicles[i].u+offset;
 
               // inner loop over targetVehicles: search prospective 
-              // new leader and follower and get the gaps
+              // new leader leaderNew and follower followerNew and get the gaps
+              // notice: even if there are >0 target vehicles 
+              // (that is guaranteed because of the inner-loop conditions),
+              //  none may be eligible
+              // therefore check for jTarget==-1
 
+	      var jTarget=-1;;
 	      for(var j=0; j<targetVehicles.length; j++){
 		var du=targetVehicles[j].u-uTarget;
 		if( (du>0)&&(du<duLeader)){
 		    duLeader=du; leaderNew=targetVehicles[j];
 		}
 		if( (du<0)&&(du>duFollower)){
-		    duFollower=du; followerNew=targetVehicles[j];
+		    jTarget=j; duFollower=du; followerNew=targetVehicles[j];
 		}
 		if(log){
 		    console.log("  du="+du+" duLeader="+duLeader
@@ -2442,10 +2470,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
               // get input variables for MOBIL
               // qualifiers for state var s,acc: 
               // [nothing] own vehicle before LC
-              // New=own vehicle after LC
-              // LeadNew= new leader (not affected by LC but acc needed)
-              // Lag=new lag vehicle before LC
-              // LagNew=new lag vehicle after LC
+              // vehicles: leaderNew, followerNew
+              // subscripts/qualifiers:
+              //   New=own vehicle after LC
+              //   LeadNew= new leader (not affected by LC but acc needed)
+              //   Lag new lag vehicle before LC (only relevant for accLag)
+              //   LagNew=new lag vehicle after LC (for accLagNew)
 
 	      var sNew=duLeader-leaderNew.length;
 	      var sLagNew=-duFollower-originVehicles[i].length;
@@ -2466,9 +2496,23 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var accLagNew =originVehicles[i].longModel.calcAcc(
 		  sLagNew,speedLagNew,speed,accNew);
 
+
+              // longitudinal-transversal coupling to target 
+              // (through-lane) vehicles in case of prioOwn=true
+
+	      if(prioOwn){
+		  accLagNew=followerNew.longModel.calcAccGiveWay(sLagNew,speedLagNew,speed,accLag);
+		  followerNew.acc=accLagNew;//!!
+		  console.log("in road.mergeDiverge, ",
+			      " LT coupling to acc other road",
+			      " jTarget=",jTarget,
+			      " accLag=",accLag," accLagNew=",accLagNew);
+	      }
+
+
               // MOBIL decisions
 
-	      var prio_OK=(!loc_respectPrio)
+	      var prio_OK=(!loc_prioOther)||loc_prioOwn
 		  ||(!LCModel.respectPriority(accLag,accLagNew));
 
 	      var MOBILOK=LCModel.realizeLaneChange(
@@ -2483,7 +2527,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      }
 	      if(success){iMerge=i;}
 
-              // test: should pnly list reg vehicles with mergeAhead=true; 
+              // test: should only list reg vehicles with mergeAhead=true; 
               // check its number if suspicious happens with this var !!
 
 	      if(success&&log){

@@ -78,6 +78,20 @@ IDM.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 
 
+/**
+IDM "give way" function for passive merges (the merging vehicle has priority) 
+It returns the "longitudinal-transversal coupling" 
+acceleration as though the priority vehicle has already merged/changed
+if this does not include an emergency braking (decel<2*b)
+
+For the interface and further explanations see ACC.prototype.calcAcc
+*/
+
+IDM.prototype.calcAccGiveWay=function(sNew, v, vPrio){
+    var accNew=this.calcAcc(sNew, v, vPrio, 0);
+    return (accNew>-2*this.b) ? accNew : acc;
+}
+
 
 
 
@@ -190,7 +204,43 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 }//ACC.prototype.calcAcc
 
 
+/**
+ACC "give way" function for passive merges (the merging vehicle has priority) 
+It returns the "longitudinal-transversal coupling" 
+acceleration as though the priority vehicle has already merged/changed
+if this does not include an emergency braking (decel<2*b)
 
+Notice 1: The caller must ensure that this function 
+is only called for the first vehicle behind a merging vehicle 
+having priority. 
+
+Notice 2: No actual lane change is involved. The lane change of the merging vehicle
+is just favoured in the next steps by this longitudinal-transversal coupling
+
+Notice 3: For active merges to priority roads 
+(the mainroad vehicles have priority) 
+use MOBIL.respectPriority to determine if the merge is OK
+
+
+@param sNew:   gap subject - priority vehicle [m] after a potential merging
+@param v:      speed of subject vehicle [m/s]
+@param vPrio:  speed of the priority vehicle [m/s]
+@param accOld: acceleration before LT coupling
+
+@return:  acceleration response [m/s^2] to the merging veh with priority
+*/
+
+ACC.prototype.calcAccGiveWay=function(sNew, v, vPrio, accOld){
+    var accNew=this.calcAcc(sNew, v, vPrio, 0);
+
+    // !! 0.1*this.b consistent with MOBIL.prototype.respectPriority
+    // !! 2*this.b consistent with MOBIL.bSafe
+
+    var priorityRelevant=(accOld-accNew>0.1*this.b); 
+    //return priorityRelevant&&(accNew>-2*this.b)
+//	    ? Math.min(accNew,-this.b) : accOld;
+    return -4;
+}
 
 //#################################
 // lane-changing models
@@ -277,6 +327,8 @@ the criterion here is a rather small critical acceleration *change*
 @param accLag:    actual acceleration of the target lag vehicle
 @param accLagNew: acceleration of this vehicle after a prospective change
 
+@return:          true if the mainroad (target lane) vehicle would be obstructed by
+                  the changing by more than a very small amount
 */
 
 MOBIL.prototype.respectPriority=function(accLag,accLagNew){
