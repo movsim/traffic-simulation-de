@@ -378,12 +378,17 @@ road.prototype.subtractOneLane = function(){
 // write/print/display vehicle info
 //######################################################################
 
-road.prototype.writeVehicles= function() {
+road.prototype.writeVehicles= function(umin,umax) {
     console.log("\nin road.writeVehicles(): ID=",this.roadID,
 		" nveh=",this.veh.length,
 		" roadLen="+this.roadLen);
+
+    var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+    var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
     for(var i=0; i<this.veh.length; i++){
-      console.log(" veh["+i+"].id="+this.veh[i].id
+	if((this.veh[i].u>=uminLoc)&&(this.veh[i].u<=umaxLoc)){
+            console.log(" veh["+i+"].id="+this.veh[i].id
 		   +"  type="+this.veh[i].type
 		   +"  len="+this.veh[i].length
 		   +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
@@ -398,19 +403,26 @@ road.prototype.writeVehicles= function() {
 		   +"  iLeadLeft="+this.veh[i].iLeadLeft
 		   +"  iLagLeft="+this.veh[i].iLagLeft
 		   +"");
-  }
-} // road cstr
+	}
+    }
+
+} // writeVehicles
 
 
 //######################################################################
 // simple write vehicle info
 //######################################################################
 
-road.prototype.writeVehiclesSimple= function() {
+road.prototype.writeVehiclesSimple= function(umin,umax) {
     console.log("\nin road.writeVehiclesSimple(): ID=",this.roadID,
 		" nveh=",this.veh.length,
 		" nLanes=",this.nLanes," itime="+itime);
+
+    var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+    var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
     for(var i=0; i<this.veh.length; i++){
+      if((this.veh[i].u>=uminLoc)&&(this.veh[i].u<=umaxLoc)){
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +"  id="+this.veh[i].id
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
@@ -420,6 +432,7 @@ road.prototype.writeVehiclesSimple= function() {
 		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
 		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
 		    +"");
+      }
   }
 }
 
@@ -439,6 +452,7 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
 	if((u>uminLoc) && (u<umaxLoc) 
@@ -462,8 +476,10 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 road.prototype.writeNonregularVehicles= function(umin,umax) {
     console.log("\nin road.writeNonregularVehicles: nveh=",this.veh.length,
 		" itime="+itime);
+
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
     for(var i=0; i<this.veh.length; i++) if(!this.veh[i].isRegularVeh()){
 	var u=this.veh[i].u;
 	if((u>uminLoc) && (u<umaxLoc) ){
@@ -485,11 +501,16 @@ road.prototype.writeNonregularVehicles= function(umin,umax) {
 // write vehicle longmodel info
 //######################################################################
 
-road.prototype.writeVehicleLongModels= function() {
+road.prototype.writeVehicleLongModels= function(umin,umax) {
     console.log("\nin road.writeVehicleLongModels(): ID=",this.roadID,
 		" nveh=",this.veh.length,
 		" itime="+itime);
+
+    var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+    var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
     for(var i=0; i<this.veh.length; i++){
+      if((this.veh[i].u>=uminLoc)&&(this.veh[i].u<=umaxLoc)){
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +"  id="+this.veh[i].id
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
@@ -500,6 +521,7 @@ road.prototype.writeVehicleLongModels= function() {
 		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(1)
 		    +"  acc="+parseFloat(this.veh[i].acc).toFixed(1)
 		    +"");
+      }
   }
 }
 
@@ -2367,7 +2389,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 				     prioOther, prioOwn){
 
     var log=false;
+    //var log=(this.roadID==7)&&isMerge;    
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
+
+    var padding=50; // additional visibility of target road before/after
+    var paddingLTC=20; // additional LTC exerted by upstream origin veh
+    if(!isMerge){paddingLTC=0;} // no LTC needed for diverge since road begins
 
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
 	? false : ignoreRoute; // default: routes  matter at diverges
@@ -2384,21 +2411,19 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	loc_prioOwn=false;
     }
 
-    if(log){console.log("\n\nitime="+itime+": in road.mergeDiverge");}
+
 
 
     // (1) get neighbourhood
+    // getTargetNeighbourhood also sets [this|newRoad].iTargetFirst
 
     var uNewStart=uBegin+offset;
     var uNewEnd=uEnd+offset;
-    var padding=50; // additional visibility  on target road before/after
     var originLane=(toRight) ? this.nLanes-1 : 0;
     var targetLane=(toRight) ? 0 : newRoad.nLanes-1;
 
-     // getTargetNeighbourhood also sets [this|newRoad].iTargetFirst
-
     var originVehicles=this.getTargetNeighbourhood(
-	uBegin, uEnd, originLane);
+	uBegin-paddingLTC, uEnd, originLane); // padding only for LC coupling!
 
     var targetVehicles=newRoad.getTargetNeighbourhood(
 	uNewStart-padding, uNewEnd+padding, targetLane);
@@ -2406,6 +2431,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var iMerge=0; // candidate of the originVehicles neighbourhood
     var uTarget;  // long. coordinate of this vehicle on the orig road
 
+    if(log){
+	console.log("\n\nin road.mergeDiverge: itime=",itime,
+		    " ID=",this.roadID,
+		    " targetVehicles.length=",targetVehicles.length,
+		    " originVehicles.length=",originVehicles.length);
+    }
 
     // (2) select changing vehicle (if any): 
     // only one at each calling; the first vehicle has priority!
@@ -2416,8 +2447,9 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
     var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
 		  && originVehicles[0].isRegularVeh()
+		  && (originVehicles[0].u>=uBegin) // otherwise only LT coupl
 		  && (loc_ignoreRoute||originVehicles[0].divergeAhead));
-    if(log){console.log("road.mergeDiverge: 2a:  success=",success);}
+    if(log){console.log(" road.mergeDiverge: 2a:  success=",success);}
     if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
 
     // (2b) otherwise select the first suitable candidate of originVehicles
@@ -2434,13 +2466,26 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	var followerNew=new vehicle(0,0,uNewStart-10000,targetLane,0,"car");
 
 
-	if(log){console.log("entering origVeh loop");}
+	if(log){console.log(" entering origVeh loop");}
 
         // loop over originVehicles for merging veh candidates
 
         for(var i=0;(i<originVehicles.length)&&(!success);i++){
+
+	  if(log){
+		console.log(" i=",i,
+			    " isRegularVeh=",originVehicles[i].isRegularVeh(),
+			    " loc_ignoreRoute=",loc_ignoreRoute,
+			    " originVehicles[i].divergeAhead=",
+			    originVehicles[i].divergeAhead);
+	  }
+
 	  if(originVehicles[i].isRegularVeh()
 	     &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
+
+              //if inChangeRegion=false  only LTC
+	      var inChangeRegion=(originVehicles[i].u>uBegin); 
+
 	      uTarget=originVehicles[i].u+offset;
 
               // inner loop over targetVehicles: search prospective 
@@ -2460,8 +2505,9 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 		    jTarget=j; duFollower=du; followerNew=targetVehicles[j];
 		}
 		if(log){
-		    console.log("  du="+du+" duLeader="+duLeader
-				+" duFollower="+duFollower);
+		    console.log(" i=",i," j=",j," jTarget=",jTarget,
+				" du=",du," duLeader=",duLeader,
+				" duFollower=",duFollower);
 
 		}
 	      }
@@ -2501,12 +2547,19 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
               // (through-lane) vehicles in case of prioOwn=true
 
 	      if(prioOwn){
-		  accLagNew=followerNew.longModel.calcAccGiveWay(sLagNew,speedLagNew,speed,accLag);
-		  followerNew.acc=accLagNew;//!!
-		  console.log("in road.mergeDiverge, ",
+		  var sYield=uNewStart-followerNew.u;
+		  var sPrio=uEnd-originVehicles[i].u;
+		  var accLagYield=followerNew.longModel.calcAccGiveWay
+		    (sYield, sPrio, speed, speedLagNew, accLagNew);
+		  followerNew.acc=accLagYield;//!!
+		  if(log){
+		      console.log("in road.mergeDiverge, ",
 			      " LT coupling to acc other road",
 			      " jTarget=",jTarget,
-			      " accLag=",accLag," accLagNew=",accLagNew);
+			      " target follower ID=",followerNew.id,
+			      " target follower u=",followerNew.u,
+			      " accLagYield=",accLagYield);
+		  }
 	      }
 
 
@@ -2518,7 +2571,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var MOBILOK=LCModel.realizeLaneChange(
 		  vrel,acc,accNew,accLagNew,toRight,false);
 
-	      success=prio_OK && MOBILOK && (originVehicles[i].isRegularVeh())
+	      success=prio_OK && inChangeRegion && MOBILOK 
+		  && (originVehicles[i].isRegularVeh())
 		  && (sNew>0) && (sLagNew>0);
 	  
 	      if(log&&(this.roadID===10)){

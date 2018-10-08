@@ -222,7 +222,9 @@ Notice 3: For active merges to priority roads
 use MOBIL.respectPriority to determine if the merge is OK
 
 
-@param sNew:   gap subject - priority vehicle [m] after a potential merging
+@param sYield: distance [m] to yield point 
+               (stop if merging veh present)
+@param sPrio:  gap vehicle of other road to merge begin
 @param v:      speed of subject vehicle [m/s]
 @param vPrio:  speed of the priority vehicle [m/s]
 @param accOld: acceleration before LT coupling
@@ -230,16 +232,25 @@ use MOBIL.respectPriority to determine if the merge is OK
 @return:  acceleration response [m/s^2] to the merging veh with priority
 */
 
-ACC.prototype.calcAccGiveWay=function(sNew, v, vPrio, accOld){
-    var accNew=this.calcAcc(sNew, v, vPrio, 0);
-
     // !! 0.1*this.b consistent with MOBIL.prototype.respectPriority
     // !! 2*this.b consistent with MOBIL.bSafe
 
-    var priorityRelevant=(accOld-accNew>0.1*this.b); 
-    //return priorityRelevant&&(accNew>-2*this.b)
-//	    ? Math.min(accNew,-this.b) : accOld;
-    return -4;
+ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
+    var accPrioNoYield=this.calcAcc(sPrio, vPrio, 0, 0);
+    var accYield=this.calcAcc(sYield, v, 0, 0);
+    var priorityRelevant=((accPrioNoYield<-0.2*this.b)
+			  &&(accYield<-0.2*this.b));
+    var accGiveWay=priorityRelevant ? accYield : accOld;
+    if(true){
+        console.log("ACC.calcAccGiveWay: sYield=",sYield,
+		    " sPrio=",sPrio," v=",v," vPrio=",vPrio,
+		    "\n accPrioNoYield=",accPrioNoYield,
+		    " accYield=",accYield,
+		    " accOld=",accOld,
+		    " accGiveWay=",accGiveWay);
+    }
+    return accGiveWay;
+    //return -4;
 }
 
 //#################################

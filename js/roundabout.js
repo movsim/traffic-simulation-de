@@ -138,7 +138,7 @@ var scale=refSizePix/refSizePhys;
 
 var car_length=4.5; // car length in m
 var car_width=2.5; // car width in m
-var truck_length=10; // trucks
+var truck_length=8; // trucks
 var truck_width=3; 
 var laneWidth=4; 
 
@@ -574,7 +574,7 @@ function updateSim(){
     var rFrac=(1-cFrac)/2.*(1-leftTurnBias);
     var clFrac=cFrac+lFrac;
 
-    console.log("roundabout:updateSim: cFrac=",cFrac," lFrac=",lFrac," rFrac=",rFrac);
+    //console.log("roundabout:updateSim: cFrac=",cFrac," lFrac=",lFrac," rFrac=",rFrac);
 
     var ran=Math.random();
 
@@ -586,8 +586,8 @@ function updateSim(){
 
     // following 2 lines debug
 
-    q1=0.5*qIn; q3=0.5*qIn; q5=q7=0;
-    route1In=route1C;route3In=route3C;
+    q1=0.2*qIn; q7=0.5*qIn; q5=q3=0;
+    route1In=route1C;route7In=route7C;
 
 
     arm[0].updateBCup(q1,dt,route1In);
@@ -605,7 +605,8 @@ function updateSim(){
     //##############################################################
     // merges into the roundabout ring (respecting prio)
     // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,
-    //                             toRight,[ignoreRoute,respectPrio])
+    //                             toRight,[ignoreRoute,
+    //                             respectPrioOther,respectPrioOwn])
     //##############################################################
 
     ring.updateLastLCtimes(dt); // needed on target road for graphical merging
@@ -613,16 +614,16 @@ function updateSim(){
 
 
     arm[0].mergeDiverge(ring, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, 
+			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
     arm[2].mergeDiverge(ring, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, 
+			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
     arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, 
+			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
     arm[6].mergeDiverge(ring, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, lArm, true, false, false, 
+			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
 
@@ -660,6 +661,8 @@ function updateSim(){
     for(var i=0; i<arm.length; i++){
         arm[i].updateSpeedPositions();//!!!
     } 
+
+    //ring.writeVehiclesSimple(0,ring.roadLen);
 
      //!!!
 /*
