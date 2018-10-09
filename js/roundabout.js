@@ -16,7 +16,7 @@
 var respectRingPrio=false; // !!! put into a GUI switch
 var respectRightPrio=true; // !!! put into a GUI switch
 
-truckFrac=0.15; // overrides control_gui
+truckFrac=0.; // overrides control_gui 0.15
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
 IDM_b=1;
@@ -50,7 +50,7 @@ focusFrac=focusFracInit=0.25;
 slider_focusFrac.value=100*focusFrac;
 slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
-timewarp=timewarpInit=5;
+timewarp=timewarpInit=1.5;
 slider_timewarp.value=timewarpInit;
 slider_timewarpVal.innerHTML=timewarpInit +" times";
 
@@ -734,7 +734,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(userCanvasManip ||hasChanged
-	   ||(itime<=1) || (itime%20===0) || false || (!drawRoad)){
+	   ||(itime<=1) || (itime%2===0) || false || (!drawRoad)){
 	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }

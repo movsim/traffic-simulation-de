@@ -2393,7 +2393,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
     var padding=10; // additional visibility of target road before/after 50
-    var paddingLTC=10; // additional LTC exerted by upstream origin veh 20
+    var paddingLTC=30; // additional LTC exerted by upstream origin veh 20
     if(!isMerge){paddingLTC=0;} // no LTC needed for diverge since road begins
 
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
@@ -2547,22 +2547,31 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
               // (through-lane) vehicles in case of prioOwn=true
 
 	      if(prioOwn){
-		  var sYield=uNewStart-followerNew.u;
+		  var vehLenMax=15;
+		  var sYield=uNewEnd-vehLenMax-2-followerNew.u;
 		  var sPrio=uEnd-originVehicles[i].u;
 		  var accLagYield=followerNew.longModel.calcAccGiveWay
 		    (sYield, sPrio, speed, speedLagNew, accLagNew);
-		  followerNew.acc=accLagYield;//!!
+		  followerNew.acc=Math.min(followerNew.acc,accLagYield);//!!
 
 		  followerNew.colorStyle=1; // draw red-thick instead of hue
 		  originVehicles[i].colorStyle=2; // draw green-thick
 		  //console.log("originVeh.colorStyle=",originVehicles[i].colorStyle);
-		  if(log){
+		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
 		      console.log("in road.mergeDiverge, ",
-			      " LT coupling to acc other road",
-			      " jTarget=",jTarget,
-			      " target follower ID=",followerNew.id,
-			      " target follower u=",followerNew.u,
-			      " accLagYield=",accLagYieldq);
+				  " LT coupling to acc other road",
+				  " id=",this.roadID,
+				  " t=",parseFloat(itime*dt).toFixed(2),
+				  " iOrigin=",i,
+				  " jTarget=",jTarget,
+				  " target follower: ID=",followerNew.id,
+				  " u befure update=",
+				  parseFloat(followerNew.u).toFixed(2),
+				  " speed before=",
+				  parseFloat(followerNew.speed).toFixed(2),
+				  " acc=",
+				  parseFloat(accLagYield).toFixed(2)
+		  );
 		  }
 	      }
 
@@ -3564,10 +3573,11 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 				    speedmin,speedmax,xOffset,yOffset,
 				    otherRoad, uOffset){
 
+    var drawVehIDs=true;           // draw vehicle IDs along the vehicles
     var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
     var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
 
-    // determine which trajectory to use: own or external traj
+    // (1) determine which trajectory to use: own or external traj
     // only external if no gridding, in lane change, and otherRoad in route
 
     var du=(typeof uOffset === 'undefined') ? 0 : uOffset;
@@ -3579,9 +3589,8 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     if(!useOtherTraj){du=0;}
 
 
-    //console.log("this.traj_x=",this.traj_x);
-    //console.log("trajLoc_x=",trajLoc_x);
-
+    // (2) determine uCenter, vCenter in logical long/lat coordinates
+    // v increasing from left to right, 0 @ road center
     // don't use smooth lane shifting if external trajectory used
 
     if(useOtherTraj||(!otherRoadInRoute)){
@@ -3592,17 +3601,16 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
         update_v_dvdt_optical(this.veh[i]);
     }
 
-
     var type=this.veh[i].type;
     var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
     var vehWidthPix=scale*this.veh[i].width;
+
     var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
-
-
-    // v increasing from left to right, 0 @ road center
-    // roadworks as images: shift a little bit to the boundary
-
     var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
+
+
+    // (3) determine vehicle center xCenterPix, yCenterPix
+    // in pixel coordinates
 
     var phiRoad=(useOtherTraj) 
 	? otherRoad.get_phi(uCenterPhys+du)
@@ -3640,24 +3648,25 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     var cphiVeh=Math.cos(phiVeh);
     var sphiVeh=Math.sin(phiVeh);
 
-          //last two terms cancel for normal fixed viewpoint 
-          // (movingObserver=false)
 
-
-
+    // last two terms cancel for normal fixed viewpoint 
+    // (movingObserver=false)
 
     var xCenterPix= scale*(this.traj_x(uCenterPhys+du) + vCenterPhys*sphiRoad
 			   -xOffset); // -xOffset=-this.traj_x(uRef)+xRef)
     var yCenterPix=-scale*(this.traj_y(uCenterPhys+du) - vCenterPhys*cphiRoad
 			   -yOffset);
     if(useOtherTraj){
-        xCenterPix= scale*(otherRoad.traj_x(uCenterPhys+du) + vCenterPhys*sphiRoad
-			   -xOffset); // -xOffset=-this.traj_x(uRef)+xRef)
-        yCenterPix=-scale*(otherRoad.traj_y(uCenterPhys+du) - vCenterPhys*cphiRoad
-			   -yOffset);
+        xCenterPix= scale*(otherRoad.traj_x(uCenterPhys+du)
+			   + vCenterPhys*sphiRoad
+			   - xOffset); // -xOffset=-this.traj_x(uRef)+xRef)
+        yCenterPix=-scale*(otherRoad.traj_y(uCenterPhys+du) 
+			   - vCenterPhys*cphiRoad
+			   - yOffset);
     }
 
-          // (1) draw vehicles as images
+
+    // (4) draw vehicle as image
 
     var obstacleImg;
     if(type==="obstacle"){
@@ -3672,9 +3681,10 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
 			vehLenPix,vehWidthPix);
 
-          // (2) draw semi-transp boxes of speed-dependent color 
-          //     over the images
-          //     (different size of box because of mirrors of veh images)
+
+    // (5) draw semi-transp box of speed-dependent color 
+    //     over the images
+    //     (different size of box because of mirrors of veh images)
 
     if(type!="obstacle"){
         var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
@@ -3696,6 +3706,25 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 			       1.2*effLenPix, 1.2*effWPix);
 	}
     }
+
+    //(6) optionally draw vehicle ID near the vehicle
+
+    if(drawVehIDs&&(this.veh[i].isRegularVeh())){
+	var textsize=0.018*Math.min(canvas.width,canvas.height);
+        var lPix=2.8*textsize;
+        var hPix=1.1*textsize;
+        var xOffset=0.7*lPix;
+        var yOffset=-0.7*hPix;
+
+	ctx.font=textsize+'px Arial';
+	ctx.setTransform(1,0,0,1,xCenterPix+xOffset,yCenterPix+yOffset);
+	ctx.fillStyle="rgb(255,255,255)";
+	ctx.fillRect(-0.5*lPix, -0.5*hPix, lPix, hPix);
+	ctx.fillStyle="rgb(0,0,0)";
+	ctx.fillText(this.veh[i].id, -0.45*lPix, 0.40*hPix);
+    }
+
+
     ctx.fillStyle="rgb(0,0,0)";
 
 	
