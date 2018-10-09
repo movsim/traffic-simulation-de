@@ -241,7 +241,7 @@ ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
     var priorityRelevant=((accPrioNoYield<-0.2*this.b)
 			  &&(accYield<-0.2*this.b));
     var accGiveWay=priorityRelevant ? accYield : accOld;
-    if(true){
+    if(false){
         console.log("ACC.calcAccGiveWay: sYield=",sYield,
 		    " sPrio=",sPrio," v=",v," vPrio=",vPrio,
 		    "\n accPrioNoYield=",accPrioNoYield,

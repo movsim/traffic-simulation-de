@@ -2392,8 +2392,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     //var log=(this.roadID==7)&&isMerge;    
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
-    var padding=50; // additional visibility of target road before/after
-    var paddingLTC=20; // additional LTC exerted by upstream origin veh
+    var padding=10; // additional visibility of target road before/after 50
+    var paddingLTC=10; // additional LTC exerted by upstream origin veh 20
     if(!isMerge){paddingLTC=0;} // no LTC needed for diverge since road begins
 
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
@@ -2552,13 +2552,17 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 		  var accLagYield=followerNew.longModel.calcAccGiveWay
 		    (sYield, sPrio, speed, speedLagNew, accLagNew);
 		  followerNew.acc=accLagYield;//!!
+
+		  followerNew.colorStyle=1; // draw red-thick instead of hue
+		  originVehicles[i].colorStyle=2; // draw green-thick
+		  //console.log("originVeh.colorStyle=",originVehicles[i].colorStyle);
 		  if(log){
 		      console.log("in road.mergeDiverge, ",
 			      " LT coupling to acc other road",
 			      " jTarget=",jTarget,
 			      " target follower ID=",followerNew.id,
 			      " target follower u=",followerNew.u,
-			      " accLagYield=",accLagYield);
+			      " accLagYield=",accLagYieldq);
 		  }
 	      }
 
@@ -2609,7 +2613,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
         //originVehicles[iMerge]=veh[iMerge+this.iTargetFirst] 
 
 	var iOrig=iMerge+this.iTargetFirst;
-	if(log){
+	if(false){
 	//if(true){
 	    console.log("Actual merging: merging origin vehicle "+iOrig
 			+" of type "+this.veh[iOrig].type
@@ -2628,7 +2632,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	changingVeh.lane =targetLane;
 	changingVeh.laneOld =vOld; // following for  drawing purposes
 	changingVeh.v =vOld;  // real lane position (graphical)
-
+	changingVeh.colorStyle=0;
 	changingVeh.dt_afterLC=0;             // just changed
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
@@ -3673,14 +3677,16 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
           //     (different size of box because of mirrors of veh images)
 
     if(type!="obstacle"){
-              var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
-              var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
-              var speed=this.veh[i].speed;
-	      var isEgo=(this.veh[i].id===1);
-              ctx.fillStyle=colormapSpeed(speed,speedmin,speedmax,type,
-					  isEgo,time);
-	      ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
-	      if(isEgo||this.veh[i].isPerturbed()){
+        var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
+        var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
+        var speed=this.veh[i].speed;
+	var isEgo=(this.veh[i].id===1);
+        ctx.fillStyle=(this.veh[i].colorStyle==0)
+	    ? colormapSpeed(speed,speedmin,speedmax,type, isEgo,time)
+	    : (this.veh[i].colorStyle==1) ? "rgba(255,0,0,0.5)"
+	    : "rgba(0,255,0,0.5)";
+	ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
+	if(isEgo||this.veh[i].isPerturbed()||(this.veh[i].colorStyle>0)){
 		  ctx.strokeStyle="rgb(0,0,0)";
 		  ctx.strokeRect(-0.50*effLenPix, -0.50*effWPix, 
 			       1.0*effLenPix, 1.0*effWPix);
@@ -3688,7 +3694,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 			       1.1*effLenPix, 1.1*effWPix);
 		  ctx.strokeRect(-0.60*effLenPix, -0.60*effWPix, 
 			       1.2*effLenPix, 1.2*effWPix);
-	      }
+	}
     }
     ctx.fillStyle="rgb(0,0,0)";
 

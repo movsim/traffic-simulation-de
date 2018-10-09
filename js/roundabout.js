@@ -771,17 +771,24 @@ function drawSim() {
         arm[i].drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
     }
 
-    // end arm 0 attached at 0.25*Math.PI*rRing
+    // draw ring vehicles with general trajectories or direct (debug)
 
-    var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
+    var drawRingDirect=true;
 
-    // draw ring vehicles in 8 sectors: 
-    // sectors 0,2,4,6: merging vehs on otherRoad=arm[sector]
-    // sectors 1,3,5,7: no mergings (otherRoad=actualRoad=ring
+    if(drawRingDirect){
+	ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			  vmin_col,vmax_col);
+    }
 
-//ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+    else{
 
-var du=-stitchAngleOffset*rRing
+       // draw ring vehicles in 8 sectors: 
+       // sectors 0,2,4,6: merging vehs on otherRoad=arm[sector]
+       // sectors 1,3,5,7: no mergings (otherRoad=actualRoad=ring
+       // end arm 0 attached at 0.25*Math.PI*rRing
+
+	var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
+	var du=-stitchAngleOffset*rRing;
 
     ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
 			     0, 1./8*ring.roadLen+du, // between stitch
@@ -809,7 +816,7 @@ var du=-stitchAngleOffset*rRing
 			     arm[2], uOffset0_merge-0.75*ring.roadLen);
     ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
 			     7./8*ring.roadLen+du, 8./8*ring.roadLen+du);
-
+    }
 
 
     
