@@ -126,7 +126,13 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=110;  // constants => all objects scale with refSizePix
+const mqSmartphoneLandscape //xxx
+      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
+const mqSmartphonePortrait
+      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
+var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+
+var refSizePhys=(isSmartphone) ? 90 : 110;  // const; all objects scale with refSizePix
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -156,24 +162,20 @@ var center_yRel=-0.55;
 var rRingRel=0.14; // ring size w/resp to refSizePhys
 var lArmRel=0.6;
 
+// geom specification ring
+
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 var rRing=rRingRel*refSizePhys; // roundabout radius [m]
+
+// geom specification arms
+
 var lArm=lArmRel*refSizePhys;
 var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
 var uc1=lArm-0.25*Math.PI*r1;   
-
-function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
-    center_xPhys=center_xRel*refSizePhys;
-    center_yPhys=center_yRel*refSizePhys;
-    rRing=rRingRel*refSizePhys; 
-    lArm=lArmRel*refSizePhys;
-    r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-    uc1=lArm-0.25*Math.PI*r1;
-}
-
-
-
+var xc1=(rRing+r1)/Math.sqrt(2)
+var yc1=(rRing+r1)/Math.sqrt(2)
+var x01=xc1+uc1
 
 
 
@@ -184,10 +186,6 @@ function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
 
 var nLanes_arm=1;
 var nLanes_ring=1;
-
-
-
-
 
 
 // central ring (all in physical coordinates)
@@ -208,9 +206,6 @@ function trajRing_y(u){
 
 // arms 1 and 2 (ingoing/outgoing east arms)
 
-var xc1=(rRing+r1)/Math.sqrt(2)
-var yc1=(rRing+r1)/Math.sqrt(2)
-var x01=xc1+uc1
 
 
 function traj1_x(u){ 
@@ -526,20 +521,19 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // update times
+    // (0) update times and revert vehicle markings if applicable
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-
-    //##############################################################
-    // (0) revert vehicle markings if applicable
+    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;//xxx
 
     if(markVehsMerge){
 	for (var i=0; i<arm.length; i++){arm[i].revertVehMarkings();}
 	mainroad.revertVehMarkings();
     }
 
-    //##############################################################
+ 
+ 
 
     //##############################################################
     // (1) transfer effects from slider interaction and mandatory regions
@@ -693,7 +687,7 @@ function updateSim(){
     } 
 
 
-    if(userCanDropObstaclesAndTL){
+    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	if(depotVehZoomBack){
 	    var res=depot.zoomBackVehicle();
 	    depotVehZoomBack=res;
@@ -713,9 +707,12 @@ function drawSim() {
 //##################################################
 
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
-     responsive design if canvas has been resized 
-     */
+    // (0) redefine graphical aspects of road (arc radius etc) using
+    // responsive design if canvas has been resized 
+    // isSmartphone defined in updateSim
+ 
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
     var hasChanged=false;
 
@@ -723,7 +720,9 @@ function drawSim() {
         console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
 		" (full hd 16:9 e.g., 1120:630)",
-		" canvas: ",canvas.width," X ",canvas.height);
+		    " canvas: ",canvas.width," X ",canvas.height);
+	console.log("isSmartphone=",isSmartphone);
+
     }
 
 
@@ -732,7 +731,7 @@ function drawSim() {
 
     if ((canvas.width!=simDivWindow.clientWidth)
 	||(canvas.height != simDivWindow.clientHeight)){
-	hasChanged=true;
+	hasChanged=true; // only pixel; physical changes in updateSim
 	canvas.width  = simDivWindow.clientWidth;
         canvas.height  = simDivWindow.clientHeight;
 	aspectRatio=canvas.width/canvas.height;
@@ -740,7 +739,7 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-	updatePhysicalDimensions();
+	
 
 	mainroad.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj1_x,traj1_y);
@@ -857,13 +856,13 @@ function drawSim() {
     
     // (5) 
     
-    if(userCanDropObstaclesAndTL){
+    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
     // (6) draw simulated time
 
-    displayTime(time);
+    displayTime(time,textsize);
 
 
      // (7) draw the speed colormap

@@ -64,7 +64,13 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=250;  // constants => all objects scale with refSizePix
+const mqSmartphoneLandscape //xxx
+      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
+const mqSmartphonePortrait
+      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
+var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+
+var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -80,7 +86,7 @@ var scale=refSizePix/refSizePhys;
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43;
-var center_yRel=-0.5;
+var center_yRel=-0.53;
 var arcRadiusRel=0.35;
 var offLenRel=0.9;
 
@@ -332,6 +338,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;//xxx
 
     // transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
@@ -371,7 +378,7 @@ function updateSim(){
 			  mainRampOffset+taperLen,
 			  mainRampOffset+divergeLen-u_antic,
 			  false,true);
-     if(userCanDropObstaclesAndTL){
+     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	if(depotVehZoomBack){
 	    var res=depot.zoomBackVehicle();
 	    depotVehZoomBack=res;
@@ -390,9 +397,12 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
-     responsive design if canvas has been resized 
-     */
+    // (0) redefine graphical aspects of road (arc radius etc) using
+    // responsive design if canvas has been resized 
+    // isSmartphone defined in updateSim
+ 
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
     var hasChanged=false;
 
@@ -460,14 +470,14 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    if(userCanDropObstaclesAndTL){
+    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
  
 
     // (6) draw some running-time vars
 
-    displayTime(time);
+    displayTime(time,textsize);
 
 
     // (7) draw the speed colormap

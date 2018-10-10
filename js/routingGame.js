@@ -713,7 +713,7 @@ function drawSim() {
     
     // (6) draw simulated time
 
-    displayTime(time);
+    displayTime(time,textsize);
 
 
      // (7) draw the speed colormap

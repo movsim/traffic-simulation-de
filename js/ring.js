@@ -41,7 +41,13 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=300;  // constants => all objects scale with refSizePix
+const mqSmartphoneLandscape
+      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );//xxx
+const mqSmartphonePortrait
+      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
+var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+
+var refSizePhys=(isSmartphone) ? 200 : 300;  // constant
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -59,7 +65,7 @@ var scale=refSizePix/refSizePhys;
 
 
 var center_xRel=0.5;
-var center_yRel=-0.5;
+var center_yRel=-0.54;
 var roadRadiusRel=0.42;
 
 
@@ -239,6 +245,9 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+
+
     //console.log("does Math.tanh exist?");
     //console.log("Math.tanh(5)=",Math.tanh(5));
 
@@ -266,7 +275,7 @@ function updateSim(){
     }
 
 
-     if(userCanDropObstaclesAndTL){
+     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	if(depotVehZoomBack){
 	    var res=depot.zoomBackVehicle();
 	    depotVehZoomBack=res;
@@ -293,7 +302,13 @@ function drawSim() {
 
     // (0) reposition physical x center coordinate as response
     // to viewport size (changes)
+    // isSmartphone defined in updateSim
+ 
 
+ 
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
+    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
+    console.log("isSmartphone=",isSmartphone);
     var hasChanged=false;
 
     if(false){console.log(" new total inner window dimension: ",
@@ -349,16 +364,16 @@ function drawSim() {
 
     // (5) draw depot vehicles
 
-    if(userCanDropObstaclesAndTL){
+    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
 
     // (6) draw simulated time and detector displays
 
-    displayTime(time);
+    displayTime(time,textsize);
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].display();
+	mainDetectors[iDet].display(textsize);
     }
 
 

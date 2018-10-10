@@ -831,3 +831,13 @@ input[type=range]::-moz-range-thumb {
     padding-left: 7vmin;
     overflow:auto;
 }
+
+/* (7) smartphone landscape: hide the colorbox */
+
+#colorBox{
+  position: absolute;
+  top:   45vmin;
+  left: 45vmin;
+  width:  15vmin; /* no height */
+  z-index: 0;
+}

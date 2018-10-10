@@ -1,6 +1,5 @@
-function displayTime(time){
+function displayTime(time,textsize){
     ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
 
     ctx.font=textsize+'px Arial';
 

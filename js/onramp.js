@@ -61,7 +61,13 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var refSizePhys=250;  // constants => all objects scale with refSizePix
+const mqSmartphoneLandscape //xxx
+      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
+const mqSmartphonePortrait
+      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
+var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+
+var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -78,7 +84,7 @@ var scale=refSizePix/refSizePhys;
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43;
-var center_yRel=-0.5;
+var center_yRel=-0.54;
 var arcRadiusRel=0.35;
 var rampLenRel=0.9;
 
@@ -338,6 +344,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
+    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;//xxx
 
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 
@@ -424,9 +431,13 @@ function drawSim() {
     var movingObserver=false;
     var uObs=0*time;
 
-    /* (0) redefine graphical aspects of road (arc radius etc) using
-     responsive design if canvas has been resized 
-     */
+    // (0) redefine graphical aspects of road (arc radius etc) using
+    // responsive design if canvas has been resized 
+    // isSmartphone defined in updateSim
+ 
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
+
 
     var hasChanged=false;
 
@@ -502,16 +513,16 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-   if(userCanDropObstaclesAndTL){
+   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
 
     // (6) show simulation time and detector displays
 
-    displayTime(time);
+    displayTime(time,textsize);
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].display();
+	mainDetectors[iDet].display(textsize);
     }
 
   if(false){

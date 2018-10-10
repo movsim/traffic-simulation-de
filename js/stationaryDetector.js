@@ -71,10 +71,9 @@ stationaryDetector.prototype.update=function(time,dt){
     }
 }
 
-stationaryDetector.prototype.display=function(){
-    //console.log("in stationaryDetector.display()");
-    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
-
+stationaryDetector.prototype.display=function(textsize){
+    //console.log("in stationaryDetector.display(textsize)");
+ 
     ctx.font=textsize+'px Arial';
 
     var flowStr="Flow: "+Math.round(3600*this.historyFlow[this.iAggr])
