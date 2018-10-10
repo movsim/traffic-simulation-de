@@ -31,7 +31,7 @@
 <!-- ############################################## -->
 
 <div id="header"> 
-  <img class="title" src="figs/title.png"  width="100%"/>
+<!--  <img class="title" src="figs/title.png"  width="100%"/> -->
 </div> 
 
 
@@ -48,6 +48,12 @@
 
 <div id="infoDiv"><img width="100%" 
      src="figs/infoBlue.png" onclick="showInfo()"/>
+</div>
+
+<div id="priorityDiv">
+    <button id="changePriorityButton"
+	    onclick="changePriority()">Ring has Priority
+    </button>
 </div>
 
 <!--
@@ -89,7 +95,7 @@
                  onclick="myRedirectUphill()"/>
 <img width="20%" src="figs/iconRoutingFig_small.jpg" 
                  onclick="myRedirectRouting()"/>
-<img width="20%" src="figs/iconRoudaboutFig_small.jpg" 
+<img width="22%" src="figs/iconRoundabout_small.jpg" 
                  onclick="myRedirectRoundabout()"/>
 </center>
 
@@ -125,13 +131,11 @@
 
 
 <!-- ################################################# -->
-<!-- Sliders 1: The whole right-hand side
+<!-- Sliders: The whole right-hand side
 <!-- ################################################# -->
 
 <div id="sliders">
 <center>
-
-<br><br>
 
 <!-- ######################################################## -->
 <!--<img src="figs/Traffic_Flow_and_General.png" width="65%"/>-->

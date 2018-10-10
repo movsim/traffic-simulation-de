@@ -34,6 +34,24 @@ function myStartStopFunction(){
     }
 }
 
+//#########################################################
+// give-way rules switch for roundabout (vars respectRingPrio, respectRightPrio)
+//#########################################################
+
+
+var respectRingPrio=true;
+var respectRightPrio=false;
+
+function changePriority(){
+    console.log("in changePriority: initial respectRingPrio=",respectRingPrio);
+    respectRingPrio=(!respectRingPrio);
+    respectRightPrio=(!respectRingPrio);
+    buttonText=(respectRingPrio) ? "Ring has Priority" : "Merges have Priority";
+    document.getElementById("changePriorityButton").innerHTML=buttonText;
+}
+
+
+
 
 /*#########################################################
  game callbacks 
@@ -382,7 +400,8 @@ else{
 // truck fraction slider
 
 var truckFrac=truckFracInit=0.10; // 0.10
-var slider_truckFrac, slider_truckFracVal;
+var slider_truckFrac;
+var slider_truckFracVal;
 if(document.getElementById("slider_truckFrac")===null) 
     console.log("no truckFrac slider");
 else{
@@ -401,7 +420,8 @@ else{
 // density slider
 
 var density=densityInit=0.03; // 0.10
-var slider_density, slider_densityVal;
+var slider_density;
+var slider_densityVal;
 if(document.getElementById("slider_density")===null) 
     console.log("no density slider");
 else{
@@ -421,7 +441,8 @@ else{
 // offramp use fraction  slider
 
 var fracOff=fracOffInit=0.25; 
-var slider_fracOff, slider_fracOffVal;
+var slider_fracOff;
+var slider_fracOffVal;
 if(document.getElementById("slider_fracOff")===null) 
     console.log("no fracOff slider");
 else{

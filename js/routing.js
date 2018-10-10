@@ -1,4 +1,5 @@
 
+var userCanDropObstaclesAndTL=true;
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -490,7 +491,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+var depot=new vehicleDepot(obstacleImgs.length, 2,2,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   40,40,true);
@@ -619,14 +620,14 @@ function updateSim(){
  	console.log("\n");
     }
 
-     //!!!
-    if(depotVehZoomBack){
-	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
-	userCanvasManip=true;
+ 
+    if(userCanDropObstaclesAndTL){
+	if(depotVehZoomBack){
+	    var res=depot.zoomBackVehicle();
+	    depotVehZoomBack=res;
+	    userCanvasManip=true;
+	}
     }
-
-
 
 }//updateSim
 
@@ -714,7 +715,10 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    depot.draw(obstacleImgs,scale,canvas);
+   if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
+
 
     // (6) draw simulated time
 

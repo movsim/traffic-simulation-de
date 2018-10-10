@@ -1,4 +1,7 @@
 
+var userCanDistortRoads=true;
+var userCanDropObstaclesAndTL=true;
+
 //#############################################################
 // adapt standard param settings from control_gui.js
 //#############################################################
@@ -187,10 +190,10 @@ var speedInit=20; // IC for speed
 duTactical=250; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing);
+		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
 
 var ramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
-		     0.1*densityInit,speedInit,truckFracInit,isRing);
+		     0.1*densityInit,speedInit,truckFracInit,isRing,false);
 
 var offrampIDs=[2];
 var offrampLastExits=[mainRampOffset+divergeLen];
@@ -305,7 +308,7 @@ console.log("roadImg1=",roadImg1," rampImg=",rampImg);
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+var depot=new vehicleDepot(obstacleImgs.length, 2,3,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
@@ -368,14 +371,15 @@ function updateSim(){
 			  mainRampOffset+taperLen,
 			  mainRampOffset+divergeLen-u_antic,
 			  false,true);
- 
-    //!!!
-    if(depotVehZoomBack){
-	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
-	userCanvasManip=true;
+     if(userCanDropObstaclesAndTL){
+	if(depotVehZoomBack){
+	    var res=depot.zoomBackVehicle();
+	    depotVehZoomBack=res;
+	    userCanvasManip=true;
+	}
     }
 
+ 
 
 }//updateSim
 
@@ -456,7 +460,10 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    depot.draw(obstacleImgs,scale,canvas);
+    if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
+ 
 
     // (6) draw some running-time vars
 

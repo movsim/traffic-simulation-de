@@ -1,5 +1,6 @@
 
-
+var userCanDistortRoads=false;
+var userCanDropObstaclesAndTL=true;
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -111,7 +112,8 @@ var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit,speedInit,truckFracInit,isRing);
+		      densityInit,speedInit,truckFracInit,isRing,userCanDistortRoads);
+
 
 
 // !! introduce stationary detectors (aug17)
@@ -212,9 +214,9 @@ roadImg2 = new Image();
 roadImg2=roadImgs2[nLanes_main-1];
 
 
-//!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+//!!vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 
-var depot=new vehicleDepot(obstacleImgs.length,5,2,
+var depot=new vehicleDepot(obstacleImgs.length,3,2,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   30,30,true);
 
@@ -264,12 +266,12 @@ function updateSim(){
     }
 
 
-    //!!!
-    if(depotVehZoomBack){
-	//console.log("ring: depotVehZoomBack=true!!! ");
-	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
-	userCanvasManip=true;
+     if(userCanDropObstaclesAndTL){
+	if(depotVehZoomBack){
+	    var res=depot.zoomBackVehicle();
+	    depotVehZoomBack=res;
+	    userCanvasManip=true;
+	}
     }
 
 
@@ -339,7 +341,7 @@ function drawSim() {
  
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
 
     // (4) draw vehicles
 
@@ -347,7 +349,9 @@ function drawSim() {
 
     // (5) draw depot vehicles
 
-    depot.draw(obstacleImgs,scale,canvas);
+    if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
 
 
     // (6) draw simulated time and detector displays

@@ -8,7 +8,7 @@
 // id>=200:             normal vehicles and obstacles
 // id>=200&&type!=="obstacle" regular vehicles (vehicle.isRegularVeh)
 
-
+var ivehCount=0;
 
 function vehicle(length, width, u, lane, speed, type){
     this.length=length; // car length[m]
@@ -20,8 +20,11 @@ function vehicle(length, width, u, lane, speed, type){
     this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
     this.speed=speed;
     this.type=type;
-    this.id=Math.floor(100000*Math.random()+200); // ids 0-199 special purpose
-    //console.log("vehicle cstr: this.id=",this.id);
+
+    ivehCount++;
+    this.id=199+ivehCount; // ids 0-199 special purpose
+    //this.id=Math.floor(100000*Math.random()+200); // ids 0-199 special purpose
+ 
 
     this.route=[]; // route=sequence of road IDs (optional)
     this.divergeAhead=false; // if true, the next diverge can/must be used
@@ -105,4 +108,5 @@ vehicle.prototype.isSpecialVeh=function(){
 vehicle.prototype.isRegularVeh=function(){
     return (this.isPerturbed()||(this.id>=200))&&(this.type !== "obstacle");
 } 
+
 

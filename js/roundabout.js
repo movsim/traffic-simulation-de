@@ -1,10 +1,5 @@
 
-// notice: activate caterpillars, trafficLights etc: 
-// uncomment the 3 lines/blocks  with "depot" 
-// a defined depot also needed for canvas_gui.dragRoad
-// for dragging also canvas_gui.dragRoad needs to be extended to case roundabout, 
-// and gridTrajectories needs to be called (only if significant changes in length)
-// => geometry change
+var userCanDropObstaclesAndTL=true;
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -13,15 +8,28 @@
 
 // sliders with default inits need not to be reassigned here
 
-var respectRingPrio=false; // !!! put into a GUI switch
-var respectRightPrio=true; // !!! put into a GUI switch
-var markVehsMerge=true; // for debugging road.mergeDiverge
-var drawVehIDs=true;    // for debugging road.mergeDiverge
-var padding=10;         // merge: visib. extension for target by origin vehs
+respectRingPrio=true; // controlled by a GUI switch
+respectRightPrio=false; // callback: = (!respectRingPrio) but both=false also interesting
+
+// debugging switches
+
+var markVehsMerge=false; // for debugging road.mergeDiverge
+var drawVehIDs=false;    // for debugging road.mergeDiverge
+var useSsimpleOD_debug=false;
+var drawRingDirect=false; // draw ring vehicles directly instead gen Traj (debug)
+
+// merging fine tuning
+//!! fiddle to optimize de-facto anticipation of merging vehs 
+// and last stopping in order to prevent crashes while waiting
+
+var padding=30;         // merge: visib. extension for target by origin vehs
 var paddingLTC=20;      // merge: visib. extension for origin by target vehs
+var fracArmBegin=0.87; // merge begin at fracArmBegin of arm length
+var fracArmEnd=0.92; // merge end at fracArmEnd of arm length
 
+// vehicle properties
 
-truckFrac=0.; // overrides control_gui 0.15
+truckFrac=0.2; // overrides control_gui 0.15
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
 IDM_b=1;
@@ -31,12 +39,6 @@ MOBIL_mandat_bThr=0;
 MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
-//!!! Switch "ring priority,<=>right priority not yet implemented
-
-//MOBIL_mandat_bSafe=42; // normal: bSafe=1, rFirst: bSafe=42
-//MOBIL_mandat_bThr=0;  
-//MOBIL_mandat_bias=42; // normal: bias=0.1, rFirst: bias=42
-//MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 
 qIn=qInInit=2000./3600;
@@ -55,7 +57,7 @@ focusFrac=focusFracInit=0.25;
 slider_focusFrac.value=100*focusFrac;
 slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
-timewarp=timewarpInit=1.5;
+timewarp=timewarpInit=8;
 slider_timewarp.value=timewarpInit;
 slider_timewarpVal.innerHTML=timewarpInit +" times";
 
@@ -151,20 +153,22 @@ var laneWidth=4;
 
 var center_xRel=0.63;
 var center_yRel=-0.55;
+var rRingRel=0.14; // ring size w/resp to refSizePhys
+var lArmRel=0.6;
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
-var rRing=0.15*refSizePhys; // roundabout radius [m]
+var rRing=rRingRel*refSizePhys; // roundabout radius [m]
+var lArm=lArmRel*refSizePhys;
 var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-var lArm=4*rRing;
 var uc1=lArm-0.25*Math.PI*r1;   
 
 function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
     center_xPhys=center_xRel*refSizePhys;
     center_yPhys=center_yRel*refSizePhys;
-    rRing=0.15*refSizePhys; 
+    rRing=rRingRel*refSizePhys; 
+    lArm=lArmRel*refSizePhys;
     r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-    lArm=4*rRing;
     uc1=lArm-0.25*Math.PI*r1;
 }
 
@@ -284,11 +288,9 @@ function traj8_y(u){
 }
 
 
-//!! fiddle to optimize de-facto anticipation of merging vehs 
-// and last stopping in order to prevent crashes while waiting
 
-var mergeBegin=lArm-0.25*Math.PI*rRing; // logical merges
-var mergeEnd=lArm-0.12*Math.PI*rRing;   
+var mergeBegin=fracArmBegin*lArm; // logical merges
+var mergeEnd=fracArmEnd*lArm;
 
 
 
@@ -314,12 +316,12 @@ var densityInit=0.00;
 // need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 
 
-var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
+var mainroad=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
 		  trajRing_x,trajRing_y,0,0,0,true);
 
-ring.padding=padding; ring.paddingLTC=paddingLTC;
-if(markVehsMerge){ring.markVehsMerge=true;}
-if(drawVehIDs){ring.drawVehIDs=true;}
+mainroad.padding=padding; mainroad.paddingLTC=paddingLTC;
+if(markVehsMerge){mainroad.markVehsMerge=true;}
+if(drawVehIDs){mainroad.drawVehIDs=true;}
 
 // diverge length: 
 // anything above 0.15*Pi*rRing and 1/4 ring length=0.5*Pi*rRing works
@@ -339,10 +341,10 @@ uLastExits[3]=rRing*(0.25*Math.PI-stitchAngleOffset)+divLen;
 
 
 
-ring.setOfframpInfo([2,4,6,8], uLastExits, [true,true,true,true]);
-console.log("ring.offrampIDs=",ring.offrampIDs);
-console.log("ring.offrampLastExits=",ring.offrampLastExits);
-ring.duTactical=divLen;
+mainroad.setOfframpInfo([2,4,6,8], uLastExits, [true,true,true,true]);
+console.log("mainroad.offrampIDs=",mainroad.offrampIDs);
+console.log("mainroad.offrampLastExits=",mainroad.offrampLastExits);
+mainroad.duTactical=divLen;
 
 
 var arm=[]; 
@@ -500,13 +502,13 @@ armImg2=roadImgs2[nLanes_arm-1];
 // vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
 
-/*
+
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
-			   20,20,true);
-*/
+var depot=new vehicleDepot(obstacleImgs.length, 2,1,
+			   0.8*smallerDimPix/scale,
+			   -0.7*smallerDimPix/scale,
+			   10,10,true);
+
 
 //############################################
 // run-time specification and functions
@@ -534,7 +536,7 @@ function updateSim(){
 
     if(markVehsMerge){
 	for (var i=0; i<arm.length; i++){arm[i].revertVehMarkings();}
-	ring.revertVehMarkings();
+	mainroad.revertVehMarkings();
     }
 
     //##############################################################
@@ -550,7 +552,7 @@ function updateSim(){
     // to offramp vehs based on their routes!
     // !! needed even for single-lane roads to trigger diverge actions!
 
-    ring.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
     for(var i=0; i<arm.length; i++){
@@ -567,10 +569,10 @@ function updateSim(){
 
 
     //acceleration (no interaction between roads at this point)
-    // !!! (motion at the end?)
+    // !! (motion at the end!)
 
-    ring.calcAccelerations();
-    //ring.updateSpeedPositions();
+    mainroad.calcAccelerations();
+    //mainroad.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
       arm[i].calcAccelerations(); 
       //arm[i].updateSpeedPositions();
@@ -607,11 +609,12 @@ function updateSim(){
     var route5In=(ran<cFrac) ? route5C : (ran<clFrac) ? route5L : route5R;
     var route7In=(ran<cFrac) ? route7C : (ran<clFrac) ? route7L : route7R;
 
-    // following 2 lines debug
+    // override for debugging
 
-    q1=0.2*qIn; q7=0.5*qIn; q5=q3=0;
-    route1In=route1C;route7In=route7C;
-
+    if(useSsimpleOD_debug){
+        q1=0.2*qIn; q7=0.5*qIn; q5=q3=0;
+        route1In=route1C;route7In=route7C;
+    }
 
     arm[0].updateBCup(q1,dt,route1In);
     arm[2].updateBCup(q3,dt,route3In);
@@ -632,23 +635,23 @@ function updateSim(){
     //                             respectPrioOther,respectPrioOwn])
     //##############################################################
 
-    ring.updateLastLCtimes(dt); // needed on target road for graphical merging
-    //ring.changeLanes(); // only if multilane;  not needed for diverge
+    mainroad.updateLastLCtimes(dt); // needed on target road for graphical merging
+    //mainroad.changeLanes(); // only if multilane;  not needed for diverge
 
 
-    arm[0].mergeDiverge(ring, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
+    arm[0].mergeDiverge(mainroad, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
-    arm[2].mergeDiverge(ring, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
+    arm[2].mergeDiverge(mainroad, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
-    arm[6].mergeDiverge(ring, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
+    arm[6].mergeDiverge(mainroad, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
-    arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
+    arm[4].mergeDiverge(mainroad, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
@@ -672,33 +675,32 @@ function updateSim(){
 
  
 
-    ring.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
+    mainroad.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
 		      uLastExits[0]-divLen, uLastExits[0], false, true);
-    ring.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
+    mainroad.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
 		      uLastExits[1]-divLen, uLastExits[1], false, true);
-    ring.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
+    mainroad.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
 		      uLastExits[2]-divLen, uLastExits[2], false, true);
-    ring.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
+    mainroad.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
 		      uLastExits[3]-divLen, uLastExits[3], false, true);
 
 
-     // motion at the end?!!!
+     // !! motion at the end
 
-    ring.updateSpeedPositions();
+    mainroad.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
         arm[i].updateSpeedPositions();//!!!
     } 
 
-    //ring.writeVehiclesSimple(0,ring.roadLen);
 
-     //!!!
-/*
-    if(depotVehZoomBack){
-	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
-	userCanvasManip=true;
+    if(userCanDropObstaclesAndTL){
+	if(depotVehZoomBack){
+	    var res=depot.zoomBackVehicle();
+	    depotVehZoomBack=res;
+	    userCanvasManip=true;
+	}
     }
-*/
+
 
 
 }//updateSim
@@ -740,7 +742,7 @@ function drawSim() {
 
 	updatePhysicalDimensions();
 
-	ring.gridTrajectories(trajRing_x,trajRing_y);
+	mainroad.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj1_x,traj1_y);
         arm[1].gridTrajectories(traj2_x,traj2_y);
         arm[2].gridTrajectories(traj3_x,traj3_y);
@@ -775,14 +777,18 @@ function drawSim() {
 	//console.log("draw: i=",i," arm[i].roadLen=",arm[i].roadLen);
 	arm[i].draw(armImg1,armImg2,scale,changedGeometry);
     }
-    ring.draw(ringImg1,ringImg2,scale,changedGeometry);
+    mainroad.draw(ringImg1,ringImg2,scale,changedGeometry);
 
+    // (3a) if applicable, draw traffic lights after ring=mainroad, before vehs
 
+    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
+
+    
     // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
 
-    for(var iveh=0; iveh<ring.veh.length; iveh++){
-	ring.veh[iveh].fracLaneOptical=1; // lower than default 1 [lane]
-	ring.veh[iveh].dt_LC=10; // sufftly long for special traj road.drawVehGen
+    for(var iveh=0; iveh<mainroad.veh.length; iveh++){
+	mainroad.veh[iveh].fracLaneOptical=0; // lower than default 1 [lane]
+	mainroad.veh[iveh].dt_LC=10; // sufftly long for special traj road.drawVehGen
     }
 
     for(var i=1; i<arm.length; i+=2){
@@ -798,12 +804,9 @@ function drawSim() {
         arm[i].drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
     }
 
-    // draw ring vehicles with general trajectories or direct (debug)
-
-    var drawRingDirect=true;
-
+ 
     if(drawRingDirect){
-	ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+	mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin_col,vmax_col);
     }
 
@@ -817,39 +820,46 @@ function drawSim() {
 	var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
 	var du=-stitchAngleOffset*rRing;
 
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0, 1./8*ring.roadLen+du, // between stitch
+    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     0, 1./8*mainroad.roadLen+du, // between stitch
 			     arm[0], uOffset0_merge);
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     du+ring.roadLen, ring.roadLen, // between stitch
+    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     du+mainroad.roadLen, mainroad.roadLen, // between stitch
 			     arm[0], uOffset0_merge);
-    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     1./8*ring.roadLen+du, 2./8*ring.roadLen+du);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     1./8*mainroad.roadLen+du, 2./8*mainroad.roadLen+du);
 
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     2./8*ring.roadLen+du, 3./8*ring.roadLen+du,
-			     arm[6], uOffset0_merge-0.25*ring.roadLen);
-    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     3./8*ring.roadLen+du, 4./8*ring.roadLen+du);
+    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     2./8*mainroad.roadLen+du, 3./8*mainroad.roadLen+du,
+			     arm[6], uOffset0_merge-0.25*mainroad.roadLen);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     3./8*mainroad.roadLen+du, 4./8*mainroad.roadLen+du);
 
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     4./8*ring.roadLen+du, 5./8*ring.roadLen+du,
-			     arm[4], uOffset0_merge-0.50*ring.roadLen);
-    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     5./8*ring.roadLen+du, 6./8*ring.roadLen+du);
+    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     4./8*mainroad.roadLen+du, 5./8*mainroad.roadLen+du,
+			     arm[4], uOffset0_merge-0.50*mainroad.roadLen);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     5./8*mainroad.roadLen+du, 6./8*mainroad.roadLen+du);
 
-    ring.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     6./8*ring.roadLen+du, 7./8*ring.roadLen+du,
-			     arm[2], uOffset0_merge-0.75*ring.roadLen);
-    ring.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     7./8*ring.roadLen+du, 8./8*ring.roadLen+du);
+    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     6./8*mainroad.roadLen+du, 7./8*mainroad.roadLen+du,
+			     arm[2], uOffset0_merge-0.75*mainroad.roadLen);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
+			     7./8*mainroad.roadLen+du, 8./8*mainroad.roadLen+du);
     }
 
-
+    if(false){
+        mainroad.writeVehiclesIDrange(1610, 1630);
+        for(var i=0; i<arm.length; i++){
+  	    arm[i].writeVehiclesIDrange(1610, 1630);
+	}
+    }
     
-    // (5) !!! draw depot vehicles
-
-    //depot.draw(obstacleImgs,scale,canvas);
+    // (5) 
+    
+    if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
 
     // (6) draw simulated time
 

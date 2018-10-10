@@ -53,6 +53,27 @@ body{
   background-color: #FFFFFF;
 }
 
+/* text layout of sliders: tables override general text spec) */
+
+th{                    /* only used in infotext */
+  font-size: 2.2vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
 
 /* <h2>, <h3> not used in the main sim page but in some help pages */
 
@@ -152,7 +173,7 @@ table.infoTable td {
 @media all and  (min-aspect-ratio: 6/5){
 
 
-/* (1) the title */
+/* (1) landscape: the title */
 
 #header{
   position: absolute;
@@ -198,7 +219,7 @@ which always gives correct size!!
 
 
 
-/* (2b) position of the info button: right top of simCanvas landscape*/
+/* (2b) landscape: position of the info button: right top of simCanvas */
 
 #infoDiv{
   position: absolute;
@@ -209,7 +230,7 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) position of the start/stop sign: just to the left of info button */
+/* (2c) landscape: position of the start/stop sign: just to the left of info button */
 
 #startStopDiv{
   position: absolute;
@@ -220,7 +241,7 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2d) add/subtract one lane: just to the left of start/stop button */
+/* (2d) landscape: add/subtract one lane: just to the left of start/stop button */
 
 #lanePlusDiv{
   position: absolute;
@@ -236,6 +257,17 @@ which always gives correct size!!
   top: 1vmin;
   height: 7vmin;
   left: 75vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2e) landscape: special buttons/elements for only some simulations */
+
+#priorityDiv{
+  position: absolute;
+  top: 15vmin;
+  height: 7vmin;
+  left: 98vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -268,11 +300,11 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2f) position of the general link list landscape (table.infoTable top-level)*/
+/* (2f) landscape: position of the general link list  (table.infoTable top-level)*/
 
 #linkDiv{
   position: absolute;
-  top:   97vmin; /* bottom attribute error in Safari */
+  top:   96.5vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  80vmin; /* no height */
   z-index: 2;
@@ -293,7 +325,7 @@ which always gives correct size!!
 }
 
 
-/* (3) position of the flags for language selection: right top of simCanvas */
+/* (3) landscape: position of the flags for language selection: right top of simCanvas */
 
 #infoFlags{
   position: absolute;
@@ -304,55 +336,34 @@ which always gives correct size!!
 }
 
 
-/* (4) the field for selecting the scenarios */
+/* (4) landscape: the field for selecting the scenarios */
 
 #scenarios{
   position: absolute;
   top:     -1vmin;
   height:  22vmin;
-  left: 113vmin;
-  width: 40vmin;
-  z-index: 4;  /*top-always focussed! */
+  left: 115vmin;
+  width: 38vmin;
+  z-index: 2;  /*top-always focussed! */
 }
 
 
 
 
-/* (5) sliders: top-div for all three slider fields */
+/* (5) landscape: sliders: top-div for all three slider fields */
 /* Notice: table elements relevant for font size */
 
 
 #sliders{ 
   position: absolute;
-  top: 12vmin;
+  top: 16vmin;
   height: 20vmin;
   left: 110vmin;
   width: 55vmin;
   background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
+  z-index: 3; /* the higher the integer, the more on top */
 }
 
-
-/* (5) text layout of sliders: tables override general text spec) */
-
-th{                    /* only used in infotext */
-  font-size: 2.2vmin;
-  font-weight: bold; 
-  color: #404060;      /* text color */
-
-}
-
-td{
-  font-size:1.8vmin; 
-  font-weight: bold; 
-  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
-}
-
-td.important{
-  font-size:1.8vmin; 
-  font-weight: bold; 
-  color: #dd0033;
-}
 
 
 /* (5a-c) nested div's single slider-areas. In landscape, just let them flow
@@ -363,7 +374,7 @@ td.important{
 }
 
 
-/* (6) infotext div-box landscape (sub-div! no pos info, just below the sliders*/
+/* (6) landscape: infotext div-box landscape (sub-div! no pos info, just below the sliders*/
 
 ul { margin-left: 2vmin; padding: 0vmin; }
 
@@ -399,12 +410,12 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   overflow:auto;
 }
 
-/* (7) position/size of the colorbox */
+/* (7) landscape: position/size of the colorbox */
 
 #colorBox{
   position: absolute;
   top:   45vmin;
-  left: 103vmin;
+  left: 95vmin;
   width:  15vmin; /* no height */
   z-index: 2;
 }
@@ -512,6 +523,18 @@ img.title{
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+
+/* (2e) portrait: special buttons/elements for only some simulations */
+
+#priorityDiv{
+  position: absolute;
+  top: 10vmin;
+  height: 6vmin;
+  left: 84vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 #gameDiv{
   position: absolute;
   top: 1vmin;
@@ -567,7 +590,7 @@ img.title{
   top:     76vmin;
   height:  50vmin;
   left: 1vmin;
-  width: 49vmin;
+  width: 36vmin;
   z-index: 2;
 }
 
@@ -580,11 +603,11 @@ img.title{
 
 #sliders{ 
   position: absolute;
-  top: 88vmin;
+  top: 95vmin;
   left: 0vmin;
   width: 54vmin;
   background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
+  z-index: 3; /* the higher the integer, the more on top */
 }
 
 /* text layout of sliders: tables override general text spec) */
@@ -684,9 +707,127 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
+
 /*#########################################################*/
-/* addl settings hendheld-type devices with small screen */
+/* addl settings smartphone  landscape  !!! 
+
+* my smartphone has huge pixel size between 1200 and 1400 height
+it seems that max-height_{webTutorials}=max-height_{me} /pixel-ratio
+BUT  filter for min-device-pixel-ratio etc fails/not supported;
+
+*test unit "em" instead of pixel (but how defined if font can be changed?) 
+BUT also this fails with my Smartphone test: between 70 and 100 em
+
+* WORKING: min-resolution e.g.: 180dpi 
+ (my notebook has 96 dpi, Smartphone 192 dpi)
+ OR small viewpoert size (to check Smartphone layout on notebook)
+(a "comma" is the keyword for OR in css media queries)
+NOTE: parantheses cannot be used for clustering: C and (A, B) does not work
+
+*height [px]/resolution[dpi] gives height in inches: That's what I want!
 /*#########################################################*/
 
-@media all and  (min-aspect-ratio: 6/5) and (max-height: 599px){
 
+@media screen and (min-aspect-ratio: 6/5) and (max-height: 1600px) and (min-resolution: 180dpi),
+ screen and (min-aspect-ratio: 6/5) and (max-height: 500px){
+
+
+body{
+  font-size: 3vmin;
+}
+
+button{
+  font-size: 3vmin; 
+}
+
+h3{ 
+  font-size: 3vmin; 
+}
+
+/* smartphone text layout of sliders: tables override general text spec) */
+
+th{                    /* only used in infotext */
+  font-size: 3vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:2.4vmin; 
+  font-weight: bold; 
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:2.4vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+
+/* (2e) smartphone landscape: special buttons/elements for only some simulations */
+
+#priorityDiv{
+  position: absolute;
+  top: 15vmin;
+  height: 7vmin;
+  left: 90vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2f) smartphone landscape: hide link list */
+
+#linkDiv{
+  position: absolute;
+  top:   50vmin; /* bottom attribute error in Safari */
+  left:   20vmin;
+  width:  50vmin; /* no height */
+  z-index: 0;
+} 
+
+/* (4) smartphone landscape: the field for selecting the scenarios */
+#scenarios{
+  top:     -3vmin;
+  height:  22vmin;
+  left: 115vmin;
+  width: 50vmin;
+  z-index: 2;  /*top-always focussed! */
+}
+
+/* (5) smartphone landscape: sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+
+#sliders{ 
+  top: 20vmin;
+  height: 20vmin;
+  left: 110vmin;
+  width: 70vmin;
+}
+
+/* from styleSliders.css */
+
+input[type=range]{
+    width: 20vmin;
+    height: 3.0vmin;
+}
+
+input[type=range]::-moz-range-track{
+  height: 3.0vmin;
+}
+
+input[type=range]::-moz-range-thumb {
+  height: 3.5vmin;
+  width: 1.5vmin;
+}
+
+
+/* (6) smartphone landscape: infotext */
+#infotext{
+    width: 80vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+    height: 60vmin;
+    padding-left: 7vmin;
+    overflow:auto;
+}

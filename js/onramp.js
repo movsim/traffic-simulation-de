@@ -3,6 +3,8 @@
 
 densityInit=0.02; 
 
+var userCanDistortRoads=false;
+var userCanDropObstaclesAndTL=true;
 
 
 /*######################################################
@@ -193,11 +195,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing,true);
+		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*densityInit, speedInit, truckFracInit, isRing,true);
+		  0*densityInit, speedInit, truckFracInit, isRing,userCanDistortRoads);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)
@@ -310,7 +312,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+var depot=new vehicleDepot(obstacleImgs.length, 2,2,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
@@ -500,7 +502,9 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    depot.draw(obstacleImgs,scale,canvas);
+   if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
 
 
     // (6) show simulation time and detector displays

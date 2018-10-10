@@ -1,4 +1,6 @@
 
+var userCanDistortRoads=true;
+var userCanDropObstaclesAndTL=true;
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -164,7 +166,7 @@ var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
              // otherwise sudden changes with new incoming/outgoing vehicles
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing);
+		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
 
 
 //#########################################################
@@ -382,10 +384,12 @@ function updateSim(){
 
     // see onramp.js why this is necessary
 
-    if(depotVehZoomBack){
-	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
-	userCanvasManip=true;
+     if(userCanDropObstaclesAndTL){
+	if(depotVehZoomBack){
+	    var res=depot.zoomBackVehicle();
+	    depotVehZoomBack=res;
+	    userCanvasManip=true;
+	}
     }
 
 
@@ -494,7 +498,10 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    depot.draw(obstacleImgs,scale,canvas);
+    if(userCanDropObstaclesAndTL){
+	depot.draw(obstacleImgs,scale,canvas);
+    }
+
 
     // (6) show simulation time and detector displays
 

@@ -147,12 +147,13 @@ ACC acceleration function
 
 ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
-    if(s<0.0001){return -this.bmax;}
+    if(s<0.001){return -this.bmax;}// particularly for s<0
 
-    // noise to avoid some artifacts
+    // acceleration noise to avoid some artifacts (no noise if s<s0)
+    // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
 
-    var noiseAcc=0.3; // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
-    var accRnd=noiseAcc*(Math.random()-0.5); //if acceleration noise
+    var noiseAcc=(s<this.s0) ? 0 : 0.3; 
+    var accRnd= noiseAcc*(Math.random()-0.5);
 
         // determine valid local v0
 
@@ -187,17 +188,19 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 	//if(this.alpha_v0<0.6){ // alpha not yet used
 
     if(false){
+    //if(s<2){
           console.log("ACC.calcAcc:"
-		      +" speedlimit="+this.speedlimit // no u,v!
-		      +" s="+s
-		      +" v="+v
-		      +" vl="+vl
-		      +" al="+al
-		      +" accFree="+accFree
-		      +" accIDM="+accIDM
-		      +" accCAH="+accCAH
-		      +" accACC="+accACC
-		      +" accReturn="+accReturn)
+		     // +" speedlimit="+this.speedlimit // no u,v!
+		      +" s="+parseFloat(s).toFixed(3)
+		      +" v="+parseFloat(v).toFixed(3)
+		      +" vl="+parseFloat(vl).toFixed(3)
+		      +" al="+parseFloat(al).toFixed(3)
+		      +" accFree="+parseFloat(accFree).toFixed(3)
+		      +" accIDM="+parseFloat(accIDM).toFixed(3)
+		      +" accCAH="+parseFloat(accCAH).toFixed(3)
+		      +" accACC="+parseFloat(accACC).toFixed(3)
+		      +" accReturn="+parseFloat(accReturn).toFixed(3)
+		     );
     }
     return accReturn;
 

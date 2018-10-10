@@ -73,16 +73,15 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     this.waitTime=4;   // waiting time after passive LC to do an active LC
                        //similar value as default vehicle.dt_LC at cstr
-
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
 
     this.padding=20;    // this.mergeDiverge: visibility extension
-                        // for target vehs by origin vehs: 
+                        // for origin drivers to target vehs
                         // both sides of actual merge/diverge zone
 
-    this.paddingLTC=20; // this.mergeDiverge if merge&&prioOwn: visibility  
-                        // extension for origin vehs by target vehs:
+    this.paddingLTC=20; // this.mergeDiverge if merge && prioOwn: visibility  
+                        // extension for target drivers to origin vehs
                         // only upstream of merging zone
 
     // drawing-related vatiables
@@ -442,6 +441,35 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
 		    +"");
       }
   }
+}
+
+//######################################################################
+// write very simple info for id range of vehicles
+//######################################################################
+
+road.prototype.writeVehiclesIDrange= function(idmin,idmax) {
+
+    var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+    var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
+    for(var i=0; i<this.veh.length; i++){
+	if((this.veh[i].id>=idmin)&&(this.veh[i].id<=idmax)){
+	    var s=(i==0) ? 10000 : this.veh[i-1].u-this.veh[i-1].length-this.veh[i].u;
+	    console.log("t=",parseFloat(dt*itime).toFixed(1),
+			" veh",i,
+			" type=",this.veh[i].type,
+			" id=",this.veh[i].id,
+			" roadID=",this.roadID,
+			" u=",parseFloat(this.veh[i].u,10).toFixed(3),
+			//" v=",parseFloat(this.veh[i].v,10).toFixed(1),
+			//" lane=",this.veh[i].lane,
+			//" dvdt=",parseFloat(this.veh[i].dvdt,10).toFixed(2),
+			" s=",parseFloat(s).toFixed(3),
+			" speed=",parseFloat(this.veh[i].speed,10).toFixed(3),
+			" acc=",parseFloat(this.veh[i].acc,10).toFixed(3),
+			"");
+	}
+    }
 }
 
 
@@ -2401,8 +2429,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
 
-    var padding=this.padding; // visib. extension for target by origin vehs
-    var paddingLTC=           // visib. extension for origin by target vehs
+    var padding=this.padding; // visib. extension for orig drivers to target vehs
+    var paddingLTC=           // visib. extension for target drivers to orig vehs
     (isMerge&&prioOwn) ? this.paddingLTC : 0;
 
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
@@ -2512,7 +2540,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	  if(originVehicles[i].isRegularVeh()
 	     &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
 
-              //if inChangeRegion=false  only LTC
+              //inChangeRegion can be false for LTC since then paddingLTC>0
 	      var inChangeRegion=(originVehicles[i].u>uBegin); 
 
 	      uTarget=originVehicles[i].u+offset;
@@ -2572,40 +2600,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 		  sLagNew,speedLagNew,speed,accNew);
 
 
-              // longitudinal-transversal coupling to target 
-              // (through-lane) vehicles in case of prioOwn=true
-
-	      if(prioOwn){
-		  var vehLenMax=15;
-		  var sYield=uNewEnd-vehLenMax-2-followerNew.u;
-		  var sPrio=uEnd-originVehicles[i].u;
-		  var accLagYield=followerNew.longModel.calcAccGiveWay
-		    (sYield, sPrio, speed, speedLagNew, accLagNew);
-		  followerNew.acc=Math.min(followerNew.acc,accLagYield);//!!
-
-		  if(this.markVehsMerge){ // draw fixed colors 
-		      followerNew.colorStyle=3; // instead of hue
-		      originVehicles[i].colorStyle=2; 
-		  }
-
-		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
-		      console.log("in road.mergeDiverge, ",
-				  " LT coupling to acc other road",
-				  " id=",this.roadID,
-				  " t=",parseFloat(itime*dt).toFixed(2),
-				  " iOrigin=",i,
-				  " jTarget=",jTarget,
-				  " target follower: ID=",followerNew.id,
-				  " u befure update=",
-				  parseFloat(followerNew.u).toFixed(2),
-				  " speed before=",
-				  parseFloat(followerNew.speed).toFixed(2),
-				  " acc=",
-				  parseFloat(accLagYield).toFixed(2)
-		  );
-		  }
-	      }
-
+ 
 
               // MOBIL decisions
 
@@ -2646,7 +2641,102 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     }// else branch (there are target vehicles)
 
 
-    //(3) if success, do the actual merging!
+    //(3) realize longitudinal-transversal coupling (LTC)
+    // exerted onto target vehicles if merge and loc_prioOwn
+
+
+    if(isMerge && loc_prioOwn){
+
+	if(this.markVehsMerge){
+	    for(var i=0; i<originVehicles.length; i++){
+	        originVehicles[i].colorStyle=2;
+	    }
+	}
+	
+	// (3a) determine stop line such that there cannot be a grid lock for any
+	// merging vehicle, particularly the longest vehicle
+
+	var vehLenMax=9;
+	var stopLinePosNew=uNewEnd-vehLenMax-2;
+	var bSafe=4;
+
+	// (3b) all target vehs stop at stop line if at least one origin veh
+	// is follower and 
+	// the deceleration to do so is less than bSafe
+	// if the last orig vehicle is a leader and interacting decel is less,
+	// use it
+
+	for(var j=0; j<targetVehicles.length; j++){
+	    var sStop=stopLinePosNew-targetVehicles[j].u; // gap to stop for target veh
+	    var speedTarget=targetVehicles[j].speed;
+	    var accTargetStop=targetVehicles[j].longModel.calcAcc(sStop,speedTarget,0,0);
+	    var allOrigVehsAreLeaders=true;
+
+
+	    var iLast=-1;
+	    for(var i=originVehicles.length-1; (i>=0)&&(iLast==-1); i--){
+	        if(originVehicles[i].isRegularVeh()){iLast=i;}
+	    }
+
+	    if((iLast>-1)&& targetVehicles[j].isRegularVeh()){
+		var du=originVehicles[iLast].u+offset-targetVehicles[j].u;
+		var lastOrigIsLeader=(du>0);
+		if(lastOrigIsLeader){
+		    var s=du-originVehicles[iLast].length;
+		    var speedOrig=originVehicles[iLast].speed;
+		    var accLTC
+			=targetVehicles[j].longModel.calcAcc(s,speedTarget,speedOrig,0); 
+		    var accTarget=Math.min(targetVehicles[j].acc,
+					   Math.max(accLTC, accTargetStop));
+		    if(accTarget>-bSafe){
+			targetVehicles[j].acc=accTarget;
+			if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
+		    }
+		}
+		else{ // if last orig not leading, stop always if it can be done safely
+		    if(accTargetStop>-bSafe){
+			var accTarget=Math.min(targetVehicles[j].acc,accTargetStop);
+			targetVehicles[j].acc=accTarget;
+			if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
+		    }
+		}
+		//if(this.roadID==7){
+		if(false){
+		    console.log("target id=",targetVehicles[j].id,
+				" iLast id=",originVehicles[iLast].id,
+				" lastOrigIsLeader=",lastOrigIsLeader,
+				" sStop=",parseFloat(sStop).toFixed(1),
+				" accTargetStop=",parseFloat(accTargetStop).toFixed(1),
+				" acc=",parseFloat(targetVehicles[j].acc).toFixed(1)
+			       );
+		}
+	    }
+
+	}
+    }
+
+    /*
+		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
+		      console.log("in road.mergeDiverge, ",
+				  " LT coupling to acc other road",
+				  " id=",this.roadID,
+				  " t=",parseFloat(itime*dt).toFixed(2),
+				  " iOrigin=",i,
+				  " jTarget=",jTarget,
+				  " target follower: ID=",followerNew.id,
+				  " u befure update=",
+				  parseFloat(followerNew.u).toFixed(2),
+				  " speed before=",
+				  parseFloat(followerNew.speed).toFixed(2),
+				  " acc=",
+				  parseFloat(accLagYield).toFixed(2)
+		  );
+		  }
+	      }
+*/
+    
+
+    //(4) if success, do the actual merging!
 
     if(success){// do the actual merging 
 
@@ -3624,13 +3714,8 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     // v increasing from left to right, 0 @ road center
     // don't use smooth lane shifting if external trajectory used
 
-    if(useOtherTraj||(!otherRoadInRoute)){
-	this.veh[i].v=this.veh[i].lane;
-	this.veh[i].dvdt=0;
-    }
-    else{
-        update_v_dvdt_optical(this.veh[i]);
-    }
+    
+    update_v_dvdt_optical(this.veh[i]);
 
     var type=this.veh[i].type;
     var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
