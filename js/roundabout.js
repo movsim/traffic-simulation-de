@@ -15,6 +15,11 @@
 
 var respectRingPrio=false; // !!! put into a GUI switch
 var respectRightPrio=true; // !!! put into a GUI switch
+var markVehsMerge=true; // for debugging road.mergeDiverge
+var drawVehIDs=true;    // for debugging road.mergeDiverge
+var padding=10;         // merge: visib. extension for target by origin vehs
+var paddingLTC=20;      // merge: visib. extension for origin by target vehs
+
 
 truckFrac=0.; // overrides control_gui 0.15
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
@@ -78,7 +83,6 @@ slider_MOBIL_bBiasRight_truckVal.innerHTML
 MOBIL_bThr=0.0
 slider_MOBIL_bThr.value=MOBIL_bThr;
 slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
-
 
 
 /*######################################################
@@ -310,8 +314,12 @@ var densityInit=0.00;
 // need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 
 
-var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,trajRing_x,trajRing_y,
-		  0,0,0,true);
+var ring=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
+		  trajRing_x,trajRing_y,0,0,0,true);
+
+ring.padding=padding; ring.paddingLTC=paddingLTC;
+if(markVehsMerge){ring.markVehsMerge=true;}
+if(drawVehIDs){ring.drawVehIDs=true;}
 
 // diverge length: 
 // anything above 0.15*Pi*rRing and 1/4 ring length=0.5*Pi*rRing works
@@ -347,7 +355,12 @@ arm[5]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
 arm[6]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
 arm[7]=new road(8,lArm,laneWidth,nLanes_arm,traj8_x,traj8_y,0,0,0,false);
 
-
+for (var i=0; i<arm.length; i++){
+    arm[i].padding=padding;
+    arm[i].paddingLTC=paddingLTC;
+    if(markVehsMerge){arm[i].markVehsMerge=true;}
+    if(drawVehIDs){arm[i].drawVehIDs=true;}
+}
 
 //################################################################
 // define routes
@@ -517,6 +530,16 @@ function updateSim(){
     itime++;
 
     //##############################################################
+    // (0) revert vehicle markings if applicable
+
+    if(markVehsMerge){
+	for (var i=0; i<arm.length; i++){arm[i].revertVehMarkings();}
+	ring.revertVehMarkings();
+    }
+
+    //##############################################################
+
+    //##############################################################
     // (1) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models:
     // also initialize models for new cars entering at inflow points
@@ -616,16 +639,20 @@ function updateSim(){
     arm[0].mergeDiverge(ring, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
+
     arm[2].mergeDiverge(ring, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
-    arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, mergeEnd, true, false, false, 
-			respectRingPrio, respectRightPrio);
+
     arm[6].mergeDiverge(ring, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
 			mergeBegin, mergeEnd, true, false, false, 
 			respectRingPrio, respectRightPrio);
 
+    arm[4].mergeDiverge(ring, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
+			mergeBegin, mergeEnd, true, false, false, 
+			respectRingPrio, respectRightPrio);
+
+ 
 
     //##############################################################
     // diverges out of the  roundabout ring

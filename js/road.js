@@ -77,13 +77,21 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
 
+    this.padding=20;    // this.mergeDiverge: visibility extension
+                        // for target vehs by origin vehs: 
+                        // both sides of actual merge/diverge zone
 
+    this.paddingLTC=20; // this.mergeDiverge if merge&&prioOwn: visibility  
+                        // extension for origin vehs by target vehs:
+                        // only upstream of merging zone
 
     // drawing-related vatiables
 
     this.draw_scaleOld=0;
     this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
     this.draw_curvMax=0.05; // maximum assmued curvature !!
+    this.markVehsMerge=false; // for debugging
+    this.drawVehIDs=false;// for debugging
 
     this.draw_x=[];  // arrays defined in the draw(..) method
     this.draw_y=[];
@@ -2392,9 +2400,10 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     //var log=(this.roadID==7)&&isMerge;    
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
-    var padding=10; // additional visibility of target road before/after 50
-    var paddingLTC=30; // additional LTC exerted by upstream origin veh 20
-    if(!isMerge){paddingLTC=0;} // no LTC needed for diverge since road begins
+
+    var padding=this.padding; // visib. extension for target by origin vehs
+    var paddingLTC=           // visib. extension for origin by target vehs
+    (isMerge&&prioOwn) ? this.paddingLTC : 0;
 
     var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
 	? false : ignoreRoute; // default: routes  matter at diverges
@@ -2417,19 +2426,39 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     // (1) get neighbourhood
     // getTargetNeighbourhood also sets [this|newRoad].iTargetFirst
 
-    var uNewStart=uBegin+offset;
+    var uNewBegin=uBegin+offset;
     var uNewEnd=uEnd+offset;
     var originLane=(toRight) ? this.nLanes-1 : 0;
     var targetLane=(toRight) ? 0 : newRoad.nLanes-1;
 
     var originVehicles=this.getTargetNeighbourhood(
-	uBegin-paddingLTC, uEnd, originLane); // padding only for LC coupling!
+	uBegin-paddingLTC, uEnd, originLane); // padding only for LT coupling!
 
     var targetVehicles=newRoad.getTargetNeighbourhood(
-	uNewStart-padding, uNewEnd+padding, targetLane);
+	uNewBegin-padding, uNewEnd+padding, targetLane);
 
     var iMerge=0; // candidate of the originVehicles neighbourhood
     var uTarget;  // long. coordinate of this vehicle on the orig road
+
+
+    // debug: color-code interacting vehicles 
+    // and their different roles (to be specified later in this method)
+    // !! notice: all markings need to be reverted in each simulation step of 
+    // top-level routine by calling road.revertVehMarkings() for all roads
+
+    if(this.markVehsMerge && isMerge){
+
+        // mark both potentially interacting vehicles with color 1
+
+        for(var i=0; i<originVehicles.length; i++){
+	    originVehicles[i].colorStyle=1;
+	}
+	for(var i=0; i<targetVehicles.length; i++){
+	    targetVehicles[i].colorStyle=1;
+	}
+    }
+
+
 
     if(log){
 	console.log("\n\nin road.mergeDiverge: itime=",itime,
@@ -2462,8 +2491,8 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
 	var duLeader=1000; // initially big distances w/o interaction
 	var duFollower=-1000;
-	var leaderNew=new vehicle(0,0,uNewStart+10000,targetLane,0,"car");
-	var followerNew=new vehicle(0,0,uNewStart-10000,targetLane,0,"car");
+	var leaderNew=new vehicle(0,0,uNewBegin+10000,targetLane,0,"car");
+	var followerNew=new vehicle(0,0,uNewBegin-10000,targetLane,0,"car");
 
 
 	if(log){console.log(" entering origVeh loop");}
@@ -2554,9 +2583,11 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 		    (sYield, sPrio, speed, speedLagNew, accLagNew);
 		  followerNew.acc=Math.min(followerNew.acc,accLagYield);//!!
 
-		  followerNew.colorStyle=1; // draw red-thick instead of hue
-		  originVehicles[i].colorStyle=2; // draw green-thick
-		  //console.log("originVeh.colorStyle=",originVehicles[i].colorStyle);
+		  if(this.markVehsMerge){ // draw fixed colors 
+		      followerNew.colorStyle=3; // instead of hue
+		      originVehicles[i].colorStyle=2; 
+		  }
+
 		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
 		      console.log("in road.mergeDiverge, ",
 				  " LT coupling to acc other road",
@@ -3573,7 +3604,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 				    speedmin,speedmax,xOffset,yOffset,
 				    otherRoad, uOffset){
 
-    var drawVehIDs=true;           // draw vehicle IDs along the vehicles
+
     var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
     var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
 
@@ -3693,8 +3724,9 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 	var isEgo=(this.veh[i].id===1);
         ctx.fillStyle=(this.veh[i].colorStyle==0)
 	    ? colormapSpeed(speed,speedmin,speedmax,type, isEgo,time)
-	    : (this.veh[i].colorStyle==1) ? "rgba(255,0,0,0.5)"
-	    : "rgba(0,255,0,0.5)";
+	    : (this.veh[i].colorStyle==1) ? "rgba(0,0,255,0.5)"
+	    : (this.veh[i].colorStyle==2) ? "rgba(255,255,0,0.5)"
+	    : "rgba(255,0,0,0.5)";
 	ctx.fillRect(-0.5*effLenPix, -0.5*effWPix, effLenPix, effWPix);
 	if(isEgo||this.veh[i].isPerturbed()||(this.veh[i].colorStyle>0)){
 		  ctx.strokeStyle="rgb(0,0,0)";
@@ -3709,7 +3741,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 
     //(6) optionally draw vehicle ID near the vehicle
 
-    if(drawVehIDs&&(this.veh[i].isRegularVeh())){
+    if(this.drawVehIDs&&(this.veh[i].isRegularVeh())){
 	var textsize=0.018*Math.min(canvas.width,canvas.height);
         var lPix=2.8*textsize;
         var hPix=1.1*textsize;
@@ -3738,3 +3770,11 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 			 );
     }
 }
+
+
+road.prototype.revertVehMarkings=function(){
+    for(var i=0; i<this.veh.length; i++){
+	this.veh[i].colorStyle=0;
+    }
+}
+
