@@ -4,7 +4,7 @@
 //#################################################################
 
 function myRedirectRing(){
-    window.location.href = "./index.html";
+    window.location.href = "./ring.html";
 }
 
 function myRedirectOnramp(){

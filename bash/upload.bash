@@ -16,7 +16,7 @@ startDir=$HOME/versionedProjects/traffic-simulation-de
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp offramp roadworks uphill routing routingGame"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 # targetDir="$startDir/trafficSimulationLocalVersion"
 
@@ -43,15 +43,13 @@ html_files="impressum.html"  #just start
 for proj in $projects; do
   htmlfile="${proj}.html"
   htmlfile_ger="${proj}_ger.html"
-  if [ "$proj" == "ring" ]; then
-      htmlfile="index.html";
-      htmlfile_ger="index_ger.html";
-  fi
-
 
   echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
   html_files="${html_files} $htmlfile $htmlfile_ger";
 done
+
+# add the index html (just one of the projects)
+html_files="${html_files} index.html index_ger.html" 
 
 js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
 

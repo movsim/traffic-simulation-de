@@ -50,10 +50,30 @@
      src="figs/infoBlue.png" onclick="showInfo()"/>
 </div>
 
-<div id="priorityDiv">
+<!--<div id="priorityDiv">
     <button id="changePriorityButton"
 	    onclick="changePriority()">Ring has Priority
     </button>
+</div>
+-->
+
+<div id="priorityDiv">
+    <select id="changePrioritySelect"
+	    onchange="handleChangedPriority(this.selectedIndex)">
+        <option> Ring has Priority</option>
+        <option> Arms have Priority</option>
+        <option> First Come First Served</option>
+    </select>
+</div>
+
+<div id="ODDiv">
+    <select id="ODSelect"
+	    onchange="handleChangedOD(this.selectedIndex)">
+        <option> Only Straight Ahead &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
+        <option> Only to the Right</option>
+        <option> Only to the Left</option>
+        <option> All Directions</option>
+    </select>
 </div>
 
 <!--
@@ -159,7 +179,7 @@
   <td> <div id="slider_mainFracVal"></div> </td>
 </tr>
 
-
+<!--
 <tr>
   <td>Left Turn Bias </td>
   <td> <input id="slider_leftTurnBias" type="range" 
@@ -174,7 +194,7 @@
               min="0" max="100" step="1"></td>
   <td> <div id="slider_focusFracVal"></div> </td>
 </tr>
-
+-->
 
 <tr>
   <td>Timewarp</td>
@@ -222,42 +242,6 @@
 
 </table>
 
-
-<!-- ######################################################## -->
-<!--<img src="figs/Lane-Changing_Behavior.png" width="60%"/>-->
-<h3>Lane-Changing Behavior</h3>
-<!-- ######################################################## -->
-
-<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
-
-<tr>
-  <td>Politeness</td>
-  <td> <input id="slider_MOBIL_p" type="range" 
-              min="-0.2" max="1" step="0.1"></td>
-  <td> <div id="slider_MOBIL_pVal"></div> </td>
-</tr>
-
-<tr>
-  <td>LC Threshold</td>
-  <td> <input id="slider_MOBIL_bThr" type="range" 
-              min="-0.1" max="1" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bThrVal"></div> </td>
-</tr>
-
-<tr>
-  <td>Right Bias Cars</td>
-  <td> <input id="slider_MOBIL_bBiasRight_car" type="range" 
-              min="-1" max="2" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
-</tr>
-
-<tr>
-  <td>Right Bias Trucks</td>
-  <td> <input id="slider_MOBIL_bBiasRight_truck" type="range" 
-              min="-1" max="2" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
-</tr>
-</table>
 
 
 <!-- ############################################## -->

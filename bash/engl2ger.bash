@@ -13,7 +13,7 @@
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing routingGame"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout"
 #projects="ring"
 
 cd $startDir
@@ -54,23 +54,7 @@ for proj in $projects; do
     
   htmlfile="${proj}.html"
   htmlfile_ger="${proj}_ger.html"
-
-  # because ring szenario is starting point,
-  # the html file is index.html instead of ring.html
-
-  if [ "$proj" == "ring" ]; then
-      htmlfile="index.html";
-      htmlfile_ger="index_ger.html";
-  fi
   echo  "project=${proj}, htmlfile_ger=$htmlfile_ger"
-
-
-  # backup
-
-  #  if test -f $htmlfile_ger; then cp $htmlfile_ger $backupdir; fi
-  #  if test -f js/${proj}_ger.js; then cp js/${proj}_ger.js $backupdir/js; fi
-
-
 
   cp $htmlfile $htmlfile_ger
   htmlfilesGer="$htmlfilesGer $htmlfile_ger"
@@ -82,9 +66,13 @@ for proj in $projects; do
 
   cp js/${proj}.js js/${proj}_ger.js
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
-
-
 done
+
+# index html separately (use the PROJ string to find the correct line)
+
+cp index.html index_ger.html
+perl -i -p -e "s/(.+)PROJ(.+)\.js/\1PROJ\2_ger.js/g" index_ger.html
+
 
 
 #############################################
@@ -104,6 +92,8 @@ for file in $htmlfilesGer; do
 
   # change text
 
+  perl -i -p -e 's/Roundabout\</Kreisverkehr</g' $file
+  perl -i -p -e 's/de\: Roundabout/de: Kreisverkehr/g' $file
   perl -i -p -e 's/\>Ringroad\</>Ringstrasse</g' $file
   perl -i -p -e 's/de\: Ring Road/de: Ringstrasse/g' $file
   perl -i -p -e 's/\>Onramp\</>Auffahrt</g' $file
@@ -120,6 +110,21 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/\>Density\</>Dichte</g' $file
   perl -i -p -e 's/\>Density\/lane\</>Dichte\/Spur</g' $file
   perl -i -p -e 's/\>Scale\</>Skala</g' $file
+
+  perl -i -p -e 's/Traffic Flow and General/Verkehrsfl&uuml;sse und Allgemeines/g' $file
+  perl -i -p -e 's/Car-Following Behavior/Fahrzeugfolge-Verhalten/g' $file
+  perl -i -p -e 's/Lane-Changing Behavior/Spurwechsel-Verhalten/g' $file
+
+
+  perl -i -p -e 's/Ring has Priority/normale Vorfahrtsregeln/g' $file
+  perl -i -p -e 's/Arms have Priority/Rechts vor Links/g' $file
+  perl -i -p -e 's/First Come First Served/gleichberechtigt/g' $file
+  perl -i -p -e 's/Only Straight Ahead/nur geradeaus/g' $file
+  perl -i -p -e 's/Only to the Right/nur Rechtsabbieger/g' $file
+  perl -i -p -e 's/Only to the Left/nur Linksabbieger/g' $file
+  perl -i -p -e 's/All Directions/alle Richtungen/g' $file
+
+
 
   perl -i -p -e 's/Traffic_Flow_and_General\.png\" width=\"65\%\"/Verkehrsfluss\.png\" width=\"40\%\"/g' $file
   perl -i -p -e 's/Car-Following_Behavior\.png\" width=\"60\%\"/Fahrstil-Parameter\.png\" width=\"55\%\"/g' $file

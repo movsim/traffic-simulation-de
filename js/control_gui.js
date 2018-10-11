@@ -50,6 +50,39 @@ function changePriority(){
     document.getElementById("changePriorityButton").innerHTML=buttonText;
 }
 
+// roundabout: priority as a switch button (2 options)
+
+function changePrioritySelect(){
+    console.log("in changePrioritySelect: initial respectRingPrio=",
+		respectRingPrio);
+    respectRingPrio=(!respectRingPrio);
+    respectRightPrio=(!respectRingPrio);
+    buttonText=(respectRingPrio) ? "Ring has Priority" : "Merges have Priority";
+    document.getElementById("changePriorityButton").innerHTML=buttonText;
+}
+
+// roundabout: priority as a combobox (more options)
+// first option has index 0 etc
+
+function handleChangedPriority(index){
+    respectRingPrio=(index==0);
+    respectRightPrio=(index==1);
+    console.log("in handleChangedPriority: index=",index,
+		" respectRingPrio=",respectRingPrio,
+		" respectRightPrio=",respectRightPrio);
+}
+
+
+// roundabout: change OD options
+// options={straight,right,left,all}
+
+function handleChangedOD(index){
+    leftTurnBias=(index==1) ? -1 : (index==2) ? 1 : 0;
+    focusFrac=(index<3) ? 1 : 0;
+    console.log("in handleChangedOD: index=",index,
+		" leftTurnBias=",leftTurnBias,
+		" focusFrac=",focusFrac);
+}
 
 
 

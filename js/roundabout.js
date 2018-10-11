@@ -8,8 +8,8 @@ var userCanDropObstaclesAndTL=true;
 
 // sliders with default inits need not to be reassigned here
 
-respectRingPrio=true; // controlled by a GUI switch
-respectRightPrio=false; // callback: = (!respectRingPrio) but both=false also interesting
+respectRingPrio=true; // controlled by a html select element
+respectRightPrio=false; // callback: control_gui-handleChangedPriority
 
 // debugging switches
 
@@ -49,13 +49,13 @@ mainFrac=mainFracInit=0.8;
 slider_mainFrac.value=100*mainFrac;
 slider_mainFracVal.innerHTML=100*mainFrac+"%";
 
-leftTurnBias=leftTurnBiasInit=0;
-slider_leftTurnBias.value=leftTurnBias;
-slider_leftTurnBiasVal.innerHTML=leftTurnBias;
+leftTurnBias=0;
+//slider_leftTurnBias.value=leftTurnBias;
+//slider_leftTurnBiasVal.innerHTML=leftTurnBias;
 
-focusFrac=focusFracInit=0.25;
-slider_focusFrac.value=100*focusFrac;
-slider_focusFracVal.innerHTML=100*focusFrac+"%";
+focusFrac=1;
+//slider_focusFrac.value=100*focusFrac;
+//slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
 timewarp=timewarpInit=8;
 slider_timewarp.value=timewarpInit;
@@ -70,21 +70,8 @@ slider_IDM_a.value=IDM_a;
 slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
-//!!! LC sliders not yet implemented
+// no LC sliders for roundabout
 
-MOBIL_bBiasRight_car=0.0
-slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
-slider_MOBIL_bBiasRight_carVal.innerHTML
-	=MOBIL_bBiasRight_car+" m/s<sup>2</sup>";
-
-MOBIL_bBiasRight_truck=0.0
-slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
-slider_MOBIL_bBiasRight_truckVal.innerHTML
-	=MOBIL_bBiasRight_truck+" m/s<sup>2</sup>";
-
-MOBIL_bThr=0.0
-slider_MOBIL_bThr.value=MOBIL_bThr;
-slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
 
 
 /*######################################################

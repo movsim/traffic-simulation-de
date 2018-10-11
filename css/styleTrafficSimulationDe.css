@@ -102,7 +102,7 @@ td.important{
      padding-top:0px;
  }
 
-button{
+button,select{
      font-size: 2.2vmin; 
 }
 
@@ -263,13 +263,18 @@ which always gives correct size!!
 
 /* (2e) landscape: special buttons/elements for only some simulations */
 
-#priorityDiv{
+#priorityDiv{  /* roundabout */
   position: absolute;
-  top: 15vmin;
-  height: 7vmin;
-  left: 98vmin;
-  width: 7vmin;
-  z-index: 2; /* the higher the integer, the more on top */
+  top: 12vmin;
+  left: 75vmin;
+  z-index: 2; 
+}
+
+#ODDiv{  /* roundabout */
+  position: absolute;
+  top: 18vmin;
+  left: 75vmin;
+  z-index: 2;
 }
 
 #gameDiv{ /* button text inside button environment */
@@ -526,13 +531,18 @@ img.title{
 
 /* (2e) portrait: special buttons/elements for only some simulations */
 
-#priorityDiv{
-  position: absolute;
-  top: 10vmin;
-  height: 6vmin;
-  left: 84vmin;
-  width: 6vmin;
-  z-index: 2; /* the higher the integer, the more on top */
+#priorityDiv{  /* roundabout */
+  position: absolute; /* again needed!*/
+  top: 12vmin;
+  left: 60vmin;
+  z-index: 2;         /* again needed!*/
+}
+
+#ODDiv{  
+  position: absolute; /* again needed!*/
+  top: 18vmin;
+  left: 60vmin;
+  z-index: 2;
 }
 
 #gameDiv{
@@ -768,13 +778,18 @@ td.important{
 
 /* (2e) smartphone landscape: special buttons/elements for only some simulations */
 
-#priorityDiv{
+#priorityDiv{/* roundabout */
   position: absolute;
   top: 15vmin;
-  height: 7vmin;
-  left: 90vmin;
-  width: 7vmin;
-  z-index: 2; /* the higher the integer, the more on top */
+  left: 75vmin;
+  z-index: 2; 
+}
+
+#ODDiv{  
+  position: absolute; /* again needed!*/
+  top: 21vmin;
+  left: 75vmin;
+  z-index: 2;
 }
 
 /* (2f) smartphone landscape: hide link list */
