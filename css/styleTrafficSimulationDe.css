@@ -738,7 +738,7 @@ NOTE: parantheses cannot be used for clustering: C and (A, B) does not work
 /*#########################################################*/
 
 
-@media screen and (min-aspect-ratio: 6/5) and (max-height: 1600px) and (min-resolution: 180dpi),
+@media screen and (min-aspect-ratio: 6/5) and (max-height: 2400px) and (min-resolution: 180dpi),
  screen and (min-aspect-ratio: 6/5) and (max-height: 500px){
 
 
