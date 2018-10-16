@@ -5,7 +5,9 @@
 # language-specific words" all html files, 
 # the js/<proj>.js, and all dependent js files
 
+# !!! also sets the current main simulation shown as the index*.html files
 
+indexProject="roundabout" # !!!  sets the current main simulation 
 
 #############################################
 # (0) set path and select projects
@@ -68,10 +70,6 @@ for proj in $projects; do
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
 done
 
-# index html separately (use the PROJ string to find the correct line)
-
-cp index.html index_ger.html
-perl -i -p -e "s/(.+)PROJ(.+)\.js/\1PROJ\2_ger.js/g" index_ger.html
 
 
 
@@ -136,7 +134,9 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/LC Threshold/Wechselschwelle/g' $file
   perl -i -p -e 's/Right Bias Cars/Rechtsfahren PKW/g' $file
   perl -i -p -e 's/Right Bias Trucks/Rechtsfahren LKW/g' $file
-  perl -i -p -e 's/Inflow/Hauptzufluss/g' $file
+  perl -i -p -e 's/Total Inflow/Gesamtnachfrage/g' $file
+  perl -i -p -e 's/Mainroad Perc/Hauptstra&szlig;enanteil/g' $file
+  perl -i -p -e 's/Inflow/Hauptzufluss/g' $file 
   perl -i -p -e 's/Onramp Flow/Rampenzufluss/g' $file
   perl -i -p -e 's/Offramp Use/Anteil abfahrend/g' $file
   perl -i -p -e 's/Deviation Use/Anteil Umleitung/g' $file
@@ -161,6 +161,18 @@ perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html r
 
 perl -i -p -e 's/only info/Info/g' routingGame_ger.html
 perl -i -p -e 's/routing\.html/routing_ger.html/g' routingGame_ger.html
+
+
+#############################################
+# copy current main-topic project to already translated index*.html
+#############################################
+
+cp ${indexProject}.html index.html
+cp ${indexProject}_ger.html index_ger.html
+
+#cp index.html index_ger.html
+#perl -i -p -e "s/(.+)PROJ(.+)\.js/\1PROJ\2_ger.js/g" index_ger.html
+
 
 #############################################
 # change js files (incl link targets in redirect.js)
