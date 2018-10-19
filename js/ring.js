@@ -45,7 +45,7 @@ const mqSmartphoneLandscape
       = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );//xxx
 const mqSmartphonePortrait
       = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
-var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 200 : 300;  // constant
 
@@ -245,7 +245,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+    isSmartphone=mqSmartphone();
 
 
     //console.log("does Math.tanh exist?");

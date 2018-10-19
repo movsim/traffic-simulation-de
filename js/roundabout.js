@@ -113,13 +113,12 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape //xxx
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
-var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+//!! also change "isSmartphone=" in updateSim!!
+
+var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 90 : 110;  // const; all objects scale with refSizePix
+
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -512,7 +511,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;//xxx
+    isSmartphone=mqSmartphone(); // defined in media.js
 
     if(markVehsMerge){
 	for (var i=0; i<arm.length; i++){arm[i].revertVehMarkings();}
@@ -850,7 +849,7 @@ function drawSim() {
     // (6) draw simulated time
 
     displayTime(time,textsize);
-
+    //displayMediaProperties(canvas,Math.max(10,textsize));
 
      // (7) draw the speed colormap
 

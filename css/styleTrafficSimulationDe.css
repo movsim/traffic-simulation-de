@@ -1,4 +1,7 @@
-/* (217-6-24) new style file covering all aspects 
+/*
+!!! check/make consistent with ../js/media.js
+
+ (217-6-24) new style file covering all aspects 
 (no pun intended) except sliders
 in the new exhibition format (including mobile)
 
@@ -348,7 +351,7 @@ which always gives correct size!!
   top:     -1vmin;
   height:  22vmin;
   left: 115vmin;
-  width: 38vmin;
+  width: 40vmin;
   z-index: 2;  /*top-always focussed! */
 }
 
@@ -600,7 +603,7 @@ img.title{
   top:     76vmin;
   height:  50vmin;
   left: 1vmin;
-  width: 36vmin;
+  width: 40vmin;
   z-index: 2;
 }
 
@@ -719,7 +722,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 /*#########################################################*/
-/* addl settings smartphone  landscape  !!! 
+/* addl settings smartphone  landscape  !!! check with ../js/media.js
 
 * my smartphone has huge pixel size between 1200 and 1400 height
 it seems that max-height_{webTutorials}=max-height_{me} /pixel-ratio
@@ -738,8 +741,8 @@ NOTE: parantheses cannot be used for clustering: C and (A, B) does not work
 /*#########################################################*/
 
 
-@media screen and (min-aspect-ratio: 6/5) and (max-height: 2400px) and (min-resolution: 180dpi),
- screen and (min-aspect-ratio: 6/5) and (max-height: 500px){
+@media screen and (min-aspect-ratio: 6/5) and (max-height: 600px),
+ screen and (min-aspect-ratio: 6/5) and (max-width: 600px){
 
 
 body{
@@ -805,9 +808,9 @@ td.important{
 /* (4) smartphone landscape: the field for selecting the scenarios */
 #scenarios{
   top:     -3vmin;
-  height:  22vmin;
+  height:  24vmin;
   left: 115vmin;
-  width: 50vmin;
+  width: 55vmin;
   z-index: 2;  /*top-always focussed! */
 }
 

@@ -92,7 +92,7 @@ const mqSmartphoneLandscape //xxx
       = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
 const mqSmartphonePortrait
       = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
-var isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;
+var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 250 : 350;  // constant
 
@@ -524,7 +524,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    isSmartphone=mqSmartphoneLandscape.matches || mqSmartphonePortrait.matches;//xxx
+    isSmartphone=mqSmartphone();
 
     
     if(isGame){
