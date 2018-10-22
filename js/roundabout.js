@@ -698,8 +698,8 @@ function drawSim() {
     // isSmartphone defined in updateSim
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
-    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
-
+    var textsize=relTextsize_vmin*Math.min(window.innerWidth,window.innerHeight);
+   // console.log("isSmartphone-",isSmartphone," textsize=",textsize);
     var hasChanged=false;
 
     if(false){

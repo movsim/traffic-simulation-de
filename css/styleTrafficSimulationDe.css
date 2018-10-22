@@ -1,44 +1,15 @@
 /*
-!!! check/make consistent with ../js/media.js
+!! check/make consistent with ../js/media.js
 
- (217-6-24) new style file covering all aspects 
-(no pun intended) except sliders
-in the new exhibition format (including mobile)
-
-old version: stylePortrait_2017_06.css, styleLandscape_2017_06.css, styleResponsive.css, 
-sliders_2017_06.css and all the other
-style files (depending on ring or U), except styleUPortrait.css, styleLandscape.css
-
-new version: only stylePortrait.css, styleLandscape.css, sliders.css
-for all html files 
-*/
-
-
-/* media queries: 
+media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
-
-example: @media (min-width: 700px), handheld and (orientation: landscape) { ... }
-operator "or" = ","
-boolean variables:
-(min-width: 700px)
-handheld
-(orientation: landscape)
-(monochrome)
-(color)
-(min-aspect-ratio: 1/1)  horiz/vertical
-limits: 
+INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3; 
 */
 
-/*#############################################################
- big landscape:   (min-width: 720px)  and (min-aspect-ratio: 6/5) 
- small landscape: (max-width: 719px)  and (min-aspect-ratio: 6/5) 
- big portrait:    (min-height: 600px) and (max-aspect-ratio: 6/5) 
- small portrait:  (max-height: 599px) and (max-aspect-ratio: 6/5) 
-ATTENTION!! no space before pixels! 
-INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3; 
-#############################################################*/
 
-/*1080p (1920×1080 px; 
+
+
+
 
 /*#############################################################*/
 /* basic settings for all aspect ratios */
@@ -170,7 +141,7 @@ table.infoTable td {
 
 
 /*#############################################################*/
-/* basic settings for landscape formats */
+/* basic settings for landscape formats !! check with ../js/media.js */
 /*#############################################################*/
 
 @media all and  (min-aspect-ratio: 6/5){
@@ -190,11 +161,6 @@ table.infoTable td {
 }
 
 
-/* title image */
-
-img.title{
-  max-height: 5vmin;
-}
 
 
 /* (2) landscape: the simulation canvas */
@@ -435,7 +401,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 /*#############################################################*/
-/* basic settings for square/portrait formats */
+/* basic settings for square/portrait formats !! check with ../js/media.js */
 /*#############################################################*/
 
 @media all and  (max-aspect-ratio: 6/5){
@@ -454,11 +420,6 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* portrait: title image */
-
-img.title{
-  max-height: 5vmin;  z-index: 2;
-}
 
 
 /* (2) portrait: the simulation canvas */
@@ -721,8 +682,8 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
-/*#########################################################*/
-/* addl settings smartphone  landscape  !!! check with ../js/media.js
+/*#########################################################
+general settings smartphone  !! check with ../js/media.js
 
 * my smartphone has huge pixel size between 1200 and 1400 height
 it seems that max-height_{webTutorials}=max-height_{me} /pixel-ratio
@@ -731,18 +692,20 @@ BUT  filter for min-device-pixel-ratio etc fails/not supported;
 *test unit "em" instead of pixel (but how defined if font can be changed?) 
 BUT also this fails with my Smartphone test: between 70 and 100 em
 
+
 * WORKING: min-resolution e.g.: 180dpi 
  (my notebook has 96 dpi, Smartphone 192 dpi)
  OR small viewpoert size (to check Smartphone layout on notebook)
 (a "comma" is the keyword for OR in css media queries)
 NOTE: parantheses cannot be used for clustering: C and (A, B) does not work
 
-*height [px]/resolution[dpi] gives height in inches: That's what I want!
-/*#########################################################*/
+* height [px]/resolution[dpi] gives height in inches: That is what I want 
+#########################################################*/
 
 
-@media screen and (min-aspect-ratio: 6/5) and (max-height: 600px),
- screen and (min-aspect-ratio: 6/5) and (max-width: 600px){
+@media screen and (max-height: 600px),
+screen and (max-width: 600px),
+screen and (min-resolution: 97dpi){/* my screen TUD has 96 dpi */
 
 
 body{
@@ -753,11 +716,15 @@ button{
   font-size: 3vmin; 
 }
 
+select{
+  font-size: 3vmin; 
+}
+
 h3{ 
   font-size: 3vmin; 
 }
 
-/* smartphone text layout of sliders: tables override general text spec) */
+/* smartphone general text layout of sliders: tables override general text spec) */
 
 th{                    /* only used in infotext */
   font-size: 3vmin;
@@ -778,20 +745,46 @@ td.important{
   color: #dd0033;
 }
 
+/* from styleSliders.css */
+
+input[type=range]{
+    width: 20vmin;
+    height: 3.0vmin;
+}
+
+input[type=range]::-moz-range-track{
+  height: 3.0vmin;
+}
+
+input[type=range]::-moz-range-thumb {
+  height: 3.5vmin;
+  width: 1.5vmin;
+}
+} /*general smartphone */
+
+/*#########################################################*/
+/* addtl smartphone landscape settings  !! check with ../js/media.js
+/*#########################################################*/
+
+@media screen and (max-height: 600px) and (min-aspect-ratio: 6/5),
+screen and (max-width: 600px) and (min-aspect-ratio: 6/5),
+screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
+
+
 
 /* (2e) smartphone landscape: special buttons/elements for only some simulations */
 
 #priorityDiv{/* roundabout */
   position: absolute;
   top: 15vmin;
-  left: 75vmin;
+  left: 65vmin;
   z-index: 2; 
 }
 
 #ODDiv{  
   position: absolute; /* again needed!*/
-  top: 21vmin;
-  left: 75vmin;
+  top: 22vmin;
+  left: 65vmin;
   z-index: 2;
 }
 
@@ -825,22 +818,6 @@ td.important{
   width: 70vmin;
 }
 
-/* from styleSliders.css */
-
-input[type=range]{
-    width: 20vmin;
-    height: 3.0vmin;
-}
-
-input[type=range]::-moz-range-track{
-  height: 3.0vmin;
-}
-
-input[type=range]::-moz-range-thumb {
-  height: 3.5vmin;
-  width: 1.5vmin;
-}
-
 
 /* (6) smartphone landscape: infotext */
 #infotext{
@@ -859,3 +836,89 @@ input[type=range]::-moz-range-thumb {
   width:  15vmin; /* no height */
   z-index: 0;
 }
+} /* Smartphone landscape
+
+/*#########################################################*/
+/* addtl smartphone portrait settings  !! check with ../js/media.js
+/*#########################################################*/
+
+
+@media screen and (max-height: 600px) and (max-aspect-ratio: 6/5),
+screen and (max-width: 600px) and (max-aspect-ratio: 6/5),
+screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
+
+
+
+/* (2e) smartphone portrait: special buttons/elements for only some simulations */
+
+#priorityDiv{/* roundabout */
+  position: absolute;
+  top: 15vmin;
+  left: 57vmin;
+  z-index: 2; 
+}
+
+#ODDiv{  
+  position: absolute; /* again needed!*/
+  top: 22vmin;
+  left: 57vmin;
+  z-index: 2;
+}
+
+/* (2f) smartphone portrait: hide link list */
+
+#linkDiv{
+  position: absolute;
+  top:   50vmin; /* bottom attribute error in Safari */
+  left:   20vmin;
+  width:  50vmin; /* no height */
+  z-index: 0;
+} 
+
+/* (4) smartphone portrait: the field for selecting the scenarios */
+#scenarios{
+  position: absolute;
+  top:     76vmin;
+  height:  50vmin;
+  left: 53vmin;
+  width: 45vmin;
+  z-index: 2;
+}
+
+
+/* (5) smartphone portrait: sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+#sliders{ 
+  position: absolute;
+  top: 76vmin;
+  left: 0vmin;
+  width: 60vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 3; /* the higher the integer, the more on top */
+}
+
+
+
+/* (6) smartphone portrait: infotext */
+#infotext{
+  position: relative;
+  top:     0vmin; /* relative to sliders etc */
+  left:     2vmin;
+    width: 80vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+    height: 60vmin;
+    padding-left: 7vmin;
+    overflow:auto;
+}
+
+/* (7) smartphone portrait: hide the colorbox */
+
+#colorBox{
+  position: absolute;
+  top:   45vmin;
+  left: 45vmin;
+  width:  15vmin; /* no height */
+  z-index: 0;
+}
+
+} /*Smartphone portrait */

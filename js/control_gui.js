@@ -42,24 +42,6 @@ function myStartStopFunction(){
 var respectRingPrio=true;
 var respectRightPrio=false;
 
-function changePriority(){
-    console.log("in changePriority: initial respectRingPrio=",respectRingPrio);
-    respectRingPrio=(!respectRingPrio);
-    respectRightPrio=(!respectRingPrio);
-    buttonText=(respectRingPrio) ? "Ring has Priority" : "Merges have Priority";
-    document.getElementById("changePriorityButton").innerHTML=buttonText;
-}
-
-// roundabout: priority as a switch button (2 options)
-
-function changePrioritySelect(){
-    console.log("in changePrioritySelect: initial respectRingPrio=",
-		respectRingPrio);
-    respectRingPrio=(!respectRingPrio);
-    respectRightPrio=(!respectRingPrio);
-    buttonText=(respectRingPrio) ? "Ring has Priority" : "Merges have Priority";
-    document.getElementById("changePriorityButton").innerHTML=buttonText;
-}
 
 // roundabout: priority as a combobox (more options)
 // first option has index 0 etc

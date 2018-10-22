@@ -10,7 +10,7 @@
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
 
-$startDir/bash/engl2ger.bash
+#$startDir/bash/engl2ger.bash
 
 #############################################
 # (1) select projects and prepare targetdir
