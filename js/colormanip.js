@@ -132,7 +132,7 @@ function colormapSpeed(v, vmin_col, vmax_col, vehType, isEgo, time, isOpaque){
 function displayColormap(xCenterPix, yCenterPix, widthPix, heightPix,
 		      vmin_colMap, vmax_colMap, vmin_colDisplay, vmax_colDisplay){
 
-    //console.log("displayColormap: widthPix=",widthPix);
+    console.log("displayColormap: widthPix=",widthPix);
     ctx.setTransform(1,0,0,1,xCenterPix-0.5*widthPix,
 		     yCenterPix-0.5*heightPix); 
 

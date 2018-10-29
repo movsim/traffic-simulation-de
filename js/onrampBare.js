@@ -220,7 +220,7 @@ ramp.veh.unshift(virtualStandingVeh);
 var nDet=3;
 var mainDetectors=[];
 mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
+mainDetectors[1]=new stationaryDetector(mainroad,0.58*mainroadLen,30);
 mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
 
 
@@ -520,44 +520,11 @@ function drawSim() {
 
     // (6) show simulation time and detector displays
 
-    displayTime(time,textsize);
+  displayTime(time,textsize);
     for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].display(textsize);
     }
 
-  if(false){
-    ctx.setTransform(1,0,0,1,0,0); 
-    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
-    ctx.font=textsize+'px Arial';
-
-
-    /*
-    var scaleStr=" scale="+Math.round(10*scale)/10;
-    var scaleStr_xlb=9*textsize;
-    var scaleStr_ylb=timeStr_ylb;
-    var scaleStr_width=5*textsize;
-    var scaleStr_height=1.2*textsize;
-    ctx.fillStyle="rgb(255,255,255)";
-    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,
-		 scaleStr_width,scaleStr_height);
-    ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
-		 scaleStr_ylb-0.2*textsize);
-    */
-
-
-      // (7) draw the speed colormap
-      //!!! Now always false; drawn statically by html file!
-
-    if(drawColormap){
-      displayColormap(0.22*refSizePix,
-                   0.43*refSizePix,
-                   0.1*refSizePix, 0.2*refSizePix,
-		   vmin_col,vmax_col,0,100/3.6);
-    }
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
-  }
 }
  
 
