@@ -1,0 +1,45 @@
+Sehr geehrte Frau Hale,
+
+gerne dürfen Sie den Online-Simulator unter Verwendung der Quelle (traffic-simulation.de) in Ihrem Beitrag kostenlos zeigen, ein Verständnis der Verkehrsdynamik "für jedermann" ist ja eine der Intentionen dieser Simulaation. Zur Frage des Rei3\verschlusses: Das lässt sich zur Zeit noch nicht darstellen: Das ist ja eher für Stadtverkehr wichtig und die (relative neue) Kreisverkehrs-Simulation ist bis jetzt das einzige Stadt-Szenario. Bei ihr ist es aber nicht sinnvoll, das einzubauen.
+
+Am ehesten bietet sich hier das Baustellen-Szenario an (die vierte Simulation mit dem Baustellen-Straßenverkehrsschild), bei ihr sind aber die Spurwechseleigenschaften nicht herausgeführt. Die könnte ich Ihnen zu zwei Szenarien spezialisieren, eine, bei der die Fahrer sofort wechseln und die andere, bei der sie am Ende wechseln. Starten Sie je eine dieser Simulationen gleichzeitig auf zwei Computern ohne an irgendwelchen Reglern zu schieben, sehen Sie den Unterschied: In der Simulation, bei der die Fahrer sofort wechseln, wächst die Schlange viel schneller!
+
+Generell ist es wichtig, bei dichtem/gestauten Verkehr bis zum Ende der Spur zu fahren und erst dann zu wechseln. Andernfalls könnte es zu einer "Selbstblockierung" (engl. Gridlock) kommen, sobald die Warteschlange die nächste Kreuzung erreicht und dort auch eigentlich freie Abbiegungsrichtungen behindert.  Wechselt man hingegen erst am Schluss, verteilen sich die wartenden Fahrzeuge auf zwei Spuren und die Schlange ist deshalb halb so lang.
+
+Geschwindigkeitsanpassung ist wichtig und kann im Baustellen-Szenario der Webseite, so wie es ist, sehr gut simuliert werden! Starten Sie einmal die Simulation, ohne was zu verändern. Da Tempolimit 80 herrscht, fahren alle nahezu gleich schnell, der Spurwechsel ist ohne Störung möglich und es kommt nicht zum Stau. Drehen Sie nun das Tempolimit auf 130 bzw freie Fahrt und warten Sie - aufgrund der nun großen Störungen beim Spurwechsel bricht der Verkehr bald zusammen, obwohl der Zufluss unverändert ist!
+
+Mit freundlichen Grüßen,
+
+ Martin Treiber
+
+p.s.: Sie haben sicher auch den Link zur deutsschprachigen Simulation gesehen
+
+================================================================
+
+Sehr geehrter Herr Prof. Treiber,
+
+
+ich mache in der kommenden Woche einen Beitrag für die Landesschau Rheinland-Pfalz zum Thema, wie das Verhalten von Autofahrern Stauentstehung begünstigt. Durch einen Archivbeitrag meiner Kollegen von „Odysso“ entdeckte ich auf http://www.traffic-simulation.de/ Ihren Simulator zum Verkehrsfluss und bin begeistert, da ich genau so etwas gesucht habe, um die Sachlage zu visualisieren. Dürfte ich Aufnahmen der Simulation unter Nennung der Quelle kostenlos im SWR zeigen? Thema des Beitrag soll auch das Verhalten im Reißverschlussverfahren sein und zwar, dass auch die (vorschriftsmäßig) bis ans Ende der befahrbaren Spur fahrenden Fahrer Schuld tragen am Stau. Weil sie sich in der Geschwindigkeit nicht anpassen an die andere Spur. Wie sehen Sie das Problem? Ließe sich das auch mit Ihrem Programm darstellen? Ich habe es versucht, aber finde keine Möglichkeit.
+
+ 
+
+Könnte ich Sie vielleicht heute oder in den nächsten Tagen kurz telefonisch erreichen?
+
+ 
+
+Der Beitrag soll am 11.12. gedreht werden, ich würde mich sehr freuen, wenn wir bis dahin Kontakt aufnehmen könnten. Am besten zu erreichen bin ich per Handy (oder eben Mail).
+
+ 
+
+Vielen Dank und herzliche Grüße,
+
+ 
+
+Andrea Hale Landesschau RP
+
+
+Südwestrundfunk Am Fort Gonsenheim 139 55122 Mainz
+
+Tel.: 06131/929-33629 Handy: 01577/9715196 E-Mail: andrea.hale@swr.de
+
+ 
