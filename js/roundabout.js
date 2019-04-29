@@ -945,16 +945,6 @@ function main_loop() {
 console.log("first main execution");
 showInfo();
 
-// produce reproducible output
-// include <script src="js/seedrandom.min.js"></script> in html file
-// see docu in onramp.js
-
-Math.seedrandom(42); //!! start reproducibly (see docu at onramp.js)
-console.log("Warning: Using seeded random number generator for debugging");
-console.log("see https://github.com/davidbau/seedrandom");
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
-
 
 var myRun=setInterval(main_loop, 1000/fps);
 

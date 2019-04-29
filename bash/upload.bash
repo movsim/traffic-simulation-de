@@ -19,7 +19,7 @@ $startDir/bash/engl2ger.bash
 projects="ring onramp offramp roadworks uphill routing routingGame roundabout"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
-cd $startDir
+cd $startDir 
 
 echo "preparing target Directory $targetDir"
 
@@ -50,7 +50,7 @@ done
 # add the index html (just one of the projects)
 html_files="${html_files} index.html index_ger.html" 
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
+js_files="seedrandom.min.js redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
@@ -88,7 +88,7 @@ cp -rp info $targetDir
 
 echo "Testing uploaded package:"
 #echo "notice: zip download of sources only works in upload target"
-firefox $targetDir/index.html
+chromium-browser $targetDir/index.html
 
 
 #############################################
@@ -123,5 +123,6 @@ echo " e.g."
 echo "rm -r $HOME/public_html/professional/trafficSimulationDe_html5"
 echo "cp -rp $targetForUpload $HOME/public_html/professional/trafficSimulationDe_html5"
 
+echo "WATCH OUT: index.html is overridden/defined in $startDir/bash/engl2ger.bash"
 
 # www.mtreiber.de/trafficSimulationDe_html5_2018_10_19
