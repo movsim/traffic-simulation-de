@@ -339,7 +339,7 @@ function trajRamp_y(u){ // physical coordinates
 
 var speedInit=20; // m/s
 var densityInit=0.001;
-var truckFracToleratedMismatch=0.2; 
+var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
 duTactical=300; // anticipation distance for applying mandatory LC rules

@@ -192,7 +192,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
+var truckFracToleratedMismatch=1.0; // open system: need tolerance, otherwise
                       // sudden changes with new incoming/outgoing vehicles
 
 var speedInit=20; // IC for speed

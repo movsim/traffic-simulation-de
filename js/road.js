@@ -1,3 +1,16 @@
+/*
+
+// !! debugging: making simulations reproducible (see docu at onramp.js)
+
+Math.seedrandom(42); 
+console.log(Math.random());          // Always 0.0016341939679719736 with 42
+console.log(Math.random());          // Always 0.9364577392619949 with 42
+Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
+
+*/
+
+
+
 //#############################################################
 // Physical dynamics of the vehicles on a road section
 //#############################################################
@@ -46,6 +59,8 @@ they are specially drawn and externally influenced from the main program
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	      densInitPerLane,speedInit,truckFracInit,isRing,doGridding){
+
+
 
     //console.log("1. in road cstr: traj_x(0)=",traj_x(0));
     this.roadID=roadID;
@@ -386,9 +401,10 @@ road.prototype.subtractOneLane = function(){
 //######################################################################
 
 road.prototype.writeVehicles= function(umin,umax) {
-    console.log("\nin road.writeVehicles(): ID=",this.roadID,
+    console.log("\nin road.writeVehicles(): itime=",itime,
+		" roadID=",this.roadID,
 		" nveh=",this.veh.length,
-		" roadLen="+this.roadLen);
+		" roadLen=",this.roadLen);
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -421,9 +437,9 @@ road.prototype.writeVehicles= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function(umin,umax) {
-    console.log("\nin road.writeVehiclesSimple(): ID=",this.roadID,
+    console.log("\nin road.writeVehiclesSimple(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
-		" nLanes=",this.nLanes," itime="+itime);
+		" nLanes=",this.nLanes," itime=",itime);
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -2884,7 +2900,8 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 // update truck percentage by changing vehicle type of existing vehs
   // do not correct if minor mismatch 
   // since this can happen due to inflow/outflow
-  // open roads: mismatchTolerated about 0.2; ring: mismatchTolerated=0
+  // open roads: mismatchTolerated essentially any=1.0
+  // ring: mismatchTolerated nonzero but small
 //######################################################################
 
 //!! only here in road

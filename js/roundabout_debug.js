@@ -13,8 +13,8 @@ respectRightPrio=false; // callback: control_gui-handleChangedPriority
 
 // debugging switches
 
-var markVehsMerge=false; // for debugging road.mergeDiverge
-var drawVehIDs=false;    // for debugging road.mergeDiverge
+var markVehsMerge=true; // for debugging road.mergeDiverge
+var drawVehIDs=true;    // for debugging road.mergeDiverge
 var useSsimpleOD_debug=false;
 var drawRingDirect=false; // draw ring vehicles directly instead gen Traj (debug)
 
@@ -27,7 +27,7 @@ var paddingLTC=20;      // merge: visib. extension for origin by target vehs
 var fracArmBegin=0.87; // merge begin at fracArmBegin of arm length
 var fracArmEnd=0.92; // merge end at fracArmEnd of arm length
 
-// vehicle properties
+// vehicle and traffic properties
 
 truckFrac=0.2; // overrides control_gui 0.15
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
@@ -194,30 +194,38 @@ function trajRing_y(u){
 }
 
 
-// arms 1 and 2 (ingoing/outgoing east arms)
+// arms 0 and 1 (ingoing/outgoing east arms)
 
 
 
-function traj1_x(u){ 
+function traj0_x(u){ 
     var dxPhysFromCenter=(u<uc1) ? x01-u : xc1-r1*Math.sin((u-uc1)/r1);
     return center_xPhys+dxPhysFromCenter;
 }
 
-function traj1_y(u){ 
+function traj0_y(u){ 
     var dyPhysFromCenter=(u<uc1) ? 0.5*laneWidth : yc1-r1*Math.cos((u-uc1)/r1);
     return center_yPhys+dyPhysFromCenter;
 }
 
+function traj1_x(u){ 
+    return traj0_x(lArm-u);
+}
+
+function traj1_y(u){ 
+    return -traj0_y(lArm-u)+2*center_yPhys;
+}
+
+
+// arms 2 and 3 (ingoing/outgoing south arms)
+
 function traj2_x(u){ 
-    return traj1_x(lArm-u);
+    return traj0_y(u)-center_yPhys+center_xPhys;
 }
 
 function traj2_y(u){ 
-    return -traj1_y(lArm-u)+2*center_yPhys;
+    return -traj0_x(u)+center_xPhys+center_yPhys;
 }
-
-
-// arms 3 and 4 (ingoing/outgoing south arms)
 
 function traj3_x(u){ 
     return traj1_y(u)-center_yPhys+center_xPhys;
@@ -227,16 +235,16 @@ function traj3_y(u){
     return -traj1_x(u)+center_xPhys+center_yPhys;
 }
 
+
+// arms 4 and 5 (ingoing/outgoing west arms)
+
 function traj4_x(u){ 
-    return traj2_y(u)-center_yPhys+center_xPhys;
+    return -traj0_x(u)+2*center_xPhys;;
 }
 
 function traj4_y(u){ 
-    return -traj2_x(u)+center_xPhys+center_yPhys;
+    return -traj0_y(u)+2*center_yPhys;
 }
-
-
-// arms 5 and 6 (ingoing/outgoing west arms)
 
 function traj5_x(u){ 
     return -traj1_x(u)+2*center_xPhys;;
@@ -246,6 +254,8 @@ function traj5_y(u){
     return -traj1_y(u)+2*center_yPhys;
 }
 
+// arms 6 and 7 (ingoing/outgoing north arms)
+
 function traj6_x(u){ 
     return -traj2_x(u)+2*center_xPhys;;
 }
@@ -254,22 +264,12 @@ function traj6_y(u){
     return -traj2_y(u)+2*center_yPhys;
 }
 
-// arms 7 and 8 (ingoing/outgoing north arms)
-
 function traj7_x(u){ 
     return -traj3_x(u)+2*center_xPhys;;
 }
 
 function traj7_y(u){ 
     return -traj3_y(u)+2*center_yPhys;
-}
-
-function traj8_x(u){ 
-    return -traj4_x(u)+2*center_xPhys;;
-}
-
-function traj8_y(u){ 
-    return -traj4_y(u)+2*center_yPhys;
 }
 
 
@@ -326,21 +326,23 @@ uLastExits[3]=rRing*(0.25*Math.PI-stitchAngleOffset)+divLen;
 
 
 
-mainroad.setOfframpInfo([2,4,6,8], uLastExits, [true,true,true,true]);
+// !! odd roadIDs are offramps!!
+mainroad.setOfframpInfo([1,3,5,7], uLastExits, [true,true,true,true]);
+
 console.log("mainroad.offrampIDs=",mainroad.offrampIDs);
 console.log("mainroad.offrampLastExits=",mainroad.offrampLastExits);
 mainroad.duTactical=divLen;
 
 
 var arm=[]; 
-arm[0]=new road(1,lArm,laneWidth,nLanes_arm,traj1_x,traj1_y,0,0,0,false);
-arm[1]=new road(2,lArm,laneWidth,nLanes_arm,traj2_x,traj2_y,0,0,0,false);
-arm[2]=new road(3,lArm,laneWidth,nLanes_arm,traj3_x,traj3_y,0,0,0,false);
-arm[3]=new road(4,lArm,laneWidth,nLanes_arm,traj4_x,traj4_y,0,0,0,false);
-arm[4]=new road(5,lArm,laneWidth,nLanes_arm,traj5_x,traj5_y,0,0,0,false);
-arm[5]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
-arm[6]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
-arm[7]=new road(8,lArm,laneWidth,nLanes_arm,traj8_x,traj8_y,0,0,0,false);
+arm[0]=new road(0,lArm,laneWidth,nLanes_arm,traj0_x,traj0_y,0,0,0,false);
+arm[1]=new road(1,lArm,laneWidth,nLanes_arm,traj1_x,traj1_y,0,0,0,false);
+arm[2]=new road(2,lArm,laneWidth,nLanes_arm,traj2_x,traj2_y,0,0,0,false);
+arm[3]=new road(3,lArm,laneWidth,nLanes_arm,traj3_x,traj3_y,0,0,0,false);
+arm[4]=new road(4,lArm,laneWidth,nLanes_arm,traj4_x,traj4_y,0,0,0,false);
+arm[5]=new road(5,lArm,laneWidth,nLanes_arm,traj5_x,traj5_y,0,0,0,false);
+arm[6]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
+arm[7]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
 
 for (var i=0; i<arm.length; i++){
     arm[i].padding=padding;
@@ -355,19 +357,19 @@ for (var i=0; i<arm.length; i++){
 // 2=E-arm, outgoing, 4=S-arm, outgoing,  6=W-arm, outgoing, 8=N-arm, outgoing
 //################################################################
 
-var route1L=[1,10,4];  // inflow E-arm, left turn
-var route1C=[1,10,6];  // inflow E-arm, straight ahead
-var route1R=[1,10,8];  // inflow E-arm, right turn
-var route1U=[1,10,2];  // inflow E-arm, U-tern
-var route3L=[3,10,6];  // inflow S-arm, left turn
-var route3C=[3,10,8];  // inflow S-arm, straight ahead
-var route3R=[3,10,2];  // inflow S-arm, right turn
-var route5L=[5,10,8];  // inflow W-arm, left turn
-var route5C=[5,10,2];  // inflow W-arm, straight ahead
-var route5R=[5,10,4];  // inflow W-arm, right turn
-var route7L=[7,10,2];  // inflow N-arm, left turn
-var route7C=[7,10,4];  // inflow N-arm, straight ahead
-var route7R=[7,10,6];  // inflow N-arm, right turn
+var route1L=[0,10,3];  // inflow E-arm, left turn
+var route1C=[0,10,5];  // inflow E-arm, straight ahead
+var route1R=[0,10,7];  // inflow E-arm, right turn
+var route1U=[0,10,1];  // inflow E-arm, U-tern
+var route3L=[2,10,5];  // inflow S-arm, left turn
+var route3C=[2,10,7];  // inflow S-arm, straight ahead
+var route3R=[2,10,1];  // inflow S-arm, right turn
+var route5L=[4,10,7];  // inflow W-arm, left turn
+var route5C=[4,10,1];  // inflow W-arm, straight ahead
+var route5R=[4,10,3];  // inflow W-arm, right turn
+var route7L=[6,10,1];  // inflow N-arm, left turn
+var route7C=[6,10,3];  // inflow N-arm, straight ahead
+var route7R=[6,10,5];  // inflow N-arm, right turn
 
 
 
@@ -378,7 +380,7 @@ var route7R=[7,10,6];  // inflow N-arm, right turn
 //############################################################
 
 for(var i=0; i<8; i+=2){
-    arm[i].veh.unshift(new vehicle(0, laneWidth, mergeEnd, 0, 0, "obstacle"));
+    arm[i].veh.unshift(new vehicle(0.0, laneWidth, mergeEnd, 0, 0, "obstacle"));//!!!
 }
 
 
@@ -673,7 +675,18 @@ function updateSim(){
 
     mainroad.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
-        arm[i].updateSpeedPositions();//!!!
+        arm[i].updateSpeedPositions();
+        // !!! forcibly move vehicles behind virtual obstacle vehicle 0
+        // if they cross it (may happen for very low a, T)
+        // to avoid bugs (otherwise, the vehicle will orbit perpetually
+        // on (traj_x,traj_y) instead of merging)
+
+	if(false){// error reproduced if not commented out: veh 1063 circles first from N
+	//if(arm[i].veh.length>=2){// !!! error removed if not commented out
+	    if(arm[i].veh[1].u>arm[i].veh[0].u-0.1){
+	        arm[i].veh[1].u=arm[i].veh[0].u-0.1;
+	    }
+	}
     } 
 
 
@@ -685,6 +698,43 @@ function updateSim(){
 	}
     }
 
+
+    //##############################################################
+    // debug output
+    //##############################################################
+
+    var idTest=812;
+    for(var iArm=0; iArm<8; iArm++){
+	for(var iveh=0; iveh<arm[iArm].veh.length; iveh++){
+	    if(arm[iArm].veh[iveh].id==idTest){
+		console.log("time=",time," itime=",itime, " vehID=",idTest,
+			    " road=arm",iArm, "iveh=",iveh,
+			    " u=",arm[iArm].veh[iveh].u,
+			    " veh0.u=",arm[iArm].veh[0].u
+			   );
+	    }
+	}
+    }
+    for(var iveh=0; iveh<mainroad.veh.length; iveh++){
+	if(mainroad.veh[iveh].id==idTest){
+		console.log("time=",time," itime=",itime, " vehID=",idTest,
+			    " road=mainroad, iveh=",iveh,
+			    " u=",mainroad.veh[iveh].u
+			   );
+	}
+    }
+
+
+
+    //if((itime>=165)&&(itime<=168)){
+    if(false){
+	console.log("\nDebug updateSim: Simulation time=",time,
+		    " itime=",itime);
+	mainroad.writeVehiclesSimple();
+	//console.log("\nonramp vehicles, simulation time=",time,":");
+	arm[6].writeVehiclesSimple();
+	arm[7].writeVehiclesSimple();
+    }
 
 
 }//updateSim
@@ -732,14 +782,14 @@ function drawSim() {
 	
 
 	mainroad.gridTrajectories(trajRing_x,trajRing_y);
-        arm[0].gridTrajectories(traj1_x,traj1_y);
-        arm[1].gridTrajectories(traj2_x,traj2_y);
-        arm[2].gridTrajectories(traj3_x,traj3_y);
-        arm[3].gridTrajectories(traj4_x,traj4_y);
-        arm[4].gridTrajectories(traj5_x,traj5_y);
-        arm[5].gridTrajectories(traj6_x,traj6_y);
-        arm[6].gridTrajectories(traj7_x,traj7_y);
-        arm[7].gridTrajectories(traj8_x,traj8_y);
+        arm[0].gridTrajectories(traj0_x,traj0_y);
+        arm[1].gridTrajectories(traj1_x,traj1_y);
+        arm[2].gridTrajectories(traj2_x,traj2_y);
+        arm[3].gridTrajectories(traj3_x,traj3_y);
+        arm[4].gridTrajectories(traj4_x,traj4_y);
+        arm[5].gridTrajectories(traj5_x,traj5_y);
+        arm[6].gridTrajectories(traj6_x,traj6_y);
+        arm[7].gridTrajectories(traj7_x,traj7_y);
     }
 
 
@@ -900,8 +950,7 @@ showInfo();
 // Math.seedrandom(42) will lead at 47.0 s to the first bug: 
 // The car entering the North arm begins circling around 
 
-//Math.seedrandom('hello.');
-Math.seedrandom(42);
+Math.seedrandom(42); //!! start reproducibly (see docu at onramp.js)
 console.log("Warning: Using seeded random number generator for debugging");
 console.log("see https://github.com/davidbau/seedrandom");
 console.log(Math.random());          // Always 0.0016341939679719736 with 42

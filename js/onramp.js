@@ -1,11 +1,36 @@
+/* Creating reproducible versions for debugging purposes:
 
-// adapt settings from control_gui.js
+(1) include <script src="js/seedrandom.min.js"></script> in html file
+    (from https://github.com/davidbau/seedrandom, copied locally)
 
-densityInit=0.02; 
+(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
+    in all files containing Math.random commands 
+    => at present, only road.js
+
+*/
+
 
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
+
+// override standard dettings control_gui.js
+
+densityInit=0.02; 
+
+//var nLanes_main=1; //!!debug
+var nLanes_main=3;
+var nLanes_rmp=1;
+
+/*
+truckFrac=truckFracInit=0.4; // also change *Init because of init display
+slider_truckFrac.value=100*truckFrac;
+slider_truckFrac.innerHTML=100*truckFrac+"%";
+
+timewarp=timewarpInit=2;
+slider_timewarp.value=timewarpInit;
+slider_timewarpVal.innerHTML=timewarpInit +" times";
+*/
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -42,7 +67,6 @@ var scenarioString="OnRamp";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
-var outerContainer=document.getElementById("container"); 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
 var ctx = canvas.getContext("2d"); // graphics context
@@ -86,7 +110,7 @@ var scale=refSizePix/refSizePhys;
 var center_xRel=0.43;
 var center_yRel=-0.54;
 var arcRadiusRel=0.35;
-var rampLenRel=0.9;
+var rampLenRel=0.95;
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
@@ -100,6 +124,7 @@ var rampLen=rampLenRel*refSizePhys;
 var mergeLen=0.5*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 var taperLen=0.2*rampLen;
+//var taperLen=0.5*rampLen;
 var rampRadius=4*arcRadius;
 
 
@@ -125,8 +150,6 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
 var laneWidthRamp=5;
-var nLanes_main=3;
-var nLanes_rmp=1;
 
 
 var car_length=7; // car length in m
@@ -135,8 +158,8 @@ var truck_length=15; // trucks
 var truck_width=7; 
 
 
-// on constructing road, road elements are gridded and interna
-// road.traj_xy(u) are generated. The, traj_xy*(u) obsolete
+// on constructing road, road elements are gridded and internal
+// road.traj_xy(u) are generated. Then, traj_xy*(u) obsolete
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -192,8 +215,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: need tolerance, otherwise
-                      // sudden changes with new incoming/outgoing vehicles
+var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
@@ -211,7 +233,7 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
 
-var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.6*taperLen, 0, 0, "obstacle");
+var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
 
 ramp.veh.unshift(virtualStandingVeh);
 
@@ -346,9 +368,6 @@ function updateSim(){
     itime++;
     isSmartphone=mqSmartphone();
 
-    // transfer effects from slider interaction 
-    // and changed mandatory states to the vehicles and models 
-
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
@@ -358,6 +377,7 @@ function updateSim(){
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+
 
     // externally impose mandatory LC behaviour
     // all ramp vehicles must change lanes to the left (last arg=false)
@@ -410,10 +430,13 @@ function updateSim(){
 
     // write vehicle positions of mainroad and onramp to console for external use
 
+    //if((itime>=125)&&(itime<=128)){
     if(false){
-	console.log("\nmainroad vehicles, simulation time=",time,":");
+	console.log("updateSim: Simulation time=",time,
+		    " itime=",itime);
+	console.log("\nmainroad vehicles:");
 	mainroad.writeVehiclesSimple();
-	console.log("\nonramp vehicles, simulation time=",time,":");
+	//console.log("\nonramp vehicles:");
 	ramp.writeVehiclesSimple();
     }
 
@@ -586,5 +609,6 @@ function main_loop() {
 
 console.log("first main execution");
 showInfo();
+
 var myRun=setInterval(main_loop, 1000/fps);
 

@@ -183,8 +183,7 @@ function traj_y(u){ // physical coordinates
 var isRing=false;  // 0: false; 1: true
 var roadID=1;
 var speedInit=20; // IC for speed
-var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
-             // otherwise sudden changes with new incoming/outgoing vehicles
+var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // m/s
 

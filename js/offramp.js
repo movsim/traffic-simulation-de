@@ -188,8 +188,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=0.2; // open system: updateSim:  need tolerance,
-             // otherwise sudden changes with new incoming/outgoing vehicles
+var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
