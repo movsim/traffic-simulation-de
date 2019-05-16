@@ -12,6 +12,7 @@
 *.out
 *.toc
 *.dvi
+*.bash
 
 ## Figure files (no longer)
 #*.fig
