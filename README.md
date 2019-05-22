@@ -1,5 +1,5 @@
 # traffic-simulation.de
-Source code for the interactive Javascript simulation of  [www.traffic-simulation.de](http://www.traffic-simulation.de)
+Source code for the interactive Javascript simulation at  [www.traffic-simulation.de](http://www.traffic-simulation.de)
 
 ## Running the Simulation
 
@@ -19,7 +19,8 @@ What to do with this canvas is specified in the _init()_ procedure of onramp.js 
 
 `return setInterval(main_loop, 1000/fps);`
 
-In future versions, an additional control file _canvasresize.js_ will implement a responsive design.
+The initial canvas dimensions are overridden depending on the actual browser's
+viewport size by additional controls in _canvasresize.js_ implementing a responsive design.
 
 ## Programm Files and Structure
 
@@ -51,9 +52,6 @@ a collection of pseudo-classes for the longitudinal models (presently, the IDM),
 
 Helper-class providing some speed and type-dependent color maps to draw the vehicles.
 
-### dw_slider.js
-
-external open library to implement sliders. Has some drawbacks (no docu of how to change sliders programmatically, initialize them to arbitrary values). In future versions, I plan to replace them with generic html5 sliders (range element).
 
 ### redirect.js
 
