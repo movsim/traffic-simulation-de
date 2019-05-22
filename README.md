@@ -1,9 +1,9 @@
-# traffic-simulation-de
-Source code for javascript simulation of  [www.traffic-simulation.de](http://www.traffic-simulation.de)
+# traffic-simulation.de
+Source code for the interactive Javascript simulation of  [www.traffic-simulation.de](http://www.traffic-simulation.de)
 
 ## Running the Simulation
 
-This simulation uses JavaScript/html5.
+This simulation uses JavaScript together with html5.
 
 The master html file, for example onramp.html, starts the actual simulation by the canvas tag:
 ```
