@@ -403,7 +403,7 @@ road.prototype.subtractOneLane = function(){
 road.prototype.writeVehicles= function(umin,umax) {
     console.log("\nin road.writeVehicles(): itime=",itime,
 		" roadID=",this.roadID,
-		" nveh=",this.veh.length,
+		" nVehicles=",this.veh.length,
 		" roadLen=",this.roadLen);
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
@@ -1798,12 +1798,14 @@ road.prototype.setCFModelsInRange
 
 road.prototype.setLCModelsInRange
     =function(umin,umax,LCModelCar,LCModelTruck){
-
+	//console.log("within road.setLCModelsInRange: LCModelTruck=",LCModelTruck);
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
 	if((u>umin)&&(u<umax)){
 	    if(this.veh[i].type==="car"){this.veh[i].LCModel=LCModelCar;}
-	    if(this.veh[i].type==="truck"){this.veh[i].LCModel=LCModelTruck;}
+	    if(this.veh[i].type==="truck"){this.veh[i].LCModel=LCModelTruck;
+					   //console.log("u=",u," veh[i].LCModel=",this.veh[i].LCModel);
+					  }
 	}
     }
 }

@@ -42,6 +42,8 @@ vehicleDepot object constructor
 
 */
 
+// DOS, does not work, nothing defined
+//function vehicleDepot(){return new vehicleDepot(1,0,0,0,0,0,0,false);}
 
 
 function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
@@ -68,7 +70,8 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
     this.veh=[];
     var idmin=50; // see top of this file
     var idminTL=100; // see top of this file
-    while(idmin%nImgs!=0){idmin++;}
+    console.log("idmin=",idmin," nImgs=",nImgs);
+    while((idmin%nImgs!=0)&&(idmin<1000)){idmin++;} // !! second cond to avoid infinite loop if nImgs not defined
 
     var latDistVeh=this.wVeh*(1+this.gapRel);
 

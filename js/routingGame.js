@@ -30,7 +30,7 @@ truckFrac=0.15;
 IDM_a=0.9; 
 
 MOBIL_bBiasRight_car=0.0
-MOBIL_bBiasRight_truck=0.0
+MOBIL_bBiasRight_truck=5.0
 MOBIL_bThr=0.0
 
 
@@ -82,6 +82,12 @@ console.log("after addTouchListeners()");
 // overall scaling (critAspectRatio should be consistent with 
 // width/height in css.#contents)
 //##################################################################
+
+const mqSmartphoneLandscape //xxx
+      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
+const mqSmartphonePortrait
+      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
+var isSmartphone=mqSmartphone();
 
 var refSizePhys=320;  // constants => all objects scale with refSizePix
 
@@ -483,12 +489,9 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
 
-/*var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
-			   40,40,true);
-*/
+var smallerDimPix=Math.min(canvas.width,canvas.height);
+var depot=new vehicleDepot(1,0,0,0,0,0,0,false);
+
 
 //############################################
 // run-time specification and functions
@@ -636,6 +639,9 @@ function drawSim() {
      responsive design if canvas has been resized 
      */
 
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
+   
     var hasChanged=false;
 
     if(false){

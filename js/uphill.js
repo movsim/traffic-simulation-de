@@ -115,8 +115,8 @@ var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
-
-var uBeginBan=straightLen; // truck overtaking ban if clicked active
+var uBeginBanRel=0.; 
+var uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
 var uBeginUp=straightLen+0.3*arcLen;
 var uEndUp=straightLen+1.3*arcLen;
 
@@ -130,7 +130,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
     mainroadLen=arcLen+2*straightLen;
 
-    uBeginBan=straightLen; // truck overtaking ban if clicked active
+    uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
     uBeginUp=straightLen+0.8*arcLen;
     uEndUp=straightLen+1.1*arcLen;
 }
@@ -374,6 +374,7 @@ function updateSim(){
 				 longModelCarUphill,longModelTruckUphill);
     mainroad.setLCModelsInRange(uBeginBan,uEndUp,
 				 LCModelCarUphill,LCModelTruckUphill);
+    //console.log("after mainroad.setLCModelsInRange: longModelTruckUphill=",longModelTruckUphill," LCModelTruckUphill=",LCModelTruckUphill);
 
     // do central simulation update of vehicles
 
@@ -383,6 +384,27 @@ function updateSim(){
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
+
+    //!!! MT 2019-06 BRUTE FORCE the trucks to the right if banIsActive
+
+    if(banIsActive){
+	console.log("Test why trucks do not obey ban:");
+	//console.log("nVehicles=",mainroad.veh.length);
+	for (var i=0; i<mainroad.veh.length; i++){
+	    //if((mainroad.veh[i].type=="truck")&&(mainroad.veh[i].u>50)){
+	    //if((mainroad.veh[i].type=="truck")&&(mainroad.veh[i].LCModel.bBiasRight<10)){
+	    if(mainroad.veh[i].type=="truck"){
+		//console.log("i=",i," type=",mainroad.veh[i].type," u=",mainroad.veh[i].u," lane=",mainroad.veh[i].lane," v=",mainroad.veh[i].v," bBiasRight=",mainroad.veh[i].LCModel.bBiasRight);
+			   
+		if(mainroad.veh[i].lane<nLanes_main-1){
+		    console.log("caught truck on wrong lane! u=",mainroad.veh[i].u);
+		    //mainroad.veh[i].lane=nLanes_main-1; // 0=left
+		    //mainroad.veh[i].v=nLanes_main-1; // 0=left
+		}
+	    }
+	}
+    }
+	
 
     if(true){
 	for (var i=0; i<mainroad.nveh; i++){

@@ -299,24 +299,32 @@ but at present w/o politeness
 MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
 					   toRight,log){
 
+    var signRight=(toRight) ? 1 : -1;
+
     // safety criterion
 
     var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
-    if(accLagNew<-bSafeActual){return false;}
-
+    //if(accLagNew<-bSafeActual){return false;} //!! <jun19
+    //if((accLagNew<-bSafeActual)&&(signRight*this.bBiasRight<41)){return false;}//!!! override safety criterion to really enforce overtaking ban OPTIMIZE
+    if(signRight*this.bBiasRight>40){console.log("forced LC!"); return true;}
+    if(accLagNew<Math.min(-bSafeActual,-Math.abs(this.bBiasRight))){return false;}//!!!
+    
 
     // incentive criterion
 
     var dacc=accNew-acc+this.p*accLagNew //!! new
-	+ this.bBiasRight*((toRight) ? 1 : -1)- this.bThr;
+	+ this.bBiasRight*signRight - this.bThr;
 
+    // hard-prohibit LC against bias if |bias|>9 m/s^2
+    
+    if(this.bBiasRight*signRight<-9){dacc=-1;}
 
     // debug before return
 
     if(false){
-    //if(dacc>0){console.log("positive MOBIL LC decision!");
+    //if((dacc>0)&&(!toRight)){
 	console.log(
-		"positive MOBIL LC decision!",
+		"!!!!! positive left MOBIL LC decision!",
 		"\n vrel=",parseFloat(vrel).toFixed(2),
 		" bSafeActual=",parseFloat(bSafeActual).toFixed(2),
 		" acc=",parseFloat(acc).toFixed(2),

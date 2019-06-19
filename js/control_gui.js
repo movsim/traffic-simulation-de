@@ -317,13 +317,16 @@ function toggleTruckOvertakingBan(){
 	document.getElementById('overtakingBan').innerHTML
 	    ="Enforce Truck Overtaking Ban";
 	LCModelTruckUphill=LCModelTruck;
-    }
+   }
     else{
 	banIsActive=true;
 	document.getElementById('overtakingBan').innerHTML
 	    ="Lift Truck Overtaking Ban";
 	LCModelTruckUphill=LCModelTruckLCban;
     }
+    console.log("control_gui.toggleTruckOvertakingBan: LCModelTruckUphill=",
+		LCModelTruckUphill);
+ 
 }
 
 
@@ -817,7 +820,8 @@ function updateModels(){
 			       MOBIL_mandat_p,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
-    console.log("control_gui.updateModels: LCModelCar=",LCModelCar);
+    console.log("control_gui.updateModels: LCModelCar=",LCModelCar,
+		" LCModelTruck=",LCModelTruck);
 
 
 }
@@ -834,8 +838,11 @@ function updateModelsUphill(){
     longModelCarUphill=longModelCar;
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCarUphill=LCModelCar;
-    LCModelTruckUphill=LCModelTruck;
     LCModelTruckLCban=LCModelMandatory;
+    LCModelTruckUphill=(banIsActive) ? LCModelTruckLCban : LCModelTruck;
+    console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
+		LCModelTruckUphill,
+		"\n LCModelTruckLCban=",LCModelTruckLCban);
 }
 
 // example for changing sliders from standard init setting in gui
