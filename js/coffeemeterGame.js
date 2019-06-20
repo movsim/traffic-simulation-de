@@ -67,6 +67,10 @@ var MOBIL_mandat_biasRight=20;
 
 //var longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
 //var longModelTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
+
+//!!! MT jun19 Try to bring all modl definitions into coffeemeterGame_gui.js
+// in analogy to control_gui.js
+
 var LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_b,
                          MOBIL_bThr, MOBIL_bBiasRight_car);
 var LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_b,

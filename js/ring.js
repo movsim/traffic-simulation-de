@@ -129,20 +129,12 @@ var mainDetectors=[];
 mainDetectors[0]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
-//#########################################################
-// model specifications (ALL) parameters in control_gui.js)
-//#########################################################
 
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory;
-//var LCModelMandatoryRight; // =LCModelMandatory  (biasRight>0)
-//var LCModelMandatoryLeft;  // =LCModelMandatory with other sign in biasRight
+//#########################################################
+// model initialization (models and methods defined in control_gui.js)
+//#########################################################
 	
-updateModels(); //  from control_gui.js  => define the 6 above models
-
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
 //####################################################################

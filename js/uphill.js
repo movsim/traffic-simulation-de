@@ -3,35 +3,39 @@ var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
 //#############################################################
-// adapt standard param settings from control_gui.js
+// override standard param settings from control_gui.js
 //#############################################################
 
 density=0.;
 
-truckFrac=0.25;
+truckFrac=0.40; //  0.25
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
-qIn=2600./3600; 
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+timewarp=5; //  default 6 in control_gui.js
+slider_timewarp.value=timewarp;
+slider_timewarpVal.innerHTML = timewarp +" times";
 
-IDM_a=0.5; // low to allow stopGo
+qIn=2500./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+
+IDM_a=1.5; // high to allow passing cars if truck overtaking ban active
 slider_IDM_a.value=IDM_a;
 slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 factor_a_truck=2; // to allow faster slowing down of the uphill trucks
 
 
-IDM_v0Up=80./3.6
+IDM_v0Up=30/3.6
 slider_IDM_v0Up.value=3.6*IDM_v0Up;
-slider_IDM_v0UpVal.innerHTML=3.6*IDM_v0Up+" veh/h";
+slider_IDM_v0UpVal.innerHTML=Math.round(3.6*IDM_v0Up)+" veh/h";
 
-MOBIL_bBiasRight_car=0.2;
+MOBIL_bBiasRight_car=-0.1;
 slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
 slider_MOBIL_bBiasRight_carVal.innerHTML=MOBIL_bBiasRight_car
     +" m/s<sup>2</sup>";
 
-MOBIL_bBiasRight_truck=0.4;
+MOBIL_bBiasRight_truck=0.1;
 slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
 slider_MOBIL_bBiasRight_truckVal.innerHTML=MOBIL_bBiasRight_truck
     +" m/s<sup>2</sup>";
@@ -103,19 +107,23 @@ var scale=refSizePix/refSizePhys;
 // If refSizePhys changes, change them all => updatePhysicalDimensions();
 //##################################################################
 
+
 var center_xRel=0.43;
 var center_yRel=-0.55;
 var arcRadiusRel=0.35;
 var offLenRel=0.9;
 
-var center_xPhys=center_xRel*refSizePhys; //[m]
+var center_xPhys=center_xRel*refSizePhys; //[m] DOS for shifting w/resp
+                                          // to viewport; redefine
+                                          // traj_x(u) for that
 var center_yPhys=center_yRel*refSizePhys;
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
-var uBeginBanRel=0.; 
+var uBeginBanRel=0.1; //MT jun2019
+var uminLC=uBeginBanRel*straightLen+1; // pass to mainroad.uminLC once def.
 var uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
 var uBeginUp=straightLen+0.3*arcLen;
 var uEndUp=straightLen+1.3*arcLen;
@@ -155,11 +163,12 @@ var laneWidth=7;
 
 
 function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
+    var dxPhysFromCenter= // left side (median), phys coordinates
+	(u<straightLen) ? straightLen-u
+	: (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	: -arcRadius*Math.sin((u-straightLen)/arcRadius);
+    //dxPhysFromCenter -=10; // !!! activate if testing inflow
+    return center_xPhys+dxPhysFromCenter;
 }
 
 function traj_y(u){ // physical coordinates
@@ -177,7 +186,7 @@ function traj_y(u){ // physical coordinates
 //##################################################################
 
 
-// uphill proprty only in sim run by setLCModelsInRange => changes models
+// uphill property only in sim run by setLCModelsInRange => changes models
 // for all veh between umin and umax
 
 var isRing=false;  // 0: false; 1: true
@@ -189,22 +198,15 @@ var speedInit=20; // m/s
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      density, speedInit,truckFrac, isRing, userCanDistortRoads);
-
+mainroad.uminLC=uminLC;
 
 
 //#########################################################
-// model specifications (ALL) parameters in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory; // left-right discrim in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 5 above models
-updateModelsUphill(); // addl uphill long models (ctrl later on by slider)
-
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+updateModelsUphill(); // defines [long|LC]Model[Car|Truck]uphill
 
 
 //####################################################################
@@ -374,7 +376,6 @@ function updateSim(){
 				 longModelCarUphill,longModelTruckUphill);
     mainroad.setLCModelsInRange(uBeginBan,uEndUp,
 				 LCModelCarUphill,LCModelTruckUphill);
-    //console.log("after mainroad.setLCModelsInRange: longModelTruckUphill=",longModelTruckUphill," LCModelTruckUphill=",LCModelTruckUphill);
 
     // do central simulation update of vehicles
 
@@ -384,26 +385,6 @@ function updateSim(){
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
-
-    //!!! MT 2019-06 BRUTE FORCE the trucks to the right if banIsActive
-
-    if(banIsActive){
-	console.log("Test why trucks do not obey ban:");
-	//console.log("nVehicles=",mainroad.veh.length);
-	for (var i=0; i<mainroad.veh.length; i++){
-	    //if((mainroad.veh[i].type=="truck")&&(mainroad.veh[i].u>50)){
-	    //if((mainroad.veh[i].type=="truck")&&(mainroad.veh[i].LCModel.bBiasRight<10)){
-	    if(mainroad.veh[i].type=="truck"){
-		//console.log("i=",i," type=",mainroad.veh[i].type," u=",mainroad.veh[i].u," lane=",mainroad.veh[i].lane," v=",mainroad.veh[i].v," bBiasRight=",mainroad.veh[i].LCModel.bBiasRight);
-			   
-		if(mainroad.veh[i].lane<nLanes_main-1){
-		    console.log("caught truck on wrong lane! u=",mainroad.veh[i].u);
-		    //mainroad.veh[i].lane=nLanes_main-1; // 0=left
-		    //mainroad.veh[i].v=nLanes_main-1; // 0=left
-		}
-	    }
-	}
-    }
 	
 
     if(true){
@@ -518,8 +499,8 @@ function drawSim() {
 	var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,scale);
 	var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,scale);
 	var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,scale);
-	var xPixBan=mainroad.get_xPix(uBeginBan,-0.5*vOffset,scale);
-	var yPixBan=mainroad.get_yPix(uBeginBan,-0.5*vOffset,scale);
+	var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
+	var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
 
         // center sign (the drawing coords denote the left upper corner)
 

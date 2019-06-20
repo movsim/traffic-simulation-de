@@ -39,7 +39,8 @@ MOBIL_mandat_bSafe=15; // standard 42
 MOBIL_mandat_bThr=0;   
 MOBIL_mandat_bias=10;
 
-// behavior during bottlenecks (car and trucks)
+// behavior during bottlenecks (car and trucks) reduced v0 etc
+// distributed over the vehicles in ramp.setCFModelsInRange
 
 var longModelBottl=new ACC(0.2*IDM_v0,8*IDM_T,1*IDM_s0,2*IDM_a,0.5*IDM_b); 
 updateModels(); 
@@ -370,11 +371,6 @@ for (var i=0; i<mainroad.veh.length; i++){
 
 var virtualStandingVeh=new vehicle(2, laneWidth, lDev-0.6*taperLen, 0, 0, "obstacle");
 
-// need longmodel because of lagVeh!
-var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-var LCModelObstacle=undefined;
-virtualStandingVeh.longModel=longModelObstacle;
-virtualStandingVeh.LCModel=LCModelObstacle;
 ramp.veh.unshift(virtualStandingVeh); // prepending=unshift
 
 // add standing virtual vehicles at position of road works 
@@ -386,9 +382,7 @@ for (var ir=0; ir<nr; ir++){
     var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
     var virtualStandingVehRoadw=new vehicle(lenRoadworkElement, laneWidth, 
 					u,laneRoadwork, 0, "obstacle");
-     virtualStandingVehRoadw.longModel=longModelObstacle;
-     virtualStandingVehRoadw.LCModel=LCModelObstacle;
-     mainroad.veh.push(virtualStandingVehRoadw); // append; prepend=unshift
+    mainroad.veh.push(virtualStandingVehRoadw); // append; prepend=unshift
 }
 
 // put roadwork obstacles at right place and let vehicles get context of them 
@@ -398,18 +392,12 @@ mainroad.updateEnvironment();
 
 
 
-
 //#########################################################
-// model specifications (ALL) parameters in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 5 above models
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+
 
 //####################################################################
 // Global graphics specification and image file settings
@@ -560,6 +548,7 @@ function updateSim(){
 
     // implement flow-conserving bottleneck 
     // arg list: (umin,umax, CFModelCar,CFModelTruck)
+    
     ramp.setCFModelsInRange(udevBottlBeg,udevBottlEnd,
 				 longModelBottl,longModelBottl);
 

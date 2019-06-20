@@ -219,16 +219,10 @@ for (var i=0; i<mainroad.veh.length; i++){
 
 
 //#########################################################
-// model specifications (ALL) parameters in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 5 above models
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
 //####################################################################

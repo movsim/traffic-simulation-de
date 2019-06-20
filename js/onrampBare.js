@@ -225,17 +225,10 @@ mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
 
 
 //#########################################################
-// model specifications (ALL) parameters in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory;
 	
-updateModels(); //  from control_gui.js  => define the 5 above models
-
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
 //####################################################################

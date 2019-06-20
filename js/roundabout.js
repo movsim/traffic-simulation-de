@@ -382,18 +382,12 @@ for(var i=0; i<8; i+=2){
 }
 
 
-
-
 //#########################################################
-// model specifications (ALL default parameters set in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
+	
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory; // parameterisation in road.updateModelsOfAllVehicles
-updateModels(); //  from control_gui.js  => define the 5 standard  models
 
 // behavior if driving through ring and merge/diverges (car and trucks)
 // |lateral accel| <= comf deceleration b

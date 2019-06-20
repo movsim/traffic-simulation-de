@@ -95,7 +95,7 @@ function updateRoutingGame(time){
 	(time<120) ? 3300/3600 :
 	(time<125) ? 900/3600 : 0;
     slider_qIn.value=3600*qIn;
-    slider_qInVal.innerHTML=3600*qIn+" veh/h";
+    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
 }
 
 function finishRoutingGame(infotextID, qInInit){
@@ -771,42 +771,46 @@ else{
     }
 }
 
-
-
-
 //#########################################################
-// helper function
+// generic model declarations and fixed parameters w/o sliders
+// control_gui.js called before <scenario>.js, therefore here
 //#########################################################
 
+var longModelCar;
+var longModelTruck;
+var LCModelCar;
+var LCModelTruck;
+var LCModelMandatory; // left-right discrim in road.updateModelsOfAllVehicles
 
-// constant parameters and parameter-related constants
+var longModelCarUphill;
+var longModelTruckUphill;
+var LCModelCarUphill;
+var LCModelTruckUphill;
 
-// speeL=car-speeL default set to infinity, ctrl by slider if applicable
+// fixed model parameters w/o sliders
 
-speedL=1000/3.6; // already defined in the sliders above
-var speedL_truck=80/3.6;  
+var speedL_truck=80/3.6; // speedL already initialized in sliders above 
 
 var MOBIL_bSafe=4;     // bSafe if v to v0  (threshold, bias in sliders)
 var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
 
-var MOBIL_mandat_bSafe=42; // *mandat for addtl LCModelMandatoryRight/Left
+var MOBIL_mandat_bSafe=50; // *mandat for addtl LCModelMandatoryRight/Left
 var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_p=0;
 var MOBIL_mandat_bias=42;
 
-var factor_v0_truck=0.7;
+var factor_v0_truck=0.7; // define truck longModel as f(car longModel)
 var factor_a_truck=0.8;
 var factor_T_truck=1.2;
 
 
 function updateModels(){
+    var v0=Math.min(IDM_v0, speedL);
     var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedL_truck);
     var T_truck=factor_T_truck*IDM_T;
     var a_truck=factor_a_truck*IDM_a;
     console.log("updateModels: MOBIL_p=",MOBIL_p);
-    //var longModelCar etc defined (w/o value) in onramp.js 
-    // var MOBIL_bBiasRight and other MOBIL params defined in onramp.js 
-    longModelCar=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+    longModelCar=new ACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelCar.speedlimit=speedL;
     longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
     longModelTruck.speedlimit=Math.min(speedL, speedL_truck);

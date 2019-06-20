@@ -90,7 +90,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
                        //similar value as default vehicle.dt_LC at cstr
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
-
+    this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
     this.padding=20;    // this.mergeDiverge: visibility extension
                         // for origin drivers to target vehs
                         // both sides of actual merge/diverge zone
@@ -2246,7 +2246,8 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
 // outer loop over all vehicles of a road; filter for regular vehicles
 
-  for(var i=0; i<this.veh.length; i++) if(this.veh[i].isRegularVeh()){
+for(var i=0; i<this.veh.length; i++)
+  if((this.veh[i].u>this.uminLC)&&(this.veh[i].isRegularVeh())){
 
     // test if there is a target lane 
     // and if last change is sufficiently long ago
@@ -2906,8 +2907,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
   // ring: mismatchTolerated nonzero but small
 //######################################################################
 
-//!! only here in road
-// here global var longModelCar, -Truck from control_gui taken!
+// global var longModelCar, -Truck taken from control_gui
 
 road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
   if(this.veh.length>0){
@@ -3119,7 +3119,8 @@ road.prototype.updateBCdown=function(){
 }
 
 //######################################################################
-// upstream BC: insert vehicles at total flow Qin (only applicable if !isRing)
+// upstream BC: insert vehicles at total inflow Qin
+// (only applicable if !isRing)
 // route is optional parameter (default: route=[])
 //######################################################################
 
@@ -3140,42 +3141,62 @@ road.prototype.updateBCup=function(Qin,dt,route){
   if((emptyOverfullBuffer)&&(this.inVehBuffer>2)){this.inVehBuffer--;}
   //console.log("road.inVehBuffer=",this.inVehBuffer);
 
+
+  
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
       var vehType=(Math.random()<truckFrac) ? "truck" : "car";
       var vehLength=(vehType==="car") ? car_length:truck_length;
       var vehWidth=(vehType==="car") ? car_width:truck_width;
       var space=0; // available bumper-to-bumper space gap
-
-      // try to set trucks at the right lane
-
       var lane=this.nLanes-1; // start with right lane
       if(this.veh.length===0){success=true; space=this.roadLen;}
 
-      else if(vehType==="truck"){
+      // if new veh is a truck, try to insert it at the rightmost lane
+      
+      if((!success)&&(vehType==="truck")){
 	  var iLead=this.veh.length-1;
-	  while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
-	  space=this.veh[iLead].u-this.veh[iLead].length;
-	  success=(iLead<0) || (space>smin);
-      }
-
-      // if road not empty or a truck could not be placed on the right lane 
-      // try, as well as for cars, if there is any lane with enough space
-
-      if(!success){
-        var spaceMax=0;
-        for(var candLane=this.nLanes-1; candLane>=0; candLane--){
-	  var iLead=this.veh.length-1;
-	  while( (iLead>=0)&&(this.veh[iLead].lane!=candLane)){iLead--;}
-	  space=(iLead>=0) // "minus candLine" implements right-driving 
-	      ? this.veh[iLead].u-this.veh[iLead].length : this.roadLen+candLane;
-	  if(space>spaceMax){
-	      lane=candLane;
-	      spaceMax=space;
+	  while( (iLead>=0)&&(this.veh[iLead].lane!=lane)){iLead--;}
+	  if(iLead==-1){success=true;}
+	  else{
+	      space=this.veh[iLead].u-this.veh[iLead].length;
+	      success=(space>smin);
 	  }
-        }
-	success=(space>=smin);
       }
+
+      // MT jun19: proceed further depending on one of two strategies
+      // setTrucksAlwaysRight=true
+      //   => no other veh can enter of truck has no space on right
+      // setTrucksAlwaysRight=false
+      //   => trucks are tried to set to the right but not forcibly so
+      
+      var setTrucksAlwaysRight=true; //!!!
+
+      // if((!success) && setTrucksAlwaysRight && (vehType==="truck"))
+      // then success is terminally =false in this step
+      // do not need to do any further attempts
+      
+      // version1 (new): set trucks forcedly on right lane(s),
+      // otherwise block 
+      
+      if((!success) &&((!setTrucksAlwaysRight)||(vehType=="car"))){
+          var spaceMax=0;
+          for(var candLane=this.nLanes-1; candLane>=0; candLane--){
+	      var iLead=this.veh.length-1;
+	      while( (iLead>=0)&&(this.veh[iLead].lane!=candLane)){
+		  iLead--;
+	      }
+	      space=(iLead>=0)
+	          ? this.veh[iLead].u-this.veh[iLead].length
+		  : this.roadLen+candLane;
+	      if(space>spaceMax){
+	          lane=candLane;
+	          spaceMax=space;
+	      }
+	  }
+	  success=(space>=smin);
+      }
+ 
 
       // actually insert new vehicle
 
@@ -3196,15 +3217,17 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
 	  this.veh.push(vehNew); // add vehicle after pos nveh-1
 	  this.inVehBuffer -=1;
-	  if(false){
+	  if((lane!=this.nLanes-1)&&(vehType==="truck")){
 	      console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);
-	      console.log(this.veh.length); 
-	      for(var i=0; i<this.veh.length; i++){
-	          console.log("i=",i," u=",this.veh[i].u,
+	      console.log(this.veh.length);
+	      if(false){
+	          for(var i=0; i<this.veh.length; i++){
+	              console.log("i=",i," u=",this.veh[i].u,
 			      " route=",this.veh[i].route,
-			      " longModel=",this.veh[i].longModel);
+				  " longModel=",this.veh[i].longModel);
+		  }
 	      }
 	  }
 	  //if(this.route.length>0){console.log("new veh entered: route="+this.veh[this.veh.length-1].route);}//!!

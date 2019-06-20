@@ -181,15 +181,13 @@ var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 
 // number of virtual "roadwork" vehicles
 
-var longModelObstacle=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for lagVeh!
-
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
 for (var ir=0; ir<nr; ir++){
     var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
     var virtualVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
 					u,laneRoadwork, 0, "obstacle");
-    virtualVeh.longModel=longModelObstacle;
+    //virtualVeh.longModel=longModelObstacle;
     mainroad.veh.push(virtualVeh); // append; prepend=unshift
 }
 
@@ -209,16 +207,10 @@ mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
 //#########################################################
-// model specifications (ALL) parameters in control_gui.js)
+// model initialization (models and methods defined in control_gui.js)
 //#########################################################
-
-var longModelCar;
-var longModelTruck;
-var LCModelCar;
-var LCModelTruck;
-var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
 	
-updateModels(); //  from control_gui.js  => define the 5 above models
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
 //####################################################################
