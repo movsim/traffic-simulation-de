@@ -88,7 +88,7 @@ var scale=refSizePix/refSizePhys;
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43;
+var center_xRel=0.43; // manipulae relative viewport by traj_x
 var center_yRel=-0.55;
 var arcRadiusRel=0.35;
 var offLenRel=0.9;
@@ -148,7 +148,7 @@ function traj_x(u){ // physical coordinates
 	    (u<straightLen) ? straightLen-u
 	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
 	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
+	return center_xPhys+dxPhysFromCenter+6; //!!! quick hack
 }
 
 function traj_y(u){ // physical coordinates
@@ -172,8 +172,11 @@ var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing,
+		      userCanDistortRoads);
 
+mainroad.uminLC=0; // allow lane changing right at the beginning
+mainroad.setTrucksAlwaysRight=false;
 
 //#########################################################
 // add standing virtual vehicles at position of road works 

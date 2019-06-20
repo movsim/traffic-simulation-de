@@ -91,6 +91,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
     this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
+    this.setTrucksAlwaysRight=true; //!!! relates to trucks at inflow
     this.padding=20;    // this.mergeDiverge: visibility extension
                         // for origin drivers to target vehs
                         // both sides of actual merge/diverge zone
@@ -3153,10 +3154,12 @@ road.prototype.updateBCup=function(Qin,dt,route){
       if(this.veh.length===0){success=true; space=this.roadLen;}
 
       // if new veh is a truck, try to insert it at the rightmost lane
+      // for some strange reason bug if "while(iLead>=0)": 
+      // first truck stands if it is the first to enter right
       
       if((!success)&&(vehType==="truck")){
 	  var iLead=this.veh.length-1;
-	  while( (iLead>=0)&&(this.veh[iLead].lane!=lane)){iLead--;}
+	  while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
 	  if(iLead==-1){success=true;}
 	  else{
 	      space=this.veh[iLead].u-this.veh[iLead].length;
@@ -3165,12 +3168,12 @@ road.prototype.updateBCup=function(Qin,dt,route){
       }
 
       // MT jun19: proceed further depending on one of two strategies
-      // setTrucksAlwaysRight=true
+      // this.setTrucksAlwaysRight=true
       //   => no other veh can enter of truck has no space on right
-      // setTrucksAlwaysRight=false
+      // this.setTrucksAlwaysRight=false
       //   => trucks are tried to set to the right but not forcibly so
       
-      var setTrucksAlwaysRight=true; //!!!
+
 
       // if((!success) && setTrucksAlwaysRight && (vehType==="truck"))
       // then success is terminally =false in this step
@@ -3179,7 +3182,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       // version1 (new): set trucks forcedly on right lane(s),
       // otherwise block 
       
-      if((!success) &&((!setTrucksAlwaysRight)||(vehType=="car"))){
+      if((!success) &&((!this.setTrucksAlwaysRight)||(vehType=="car"))){
           var spaceMax=0;
           for(var candLane=this.nLanes-1; candLane>=0; candLane--){
 	      var iLead=this.veh.length-1;
