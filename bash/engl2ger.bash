@@ -155,7 +155,8 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/veh\/h/Fz\/h/g' $file
 done
 
-perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html
+perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html js/control_gui_ger.js
+perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/control_gui_ger.js
 
 perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html routingGame_ger.html
 
@@ -199,7 +200,6 @@ for file in "$jsfilesGer"; do
   perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
 
-perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf\"/g' js/uphill_ger.js
 
 perl -i -p -e 's/info_routingGame\.html/info_routingGame_ger.html/g' js/control_gui_ger.js js/routingGame_ger.js
 
