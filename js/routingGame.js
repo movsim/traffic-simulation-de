@@ -17,10 +17,11 @@
 
 
 var isGame=false;
+var qInInit=2200./3600;
 
 // override standard settings in control_gui.js
 
-qIn=qInInit=2200./3600;
+qIn=2200./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
@@ -335,16 +336,16 @@ function trajRamp_y(u){ // physical coordinates
 
 
 var speedInit=20; // m/s
-var densityInit=0.001;
+var density=0.001;
 var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
 duTactical=300; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit,speedInit,truckFracInit,isRing);
+		      density,speedInit,truckFrac,isRing);
 var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
-		       0.1*densityInit,speedInit,truckFracInit,isRing);
+		       0.1*density,speedInit,truckFrac,isRing);
 
 var offrampIDs=[2];
 var offrampLastExits=[umainDiverge+lrampDev];
@@ -523,7 +524,7 @@ function updateSim(){
 
 	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
 	   &&(time>30)){ // last cond necessary since initially regular vehs
-	    finishRoutingGame("infotextGame");
+	    finishRoutingGame("infotextGame",qInInit);
 	}
 
     }

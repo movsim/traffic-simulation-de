@@ -98,7 +98,7 @@ function updateRoutingGame(time){
     slider_qInVal.innerHTML=3600*qIn+" veh/h";
 }
 
-function finishRoutingGame(infotextID){
+function finishRoutingGame(infotextID, qInInit){
     isGame=false;
     qIn=qInInit;
     var roundedTime=parseFloat(time).toFixed(1);
@@ -316,14 +316,13 @@ function toggleTruckOvertakingBan(){
 	banIsActive=false;
 	document.getElementById('overtakingBan').innerHTML
 	    ="Enforce Truck Overtaking Ban";
-	LCModelTruckUphill=LCModelTruck;
    }
     else{
 	banIsActive=true;
 	document.getElementById('overtakingBan').innerHTML
 	    ="Lift Truck Overtaking Ban";
-	LCModelTruckUphill=LCModelTruckLCban;
     }
+    updateModelsUphill();
     console.log("control_gui.toggleTruckOvertakingBan: LCModelTruckUphill=",
 		LCModelTruckUphill);
  
@@ -340,15 +339,15 @@ function toggleTruckOvertakingBan(){
 
 // timewarp slider
 
-var timewarp=timewarpInit=8;
+var timewarp=6;
 var slider_timewarp,slider_timewarpVal;
 if(document.getElementById("slider_timewarp")==null)
     console.log("no timewarp slider");
 else{
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
-    slider_timewarpVal.innerHTML=timewarpInit +" times";
-    slider_timewarp.value=timewarpInit;
+    slider_timewarpVal.innerHTML=timewarp +" times";
+    slider_timewarp.value=timewarp;
 
     slider_timewarp.oninput = function() {
         slider_timewarpVal.innerHTML = this.value +" times";
@@ -359,15 +358,15 @@ else{
 
 // scale slider
 
-var scale=scaleInit=2.3;  // pixel/m
+var scale=2.3;  // pixel/m
 var slider_scale,slider_scaleVal;
 if(document.getElementById("slider_scale")===null) 
     console.log("no scale slider");
 else{
     slider_scale= document.getElementById("slider_scale");
     slider_scaleVal = document.getElementById("slider_scaleVal");
-    slider_scale.value=scaleInit;
-    slider_scaleVal.innerHTML=scaleInit+" pix/m";
+    slider_scale.value=scale;
+    slider_scaleVal.innerHTML=scale+" pix/m";
 
     slider_scale.oninput = function() {
         slider_scaleVal.innerHTML = this.value+" pix/m";
@@ -378,15 +377,15 @@ else{
 
 // inflow slider 
 
-var qIn=qInInit=4.4/3.6;    //total inflow, overridden in roadworks.js, routing.js
+var qIn=4.4/3.6;    //total inflow, overridden in roadworks.js, routing.js
 var slider_qIn,slider_qInVal;
 if(document.getElementById("slider_qIn")===null) 
     console.log("no qIn slider");
 else{
     slider_qIn= document.getElementById("slider_qIn");
     slider_qInVal = document.getElementById("slider_qInVal");
-    slider_qIn.value=3600*qInInit;
-    slider_qInVal.innerHTML=3600*qInInit+" veh/h";
+    slider_qIn.value=3600*qIn;
+    slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
     slider_qIn.oninput = function() {
         slider_qInVal.innerHTML = this.value+" veh/h";
@@ -397,15 +396,15 @@ else{
 
 // ramp flow slider
 
-var qOn=qOnInit=0.9/3.6; //total onramp flow of onramp scenario
+var qOn=0.9/3.6; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
 if(document.getElementById("slider_qOn")===null) 
     console.log("no qOn slider");
 else{
     slider_qOn= document.getElementById("slider_qOn");
     slider_qOnVal = document.getElementById("slider_qOnVal");
-    slider_qOn.value=3600*qOnInit;
-    slider_qOnVal.innerHTML=3600*qOnInit+" veh/h";
+    slider_qOn.value=3600*qOn;
+    slider_qOnVal.innerHTML=3600*qOn+" veh/h";
 
     slider_qOn.oninput = function() {
         slider_qOnVal.innerHTML = this.value+" veh/h";
@@ -417,7 +416,7 @@ else{
 
 // truck fraction slider
 
-var truckFrac=truckFracInit=0.10; // 0.10
+var truckFrac=0.10; // 0.10
 var slider_truckFrac;
 var slider_truckFracVal;
 if(document.getElementById("slider_truckFrac")===null) 
@@ -425,8 +424,8 @@ if(document.getElementById("slider_truckFrac")===null)
 else{
     slider_truckFrac = document.getElementById("slider_truckFrac");
     slider_truckFracVal = document.getElementById("slider_truckFracVal");
-    slider_truckFrac.value=100*truckFracInit;
-    slider_truckFracVal.innerHTML=100*truckFracInit+"%";
+    slider_truckFrac.value=100*truckFrac;
+    slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
     slider_truckFrac.oninput = function() {
         slider_truckFracVal.innerHTML = this.value+"%";
@@ -437,7 +436,7 @@ else{
 
 // density slider
 
-var density=densityInit=0.03; // 0.10
+var density=0.03; // 0.10
 var slider_density;
 var slider_densityVal;
 if(document.getElementById("slider_density")===null) 
@@ -445,8 +444,8 @@ if(document.getElementById("slider_density")===null)
 else{
     slider_density = document.getElementById("slider_density");
     slider_densityVal = document.getElementById("slider_densityVal");
-    slider_density.value=1000*densityInit;
-    slider_densityVal.innerHTML=1000*densityInit+"/km";
+    slider_density.value=1000*density;
+    slider_densityVal.innerHTML=1000*density+"/km";
 
     slider_density.oninput = function() {
         slider_densityVal.innerHTML = this.value+"/km";
@@ -458,7 +457,7 @@ else{
 
 // offramp use fraction  slider
 
-var fracOff=fracOffInit=0.25; 
+var fracOff=0.25; 
 var slider_fracOff;
 var slider_fracOffVal;
 if(document.getElementById("slider_fracOff")===null) 
@@ -466,8 +465,8 @@ if(document.getElementById("slider_fracOff")===null)
 else{
     slider_fracOff = document.getElementById("slider_fracOff");
     slider_fracOffVal = document.getElementById("slider_fracOffVal");
-    slider_fracOff.value=100*fracOffInit;
-    slider_fracOffVal.innerHTML=100*fracOffInit+"%";
+    slider_fracOff.value=100*fracOff;
+    slider_fracOffVal.innerHTML=100*fracOff+"%";
 
     slider_fracOff.oninput = function() {
         slider_fracOffVal.innerHTML = this.value+"%";
@@ -477,15 +476,15 @@ else{
 
 // main percentage slider (only 4-arm roundabout): 0.5=symm, 1=only 2 oppos. inflows
 
-var mainFrac=mainFracInit=0.75; 
+var mainFrac=0.75; 
 var slider_mainFrac, slider_mainFracVal;
 if(document.getElementById("slider_mainFrac")===null) 
     console.log("no mainFrac slider");
 else{
     slider_mainFrac = document.getElementById("slider_mainFrac");
     slider_mainFracVal = document.getElementById("slider_mainFracVal");
-    slider_mainFrac.value=100*mainFracInit;
-    slider_mainFracVal.innerHTML=100*mainFracInit+"%";
+    slider_mainFrac.value=100*mainFrac;
+    slider_mainFracVal.innerHTML=100*mainFrac+"%";
 
     slider_mainFrac.oninput = function() {
         slider_mainFracVal.innerHTML = this.value+"%";
@@ -496,15 +495,15 @@ else{
 
 // left turn bias slider (only 4-arm roundabout): -1...1
 
-var leftTurnBias=leftTurnBiasInit=0.10; // 0.10
+var leftTurnBias=leftTurnBias=0.10; // 0.10
 var slider_leftTurnBias, slider_leftTurnBiasVal;
 if(document.getElementById("slider_leftTurnBias")===null) 
     console.log("no leftTurnBias slider");
 else{
     slider_leftTurnBias = document.getElementById("slider_leftTurnBias");
     slider_leftTurnBiasVal = document.getElementById("slider_leftTurnBiasVal");
-    slider_leftTurnBias.value=leftTurnBiasInit;
-    slider_leftTurnBiasVal.innerHTML=leftTurnBiasInit;
+    slider_leftTurnBias.value=leftTurnBias;
+    slider_leftTurnBiasVal.innerHTML=leftTurnBias;
 
     slider_leftTurnBias.oninput = function() {
         slider_leftTurnBiasVal.innerHTML = this.value;
@@ -515,15 +514,15 @@ else{
 
 // focus outflow slider (only 4-arm roundabout): 0=isotropic distribution, 1=max focus
 
-var focusFrac=focusFracInit=0.50;
+var focusFrac=focusFrac=0.50;
 var slider_focusFrac, slider_focusFracVal;
 if(document.getElementById("slider_focusFrac")===null) 
     console.log("no focusFrac slider");
 else{
     slider_focusFrac = document.getElementById("slider_focusFrac");
     slider_focusFracVal = document.getElementById("slider_focusFracVal");
-    slider_focusFrac.value=100*focusFracInit;
-    slider_focusFracVal.innerHTML=100*focusFracInit+"%";
+    slider_focusFrac.value=100*focusFrac;
+    slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
     slider_focusFrac.oninput = function() {
         slider_focusFracVal.innerHTML = this.value+"%";
@@ -541,15 +540,15 @@ else{
 
 // IDM_v0 slider
 
-var IDM_v0=IDM_v0Init=30; 
+var IDM_v0=30; 
 var slider_IDM_v0,slider_IDM_v0Val;
 if(document.getElementById("slider_IDM_v0")===null) 
     console.log("no IDM_v0 slider");
 else{
    slider_IDM_v0 = document.getElementById("slider_IDM_v0");
    slider_IDM_v0Val = document.getElementById("slider_IDM_v0Val");
-   slider_IDM_v0.value=3.6*IDM_v0Init;
-   slider_IDM_v0Val.innerHTML=3.6*IDM_v0Init+" km/h";
+   slider_IDM_v0.value=3.6*IDM_v0;
+   slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
    slider_IDM_v0.oninput = function() {
        slider_IDM_v0Val.innerHTML = this.value+" km/h";
        IDM_v0=parseFloat(this.value)/3.6;
@@ -560,15 +559,15 @@ else{
 
 // IDM_T slider
 
-var IDM_T=IDM_TInit=1.4; 
+var IDM_T=1.4; 
 var slider_IDM_T,slider_IDM_TVal;
 if(document.getElementById("slider_IDM_T")===null) 
     console.log("no IDM_T slider");
 else{
    slider_IDM_T = document.getElementById("slider_IDM_T");
    slider_IDM_TVal = document.getElementById("slider_IDM_TVal");
-   slider_IDM_T.value=IDM_TInit;
-   slider_IDM_TVal.innerHTML=IDM_TInit+" s";
+   slider_IDM_T.value=IDM_T;
+   slider_IDM_TVal.innerHTML=IDM_T+" s";
    slider_IDM_T.oninput = function() {
        slider_IDM_TVal.innerHTML = this.value+" s";
        IDM_T=parseFloat(this.value);
@@ -580,15 +579,15 @@ else{
 
 // IDM_s0 slider
 
-var IDM_s0=IDM_s0Init=2; 
+var IDM_s0=2; 
 var slider_IDM_s0,slider_IDM_s0Val;
 if(document.getElementById("slider_IDM_s0")===null) 
     console.log("no IDM_s0 slider");
 else{
    slider_IDM_s0 = document.getElementById("slider_IDM_s0");
    slider_IDM_s0Val = document.getElementById("slider_IDM_s0Val");
-   slider_IDM_s0.value=IDM_s0Init;
-   slider_IDM_s0Val.innerHTML=IDM_s0Init+" m";
+   slider_IDM_s0.value=IDM_s0;
+   slider_IDM_s0Val.innerHTML=IDM_s0+" m";
    slider_IDM_s0.oninput = function() {
        slider_IDM_s0Val.innerHTML = this.value+" m";
        IDM_s0=parseFloat(this.value);
@@ -600,15 +599,15 @@ else{
 
 // IDM_a slider
 
-var IDM_a=IDM_aInit=0.3; 
+var IDM_a=0.3; 
 var slider_IDM_a,slider_IDM_aVal;
 if(document.getElementById("slider_IDM_a")===null) 
     console.log("no  IDM_a slider");
 else{
     slider_IDM_a = document.getElementById("slider_IDM_a");
     slider_IDM_aVal = document.getElementById("slider_IDM_aVal");
-    slider_IDM_a.value=IDM_aInit;
-    slider_IDM_aVal.innerHTML=IDM_aInit+" m/s<sup>2</sup>";
+    slider_IDM_a.value=IDM_a;
+    slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 
     slider_IDM_a.oninput = function() {
         slider_IDM_aVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -619,15 +618,15 @@ else{
 
 // IDM_b slider
 
-var IDM_b=IDM_bInit=3; 
+var IDM_b=3; 
 var slider_IDM_b,slider_IDM_bVal;
 if(document.getElementById("slider_IDM_b")===null) 
     console.log("no  IDM_b slider");
 else{
     slider_IDM_b = document.getElementById("slider_IDM_b");
     slider_IDM_bVal = document.getElementById("slider_IDM_bVal");
-    slider_IDM_b.value=IDM_bInit;
-    slider_IDM_bVal.innerHTML=IDM_bInit+" m/s<sup>2</sup>";
+    slider_IDM_b.value=IDM_b;
+    slider_IDM_bVal.innerHTML=IDM_b+" m/s<sup>2</sup>";
 
     slider_IDM_b.oninput = function() {
         slider_IDM_bVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -640,15 +639,15 @@ else{
 // speedlimit slider
 // per default no speed limit (speedL used in updateModels())
 
-var speedL=speedLInit=1000/3.6; 
+var speedL=1000/3.6; 
 var slider_speedL, slider_speedLVal;
 if(document.getElementById("slider_speedL")===null) 
     console.log("no  speedL slider");
 else{
     slider_speedL = document.getElementById("slider_speedL");
     slider_speedLVal = document.getElementById("slider_speedLVal");
-    slider_speedL.value=3.6*speedLInit;
-    slider_speedLVal.innerHTML=3.6*speedLInit+ " km/h";
+    slider_speedL.value=3.6*speedL;
+    slider_speedLVal.innerHTML=3.6*speedL+ " km/h";
 
     slider_speedL.oninput = function() {
         slider_speedLVal.innerHTML = this.value+" km/h";
@@ -661,15 +660,15 @@ else{
 
 // truck uphill steady-state maxSpeed slider
 
-var IDM_v0Up=IDM_v0UpInit=1000/3.6; 
+var IDM_v0Up=100/3.6; 
 var slider_IDM_v0Up, slider_IDM_v0UpVal;
 if(document.getElementById("slider_IDM_v0Up")===null) 
     console.log("no  IDM_v0Up slider");
 else{
     slider_IDM_v0Up = document.getElementById("slider_IDM_v0Up");
     slider_IDM_v0UpVal = document.getElementById("slider_IDM_v0UpVal");
-    slider_IDM_v0Up.value=3.6*IDM_v0UpInit;
-    slider_IDM_v0UpVal.innerHTML=3.6*IDM_v0UpInit+ " km/h";
+    slider_IDM_v0Up.value=3.6*IDM_v0Up;
+    slider_IDM_v0UpVal.innerHTML=3.6*IDM_v0Up+ " km/h";
 
     slider_IDM_v0Up.oninput = function() {
         slider_IDM_v0UpVal.innerHTML = this.value+" km/h";
@@ -688,15 +687,15 @@ else{
 
 // MOBIL_bThr slider
 
-var MOBIL_bThr=MOBIL_bThrInit=0.4; 
+var MOBIL_bThr=0.4; 
 var slider_MOBIL_bThr,slider_MOBIL_bThrVal;
 if(document.getElementById("slider_MOBIL_bThr")===null) 
     console.log("no  MOBIL_bThr slider");
 else{
     slider_MOBIL_bThr = document.getElementById("slider_MOBIL_bThr");
     slider_MOBIL_bThrVal = document.getElementById("slider_MOBIL_bThrVal");
-    slider_MOBIL_bThr.value=MOBIL_bThrInit;
-    slider_MOBIL_bThrVal.innerHTML=MOBIL_bThrInit+" m/s<sup>2</sup>";
+    slider_MOBIL_bThr.value=MOBIL_bThr;
+    slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
 
     slider_MOBIL_bThr.oninput = function() {
         slider_MOBIL_bThrVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -707,7 +706,7 @@ else{
 
 // MOBIL_bBiasRight_car slider
 
-var MOBIL_bBiasRight_car=MOBIL_bBiasRight_carInit=0.05; 
+var MOBIL_bBiasRight_car=0.05; 
 var slider_MOBIL_bBiasRight_car,slider_MOBIL_bBiasRight_carVal;
 if(document.getElementById("slider_MOBIL_bBiasRight_car")===null) 
     console.log("no  MOBIL_bBiasRight_car slider");
@@ -716,9 +715,9 @@ else{
 	= document.getElementById("slider_MOBIL_bBiasRight_car");
     slider_MOBIL_bBiasRight_carVal 
 	= document.getElementById("slider_MOBIL_bBiasRight_carVal");
-    slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_carInit;
+    slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
     slider_MOBIL_bBiasRight_carVal.innerHTML
-	=MOBIL_bBiasRight_carInit+" m/s<sup>2</sup>";
+	=MOBIL_bBiasRight_car+" m/s<sup>2</sup>";
 
     slider_MOBIL_bBiasRight_car.oninput = function() {
         slider_MOBIL_bBiasRight_carVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -729,7 +728,7 @@ else{
 
 // MOBIL_bBiasRight_truck slider
 
-var MOBIL_bBiasRight_truck=MOBIL_bBiasRight_truckInit=0.2; 
+var MOBIL_bBiasRight_truck=0.2; 
 var slider_MOBIL_bBiasRight_truck,slider_MOBIL_bBiasRight_truckVal;
 if(document.getElementById("slider_MOBIL_bBiasRight_truck")===null) 
     console.log("no  MOBIL_bBiasRight_truck slider");
@@ -738,9 +737,9 @@ else{
 	=document.getElementById("slider_MOBIL_bBiasRight_truck");
     slider_MOBIL_bBiasRight_truckVal
 	=document.getElementById("slider_MOBIL_bBiasRight_truckVal");
-    slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truckInit;
+    slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
     slider_MOBIL_bBiasRight_truckVal.innerHTML
-	=MOBIL_bBiasRight_truckInit+" m/s<sup>2</sup>";
+	=MOBIL_bBiasRight_truck+" m/s<sup>2</sup>";
 
     slider_MOBIL_bBiasRight_truck.oninput = function() {
         slider_MOBIL_bBiasRight_truckVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -752,7 +751,7 @@ else{
 
 // MOBIL_p slider politeness factor
 
-var MOBIL_p=MOBIL_pInit=0.1; 
+var MOBIL_p=0.1; 
 var slider_MOBIL_p,slider_MOBIL_pVal;
 if(document.getElementById("slider_MOBIL_p")===null) 
     console.log("no  MOBIL_p slider");
@@ -761,9 +760,9 @@ else{
 	=document.getElementById("slider_MOBIL_p");
     slider_MOBIL_pVal
 	=document.getElementById("slider_MOBIL_pVal");
-    slider_MOBIL_p.value=MOBIL_pInit;
+    slider_MOBIL_p.value=MOBIL_p;
     slider_MOBIL_pVal.innerHTML
-	=MOBIL_pInit+" m/s<sup>2</sup>";
+	=MOBIL_p+" m/s<sup>2</sup>";
 
     slider_MOBIL_p.oninput = function() {
         slider_MOBIL_pVal.innerHTML = this.value+" m/s<sup>2</sup>";
@@ -838,16 +837,14 @@ function updateModelsUphill(){
     longModelCarUphill=longModelCar;
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCarUphill=LCModelCar;
-    LCModelTruckLCban=LCModelMandatory;
-    LCModelTruckUphill=(banIsActive) ? LCModelTruckLCban : LCModelTruck;
+    LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
     console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
-		LCModelTruckUphill,
-		"\n LCModelTruckLCban=",LCModelTruckLCban);
+		LCModelTruckUphill);
 }
 
 // example for changing sliders from standard init setting in gui
 /*
-IDM_T=IDM_TInit=0.5; 
-slider_IDM_T.value=IDM_TInit;
-slider_IDM_TVal.innerHTML=IDM_TInit+" s";
+IDM_T=0.5; 
+slider_IDM_T.value=IDM_T;
+slider_IDM_TVal.innerHTML=IDM_T+" s";
 */

@@ -47,7 +47,7 @@ they are specially drawn and externally influenced from the main program
 @param traj_y:          function arc length u -> phys y coordinate (North)
 @param densInitPerLane: initial linear density [veh/m/lane]
 @param speedInit:       initial longitudinal speed [m/s]
-@param truckFracInit:   initial truck fraction [0-1]
+@param truckFrac:   initial truck fraction [0-1]
 @param isRing:          true if periodic BC, false if open BC
 @param doGridding (opt):  true: user can change road geometry !!! does not work
                         in combination with using traj of other roads
@@ -58,7 +58,7 @@ they are specially drawn and externally influenced from the main program
 
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
-	      densInitPerLane,speedInit,truckFracInit,isRing,doGridding){
+	      densInitPerLane,speedInit,truckFrac,isRing,doGridding){
 
 
 
@@ -126,9 +126,9 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
 	var u=(nveh-i-1)*this.roadLen/(nveh); //!!(nveh+1)
 	var lane=i%this.nLanes; // left: 0; right: nLanes-1
-	var truckFracRight=Math.min(this.nLanes*truckFracInit,1);
-	var truckFracRest=(this.nLanes*truckFracInit>1)
-	    ? ((this.nLanes*truckFracInit-1)/(this.nLanes-1)) : 0;
+	var truckFracRight=Math.min(this.nLanes*truckFrac,1);
+	var truckFracRest=(this.nLanes*truckFrac>1)
+	    ? ((this.nLanes*truckFrac-1)/(this.nLanes-1)) : 0;
 	var truckFrac=(lane===this.nLanes-1) ? truckFracRight : truckFracRest;
 	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
 	var vehLength=(vehType === "car") ? car_length:truck_length;

@@ -13,13 +13,13 @@ MOBIL_mandat_bias=1.5;
 MOBIL_bSafe=5;
 MOBIL_bSafeMax=17;
 
-densityInit=0;
+density=0;
 
-qIn=qInInit=1550./3600; 
+qIn=1550./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-speedL=speedLInit=80./3.6
+speedL=80./3.6
 slider_speedL.value=3.6*speedL;
 slider_speedLVal.innerHTML=3.6*speedL+" veh/h";
 
@@ -172,7 +172,7 @@ var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
 
 
 //#########################################################

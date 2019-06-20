@@ -1,7 +1,7 @@
 
 // adapt settings from control_gui.js
 
-densityInit=0.02; 
+density=0.02; 
 
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
@@ -201,11 +201,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*densityInit, speedInit, truckFracInit, isRing,userCanDistortRoads);
+		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)

@@ -10,7 +10,7 @@ qIn=3500./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-densityInit=0.015;
+density=0.015;
 
 truckFrac=0.15;
 slider_truckFrac.value=100*truckFrac;
@@ -195,10 +195,10 @@ var speedInit=20; // IC for speed
 duTactical=250; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
 
 var ramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
-		     0.1*densityInit,speedInit,truckFracInit,isRing,false);
+		     0.1*density,speedInit,truckFrac,isRing,false);
 
 var offrampIDs=[2];
 var offrampLastExits=[mainRampOffset+divergeLen];

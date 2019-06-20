@@ -118,7 +118,7 @@ var speedInit=20; // IC for speed
 var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit,speedInit,truckFracInit,isRing,userCanDistortRoads);
+		      density,speedInit,truckFrac,isRing,userCanDistortRoads);
 
 
 

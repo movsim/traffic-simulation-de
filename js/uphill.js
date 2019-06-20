@@ -6,7 +6,7 @@ var userCanDropObstaclesAndTL=true;
 // adapt standard param settings from control_gui.js
 //#############################################################
 
-densityInit=0.;
+density=0.;
 
 truckFrac=0.25;
 slider_truckFrac.value=100*truckFrac;
@@ -31,7 +31,7 @@ slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
 slider_MOBIL_bBiasRight_carVal.innerHTML=MOBIL_bBiasRight_car
     +" m/s<sup>2</sup>";
 
-MOBIL_bBiasRight_truck=0.5;
+MOBIL_bBiasRight_truck=0.4;
 slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
 slider_MOBIL_bBiasRight_truckVal.innerHTML=MOBIL_bBiasRight_truck
     +" m/s<sup>2</sup>";
@@ -188,7 +188,7 @@ var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 var speedInit=20; // m/s
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing, userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing, userCanDistortRoads);
 
 
 
@@ -200,7 +200,7 @@ var longModelCar;
 var longModelTruck;
 var LCModelCar;
 var LCModelTruck;
-var LCModelMandatory; // left right disting in road.updateModelsOfAllVehicles
+var LCModelMandatory; // left-right discrim in road.updateModelsOfAllVehicles
 	
 updateModels(); //  from control_gui.js  => define the 5 above models
 updateModelsUphill(); // addl uphill long models (ctrl later on by slider)

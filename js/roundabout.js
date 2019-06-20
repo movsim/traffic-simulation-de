@@ -41,11 +41,11 @@ MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 
 
-qIn=qInInit=2000./3600;
+qIn=2000./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-mainFrac=mainFracInit=0.8;
+mainFrac=0.8;
 slider_mainFrac.value=100*mainFrac;
 slider_mainFracVal.innerHTML=100*mainFrac+"%";
 
@@ -57,22 +57,22 @@ focusFrac=1;
 //slider_focusFrac.value=100*focusFrac;
 //slider_focusFracVal.innerHTML=100*focusFrac+"%";
 
-timewarp=timewarpInit=8;
-slider_timewarp.value=timewarpInit;
-slider_timewarpVal.innerHTML=timewarpInit +" times";
+timewarp=8;
+slider_timewarp.value=timewarp;
+slider_timewarpVal.innerHTML=timewarp +" times";
 
-IDM_v0=IDM_v0Init=50./3.6;
-slider_IDM_v0.value=3.6*IDM_v0Init;
-slider_IDM_v0Val.innerHTML=3.6*IDM_v0Init+" km/h";
+IDM_v0=50./3.6;
+slider_IDM_v0.value=3.6*IDM_v0;
+slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
 IDM_a=0.9; 
 slider_IDM_a.value=IDM_a;
 slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
-//IDM_T=IDM_TInit=0.6; // overrides standard settings in control_gui.js
-//slider_IDM_T.value=IDM_TInit;
-//slider_IDM_TVal.innerHTML=IDM_TInit+" s";
+//IDM_T=0.6; // overrides standard settings in control_gui.js
+//slider_IDM_T.value=IDM_T;
+//slider_IDM_TVal.innerHTML=IDM_T+" s";
 
 // no LC sliders for roundabout
 
@@ -282,7 +282,7 @@ var mergeEnd=fracArmEnd*lArm;
 //##################################################################
 // Specification of logical road network
 // template new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		     densityInit,speedInit,truckFracInit,isRing,doGridding[opt]);
+//		     density,speedInit,truckFrac,isRing,doGridding[opt]);
 // road with inflow/outflow: just add updateBCup/down at simulation time
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
@@ -293,10 +293,10 @@ var mergeEnd=fracArmEnd*lArm;
 
 
 var speedInit=20; // m/s
-var densityInit=0.00;
+var density=0.00;
 
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		       densityInit,speedInit,truckFracInit,isRing,doGridding[opt]);
+//		       density,speedInit,truckFrac,isRing,doGridding[opt]);
 
 // need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 

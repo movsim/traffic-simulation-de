@@ -22,20 +22,20 @@ var userCanDropObstaclesAndTL=true;
 
 // override standard dettings control_gui.js
 
-densityInit=0.02; 
+density=0.02; 
 
 //var nLanes_main=1; //!!debug
 var nLanes_main=3;
 var nLanes_rmp=1;
 
 /*
-truckFrac=truckFracInit=0.4; // also change *Init because of init display
+truckFrac=0.4; 
 slider_truckFrac.value=100*truckFrac;
 slider_truckFrac.innerHTML=100*truckFrac+"%";
 
-timewarp=timewarpInit=2;
-slider_timewarp.value=timewarpInit;
-slider_timewarpVal.innerHTML=timewarpInit +" times";
+timewarp=2;
+slider_timewarp.value=timewarp;
+slider_timewarpVal.innerHTML=timewarp +" times";
 */
 
 /*######################################################
@@ -229,11 +229,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      densityInit, speedInit,truckFracInit, isRing,userCanDistortRoads);
+		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*densityInit, speedInit, truckFracInit, isRing,userCanDistortRoads);
+		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)
