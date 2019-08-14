@@ -6,7 +6,9 @@ var userCanDropObstaclesAndTL=true;
 // override standard param settings from control_gui.js
 //#############################################################
 
+
 density=0.;
+    
 
 truckFrac=0.40; //  0.25
 slider_truckFrac.value=100*truckFrac;
@@ -123,7 +125,7 @@ var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 var uBeginBanRel=0.1; //MT jun2019
-var uminLC=uBeginBanRel*straightLen+1; // pass to mainroad.uminLC once def.
+var uminLC=uBeginBanRel*straightLen+1; // !!!pass to mainroad.uminLC once def.
 var uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
 var uBeginUp=straightLen+0.3*arcLen;
 var uEndUp=straightLen+1.3*arcLen;
