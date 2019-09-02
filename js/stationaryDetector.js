@@ -58,16 +58,18 @@ stationaryDetector.prototype.update=function(time,dt){
 
 
     if(time>=this.iAggr*this.dtAggr+this.dtAggr){
-	this.iAggr++;
-	this.historyFlow[this.iAggr]=this.vehCount/this.dtAggr;
-	this.historySpeed[this.iAggr]=this.speedSum/this.vehCount;
-	this.vehCount=0;
-	this.speedSum=0;
+      this.iAggr++;
+      this.historyFlow[this.iAggr]=this.vehCount/this.dtAggr;
+      this.historySpeed[this.iAggr]=this.speedSum/this.vehCount;
+      this.vehCount=0;
+      this.speedSum=0;
+      if(false){
 	console.log("\nnew aggregation:",
 		    " this.historyFlow[",this.iAggr,"]=",
 		    this.historyFlow[this.iAggr],
 		    " this.historySpeed[",this.iAggr,"]=",
 		    this.historySpeed[this.iAggr]);
+      }
     }
 }
 

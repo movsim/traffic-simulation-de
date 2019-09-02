@@ -190,7 +190,7 @@ for (var i=0; i<10; i++){
     obstacleImgs[i]=new Image();
     obstacleImgs[i].src = (i==0)
 	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+    : "figs/constructionVeh"+(i+0)+".png"; //!!!
 }
 
 

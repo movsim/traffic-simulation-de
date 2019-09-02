@@ -68,8 +68,8 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
     if(nImgs<2){console.log("vehicleDepot cstr: warning: useful is",
 		    " an image array of length>=2"); }
     this.veh=[];
-    var idmin=50; // see top of this file
-    var idminTL=100; // see top of this file
+    var idmin=50; // begin depot vehicles/obstacles, see top of this file
+    var idminTL=100; // begin traffic-light objects, see top of this file
     console.log("idmin=",idmin," nImgs=",nImgs);
     while((idmin%nImgs!=0)&&(idmin<1000)){idmin++;} // !! second cond to avoid infinite loop if nImgs not defined
 
@@ -78,7 +78,7 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
     for(var ir=0; ir<nRow; ir++){
 	for(var ic=0; ic<nCol; ic++){
 	    var i=ir*nCol+ic;
-	    var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);
+	    var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);//!!!
 	    var xVehDepot=this.xDepot+latDistVeh*(ic+0.5*(1-nCol));
 	    var yVehDepot=this.yDepot+latDistVeh*(ir+0.5*(1-nRow));
 	    this.veh[i]={id:        idmin+i, 
@@ -97,12 +97,12 @@ function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
 
             // ad hoc introduce 2 TL at the beginning (quick hack!!!)
 
-	    if(i<2){this.veh[i].id=100+i;}
+	  if((i>=2)&&(i<4)){this.veh[i].id=100+i;}
 	}
     }
 
 
-    if(false){
+    if(true){
 	for(var i=0; i<nRow*nCol; i++){
 	    console.log("vehicleDepot cstr: i=",i," this.veh[i]=",this.veh[i]);
 	}
@@ -137,9 +137,9 @@ vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
 	    var xPixVeh=scale*this.veh[i].x;
 	    var yPixVeh=-scale*this.veh[i].y;
 	    ctx.setTransform(1,0,0,1,xPixVeh,yPixVeh);
-	    if(false){console.log(
+	    if(false){console.log( //!!!
 		"in vehicleDepot.draw: i=",i,"imgNr=",nr,
-		" img=",obstacleImgs[nr],
+		" fname=",obstacleImgs[nr].src,
 		" xPixVeh=",xPixVeh,
 		" yPixVeh=",yPixVeh,
 		" wPix=",lPix,

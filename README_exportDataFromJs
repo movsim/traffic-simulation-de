@@ -1,0 +1,50 @@
+(2019-06-12)
+
+Re: [movsim/traffic-simulation-de] Library / Wrapper for offline use? (#4)
+Ran K
+12.6.2019 21:13
+An  movsim/traffic-simulation-de   Kopie  MTGermany,    Comment  
+
+    SchnellantwortAllen antwortenWeiterleitenLöschenZur Whitelist hinzufügenZur Blacklist hinzufügen
+
+Sure!
+what I did was basically modifying road.prototype.writeVehicles in road.js so that instead of writing the data to console.log it just sent it to a local endpoint like this: (log is a string which holds a CSV line for each vehicle status)
+
+var url = 'http://localhost:8000';
+var xhr = new XMLHttpRequest();
+xhr.open('POST', url, false);
+xhr.send(log);
+
+Separately, I wrote this basic HTTP server in python which I run locally:
+
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from io import BytesIO
+
+class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
+
+def log_message(self, format, *args):
+    return
+
+def do_POST(self):
+    content_length = int(self.headers['Content-Length'])
+    body = self.rfile.read(content_length).decode("utf-8")
+    reader = csv.reader(body.split('\n'), delimiter=',')
+    for row in reader:
+        print(','.join(row))
+    self.send_response(200)
+    self.send_header("Content-type", "text/plain")
+    self.send_header("Access-Control-Allow-Origin", "*")
+    self.end_headers()
+    response = BytesIO()
+    response.write(b'This is POST request. ')
+    response.write(b'Received: ')
+    self.wfile.write(response.getvalue())
+
+httpd = HTTPServer(('localhost', 8000), SimpleHTTPRequestHandler)
+httpd.serve_forever()
+
+I hope this makes sense... I just used it to export the data so that I can run some computation in python
+
+—
+You are receiving this because you commented.
+Reply to this email directly, view it on GitHub, or mute the thread.

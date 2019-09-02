@@ -13,13 +13,12 @@
     </script>
 
     
-    <title>Microsimulation of Traffic Flow: Onramp</title> 
+    <title> Microsimulation of Traffic Flow: RoadWorks</title>
 </head>
 
 
 <body>
   
-
 <!-- ############################################## -->
 <!-- outer container                                -->
 <!-- ############################################## -->
@@ -27,19 +26,22 @@
 <div id="container">
 
 
+
 <!-- ############################################## -->
 <!-- header: title image loaded as background image via css -->
 <!-- ############################################## -->
 
 <div id="header"> 
-<!--  <img class="title" src="figs/title.png"  width="100%"/> -->
+  <img class="title" src="figs/title.png"  width="100%"/>
 </div> 
 
 
 <!-- ############################################## -->
-<!-- Buttons                                        -->
+<!-- image Buttons                                        -->
 <!-- ############################################## -->
 
+<!-- redirects to other scenarios, defines myRedirectX -->
+<script src="js/redirect_BaWue.js" type="text/javascript"></script>
 
 <div id="startStopDiv"><img id="startStop" width="100%" 
      src="figs/buttonStop3_small.png" onclick="myStartStopFunction()"/>
@@ -61,25 +63,15 @@
 
 
 <!-- redirects to other scenarios, defines myRedirectX -->
-<script src="js/redirect.js" type="text/javascript"></script>
+<script src="js/redirect_BaWue.js" type="text/javascript"></script>
 
 <div id="scenarios">
 <center>
  <br>
-<img width="18%" src="figs/iconRing_small.jpg" 
-                 onclick="myRedirectRing()"/>
 <img width="20%" src="figs/iconOnrampFig_small.jpg" 
-                 onclick="myRedirectOnramp()"/>
-<img width="20%" src="figs/iconOfframpFig_small.jpg" 
-                 onclick="myRedirectOfframp()"/>
+                 onclick="myRedirectOnramp2()"/>
 <img width="20%" src="figs/iconRoadworksFig_small.jpg" 
-                 onclick="myRedirectRoadworks()"/>
-<img width="20%" src="figs/iconUphillFig_small.jpg" 
-                 onclick="myRedirectUphill()"/>
-<img width="20%" src="figs/iconRoutingFig_small.jpg" 
-                 onclick="myRedirectRouting()"/>
-<img width="22%" src="figs/iconRoundabout_small.jpg" 
-                 onclick="myRedirectRoundabout()"/>
+                 onclick="myRedirectRoadworks2()"/>
 </center>
 
 </div> 
@@ -109,168 +101,110 @@
 
 
 
+
 <!-- ################################################# -->
 <!-- Copyright/impressum                               -->
 <!-- ################################################# -->
 
+<!--
 <div id="impressum"> <a href="impressum.html">
   &copy; Martin Treiber</a></div>
-
+-->
 
 <!-- ################################################# -->
-<!-- Sliders: The whole right-hand side
+<!-- Sliders
 <!-- ################################################# -->
 
 <div id="sliders">
 <center>
 
 <!-- ######################################################## -->
-<!--<img src="figs/Traffic_Flow_and_General.png" width="65%"/>-->
-<h3>Traffic Flow and General</h3>
+<h3>Verkehrsfl&uuml;sse und Allgemeines</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
-<tr>
-  <td class="important">Inflow</td>
-  <td> <input id="slider_qIn" type="range" 
-              min="0" max="5400" step="10"></td>
-  <td> <div id="slider_qInVal"></div> </td>
-</tr>
 
 <tr>
-  <td class="important">Onramp Flow</td>
-  <td> <input id="slider_qOn" type="range" 
-              min="0" max="2000" step="10"></td>
-  <td> <div id="slider_qOnVal"></div> </td>
+<td class="important"> Tempolimit</td>
+  <td> <input id="slider_speedL" type="range" 
+              min="20" max="130" step="10"></td>
+  <td> <div id="slider_speedLVal"></div> </td>
 </tr>
 
-  <td>Truck Perc</td>
+
+<tr>
+  <td>LKW-Anteil</td>
   <td> <input id="slider_truckFrac" type="range" 
               min="0" max="50" step="1"></td>
   <td> <div id="slider_truckFracVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Timewarp</td>
+  <td>Hauptzufluss</td>
+  <td> <input id="slider_qIn" type="range" 
+              min="0" max="2400" step="10"></td>
+  <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Zeitraffer</td>
   <td> <input id="slider_timewarp" type="range" 
               min="0.2" max="20" step="0.1"></td>
   <td> <div id="slider_timewarpVal"></div> </td>
 </tr>
 </table>
 
-
 <!-- ######################################################## -->
-<!--<img src="figs/Car-Following_Behavior.png" width="60%"/>-->
-<h3>Car-Following Behavior</h3>
+<h3>Fahrzeugfolge-Verhalten</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Max Speed v</sub>0</td>
+  <td>Wunschgeschw. v</sub>0</td>
   <td> <input id="slider_IDM_v0" type="range" 
               min="20" max="160" step="1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
 
+<!--
 <tr>
-  <td>Time Gap T</td>
+  <td>Zeitl&uuml;cke T</td>
   <td> <input id="slider_IDM_T" type="range" 
               min="0.6" max="3" step="0.1"></td>
   <td> <div id="slider_IDM_TVal"></div> </td>
 </tr>
 
 <tr>
-  <td class="important">Max Accel a</td>
+  <td class="important">Max Beschl a</td>
   <td> <input id="slider_IDM_a" type="range" 
               min="0.3" max="4" step="0.1"></td>
   <td> <div id="slider_IDM_aVal"></div> </td>
 </tr>
+
+-->
+
 </table>
 
 
 <!-- ######################################################## -->
-<!--<img src="figs/Lane-Changing_Behavior.png" width="60%"/>-->
-<h3>Lane-Changing Behavior</h3>
+<!-- <img src="figs/Spurwechsel-Parameter.png" width="65%"/>-->
 <!-- ######################################################## -->
 
-<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<!--<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
 
 <tr>
-  <td>Politeness</td>
+  <td>H&ouml;flichkeitsfaktor</td>
   <td> <input id="slider_MOBIL_p" type="range" 
               min="-0.2" max="1" step="0.1"></td>
   <td> <div id="slider_MOBIL_pVal"></div> </td>
 </tr>
-
-<tr>
-  <td>LC Threshold</td>
-  <td> <input id="slider_MOBIL_bThr" type="range" 
-              min="-0.1" max="1" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bThrVal"></div> </td>
-</tr>
-
-<tr>
-  <td>Right Bias Cars</td>
-  <td> <input id="slider_MOBIL_bBiasRight_car" type="range" 
-              min="-1" max="2" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
-</tr>
-
-<tr>
-  <td>Right Bias Trucks</td>
-  <td> <input id="slider_MOBIL_bBiasRight_truck" type="range" 
-              min="-1" max="2" step="0.1"></td>
-  <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
-</tr>
 </table>
-
-<!-- ############################################## -->
-<!-- info-text inside sliders-div (filled by showInfo())
-<!-- ############################################## -->
-
-<br>
-<div id="infotext">
-</div>
-
-</center>
-</div>   <!-- id="sliders">-->
+-->
 
 
-<!-- ############################################## -->
-<!-- General link list
-<!-- ############################################## -->
-     
-<div id="linkDiv">
-  <table class="infoTable"> <TR>
-      <TD> <a href="https://github.com/movsim/traffic-simulation-de">
-          Sources at GitHub</a></TD>
-      <TD><!--<img  src="http://www.mtreiber.de/figs/clover.png" width="20px"/>-->
-         <a href="http://www.movsim.org"> MovSim </a> </TD>
-      <TD> <a href = "http://www.verkehrsdynamik.de" >
-	  Buch "Verkehrsdynamik"</a></TD>
-      <TD> <a href = "http://traffic-flow-dynamics.org/" > 
-          Book "Traffic Flow Dynamics" </a></TD>
-  </TR></table>
- </div>
-
-
-
-
-<!-- ############################################## -->
-<!-- language switching
-<!-- ############################################## -->
-
-<div id="infoFlags">
-<a href = "onramp.html">
- <img src="icons/flagUSA.png" width="45%" />
-</a>
-
-<a href = "onramp_ger.html">
- <img src="icons/flagGerman.png" width="45%" />
-</a>
-</div>
 
 
 
@@ -292,16 +226,18 @@
 </div> <!-- end outer container -->
 
 
+
 <!-- ########################################################## -->
-<!-- specific scripts; position below any simulation elements ! -->
+<!-- specific scripts; position below any simulation elements  -->
 <!-- ########################################################## -->
 
 <script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
 
-<script src="js/timeView.js" type="text/javascript"></script>
+
+<script src="js/control_gui_ger.js"></script> 
+<script src="js/timeView_ger.js" type="text/javascript"></script>
 <script src="js/media.js" type="text/javascript"></script>
 
-<script src="js/control_gui.js"></script> 
 <script src="js/canvas_gui.js"></script> 
 <script src="js/vehicleDepot.js"></script> 
 <script src="js/colormanip.js"></script>
@@ -311,9 +247,9 @@
 
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
-<script src="js/stationaryDetector.js"></script> 
+<script src="js/stationaryDetector_ger.js"></script> 
 
-<!-- PROJ--> <script src="js/onramp.js"></script> 
+<!-- PROJ--> <script src="js/roadworks_BaWue.js"></script> 
 
 </body>
 </html>

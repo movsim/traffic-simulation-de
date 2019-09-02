@@ -1,36 +1,36 @@
+/* Creating reproducible versions for debugging purposes:
 
-var userCanDistortRoads=true;
+(1) include <script src="js/seedrandom.min.js"></script> in html file
+    (from https://github.com/davidbau/seedrandom, copied locally)
+
+(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
+    in all files containing Math.random commands 
+    => at present, only road.js
+
+!! only use inside functions/methods, e.g., in road constructor;
+  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
+
+console.log(Math.random());          // Always 0.0016341939679719736 with 42
+console.log(Math.random());          // Always 0.9364577392619949 with 42
+ Math.seedrandom(42);                // undo side effects of console commands 
+*/
+
+
+var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
-//#############################################################
-// adapt standard param settings from control_gui.js
-//#############################################################
 
-MOBIL_mandat_bSafe=18;
-MOBIL_mandat_bThr=0.5;   // >0
-MOBIL_mandat_bias=1.5;
+// override standard dettings control_gui.js
 
-MOBIL_bSafe=5;
-MOBIL_bSafeMax=17;
+density=0.02; 
 
-density=0;
-
-qIn=1550./3600; 
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
-
-speedL=80./3.6
-slider_speedL.value=3.6*speedL;
-slider_speedLVal.innerHTML=3.6*speedL+" veh/h";
-
-truckFrac=0.30;
-slider_truckFrac.value=100*truckFrac;
-slider_truckFracVal.innerHTML=100*truckFrac+"%";
+//var nLanes_main=1; //!!debug
+var nLanes_main=3;
+var nLanes_rmp=1;
 
 
 /*######################################################
  Global overall scenario settings and graphics objects
- see onramp.js for more details
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
@@ -43,11 +43,26 @@ slider_truckFracVal.innerHTML=100*truckFrac+"%";
   => vehicles and road widths appear bigger for a given screen size 
   => chose smaller for mobile, 
 
+  Example: refSizePhys propto sqrt(refSizePix) => roads get more compact 
+  and vehicles get smaller, both on a sqrt basis
+
+  Or jump at trigger refSizePix<canvasSizeCrit propto clientSize 
+  => css cntrl normal/mobile with 2 fixed settings
+
+  NOTICE: canvas has strange initialization of width=300 in firefox 
+  and DOS when try sizing in css (see there) only 
+ 
+  document.getElementById("contents").clientWidth; .clientHeight;
+
+  always works!
+
 ######################################################*
 */
 
-var scenarioString="RoadWorks";
+
+var scenarioString="OnRamp";
 console.log("\n\nstart main: scenarioString=",scenarioString);
+
 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
@@ -56,10 +71,10 @@ canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
+
 console.log("before addTouchListeners()");
 addTouchListeners();
 console.log("after addTouchListeners()");
-
 
 
 //##################################################################
@@ -67,43 +82,50 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape //xxx
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
-var isSmartphone=mqSmartphone();
-
-var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
-
-
-var critAspectRatio=120./95.; // from css file width/height of #contents
-
+var isSmartphone=false;
+var critAspectRatio=120./95.;
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-var scale=refSizePix/refSizePhys;
+
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
 // If refSizePhys changes, change them all => updatePhysicalDimensions();
 //##################################################################
 
+var mainroadLen=1000; //!!
+
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43; // manipulae relative viewport by traj_x
-var center_yRel=-0.55;
+var center_xRel=0.43;
+var center_yRel=-0.54;
 var arcRadiusRel=0.35;
+var rampLenRel=0.95;
+
+
+// constant  refSizePhys calculated by requirement fixed mainroadLen!!
+
+var refSizePhys=mainroadLen/(Math.PI*arcRadiusRel
+			     +2*(critAspectRatio-center_xRel));
+var scale=refSizePix/refSizePhys;
+
+
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
+
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
-var mainroadLen=arcLen+2*straightLen;
+//var mainroadLen=arcLen+2*straightLen;
+console.log("calculated mainroadLen=",arcLen+2*straightLen);
+var rampLen=rampLenRel*refSizePhys; 
+var mergeLen=0.5*rampLen;
+var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+var taperLen=0.2*rampLen;
+var rampRadius=4*arcRadius;
 
-var uBeginRoadworks=straightLen+0.8*arcLen;
-var uEndRoadworks=straightLen+1.1*arcLen;
-var uStartLCMandatory=0.1*uBeginRoadworks; // uStart>u>uBeginR => mandat LC
-
+console.log(" mainroadLen=", mainroadLen);
 
 function updatePhysicalDimensions(){ // only if sizePhys changed
     center_xPhys=center_xRel*refSizePhys; //[m]
@@ -113,41 +135,36 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
     mainroadLen=arcLen+2*straightLen;
-
-    uBeginRoadworks=straightLen+0.8*arcLen;
-    uEndRoadworks=straightLen+1.1*arcLen;
-    uStartLCMandatory=0.1*uBeginRoadworks;
-
+    rampLen=rampLenRel*refSizePhys; 
+    mergeLen=0.5*rampLen;
+    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+    taperLen=0.2*rampLen;
+    rampRadius=4*arcRadius;
 }
-
 
 
 // the following remains constant 
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var nLanes_main=2;
+var laneWidthRamp=5;
+
 
 var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
 var truck_width=7; 
 
-var laneRoadwork=0;  // 0=left
-var lenRoadworkElement=7;
-var wRoadworkElement=7;
 
-
-// on constructing road, road elements are gridded and interna
-// road.traj_xy(u) are generated. Then, main.traj_xy*(u) obsolete
-
+// on constructing road, road elements are gridded and internal
+// road.traj_xy(u) are generated. Then, traj_xy*(u) obsolete
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
 	    (u<straightLen) ? straightLen-u
 	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
 	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter+6; //!!! quick hack
+	return center_xPhys+dxPhysFromCenter;
 }
 
 function traj_y(u){ // physical coordinates
@@ -159,53 +176,72 @@ function traj_y(u){ // physical coordinates
 }
 
 
+function trajRamp_x(u){ // physical coordinates
+	//var xMergeBegin=traj_x(mainroadLen-straightLen);
+	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
+	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
+	return (u<rampLen-taperLen) 
+	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
+}
+
+
+// indefining dependent geometry,
+//  do not refer to mainroad or onramp!! may not be defined: 
+// mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1!!
+
+function trajRamp_y(u){ // physical coordinates
+
+    var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
+	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
+
+    var yMergeEnd=yMergeBegin+laneWidth;
+    return (u<rampLen-mergeLen)
+	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
+	: (u<rampLen-taperLen) ? yMergeBegin
+	: (u<rampLen-0.5*taperLen) 
+        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
+	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
+}
+
 
 
 //##################################################################
-// Specification of logical road network
+// Specification of logical road 
 //##################################################################
 
 var isRing=false;  // 0: false; 1: true
-var roadID=1;
-var speedInit=20; // IC for speed
+var roadIDmain=1;
+var roadIDramp=2;
+
 var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,
-		      userCanDistortRoads);
+var speedInit=20; // IC for speed
 
-mainroad.uminLC=0; // allow lane changing right at the beginning
-mainroad.setTrucksAlwaysRight=false;
+// last arg = doGridding (true: user can change road geometry)
 
-//#########################################################
-// add standing virtual vehicles at position of road works 
-//#########################################################
+var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
+		      traj_x,traj_y,
+		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
 
-// number of virtual "roadwork" vehicles
+var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
+		    trajRamp_x,trajRamp_y,
+		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
 
-var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
-for (var ir=0; ir<nr; ir++){
-    var u=uBeginRoadworks+(ir+0.5)*lenRoadworkElement;
-    var virtualVeh=new vehicle(lenRoadworkElement, wRoadworkElement, 
-					u,laneRoadwork, 0, "obstacle");
-    //virtualVeh.longModel=longModelObstacle;
-    mainroad.veh.push(virtualVeh); // append; prepend=unshift
-}
+// add standing virtual vehicle at the end of ramp (1 lane)
+// prepending=unshift (strange name)
 
-// put roadwork obstacles at right place and let vehicles get context of them 
+var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
 
-mainroad.sortVehicles();
-mainroad.updateEnvironment();
-
+ramp.veh.unshift(virtualStandingVeh);
 
 // !! introduce stationary detectors (aug17)
 
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
 mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
 
 
 //#########################################################
@@ -216,26 +252,23 @@ updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
 //####################################################################
-// Global graphics specification 
+// Global graphics specification
 //####################################################################
-
 
 var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; // true only if used-driven geometry changes finished
+var userCanvasManip; // true only if user-driven geometry changes
 
-var drawColormap=false; // now drawn as png from html 
+var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
 var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 
 
-//#########################################################
-// The images
-//#########################################################
-
-
+//####################################################################
+// Images
+//####################################################################
 
 
 // init background image
@@ -288,24 +321,9 @@ roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
 roadImg2=roadImgs2[nLanes_main-1];
 
+rampImg = new Image();
+rampImg=roadImgs1[nLanes_rmp-1];
 
-
-
-//speedlimit images 
-
-var speedL_srcFileIndexOld=8; //  start with index8 = 80 km/h
-var speedL_srcFileIndex=8;
-var speedL_srcFiles = [];
-for (var i=0; i<13; i++){
-    speedL_srcFiles[i]="figs/Tempo"+i+"0.png";
-}
-speedL_srcFiles[13]='figs/sign_free_282_small.png'; 
-var speedlimitImgs = [];
-for (var i=0; i<=13; i++){
-    speedlimitImgs[i]=new Image();
-    speedlimitImgs[i].src=speedL_srcFiles[i];
-}
-var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
 
 //####################################################################
@@ -313,7 +331,7 @@ var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+var depot=new vehicleDepot(obstacleImgs.length, 1,2,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
@@ -327,35 +345,35 @@ var depot=new vehicleDepot(obstacleImgs.length, 3,3,
 
 var time=0;
 var itime=0;
-var fps=30; // frames per second
+var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
-
 
 
 //#################################################################
 function updateSim(){
 //#################################################################
 
-
     // update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    isSmartphone=mqSmartphone();
 
-    // transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    // externally impose mandatory LC behaviour
-    // all left-lane vehicles must change lanes to the right
-    // starting at 0 up to the position uBeginRoadworks
+    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+				       LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
-    mainroad.setLCMandatory(uStartLCMandatory, uBeginRoadworks, true);
+
+    // externally impose mandatory LC behaviour
+    // all ramp vehicles must change lanes to the left (last arg=false)
+
+    ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
     // do central simulation update of vehicles
@@ -367,15 +385,24 @@ function updateSim(){
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
 
-    if(true){
-	for (var i=0; i<mainroad.nveh; i++){
-	    if(mainroad.veh[i].speed<0){
-		console.log(" speed "+mainroad.veh[i].speed
+    for (var i=0; i<mainroad.nveh; i++){
+	if(mainroad.veh[i].speed<0){
+	    console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
-	    }
 	}
     }
+
+
+    ramp.calcAccelerations();  
+    ramp.updateSpeedPositions();
+    //ramp.updateBCdown();
+    ramp.updateBCup(qOn,dt); // argument=total inflow
+
+    //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+
+    ramp.mergeDiverge(mainroad,mainRampOffset,
+			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
     for(var iDet=0; iDet<nDet; iDet++){
@@ -383,16 +410,26 @@ function updateSim(){
     }
 
 
-    // see onramp.js why this is necessary
+    //!!!  without this zoomback cmd, everything works but depot vehicles
+    // just stay where they have been dropped outside of a road
 
-     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
-	    userCanvasManip=true;
-	}
+    if(depotVehZoomBack){
+	var res=depot.zoomBackVehicle();
+	depotVehZoomBack=res;
+	userCanvasManip=true;
     }
 
+    // write vehicle positions of mainroad and onramp to console for external use
+
+    //if((itime>=125)&&(itime<=128)){
+    if(false){
+	console.log("updateSim: Simulation time=",time,
+		    " itime=",itime);
+	console.log("\nmainroad vehicles:");
+	mainroad.writeVehiclesSimple();
+	//console.log("\nonramp vehicles:");
+	ramp.writeVehiclesSimple();
+    }
 
 }//updateSim
 
@@ -403,6 +440,11 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
+    //!! test relative motion isMoving
+
+    var movingObserver=false;
+    var uObs=0*time;
+
     // (0) redefine graphical aspects of road (arc radius etc) using
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
@@ -410,14 +452,8 @@ function drawSim() {
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
-    var hasChanged=false;
 
-    if(false){
-        console.log(" new total inner window dimension: ",
-		window.innerWidth," X ",window.innerHeight,
-		" (full hd 16:9 e.g., 1120:630)",
-		" canvas: ",canvas.width," X ",canvas.height);
-    }
+    var hasChanged=false;
 
 
     if ((canvas.width!=simDivWindow.clientWidth)
@@ -440,6 +476,8 @@ function drawSim() {
 
     }
 
+ 
+
 
     // (1) update heading of all vehicles rel. to road axis
     // (for some reason, strange rotations at beginning)
@@ -449,60 +487,47 @@ function drawSim() {
 
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
-    // "%20-or condition"
-    //  because some older firefoxes do not start up properly?
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || userCanvasManip || (!drawRoad)){ 
-          ctx.drawImage(background,0,0,canvas.width,canvas.height);
+	if(hasChanged||(itime<=2) || (itime===20) || userCanvasManip 
+	   || movingObserver || (!drawRoad)){
+        ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
 
+    // (3) draw mainroad and ramp
+    // (always drawn; changedGeometry only triggers building a new lookup table)
 
-    // (3) draw mainroad
-    // (always drawn; but changedGeometry=true necessary
-    // if changed (it triggers building a new lookup table). 
-    // Otherwise, road drawn at old position
+    var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
+    ramp.draw(rampImg,rampImg,scale,changedGeometry,
+		movingObserver,0, 
+		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
-    
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+		  movingObserver,uObs,center_xPhys,center_yPhys); 
     mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  
     // (4) draw vehicles
 
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			vmin_col,vmax_col,0,ramp.roadLen,
+			movingObserver,0,
+			center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+			center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
+
+
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
-			  vmin_col, vmax_col);
-    
-    // (4a) implement varying speed-limit signs! -> uphill as template
-
-    var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
-    var speedL_srcFileIndex=Math.min(speedlimit_kmh/10,13);
-    if( (speedL_srcFileIndex !=speedL_srcFileIndexOld)||hasChanged
-	||userCanvasManip || (itime<=1) ){
-
-	speedL_srcFileIndexOld=speedL_srcFileIndex;
-	speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
-	console.log("speedlimitImg.src=",speedlimitImg.src);
-
-	var sizeSignPix=0.12*refSizePix;
-	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
-
-	var xPix=mainroad.get_xPix(0.16*mainroadLen,vOffset,scale);
-	var yPix=mainroad.get_yPix(0.16*mainroadLen,vOffset,scale);
-	xPix -= 0.5*sizeSignPix; // center of sign
-	yPix -= 0.5*sizeSignPix;
-	ctx.setTransform(1,0,0,1,0,0); 
-	console.log("roadworks.draw: before drawing speedlimitImg");
-	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
-    }
+			  vmin_col,vmax_col,0,mainroad.roadLen,
+			  movingObserver,uObs,center_xPhys,center_yPhys);
 
     // (5) !!! draw depot vehicles
 
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
@@ -514,24 +539,45 @@ function drawSim() {
 	mainDetectors[iDet].display(textsize);
     }
 
+  if(false){
+    ctx.setTransform(1,0,0,1,0,0); 
+    var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
+    ctx.font=textsize+'px Arial';
 
-    // (7) draw the speed colormap
 
-    if(drawColormap){ 
-	displayColormap(0.22*refSizePix,
-			0.43*refSizePix,
-			0.1*refSizePix, 0.2*refSizePix,
-			vmin_col,vmax_col,0,100/3.6);
+    /*
+    var scaleStr=" scale="+Math.round(10*scale)/10;
+    var scaleStr_xlb=9*textsize;
+    var scaleStr_ylb=timeStr_ylb;
+    var scaleStr_width=5*textsize;
+    var scaleStr_height=1.2*textsize;
+    ctx.fillStyle="rgb(255,255,255)";
+    ctx.fillRect(scaleStr_xlb,scaleStr_ylb-scaleStr_height,
+		 scaleStr_width,scaleStr_height);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
+		 scaleStr_ylb-0.2*textsize);
+    */
+
+
+      // (7) draw the speed colormap
+      //!!! Now always false; drawn statically by html file!
+
+    if(drawColormap){
+      displayColormap(0.22*refSizePix,
+                   0.43*refSizePix,
+                   0.1*refSizePix, 0.2*refSizePix,
+		   vmin_col,vmax_col,0,100/3.6);
     }
-
-
     // revert to neutral transformation at the end!
     ctx.setTransform(1,0,0,1,0,0); 
- 
-} // drawSim
+  }
+}
  
 
- //##################################################
+
+
+//##################################################
 // Running function of the sim thread (triggered by setInterval)
 //##################################################
 
@@ -542,21 +588,18 @@ function main_loop() {
 }
  
 
-
  //############################################
 // start the simulation thread
 // THIS function does all the things; everything else 
 // only functions/definitions
 // triggers:
 // (i) automatically when loading the simulation 
-// (ii) when pressing the start button 
+// (ii) when pressing the start button in *gui.js
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
 console.log("first main execution");
 showInfo();
+
 var myRun=setInterval(main_loop, 1000/fps);
 
-
-
- 

@@ -278,7 +278,7 @@ which always gives correct size!!
 
 #linkDiv{
   position: absolute;
-  top:   96.5vmin; /* bottom attribute error in Safari */
+  top:   95.5vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  80vmin; /* no height */
   z-index: 2;
@@ -289,7 +289,7 @@ which always gives correct size!!
 
 #impressum{ 
   position: absolute;
-  top: 98vmin;
+  top: 96vmin;
   height: 2vmin;
   left: 0.5vw;
   width: 10vw;

@@ -13,6 +13,7 @@
 *.toc
 *.dvi
 *.bash
+*.save
 
 ## Figure files (no longer)
 #*.fig

@@ -2843,14 +2843,19 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
         //(dec17) need for LC as lagVeh!! up to now id<100 only obstacles
 	roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 
-	roadVehicle.id=depotVehicle.id; // controls the vehicle image
+      //!!! id ctrls veh image: 50=black obstacle,
+      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
+      // for vehicles in depot!
+      
+      roadVehicle.id=Math.max(51,depotVehicle.id);
 
         // insert vehicle (array position does not matter since sorted anyway)
 	this.veh.push(roadVehicle);
 	this.sortVehicles();
 	this.updateEnvironment(); // possibly crucial !!
 	console.log("road.dropDepotVehicle: dropped vehicle at uDrop=",u,
-		    " lane=",lane);
+		    " lane=",lane," id=",roadVehicle.id,
+		    " imgNumber=",roadVehicle.imgNumber);
     }
 
     else{ // traffic light has its sorting pushing and splicing ops intnlly

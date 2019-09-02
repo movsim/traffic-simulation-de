@@ -1,5 +1,5 @@
 
-var userCanDistortRoads=true;
+var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
 //#############################################################
@@ -17,11 +17,11 @@ density=0;
 
 qIn=1550./3600; 
 slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+slider_qInVal.innerHTML=3600*qIn+" Fz/h";
 
 speedL=80./3.6
 slider_speedL.value=3.6*speedL;
-slider_speedLVal.innerHTML=3.6*speedL+" veh/h";
+slider_speedLVal.innerHTML=3.6*speedL+" Fz/h";
 
 truckFrac=0.30;
 slider_truckFrac.value=100*truckFrac;
@@ -67,30 +67,29 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape //xxx
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
-var isSmartphone=mqSmartphone();
-
-var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
-
-
+var isSmartphone=false;
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
 // If refSizePhys changes, change them all => updatePhysicalDimensions();
 //##################################################################
 
+var mainroadLen=1000; //!!
+
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43; // manipulae relative viewport by traj_x
 var center_yRel=-0.55;
-var arcRadiusRel=0.35;
+var arcRadiusRel=0.40;
+
+// constant  refSizePhys calculated by requirement fixed mainroadLen!!
+
+var refSizePhys=mainroadLen/(Math.PI*arcRadiusRel
+			     +2*(critAspectRatio-center_xRel));
+var scale=refSizePix/refSizePhys;
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
@@ -98,7 +97,8 @@ var center_yPhys=center_yRel*refSizePhys;
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
-var mainroadLen=arcLen+2*straightLen;
+//var mainroadLen=arcLen+2*straightLen;
+console.log("calculated mainroadLen=",arcLen+2*straightLen);
 
 var uBeginRoadworks=straightLen+0.8*arcLen;
 var uEndRoadworks=straightLen+1.1*arcLen;
@@ -181,7 +181,7 @@ mainroad.setTrucksAlwaysRight=false;
 // add standing virtual vehicles at position of road works 
 //#########################################################
 
-// number of virtual "roadwork" vehicles
+// number of virtual "roadwork" Fzicles
 
 var nr=Math.round((uEndRoadworks-uBeginRoadworks)/lenRoadworkElement);
 
@@ -267,7 +267,7 @@ for (var i=0; i<10; i++){
     obstacleImgs[i]=new Image();
     obstacleImgs[i].src = (i==0)
 	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+    : "figs/constructionVeh"+(i)+".png";
 }
 
 
@@ -313,7 +313,7 @@ var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 3,3,
+var depot=new vehicleDepot(obstacleImgs.length, 1,2,
 			   0.7*smallerDimPix/scale,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
@@ -341,8 +341,7 @@ function updateSim(){
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
-    isSmartphone=mqSmartphone();
-
+ 
     // transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
