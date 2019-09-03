@@ -318,7 +318,7 @@ var depot=new vehicleDepot(obstacleImgs.length, 1,2,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
 
-
+var speedfunnel=new SpeedFunnel(canvas,1,3,0.7,0.6);
 
 
 //############################################
@@ -504,6 +504,11 @@ function drawSim() {
     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
+
+    // (5a) !!! draw speed funnel
+
+  speedfunnel.draw(canvas);
+
 
 
     // (6) show simulation time and detector displays
