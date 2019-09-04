@@ -43,6 +43,8 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   this.n=nRow*nCol;
   this.xRelDepot=xRelDepot; // 0=left, 1=right
   this.yRelDepot=yRelDepot; // 0=bottom, 1=top
+  this.wPix=42; // only init
+  this.hPix=42; // only init
 
   // create imgs of speed-limit signs
 
@@ -54,53 +56,60 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
       : "figs/Tempo"+(i_img)+"0.png";
   }
 
+ 
+ 
+
+  // create all instances of speedlimit objects
+
+  this.speedl=[];
+  for (var i=0; i<this.n; i++){
+
   // initial association with speed limit 80,100,120,60,free
   // index={0=free,1=10 km/h, ..., 12=120 km/h}
-
-  this.speedIndex=[];
-  this.speedlImg=[];
-  this.speedLimit=[];
-  for (var i=0; i<this.n; i++){
+ 
     var j=i%5;
-    var k=
+    var speedInd=
       (j==0) ? 8 :
       (j==1) ? 10 : 
       (j==2) ? 12 : 
       (j==3) ? 6 : 0;
 
-    this.speedIndex[i]=k;
-    this.speedlImg[i]=this.speedlImgRepo[k];
-    this.speedLimit[i]=(k>0) ? 10.*k/3.6 : 200./3.6;
-  }
+    speedlImg=this.speedlImgRepo[speedInd];
+    speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
+ 
+    this.speedl[i]={speedIndex: speedInd,
+		    image: this.speedlImgRepo[speedInd],
+		    value: speedLimit,
+		    isActive: false,
+		    xPixDepot: 42, // only init
+		    yPixDepot: 42, // only init
+		   };
+  } // loop over elements
 
-  // initial states: all speed limits are passive
+  console.log("this.speedl[0].speedIndex=",this.speedl[0].speedIndex);
+  this.calcDepotPositions(canvas); // sets pixel sizes, positions
 
-  this.isActive=[];
-  for (var i=0; i<this.n; i++){
-    this.isActive[i]=false;
-  }
+  // logging
 
-
-  // init depot positions
-
-  this.wPix=42; // only init
-  this.hPix=42; // only init
-  this.xPixDepot=[];
-  this.yPixDepot=[];
-  this.calcDepotPositions(canvas);
-
-  // log
 
   if(true){
     for(var i=0; i<this.n; i++){
       console.log("SpeedFunnel cstr: i=",i,
-		  " speedIndex=",this.speedIndex[i],
-		  " speedLimit_kmh=",formd(3.6*this.speedLimit[i]),
-		  " imgfile=",this.speedlImg[i].src,
-		  " isActive=",this.isActive[i]);
+		  " speedIndex=",this.speedl[i].speedIndex,
+		  " speedLimit_kmh=",formd(3.6*this.speedl[i].value),
+		  " imgfile=",this.speedl[i].image.src,
+		  " isActive=",this.speedl[i].isActive);
     }
+
+    // test pick
+
+    console.log("this.pickInDepot(526,246,42)=",this.pickInDepot(526,246,42));
   }
-} // end cstr
+
+
+} // end SpeedFunnel Cstr
+
+
 
 
 
@@ -111,20 +120,22 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
 SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 
-  var sRel=0.01; //. relative spacing
+  var sRel=0.01; // relative spacing
+  var sizeRel=0.06; // relative size of speed-limit sign
   var sizeCanvas=Math.min(canvas.width, canvas.height);
-  this.wPix=sizeRel*sizeCanvas; // diameter of image in pixels
-  this.hPix=wPix;
   var sPix=sRel*sizeCanvas; // spacing in pixels
   var xPixDepotCenter=canvas.width*this.xRelDepot; 
   var yPixDepotCenter=canvas.height*(1-this.yRelDepot);
 
+  this.wPix=sizeRel*sizeCanvas; // diameter of speed-limit signs in pixels
+  this.hPix=this.wPix;
+
   for (var i=0; i<this.n; i++){
     var icol=i%this.nCol;
     var irow=Math.floor(i/this.nCol);
-    this.xPixDepot[i]=xPixDepotCenter 
+    this.speedl[i].xPixDepot=xPixDepotCenter 
       + (this.wPix+sPix)*(icol-0.5*(this.nCol-1));
-    this.yPixDepot[i]=yPixDepotCenter 
+    this.speedl[i].yPixDepot=yPixDepotCenter 
       + (this.hPix+sPix)*(irow-0.5*(this.nRow-1));
   }
 }
@@ -146,19 +157,18 @@ SpeedFunnel.prototype.draw=function(canvas){
   var wPix=this.wPix;
   var hPix=this.hPix;
 
-  for (var i=0; i<this.n; i++){
+  for (var i=0; i<this.speedl.length; i++){
+    var speedlimit=this.speedl[i];
+    if(!this.speedl.isActive){ // draw passive limits into depot
+      ctx.setTransform(1,0,0,1, speedlimit.xPixDepot,speedlimit.yPixDepot);
+      ctx.drawImage(speedlimit.image,-0.5*wPix,-0.5*hPix,wPix,hPix);
 
-    if(!this.isActive[i]){ // draw passive limits into depot
-      ctx.setTransform(1,0,0,1,xPixDepot[i],yPixDepot[i]);
-      ctx.drawImage(this.speedlImg[i],-0.5*wPix,-0.5*hPix,wPix,hPix);
-
-      if(true){
+      if(false){
 	console.log(
 	  "in SpeedFunnel.draw: i=",i,
-	  " fname=",this.speedlImg[i].src,
-	  " icol=",formd(icol)," irow=",formd(irow),
-	  " xPix=",formd(xPix),
-	  " yPix=",formd(yPix),
+	  " fname=",speedlimit.image.src,
+	  " xPix=",formd(speedlimit.xPixDepot),
+	  " yPix=",formd(speedlimit.yPixDepot),
 	  " wPix=",formd(wPix),
 	  " hPix=",formd(wPix));
       }
@@ -169,36 +179,42 @@ SpeedFunnel.prototype.draw=function(canvas){
 
 
 //######################################################################
-// pick speed-limit sign in depot by user action
+// pick speed-limit sign in depot (state: passive) by user action
 //######################################################################
 
 
 /**
-@param  xUser,yUser: the external physical position
+@param  xUser,yUser: the external pixel position
 @param  distCrit:    only if the distance to the nearest veh in the depot
-                     is less than distCrit, the operation is successful
+                     is less than distCrit [Pix], the operation is successful
 @return [successFlag, thePickedVeh]
 */
 
 
-SpeedFunnel.prototype.pickVehicle=function(xUser,yUser,distCrit){
-    var dist2_min=1e9;
-    var dist2_crit=distCrit*distCrit;
-    var vehReturn
-    var success=false;
-    for(var i=0; i<this.veh.length; i++){
-	if(this.veh[i].inDepot){
-	    var dist2=Math.pow(xUser-this.veh[i].x,2)
-		+ Math.pow(yUser-this.veh[i].y,2);
-	    if( (dist2<dist2_crit) && (dist2<dist2_min)){
-		success=true;
-		dist2_min=dist2;
-		vehReturn=this.veh[i];
-	    }
-	}
+SpeedFunnel.prototype.pickInDepot=function(xPixUser,yPixUser,distCrit){
+  var dist2_min=1e9;
+  var dist2_crit=distCrit*distCrit;
+  var speedlReturn=null;
+  var success=false;
+  for(var i=0; i<this.speedl.length; i++){
+    if(!this.speedl[i].isActive){
+      var dist2=Math.pow(xPixUser-this.speedl[i].xPixDepot,2)
+	+ Math.pow(yPixUser-this.speedl[i].yPixDepot,2);
+      if( (dist2<dist2_crit) && (dist2<dist2_min)){
+	success=true;
+	dist2_min=dist2;
+	speedlReturn=this.speedl[i];
+      }
+      //console.log("i=",i," dist2=",dist2," success=",success);
     }
+  }
 
-    return[success,vehReturn]
+  if(true){
+    console.log("SpeedFunnel.pickInDepot: ",
+		( (success) ? "successfully picked speedlimit "+formd(3.6*speedlReturn.value) : "no sign picked"));
+  }
+
+  return[success,speedlReturn];
 }
  
 
