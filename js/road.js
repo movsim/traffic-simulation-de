@@ -786,8 +786,8 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
 	}
     }
     if(success) this.removeTrafficLight(TLreturn.id);
-    else console.log("road.pickTrafficLight: no TL found nearer than ",
-		     distCrit);
+    //else console.log("road.pickTrafficLight: no TL found nearer than ",
+//		     distCrit);
     return [success,TLreturn];
 }
 
@@ -2898,7 +2898,7 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 	this.sortVehicles();
 	this.updateEnvironment();
     }
-    console.log("in road.pickSpecialVehicle: findResult=",findResults);
+    //console.log("in road.pickSpecialVehicle: findResult=",findResults);
     return findResults;// [success, vehReturn, dist, i for internal use]
 }
 

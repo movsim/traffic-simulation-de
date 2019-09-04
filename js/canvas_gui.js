@@ -255,94 +255,98 @@ function getMouseCoordinates(event){
 
 function pickRoadOrVehicle(xUser,yUser){
 
-    /* priorities (at most one action initiated at a given time):
+  /* priorities (at most one action initiated at a given time):
 
     (1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
     (2) pick/drag depot vehicle: depotObjDragged=true
     (3) drag on road less than crit and then mouse up: roadVehSelected=true
     (4) drag on road more than crit: roadDragged=true
 
-    */
+  */
 
     //!!! change order to match priorities! introduce roadVehSelected!!
 
-    if(false){
-        console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrVehicle");
-        console.log(" xUser=",xUser," yUser=",yUser);
-        console.log(" depotObjDragged=",depotObjDragged,
+  if(true){
+    console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrVehicle");
+    console.log(" xUser=",xUser," yUser=",yUser);
+    console.log(" depotObjDragged=",depotObjDragged,
 		" roadVehSelected=",roadVehSelected,
 		" roadDragged=",roadDragged);
+  }
+
+  // (1a) pick/drag a traffic light
+  // (need to do it separately since green TL have no road-vehicle objects)
+  // !!!TODO: do it also on secondary road in network scenarios! =>(4)
+  // critical drag distance distCrit defined by road
+
+  var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
+  if(pickResults[0]){
+    console.log(" (1a) picked a traffic light on the road!");
+    var TL=pickResults[1];
+    var success=false;
+    for(var i=0; (!success)&&(i<depot.veh.length); i++){
+      success=(TL.id===depot.veh[i].id);
+      if(success) depot.veh[i].inDepot=true;
     }
-
-    // (1a) pick/drag a traffic light
-    // (need to do it separately since green TL have no road-vehicle objects)
-    // !!!TODO: do it also on secondary road in network scenarios! =>(4)
-    // critical drag distance distCrit defined by road
-
-    //console.log("  pickRoadOrVehicle: (1a) test for nearby traffic light on road");
-    var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
-    if(pickResults[0]){
-	var TL=pickResults[1];
-        var success=false;
-        for(var i=0; (!success)&&(i<depot.veh.length); i++){
-	    success=(TL.id===depot.veh[i].id);
-	    if(success) depot.veh[i].inDepot=true;
-	}
-	if(false) console.log(
-	    "canvas.pickRoadOrVehicle: no nearby TL on road found!");
-
-	depotObjDragged=true;
+    if(success){
+	console.log("  pickRoadOrVehicle: found nearby TL on road!");
+    }
+    else{
+	console.log("  pickRoadOrVehicle: found no nearby TL on road!");
+    }
+    depotObjDragged=true;
 	//specRoadObjDragged=true;
-	roadVehSelected=false;
-	roadDragged=false;
-	return;
-    }
+    roadVehSelected=false;
+    roadDragged=false;
+    return;
+  }
+  //console.log(" pickRoadOrVehicle: found no TL or other depot obj on road");
 
-
-     // pick/drag special road object other than traffic light
+    // pick/drag special road object other than traffic light
     // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
  
     //console.log("  (1b) test for a depot obstacle on road");
-    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
-    if(pickResults[0]){
-	//console.log("  (1b) picked a depot obstacle on the road");
-	specialRoadObject=pickResults[1];
-	transformToDepotObject(specialRoadObject,mainroad,depot);
+  pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
+  if(pickResults[0]){
+    console.log("  (1b) picked a depot obstacle on the road");
+    specialRoadObject=pickResults[1];
+    transformToDepotObject(specialRoadObject,mainroad,depot);
 
-	depotObjDragged=true;
+    depotObjDragged=true;
 	//specRoadObjDragged=true;
-	roadVehSelected=false;
-	roadDragged=false;
-	return;
-    }
-    //else console.log("no depot obstacle on a road found");
+    roadVehSelected=false;
+    roadDragged=false;
+    return;
+  }
+  //else console.log("no depot obstacle on a road found");
 
 
     // (2) pick/drag depot vehicle: test for depotObjDragged
     // depot.pickVehicle returns [successFlag, thePickedDepotVeh]
  
     //console.log("  (2) test for depot obstacle/TL outside road");
-    var distCrit=10;
-    pickResults=depot.pickVehicle(xUser, yUser, distCrit);
-    if(pickResults[0]){
-	//console.log("  (2) picked a depot vehicle");
+  var distCrit=10;
+  pickResults=depot.pickVehicle(xUser, yUser, distCrit);
+  if(pickResults[0]){
+	console.log("  (2) picked a depot vehicle");
 	depotObject=pickResults[1];
 	depotObjDragged=true;
 	roadVehSelected=false;
 	roadDragged=false;
 	return;
-    }
-    //else console.log("no obstacle or TL outside road found");
+  }
+  //else console.log("no obstacle or TL outside road found");
 
 
     // (3) pick normal road vehicle to slowing it down: 
     // handled onclick (=onmouseup) by this.influenceVehNearestTo(event)
     // only if distDrag<distDragCrit at this time
 
-    if(false){
+  if(true){
     console.log("  (3) pick normal road vehicle later at onclick",
-		" if distDrag<distDragCrit");}
+		" if distDrag<distDragCrit");
+  }
 
 
     // (4) pick a road section to change road geometry (CRG) by dragging it
@@ -353,23 +357,23 @@ function pickRoadOrVehicle(xUser,yUser){
     //console.log("  (4) test for a road section nearby");
 
 
-    var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
-    var pickResults2=[false,1e6,1e6,1e6];
-    if(isNetworkScenario){
+  var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
+  var pickResults2=[false,1e6,1e6,1e6];
+  if(isNetworkScenario){
 	pickResults2=secondaryRoad.testCRG(xUser, yUser);
-    }
-    var success=(pickResults1[0] || pickResults2[0]); 
-    if(success){
-        //console.log("  (4) picked a road section for dragging",
-	//	    " as soon as distDrag>distDragCrit");
+  }
+  var success=(pickResults1[0] || pickResults2[0]);
+  if(success){
+    console.log("  (4) picked a road section for dragging",
+		" as soon as distDrag>distDragCrit");
 
 	draggedRoad=(pickResults1[1]<pickResults2[1])
 	    ? mainroad : secondaryRoad;
 	depotObjDragged=false;
 	roadVehSelected=false;
 	roadDragged=true;
-    }
-    //else console.log("also no road nearby to drag found!");
+  }
+  else console.log("pickRoadOrVehicle: found no suitable action!");
 
 } // canvas onmousedown or touchStart: pickRoadOrVehicle
 
