@@ -318,7 +318,7 @@ var depot=new vehicleDepot(obstacleImgs.length, 1,2,
 			   -0.5*smallerDimPix/scale,
 			   30,30,true);
 
-var speedfunnel=new SpeedFunnel(canvas,1,3,0.7,0.6);
+var speedfunnel=new SpeedFunnel(canvas,2,3,0.7,0.6);
 
 
 //############################################
@@ -430,7 +430,8 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
 	updatePhysicalDimensions();
-
+      speedfunnel.calcDepotPositions(canvas);
+ 
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
 		        canvas.width," X ",canvas.height);
@@ -450,6 +451,8 @@ function drawSim() {
     // (only needed if no explicit road drawn)
     // "%20-or condition"
     //  because some older firefoxes do not start up properly?
+
+    speedfunnel.zoomBack();// sets userCanvasManip=true if zoombacks active
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
@@ -505,10 +508,9 @@ function drawSim() {
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
-    // (5a) !!! draw speed funnel
-
-  speedfunnel.draw(canvas);
-
+  // (5a) !!! draw speed funnel
+  
+  speedfunnel.draw(canvas,mainroad,scale);
 
 
     // (6) show simulation time and detector displays

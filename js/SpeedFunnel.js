@@ -43,17 +43,19 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   this.n=nRow*nCol;
   this.xRelDepot=xRelDepot; // 0=left, 1=right
   this.yRelDepot=yRelDepot; // 0=bottom, 1=top
+
+
+  this.sizeCanvas=Math.min(canvas.width, canvas.height);
+
   this.wPix=42; // only init
   this.hPix=42; // only init
 
   // create imgs of speed-limit signs
 
-  this.speedlImgRepo = []; // srcFiles[0]='figs/obstacleImg.png'
+  this.speedlImgRepo = []; 
   for (var i_img=0; i_img<13; i_img++){
     this.speedlImgRepo[i_img]=new Image();
-    this.speedlImgRepo[i_img].src = (i_img==0)
-      ? 'figs/sign_free_282_small.png'
-      : "figs/Tempo"+(i_img)+"0.png";
+    this.speedlImgRepo[i_img].src = "figs/Tempo"+(i_img)+"0svg.svg";
   }
 
  
@@ -76,19 +78,35 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
     speedlImg=this.speedlImgRepo[speedInd];
     speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
- 
+
+    //#################################################################
+    // central object
+    // speed limit effective: isActive=true, u>=0,inDepot=isDragged=false 
+    // speed limit sign dragged: isDragged=true, isActive=false=inDepot=false
+    // speed limit sign dropped on road => speed limit effective
+    // speed limit sign dropped outside of road and notyet zoomed back =>
+    // isDragged=isActive=inDepot=false
+    //#################################################################
+    
     this.speedl[i]={speedIndex: speedInd,
 		    image: this.speedlImgRepo[speedInd],
 		    value: speedLimit,
-		    isActive: false,
-		    xPixDepot: 42, // only init
-		    yPixDepot: 42, // only init
+		    isActive: false, 
+		    inDepot: true, 
+		    isDragged: false,
+		    u: -1, // physical long position [m] (only init,
+		           // >=0 if isActive, <0 if !isActive)
+		    xPix: 42, // pixel position of center (only init)
+		    yPix: 42,
+		    xPixDepot: 42, // xPix=xPixDepot if !isActive and 
+		    yPixDepot: 42 // graphics zoomed back to depot
 		   };
   } // loop over elements
 
   console.log("this.speedl[0].speedIndex=",this.speedl[0].speedIndex);
   this.calcDepotPositions(canvas); // sets pixel sizes, positions
 
+    
   // logging
 
 
@@ -103,7 +121,27 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
     // test pick
 
-    console.log("this.pickInDepot(526,246,42)=",this.pickInDepot(526,246,42));
+    console.log("this.pick(526,246,42)=",this.pick(526,246,42));
+
+    // test automatic zoom back
+
+    this.speedl[0].isActive=false;
+    this.speedl[1].inDepot=false;
+    this.speedl[1].xPix=100;
+    this.speedl[1].yPix=100;
+
+    // test active
+
+    this.speedl[0].isActive=true;
+    this.speedl[0].inDepot=false;
+    this.speedl[0].u=400;
+    this.speedl[3].isActive=true;
+    this.speedl[3].inDepot=false;
+    this.speedl[3].u=550;
+    this.speedl[4].isActive=true;
+    this.speedl[4].inDepot=false;
+    this.speedl[4].u=150;
+    
   }
 
 
@@ -121,13 +159,13 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 
   var sRel=0.01; // relative spacing
-  var sizeRel=0.06; // relative size of speed-limit sign
-  var sizeCanvas=Math.min(canvas.width, canvas.height);
-  var sPix=sRel*sizeCanvas; // spacing in pixels
+  var sizeRel=0.10; // relative size of speed-limit sign
+  this.sizeCanvas=Math.min(canvas.width, canvas.height);
+  var sPix=sRel*this.sizeCanvas; // spacing in pixels
   var xPixDepotCenter=canvas.width*this.xRelDepot; 
   var yPixDepotCenter=canvas.height*(1-this.yRelDepot);
 
-  this.wPix=sizeRel*sizeCanvas; // diameter of speed-limit signs in pixels
+  this.wPix=sizeRel*this.sizeCanvas; // diameter of speed-limit signs in pixels
   this.hPix=this.wPix;
 
   for (var i=0; i<this.n; i++){
@@ -137,12 +175,18 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
       + (this.wPix+sPix)*(icol-0.5*(this.nCol-1));
     this.speedl[i].yPixDepot=yPixDepotCenter 
       + (this.hPix+sPix)*(irow-0.5*(this.nRow-1));
+    if(this.speedl[i].inDepot){
+      this.speedl[i].xPix=this.speedl[i].xPixDepot;
+      this.speedl[i].yPix=this.speedl[i].yPixDepot;
+    }
   }
 }
 
 
 //######################################################################
-// draw into canvas
+// draw active and passive speedlimit signs
+// active: on road
+// passive: zooming back or stationary in depot
 //######################################################################
 
 
@@ -151,47 +195,111 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 */
 
 
-SpeedFunnel.prototype.draw=function(canvas){
+SpeedFunnel.prototype.draw=function(canvas,road,scale){
 
+  var active_drawTwoSigns=true; // if false, only sign above road drawn
+  var active_scaleFact=0.7; // size active/size passive signs
+  var crossingLineWidth=1; // line to indicate begin of speedlimit region [m]
   ctx = canvas.getContext("2d");
-  var wPix=this.wPix;
-  var hPix=this.hPix;
+  var wPixPassive=this.wPix;
+  var hPixPassive=this.hPix;
+  var wPixActive=active_scaleFact*wPixPassive;
+  var hPixActive=active_scaleFact*hPixPassive;
 
   for (var i=0; i<this.speedl.length; i++){
-    var speedlimit=this.speedl[i];
-    if(!this.speedl.isActive){ // draw passive limits into depot
-      ctx.setTransform(1,0,0,1, speedlimit.xPixDepot,speedlimit.yPixDepot);
-      ctx.drawImage(speedlimit.image,-0.5*wPix,-0.5*hPix,wPix,hPix);
+    var SL=this.speedl[i];
+ 
+
+    // draw active objects (two signs+line on road)
+    
+    if(SL.isActive){
+
+      // the marker line between active sign(s)
+
+      var crossingLineLength=road.nLanes*road.laneWidth;
+
+      var xCenterPix=  scale*road.traj_x(SL.u);
+      var yCenterPix= -scale*road.traj_y(SL.u); // minus!!
+      var wPix=scale*crossingLineWidth;
+      var lPix=scale*crossingLineLength;
+      var phi=road.get_phi(SL.u);
+      var cphi=Math.cos(phi);
+      var sphi=Math.sin(phi);
+
+      ctx.setTransform(cphi,-sphi,sphi,cphi,xCenterPix,yCenterPix);
+      ctx.fillStyle="rgb(255,255,255)";
+      ctx.fillRect(-0.5*wPix, -0.5*lPix, wPix, lPix);
+
+      // the speedlimit sign(s)
+
+      // left if cphi>0, right otherwise, so that sign always above road
+      // nice side-effect if both signs drawn: nearer sign drawn later
+      // =>correct occlusion effect
+      
+      var distCenter=0.5*crossingLineLength+0.6*road.laneWidth;
+      var v=(cphi>0) ? -distCenter : distCenter; // [m]
+      var xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
+      var yPix=yCenterPix+scale*v*cphi;  // -*-=+
+      ctx.setTransform(1,0,0,1,xPix,yPix);
+      ctx.drawImage(SL.image,-0.5*wPixActive,
+		    -hPixActive,wPixActive, hPixActive);
+
+      if(active_drawTwoSigns){ // draw signs on both sides
+	v*=-1;
+        xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
+        yPix=yCenterPix+scale*v*cphi;  // -*-=+
+        ctx.setTransform(1,0,0,1,xPix,yPix);
+        ctx.drawImage(SL.image,-0.5*wPixActive,
+		      -hPixActive,wPixActive, hPixActive);
+      }
+
+	
+      if(false){
+	console.log("SpeedFunnel.draw active signs: i=",i,
+		    " SL.u=",SL.u,
+		    " xPix=",xPix,
+		    " yPix=",yPix);
+      }
+
+ 
+    }
+    
+    // draw passive objects (in depot or zooming back)
+
+    else{
+      ctx.setTransform(1,0,0,1, SL.xPix,SL.yPix);
+      ctx.drawImage(SL.image,-0.5*wPixPassive,-0.5*hPixPassive,
+		    wPixPassive,hPixPassive);
 
       if(false){
 	console.log(
 	  "in SpeedFunnel.draw: i=",i,
-	  " fname=",speedlimit.image.src,
-	  " xPix=",formd(speedlimit.xPixDepot),
-	  " yPix=",formd(speedlimit.yPixDepot),
-	  " wPix=",formd(wPix),
-	  " hPix=",formd(wPix));
+	  " fname=",SL.image.src,
+	  " xPix=",formd(SL.xPix),
+	  " yPix=",formd(SL.yPix),
+	  " wPixPassive=",formd(wPixPassive),
+	  " hPixPassive=",formd(wPix));
       }
     }
   }
 } // draw
 
 
-
 //######################################################################
-// pick speed-limit sign in depot (state: passive) by user action
+// pick speed-limit sign in depot or on the road by user action
 //######################################################################
 
 
 /**
-@param  xUser,yUser: the external pixel position
-@param  distCrit:    only if the distance to the nearest veh in the depot
+@param  xPixUser,yPixUser: the external pixel position
+@param  distCrit:    only if the distance to the nearest sign
                      is less than distCrit [Pix], the operation is successful
-@return [successFlag, thePickedVeh]
+@return [successFlag, thePickedSign]
+@sidefeffect: thePickedSign.isActive is set to false
 */
 
 
-SpeedFunnel.prototype.pickInDepot=function(xPixUser,yPixUser,distCrit){
+SpeedFunnel.prototype.pick=function(xPixUser,yPixUser,distCrit){
   var dist2_min=1e9;
   var dist2_crit=distCrit*distCrit;
   var speedlReturn=null;
@@ -210,37 +318,50 @@ SpeedFunnel.prototype.pickInDepot=function(xPixUser,yPixUser,distCrit){
   }
 
   if(true){
-    console.log("SpeedFunnel.pickInDepot: ",
+    console.log("SpeedFunnel.pick: ",
 		( (success) ? "successfully picked speedlimit "+formd(3.6*speedlReturn.value) : "no sign picked"));
   }
-
+  speedlReturn.isActive=false;   // deactivate if picked a sign on the road
   return[success,speedlReturn];
 }
  
 
 /*####################################################################
-bring back dragged vehicle to depot if dropped too far from a road
+bring back all dragged speedlimit objects back to the depot 
+if dropped too far from a road (object.isActive=false, obj.inDepot=false)
+automatic action at every timestep w/o GUI interaction 
 ####################################################################*/
 
 
-SpeedFunnel.prototype.zoomBackVehicle=function(){
-    var isActive=false;
-    var displacementPerCall=10; // zooms back as attached to a rubber band
-    for(var i=0; i<this.veh.length; i++){
-	if(this.veh[i].inDepot){
-	    var dx=this.veh[i].xDepot-this.veh[i].x;
-	    var dy=this.veh[i].yDepot-this.veh[i].y;
-	    var dist=Math.sqrt(dx*dx+dy*dy);
-	    if(dist<displacementPerCall){
-		this.veh[i].x=this.veh[i].xDepot;
-		this.veh[i].y=this.veh[i].yDepot;
-	    }
-	    else{
-		isActive=true; // need to zoom further back in next call
-		this.veh[i].x += displacementPerCall*dx/dist;
-		this.veh[i].y += displacementPerCall*dy/dist;
-	    }
-	}
+SpeedFunnel.prototype.zoomBack=function(){
+  var relDisplacementPerCall=0.02; // zooms back as attached to a rubber band
+  var pixelsPerCall=relDisplacementPerCall*this.sizeCanvas;
+  for(var i=0; i<this.speedl.length; i++){
+    var speedlObj=this.speedl[i];
+    if((!speedlObj.isActive)&&(!speedlObj.inDepot)){
+      userCanvasManip=true; 
+      var dx=speedlObj.xPixDepot-speedlObj.xPix;
+      var dy=speedlObj.yPixDepot-speedlObj.yPix;
+      var dist=Math.sqrt(dx*dx+dy*dy);
+
+      if(dist<pixelsPerCall){
+	speedlObj.xPix=speedlObj.xPixDepot;
+	speedlObj.yPix=speedlObj.yPixDepot;
+	speedlObj.inDepot=true;
+      }
+      else{
+	speedlObj.xPix += pixelsPerCall*dx/dist;
+	speedlObj.yPix += pixelsPerCall*dy/dist;
+      }
+      console.log("SpeedFunnel.zoomBack: i=",i,
+		  " speedlObj.xPix=",speedlObj.xPix,
+		  " speedlObj.xPix=",speedlObj.xPix,
+		  " this.speedl[i].xPix=",this.speedl[i].xPix);
     }
-    return(isActive);
+  }
+}
+
+
+SpeedFunnel.prototype.drag=function(xPixUser,yPixUser){
+  console.log("in SpeedFunnel.drag");
 }
