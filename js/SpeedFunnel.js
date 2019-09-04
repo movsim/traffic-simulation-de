@@ -121,7 +121,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
     // test pick
 
-    console.log("this.pick(526,246,42)=",this.pick(526,246,42));
+    console.log("this.pickObject(526,246,42)=",this.pickObject(526,246,42));
 
     // test automatic zoom back
 
@@ -135,13 +135,9 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
     this.speedl[0].isActive=true;
     this.speedl[0].inDepot=false;
     this.speedl[0].u=400;
-    this.speedl[3].isActive=true;
-    this.speedl[3].inDepot=false;
-    this.speedl[3].u=550;
-    this.speedl[4].isActive=true;
-    this.speedl[4].inDepot=false;
-    this.speedl[4].u=150;
-    
+    this.speedl[0].xPix=mainroad.get_xPix(this.speedl[0].u,0,scale);
+    this.speedl[0].yPix=mainroad.get_yPix(this.speedl[0].u,0,scale);
+   
   }
 
 
@@ -299,29 +295,42 @@ SpeedFunnel.prototype.draw=function(canvas,road,scale){
 */
 
 
-SpeedFunnel.prototype.pick=function(xPixUser,yPixUser,distCrit){
+SpeedFunnel.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
   var dist2_min=1e9;
   var dist2_crit=distCrit*distCrit;
   var speedlReturn=null;
   var success=false;
   for(var i=0; i<this.speedl.length; i++){
-    if(!this.speedl[i].isActive){
-      var dist2=Math.pow(xPixUser-this.speedl[i].xPixDepot,2)
-	+ Math.pow(yPixUser-this.speedl[i].yPixDepot,2);
-      if( (dist2<dist2_crit) && (dist2<dist2_min)){
-	success=true;
-	dist2_min=dist2;
-	speedlReturn=this.speedl[i];
-      }
-      //console.log("i=",i," dist2=",dist2," success=",success);
+    var dist2=Math.pow(xPixUser-this.speedl[i].xPix,2)
+      + Math.pow(yPixUser-this.speedl[i].yPix,2);
+    if( (dist2<dist2_crit) && (dist2<dist2_min)){
+      success=true;
+      dist2_min=dist2;
+      speedlReturn=this.speedl[i];
+    }
+    if(true){
+      console.log("SpeedFunnel: i=",i,
+		  " xPix=",formd(this.speedl[i].xPix),
+		  " xPixUser=", formd(xPixUser),
+		  " yPix=",formd(this.speedl[i].yPix),
+		  " yPixUser=", formd(yPixUser),
+		  " dist2=",formd(dist2),
+		  " dist2_crit=",formd(dist2_crit),
+		  " success=",success);
     }
   }
 
   if(true){
-    console.log("SpeedFunnel.pick: ",
-		( (success) ? "successfully picked speedlimit "+formd(3.6*speedlReturn.value) : "no sign picked"));
+    var msg=(success)
+      ? "successfully picked speedlimit "+formd(3.6*speedlReturn.value)
+      : "no sign picked";
+    console.log("SpeedFunnel.pickObject: ",msg);
   }
-  speedlReturn.isActive=false;   // deactivate if picked a sign on the road
+
+  // deactivate in case the picked sign was on the road
+
+  if(success){speedlReturn.isActive=false;} 
+ 
   return[success,speedlReturn];
 }
  

@@ -7,7 +7,7 @@
           onmousemove="getCoordinatesDoDragging(event)"
           onmouseout="cancelActivities(event)"
           onclick="canvasClickCallback(event)"
-          onmousedown="pickRoadOrVehicle()" 
+          onmousedown="pickRoadOrObject()" 
           onmouseup="finishDistortionOrDropVehicle()"
 */
 
@@ -31,9 +31,9 @@ var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 var touchdown=false; //true if touchstart event fired, but not yet touchend
 
-var depotObjDragged=false; //true if a depot object is <distmin at mousedown
-var roadVehSelected=false; // NOW NOT USED true if none of the above and 
-                           // nearest normal vehicle has distDrag<crit " " 
+var depotObjDragged=false; //true if a depot object was 
+                           // < distmin at last mousedown
+var funnelObjDragged=false; //same for a SpeedFunnel object
 var roadDragged=false; // true if none of the above and distRoad<crit   " "
 
 
@@ -89,7 +89,7 @@ function handleTouchStart(evt) {
     // do the actual action (=> mouse section)
  
     defineSzenarioBasedVariables(scenarioString);
-    pickRoadOrVehicle(xUser, yUser); 
+    pickRoadOrObject(xUser, yUser); 
 
     // test
 
@@ -113,8 +113,8 @@ function getTouchCoordinates(event){
     var rect = canvas.getBoundingClientRect();
     var xPixLeft=rect.left; // left-upper corner of the canvas 
     var yPixTop=rect.top;   // in browser reference system
-    xPixUser = touch.clientX-xPixLeft; //pixel coords in canvas reference
-    yPixUser = touch.clientY-yPixTop; 
+    xPixUser= touch.clientX-xPixLeft; //pixel coords in canvas reference
+    yPixUser= touch.clientY-yPixTop; 
     xUser=xPixUser/scale;   //scale from main js onramp.js etc
     yUser=-yPixUser/scale;   //scale from main js onramp.js etc
 
@@ -225,7 +225,7 @@ function handleMouseDown(event){
     //console.log("\n\nafter getMouseCoordinates: xUser=",xUser);
     xUserDown=xUser; // memorize starting point of mouse drag
     yUserDown=yUser;
-    pickRoadOrVehicle(xUser,yUser);
+    pickRoadOrObject(xUser,yUser);
 }
 
 
@@ -240,10 +240,10 @@ function getMouseCoordinates(event){
     var rect = canvas.getBoundingClientRect();
     var xPixLeft=rect.left; // left-upper corner of the canvas 
     var yPixTop=rect.top;   // in browser reference system
-    xPixUser = event.clientX-xPixLeft; //pixel coords in canvas reference
-    yPixUser = event.clientY-yPixTop; 
+    xPixUser= event.clientX-xPixLeft; //pixel coords in canvas reference
+    yPixUser= event.clientY-yPixTop; 
     xUser=xPixUser/scale;   //scale from main js onramp.js etc
-    yUser=-yPixUser/scale;   //scale from main js onramp.js etc
+    yUser=-yPixUser/scale;   //scale from main js onramp.js etc (! factor -1)
 
     if(false){
 	console.log("getMouseCoordinates: xUser=",xUser," yUser=",yUser);
@@ -253,24 +253,28 @@ function getMouseCoordinates(event){
 
 // do the action
 
-function pickRoadOrVehicle(xUser,yUser){
+function pickRoadOrObject(xUser,yUser){
 
   /* priorities (at most one action initiated at a given time):
 
     (1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
     (2) pick/drag depot vehicle: depotObjDragged=true
-    (3) drag on road less than crit and then mouse up: roadVehSelected=true
-    (4) drag on road more than crit: roadDragged=true
+    (3) pick/drag SpeedFunnel object: funnelObjDragged=true
+    (4) test for a road section nearby
+
+    later stages not here but at onmousemove or onmouseup (onclick) callbacks
+    (5) drag on road less than crit and then mouse up => click: slow down road
+    (6) drag on road more than crit: roadDragged=true
 
   */
 
     //!!! change order to match priorities! introduce roadVehSelected!!
 
   if(true){
-    console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrVehicle");
+    console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrObject");
     console.log(" xUser=",xUser," yUser=",yUser);
     console.log(" depotObjDragged=",depotObjDragged,
-		" roadVehSelected=",roadVehSelected,
+		" funnelObjDragged=",funnelObjDragged,
 		" roadDragged=",roadDragged);
   }
 
@@ -289,33 +293,32 @@ function pickRoadOrVehicle(xUser,yUser){
       if(success) depot.veh[i].inDepot=true;
     }
     if(success){
-	console.log("  pickRoadOrVehicle: found nearby TL on road!");
+	console.log("  pickRoadOrObject: found nearby TL on road!");
     }
     else{
-	console.log("  pickRoadOrVehicle: found no nearby TL on road!");
+	console.log("  pickRoadOrObject: found no nearby TL on road!");
     }
     depotObjDragged=true;
-	//specRoadObjDragged=true;
-    roadVehSelected=false;
+    funnelObjDragged=false;
     roadDragged=false;
     return;
   }
-  //console.log(" pickRoadOrVehicle: found no TL or other depot obj on road");
+  //console.log(" pickRoadOrObject: found no TL or other depot obj on road");
 
     // pick/drag special road object other than traffic light
     // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
  
+
     //console.log("  (1b) test for a depot obstacle on road");
   pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
   if(pickResults[0]){
-    console.log("  (1b) picked a depot obstacle on the road");
+    console.log(" (1b) picked a depot obstacle on the road");
     specialRoadObject=pickResults[1];
     transformToDepotObject(specialRoadObject,mainroad,depot);
 
     depotObjDragged=true;
-	//specRoadObjDragged=true;
-    roadVehSelected=false;
+    funnelObjDragged=false;
     roadDragged=false;
     return;
   }
@@ -329,33 +332,34 @@ function pickRoadOrVehicle(xUser,yUser){
   var distCrit=10;
   pickResults=depot.pickVehicle(xUser, yUser, distCrit);
   if(pickResults[0]){
-	console.log("  (2) picked a depot vehicle");
-	depotObject=pickResults[1];
-	depotObjDragged=true;
-	roadVehSelected=false;
-	roadDragged=false;
-	return;
+    console.log(" (2) picked a depot vehicle");
+    depotObject=pickResults[1];
+    depotObjDragged=true;
+    funnelObjDragged=false;
+    roadDragged=false;
+    return;
   }
   //else console.log("no obstacle or TL outside road found");
 
 
-    // (3) pick normal road vehicle to slowing it down: 
-    // handled onclick (=onmouseup) by this.influenceVehNearestTo(event)
-    // only if distDrag<distDragCrit at this time
-
-  if(true){
-    console.log("  (3) pick normal road vehicle later at onclick",
-		" if distDrag<distDragCrit");
+  // (3) pick a SpeedFunnel object, 
+  // speedfunnel uses pixels instead of meters, therefore scale factor
+ 
+  var distCrit=12;//[m] 
+  pickResults=speedfunnel.pickObject(xPixUser, yPixUser, 
+				      distCrit*scale);
+  if(pickResults[0]){
+    console.log(" (3) picked a SpeedFunnel object,",
+		"  speed limit_kmh=",formd(3.6*pickResults[1].value));
+    funnelObject=pickResults[1];
+    depotObjDragged=false;
+    funnelObjDragged=true;
+    roadDragged=false;
+    return;
   }
 
 
-    // (4) pick a road section to change road geometry (CRG) by dragging it
-    // road.testCRG returns [success,Deltax,Deltay]
-    // handled in onmousemove+onmousedown and onmouseup events only if 
-    // distDrag>distDragCrit at this time
-
-    //console.log("  (4) test for a road section nearby");
-
+  // (4) test for a road section nearby
 
   var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
   var pickResults2=[false,1e6,1e6,1e6];
@@ -364,18 +368,30 @@ function pickRoadOrVehicle(xUser,yUser){
   }
   var success=(pickResults1[0] || pickResults2[0]);
   if(success){
-    console.log("  (4) picked a road section for dragging",
+    console.log(" (4) picked a road section for dragging",
 		" as soon as distDrag>distDragCrit");
 
 	draggedRoad=(pickResults1[1]<pickResults2[1])
 	    ? mainroad : secondaryRoad;
 	depotObjDragged=false;
-	roadVehSelected=false;
+	funnelObjDragged=false;
 	roadDragged=true;
   }
-  else console.log("pickRoadOrVehicle: found no suitable action!");
 
-} // canvas onmousedown or touchStart: pickRoadOrVehicle
+ // (5) pick normal road vehicle to slowing it down: onclick callback: 
+ // handled onclick (=onmouseup) by 
+ // this.influenceClickedVehOrTL(xUser,yUser)
+ // but only if distDrag<distDragCrit at this time
+
+ // (6) pick a road section to change road geometry (CRG) by dragging it
+ // road.testCRG returns [success,Deltax,Deltay]
+ // handled in onmousemove+onmousedown and onmouseup events only if 
+ // distDrag>distDragCrit at this time
+
+  else console.log("pickRoadOrObject: found no suitable action!");
+
+
+} // canvas onmousedown or touchStart: pickRoadOrObject
 
 
 
@@ -566,7 +582,6 @@ function cancelActivities(event){
     mousedown=false;
     touchdown=false;
     depotObjDragged=false;
-    roadVehSelected=false;
     roadDragged=false;
     depotVehZoomBack=true;
 }

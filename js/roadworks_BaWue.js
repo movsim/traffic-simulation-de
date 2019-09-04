@@ -488,7 +488,6 @@ function drawSim() {
 
 	speedL_srcFileIndexOld=speedL_srcFileIndex;
 	speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
-	console.log("speedlimitImg.src=",speedlimitImg.src);
 
 	var sizeSignPix=0.12*refSizePix;
 	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
@@ -498,7 +497,6 @@ function drawSim() {
 	xPix -= 0.5*sizeSignPix; // center of sign
 	yPix -= 0.5*sizeSignPix;
 	ctx.setTransform(1,0,0,1,0,0); 
-	console.log("roadworks.draw: before drawing speedlimitImg");
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 
