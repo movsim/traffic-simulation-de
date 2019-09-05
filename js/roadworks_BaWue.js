@@ -15,7 +15,7 @@ MOBIL_bSafeMax=17;
 
 density=0;
 
-qIn=1550./3600; 
+qIn=50./3600; // 1550./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" Fz/h";
 
@@ -337,12 +337,12 @@ function updateSim(){
 //#################################################################
 
 
-    // update times
+    // (1) update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
  
-    // transfer effects from slider interaction and mandatory regions
+    // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
@@ -350,14 +350,14 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    // externally impose mandatory LC behaviour
+    // (3) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
     // starting at 0 up to the position uBeginRoadworks
 
     mainroad.setLCMandatory(uStartLCMandatory, uBeginRoadworks, true);
 
 
-    // do central simulation update of vehicles
+    // (4) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -376,23 +376,38 @@ function updateSim(){
 	}
     }
 
+    // (5) update detector readings
 
     for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].update(time,dt);
     }
 
 
-    // see onramp.js why this is necessary
-
-     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
+  // (6) initiate zooming back and activating/deactivating effects 
+  // of depotVehicle and SpeedFunnel objects
 
 
+  // => see onramp.js for the workings if depotVehicles involved
+
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&depotVehZoomBack){
+    var res=depot.zoomBackVehicle();
+    depotVehZoomBack=res;
+    userCanvasManip=true;
+  }
+
+
+  // do zooming back action of speedfunnel objects
+  // independent of user input if mouse not pressed
+  // sets userCanvasManip=true if zoombacks active, therefore before 
+  // deciding whether background needs to be redrawn 
+  // (the actual drawing of the speedfunnel and depot objects is, of course,
+  // after the possible background drawing, see (5)
+
+  if(funnelObjDragged==false){
+    speedfunnel.zoomBack();
+  }
+
+  
 }//updateSim
 
 
@@ -402,7 +417,7 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
-    // (0) redefine graphical aspects of road (arc radius etc) using
+    // (1) redefine graphical aspects of road (arc radius etc) using
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
@@ -441,10 +456,7 @@ function drawSim() {
     }
 
 
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
-
-    
+  
 
 
     // (2) reset transform matrix and draw background
@@ -452,7 +464,8 @@ function drawSim() {
     // "%20-or condition"
     //  because some older firefoxes do not start up properly?
 
-    speedfunnel.zoomBack();// sets userCanvasManip=true if zoombacks active
+
+  //console.log("userCanvasManip=",userCanvasManip);
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
@@ -500,15 +513,14 @@ function drawSim() {
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 
-    // (5) !!! draw depot vehicles
 
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  // (5) draw depot vehicles and speed funnel objects
 
-  // (5a) !!! draw speed funnel
-  
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+    depot.draw(obstacleImgs,scale,canvas);
+  }
   speedfunnel.draw(canvas,mainroad,scale);
+
 
 
     // (6) show simulation time and detector displays

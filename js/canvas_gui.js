@@ -3,12 +3,12 @@
 // mouse and touch event callbacks
 //###############################################################
 /*
-          onmouseenter="defineSecondaryRoad(event)"
-          onmousemove="getCoordinatesDoDragging(event)"
+          onmouseenter="handleMouseEnter(event)"
+          onmousedown="handleMouseDown(event)"
+          onmousemove="handleMouseMove(event)"
+          onmouseup="handleMouseUp(event)" 
+          onclick="handleClick(event)" <!-- only for slowing down vehs-->
           onmouseout="cancelActivities(event)"
-          onclick="canvasClickCallback(event)"
-          onmousedown="pickRoadOrObject()" 
-          onmouseup="finishDistortionOrDropVehicle()"
 */
 
 
@@ -270,7 +270,7 @@ function pickRoadOrObject(xUser,yUser){
 
     //!!! change order to match priorities! introduce roadVehSelected!!
 
-  if(true){
+  if(false){
     console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrObject");
     console.log(" xUser=",xUser," yUser=",yUser);
     console.log(" depotObjDragged=",depotObjDragged,
@@ -420,7 +420,7 @@ function handleMouseMove(event){
 
 
 // do drag actions if onmousemove&&mousedown or if touchdown=true
-//which action(s) (booleans depotObjDragged,roadDragged) 
+//which action(s) (booleans depotObjDragged, funnelObjDragged,roadDragged) 
 //is determined by onmousedown/touchStart  callback
 
 
@@ -435,6 +435,7 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 	if(false){
 	    console.log("mousemove && mousedown: roadDragged=",roadDragged,
 		    " depotObjDragged=",depotObjDragged,
+		    " funnelObjDragged=",funnelObjDragged,
 		    " xUser=",xUser,"xUserDown=",xUserDown,
 		    " distDrag=",distDrag,
 		    " distDragCrit=",distDragCrit);
@@ -444,9 +445,13 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 	    if(depotObjDragged){
 	        dragVehicle(xUser,yUser);
 	    }
+	    if(funnelObjDragged){
+	        dragFunnelObject(xPixUser,yPixUser);
+	    }
 	    if(roadDragged){
 	        dragRoad(xUser,yUser);
 	    }
+
 	}
     }
 
@@ -476,58 +481,96 @@ function handleMouseUp(evt) {
 // while both called in handleTouchEnd(evt)
 
 function finishDistortOrDropVehicle(){
-    if(false){
-        console.log("onmouseup/touchEnd: in finishDistortOrDropVehicle:",
+  if(true){
+    console.log("onmouseup/touchEnd: in finishDistortOrDropVehicle:",
     		" roadDragged=",roadDragged,
-    		" depotObjDragged=",depotObjDragged);
-    }
+    		" depotObjDragged=",depotObjDragged,
+    		" funnelObjDragged=",funnelObjDragged,
+		"");
+  }
 
-    mousedown=false;
-    touchdown=false;
+  mousedown=false;
+  touchdown=false;
  
-    if(roadDragged&&(distDrag>distDragCrit)){
-        userCanvasManip=true; // if true, new backgr, new road drawn
-	roadDragged=false;
-	//console.log(" before draggedRoad.finishCRG()");
-	draggedRoad.finishCRG();
+  if(roadDragged&&(distDrag>distDragCrit)){
+    userCanvasManip=true; // if true, new backgr, new road drawn
+    roadDragged=false;
+    //console.log(" before draggedRoad.finishCRG()");
+    draggedRoad.finishCRG();
+    handleDependencies();
+  }
 
-	handleDependencies();
+
+  if(depotObjDragged||funnelObjDragged){
+
+    //console.log("in canvas_gui.onmouseup: finishDistortOrDropVehicle: ",
+    //" WARNING: only mainroad handled until now!");
+
+    userCanvasManip=true;   // if true, new backgr, new road drawn
+
+    // check if drop near a road (return=[dist,uReturn,vLanes])
+
+    var dropInfo=mainroad.findNearestDistanceTo(xUser, yUser);
+    var distCrit=0.6*(mainroad.nLanes * mainroad.laneWidth);
+
+    // unsuccessful drop: initiate zoom back to depots
+    // depotVehZoomBack is true if further zooms are needed
+    // (called also in main.update)
+
+    if(dropInfo[0]>distCrit){
+      if(depotObjDragged){
+	depotVehZoomBack=depot.zoomBackVehicle();
+      }
+      if(funnelObjDragged){
+	funnelObject.isActive=false;  // all this initiates zoom back by 
+	funnelObject.inDepot=false;   // speedfunnel.zoomBack() called in 
+	funnelObject.isDragged=false; // drawSim method in eachtimestep
+
+        // relevant if dragged an active sign from the road
+	mainroad.updateSpeedFunnel(speedfunnel); 
+
+      }
     }
 
+    // successful drop: integrate depotObject to the road vehicles
+    // or funnelObject as an active road sign
 
-    if(depotObjDragged){
-	//console.log("in canvas_gui.onmouseup: drop vehicle: WARNING: only mainroad handled until now!");
-
-        userCanvasManip=true; // if true, new backgr, new road drawn
-	depotObjDragged=false;
-
-        // [dist,uReturn,vLanes]
-	var dropInfo=mainroad.findNearestDistanceTo(xUser, yUser);
-	//console.log("in canvas_gui.onmouseup: dropInfo=",dropInfo);
-
-        // unsuccessful drop: initiate zoom back to depot
-        // depotVehZoomBack is true if further zooms are needed
-        // (called also in main.update)
-
-	var distCrit=0.6*(mainroad.nLanes * mainroad.laneWidth);
-
-	if(dropInfo[0]>distCrit){ 
-	    //console.log(" drop failed! dist=",dropInfo[0],
-	//		" distCrit=",distCrit," initiate zoom back... ");
-	    depotVehZoomBack=depot.zoomBackVehicle();
-	}
-
-       // successful drop: integrate depotObject to the road vehicles
-	else{
-	    depotVehZoomBack=false;
-	    depotObject.inDepot=false;
+    else{
+      if(depotObjDragged){
+	depotVehZoomBack=false;
+	depotObject.inDepot=false;
 	    //console.log("in dropping of depot vehicle");
-	    mainroad.dropDepotVehicle(depotObject, dropInfo[1], 
-				      dropInfo[2],
-				      traffLightRedImg,traffLightGreenImg);
-	}
+	mainroad.dropDepotVehicle(depotObject, dropInfo[1], 
+				  dropInfo[2],
+				  traffLightRedImg,traffLightGreenImg);
+      }
+
+      if(funnelObjDragged){
+	funnelObject.isActive=true;  
+	funnelObject.inDepot=false;  
+	funnelObject.isDragged=false;
+	funnelObject.u=dropInfo[1];
+	if(true){console.log("funnelObject dropped:",
+			     " funnelObject.xPix=",funnelObject.xPix,
+			     " funnelObject.yPix=",funnelObject.yPix,
+			     " xPixUser=",xPixUser,
+			     " yPixUser=",yPixUser);
+		}
+	//funnelObject.xPix=xPixUser;
+	//funnelObject.yPix=yPixUser;
+
+	mainroad.updateSpeedFunnel(speedfunnel);
+      }
     }
-}
+
+    // conclude actions for (depotObjDragged||funnelObjDragged) 
+    // drop -> no longer any object dragged
+
+    depotObjDragged=false;
+    funnelObjDragged=false;
+  }
+
+} // handleMouseUp -> finishDistortOrDropVehicle
 
 
 
@@ -582,6 +625,7 @@ function cancelActivities(event){
     mousedown=false;
     touchdown=false;
     depotObjDragged=false;
+    funnelObjDragged=false;
     roadDragged=false;
     depotVehZoomBack=true;
 }
@@ -709,6 +753,12 @@ function dragVehicle(xUser,yUser){
     //console.log("in dragVehicle: xUser=",xUser," yUser=",yUser);
     depotObject.x=xUser;
     depotObject.y=yUser;
+}
+
+function dragFunnelObject(xPixUser,yPixUser){
+    console.log("in dragVehicleFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
+    funnelObject.xPix=xPixUser;
+    funnelObject.yPix=yPixUser;
 }
 
 function dragRoad(xUser,yUser){

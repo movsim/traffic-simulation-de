@@ -2,7 +2,7 @@
 // helper function
 
 function formd(x){return parseFloat(x).toFixed(2);}
-
+function formd0(x){return parseFloat(x).toFixed(0);}
 
 
 /** #############################################################
@@ -118,26 +118,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 		  " imgfile=",this.speedl[i].image.src,
 		  " isActive=",this.speedl[i].isActive);
     }
-
-    // test pick
-
-    console.log("this.pickObject(526,246,42)=",this.pickObject(526,246,42));
-
-    // test automatic zoom back
-
-    this.speedl[0].isActive=false;
-    this.speedl[1].inDepot=false;
-    this.speedl[1].xPix=100;
-    this.speedl[1].yPix=100;
-
-    // test active
-
-    this.speedl[0].isActive=true;
-    this.speedl[0].inDepot=false;
-    this.speedl[0].u=400;
-    this.speedl[0].xPix=mainroad.get_xPix(this.speedl[0].u,0,scale);
-    this.speedl[0].yPix=mainroad.get_yPix(this.speedl[0].u,0,scale);
-   
+  
   }
 
 
@@ -310,12 +291,15 @@ SpeedFunnel.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
     }
     if(true){
       console.log("SpeedFunnel: i=",i,
-		  " xPix=",formd(this.speedl[i].xPix),
-		  " xPixUser=", formd(xPixUser),
-		  " yPix=",formd(this.speedl[i].yPix),
-		  " yPixUser=", formd(yPixUser),
-		  " dist2=",formd(dist2),
-		  " dist2_crit=",formd(dist2_crit),
+		  " kmh=",formd0(3.6*this.speedl[i].value),
+		  " u=",formd0(this.speedl[i].u),
+		  " uNearest=",formd0(mainroad.findNearestDistanceTo(xPixUser/scale,-yPixUser/scale)[1]),
+		  " xPix=",formd0(this.speedl[i].xPix),
+		  " xPixUser=", formd0(xPixUser),
+		  " yPix=",formd0(this.speedl[i].yPix),
+		  " yPixUser=", formd0(yPixUser),
+		  " dist2=",formd0(dist2),
+		  " dist2_crit=",formd0(dist2_crit),
 		  " success=",success);
     }
   }
@@ -362,10 +346,12 @@ SpeedFunnel.prototype.zoomBack=function(){
 	speedlObj.xPix += pixelsPerCall*dx/dist;
 	speedlObj.yPix += pixelsPerCall*dy/dist;
       }
-      console.log("SpeedFunnel.zoomBack: i=",i,
-		  " speedlObj.xPix=",speedlObj.xPix,
-		  " speedlObj.xPix=",speedlObj.xPix,
-		  " this.speedl[i].xPix=",this.speedl[i].xPix);
+      if(false){
+        console.log("SpeedFunnel.zoomBack: i=",i,
+		    " speedlObj.xPix=",speedlObj.xPix,
+		    " speedlObj.xPix=",speedlObj.xPix,
+		    " this.speedl[i].xPix=",this.speedl[i].xPix);
+      }
     }
   }
 }

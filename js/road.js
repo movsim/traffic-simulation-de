@@ -1140,6 +1140,10 @@ road.prototype.findLeaderAtLane=function(u,lane){
 (jun17) get nearest distance of the road axis (center)
  to an external physical position
 @return [distance in m, u in m, v in lanes ]
+
+Notice1: u discretized to width of road segments, typically about 10 m
+see also this.get_xPix(u,v,scale), this.get_yPix(u,v,scale)
+
 #############################################################
 */
 
@@ -1156,8 +1160,6 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
 	    uReturn=u;
 	    dxReturn=dx;
 	    dyReturn=dy;
-	    //console.log("road.findNearestDistanceTo: u=",u,
-	//		" dist2_min=",dist2_min);
 	}
     }
 
@@ -1769,6 +1771,32 @@ road.prototype.getNextOffIndex=function(u){
     }
     return index;
       
+}
+
+/** #####################################################
+ MT 2019-09: implement speed funnel:
+
+ construct models according to the active speed limits 
+ of the speedfunnel (free sign=>value=200./3.6=>effectively no influence)
+ order the speedlimit positions, 
+ and distribute them with this.setCFModelsInRange
+
+//#####################################################*/
+
+road.prototype.updateSpeedFunnel=function(speedfunnel){
+  if(true){
+    console.log("road.updateSpeedFunnel: active limits: ");
+    var success=false;
+    for(var i=0; i<speedfunnel.speedl.length; i++){
+      var speedlimit=speedfunnel.speedl[i];
+      if(speedlimit.isActive){
+	success=true;
+	console.log("u=",formd(speedlimit.u),
+		    " limit_kmh=",formd(3.6*speedlimit.value));
+      }
+    }
+    if(!success){console.log(" no active limits");}
+  }
 }
 
 
@@ -3483,6 +3511,9 @@ road.prototype.get_curv=function(u){
 @param v=logical transversal coordinate (zero at road center, towards right)
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
 @return x pixel coordinate
+
+see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
+
 */
 
 road.prototype.get_xPix=function(u,v,scale){
@@ -3498,6 +3529,9 @@ road.prototype.get_xPix=function(u,v,scale){
 @param v=logical transversal coordinate (zero at road center, towards right)
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
 @return y pixel coordinate
+
+see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
+
 */
 
 road.prototype.get_yPix=function(u,v,scale){
