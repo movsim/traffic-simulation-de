@@ -515,6 +515,8 @@ function drawSim() {
 
 
   // (5) draw depot vehicles and speed funnel objects
+  // !!!do it also outside, now!
+
 
   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
     depot.draw(obstacleImgs,scale,canvas);

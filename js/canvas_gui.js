@@ -402,18 +402,14 @@ function pickRoadOrObject(xUser,yUser){
 // [xy]UserDown from touchinit/mousedown
 
 function handleMouseMove(event){
-    //console.log("in handleMouseMove(evt): mousedown=",mousedown);
-    getMouseCoordinates(event); //=> xUser,yUser;
-    doDragging(xUser,yUser,xUserDown,yUserDown);
-    // test
-    if(false){
-        ctx.beginPath();
-        ctx.arc(scale*xUser,-scale*yUser,
-	    4, 0, 2 * Math.PI, false);  // a circle at the start
-        ctx.fillStyle = "rgb(0,0,255)";
-        ctx.fill();
-    }
+  //console.log("in handleMouseMove(evt): mousedown=",mousedown);
+  getMouseCoordinates(event); //=> xUser,yUser;
+  doDragging(xUser,yUser,xUserDown,yUserDown);
 
+  // !! draw moved objects also outside of sim thread 
+  // to be able to move objects before starting/during stopped simulation
+
+  drawSim();
 }
 
 
@@ -470,10 +466,12 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 
 
 function handleMouseUp(evt) {
-    //console.log("in handleMouseUp(evt)");
+  //console.log("in handleMouseUp(evt)");
 
-    getMouseCoordinates(evt); // => xUser, yUser
-    finishDistortOrDropVehicle(xUser, yUser); 
+  getMouseCoordinates(evt); // => xUser, yUser
+  finishDistortOrDropVehicle(xUser, yUser); 
+  drawSim();
+
 }
 
 // finalize dragging action 

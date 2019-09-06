@@ -210,6 +210,17 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2c1) landscape: position of therestart button: at the info button */
+
+#restartDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 101vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 /* (2d) landscape: add/subtract one lane: just to the left of start/stop button */
 
 #lanePlusDiv{
@@ -471,6 +482,18 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+
+/* (2c1) portrait: position of the restart button: at the info button */
+
+#restartDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 89vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 
 /* (2d) portrait: add/subtract one lane: just to the left of start/stop button */
 

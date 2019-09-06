@@ -22,7 +22,7 @@ function myStartStopFunction(){
     clearInterval(myRun);
     console.log("in myStartStopFunction: isStopped=",isStopped);
 
-    //!!!
+    //!!
     if(isStopped){
 	isStopped=false;
 	document.getElementById("startStop").src="figs/buttonStop3_small.png";
@@ -33,6 +33,45 @@ function myStartStopFunction(){
 	isStopped=true;
     }
 }
+
+//################################################################
+// Restart the same simulation (triggered by "onclick" callback in html file)
+// all settings and GUI-moved objects unchanged
+//#################################################################
+
+function myRestartFunction(){ 
+  time=0;
+  var i=0;
+
+  // remove all regular vehicles (leave obstacles and other special objects)
+  // filter gives new array of filtered objects & leaves old unchanged
+  // NOTICE: works with objects by reference, although locally created ("var")
+
+  var newVehicles = mainroad.veh.filter(selectNotRegularVeh);
+  //console.log("newVehicles=",newVehicles);
+  //console.log("mainroad.veh=",mainroad.veh);
+  mainroad.veh=newVehicles;
+  //console.log("mainroad.veh=",mainroad.veh);
+
+  if(typeof ramp!=="undefined"){
+    console.log("do the same for onramp");
+  }
+
+  if(isStopped){
+    isStopped=false;
+    document.getElementById("startStop").src="figs/buttonStop3_small.png";
+    myRun=setInterval(main_loop, 1000/fps);
+  }
+
+}
+
+// helper function for the filter (passed as func pointer)
+
+function selectNotRegularVeh(veh){
+  return !veh.isRegularVeh();
+}
+  //  while(i<mainroad.veh.length){
+
 
 //#########################################################
 // give-way rules switch for roundabout (vars respectRingPrio, respectRightPrio)
