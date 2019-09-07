@@ -1072,7 +1072,8 @@ road.prototype.findLeaderAt=function(u){
     }
 
 
-    if(vehLead.id==-1){
+    //if(vehLead.id==-1){
+  if(false){
 	console.log("road.findLeadersAt: warning: no leader found");
     }
 

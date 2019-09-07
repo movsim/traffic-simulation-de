@@ -3,9 +3,21 @@ var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
 //#############################################################
-// adapt standard param settings from control_gui.js
+// adapt standard IDM and MOBIL model parameters from control_gui.js
+// since no sliders for that.
+// Values are distributed in updateModels() => truck model derivatives
+// and (as deep copies) in road.updateModelsOfAllVehicles
 //#############################################################
 
+IDM_T=1.4;
+IDM_a=1.2;
+IDM_b=3; 
+IDM_s0=2;
+speedL=1000/3.6; 
+speedL_truck=80/3.6;
+
+MOBIL_bBiasRigh_car=0.05;
+MOBIL_bBiasRight_truck=3;
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
 MOBIL_mandat_bias=1.5;
@@ -13,7 +25,15 @@ MOBIL_mandat_bias=1.5;
 MOBIL_bSafe=5;
 MOBIL_bSafeMax=17;
 
+//#############################################################
+// initialize sliders (qIn etc defined in control_gui.js)
+//#############################################################
+
 density=0;
+
+IDM_v0=140./3.6;
+slider_IDM_v0.value=3.6*IDM_v0;
+slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
 qIn=1550./3600; // inflow 1550./3600; 
 slider_qIn.value=3600*qIn;
@@ -23,18 +43,10 @@ truckFrac=0.30;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
-// reset standard IDM model parameters from control_gui.js
-// since no sliders for that.
-// Values are distributed in updateModels() => truck model derivatives
-// and (as deep copies) in road.updateModelsOfAllVehicles
+timewarp=5;
+slider_timewarpVal.innerHTML=timewarp +" times";
+slider_timewarp.value=timewarp;
 
-IDM_v0=30;
-IDM_T=1.4;
-IDM_a=1.2;
-IDM_b=3; 
-IDM_s0=2;
-speedL=1000/3.6; 
-speedL_truck=80/3.6;
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -72,11 +84,11 @@ console.log("after addTouchListeners()");
 
 //##################################################################
 // overall scaling (critAspectRatio should be consistent with 
-// width/height in css.#contents)
+// width/height in css.#contents optimized for 16:9)
 //##################################################################
 
 var isSmartphone=false;
-var critAspectRatio=120./95.; // from css file width/height of #contents
+var critAspectRatio=16./9.; // optimized for 16:9 corresp. css.#contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
@@ -90,8 +102,8 @@ var mainroadLen=1000; //!!
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43; // manipulae relative viewport by traj_x
-var center_yRel=-0.55;
-var arcRadiusRel=0.40;
+var center_yRel=-0.56;
+var arcRadiusRel=0.41;
 
 // constant  refSizePhys calculated by requirement fixed mainroadLen!!
 
@@ -211,9 +223,9 @@ mainroad.updateEnvironment();
 
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.20*mainroadLen,30);
+mainDetectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,30);
+mainDetectors[2]=new stationaryDetector(mainroad,0.80*mainroadLen,30);
 
 
 //#########################################################
@@ -307,11 +319,11 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new vehicleDepot(obstacleImgs.length, 1,2,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
+			   0.5*smallerDimPix/scale,
+			   -0.60*smallerDimPix/scale,
 			   30,30,true);
 
-var speedfunnel=new SpeedFunnel(canvas,2,3,0.7,0.6);
+var speedfunnel=new SpeedFunnel(canvas,2,3,0.30,0.60);
 
 
 //############################################
@@ -347,7 +359,7 @@ function updateSim(){
     // (2a) update speed limits of speedfunnel
 
   mainroad.updateSpeedFunnel(speedfunnel);
-  mainroad.writeSpeedlimits();
+  //mainroad.writeSpeedlimits();
 
     // (3) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right

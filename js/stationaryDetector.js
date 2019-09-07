@@ -90,8 +90,8 @@ stationaryDetector.prototype.display=function(textsize){
     
     //var toRight_axis=-1.1*this.road.nLanes*this.road.laneWidth;
     var roadWidth=this.road.nLanes*this.road.laneWidth;
-    var toRight_axis=-(1.1+0.8*Math.abs(sphi))*roadWidth;
-    //console.log("toRight_axis=",toRight_axis);
+    //var toRight_axis=-(1.1+0.8*Math.abs(sphi))*roadWidth;
+    var toRight_axis=-0.5*roadWidth-(2.2+1.8*Math.abs(sphi))*laneWidth;
     var xPixCenter=this.road.get_xPix(this.u, toRight_axis,scale);
     var yPixCenter=this.road.get_yPix(this.u, toRight_axis,scale);
     var boxWidth=8.2*textsize;
