@@ -214,6 +214,20 @@ mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
+if(false){// test copy constructors for individual models
+
+  testCopiedModelIDM=new IDM(30,1.3,2,1,2);//v0,T,s0,a,b);
+  testCopiedModelACC=new ACC(30,1.3,2,1,2);//v0,T,s0,a,b);
+
+  testLongModel1=new ACC(40,1.3,2,1,2);
+  testLongModel1.copy(testCopiedModelIDM);
+  testLongModel1.speedlimit=20;
+  testLongModel2=new ACC(); testLongModel2.copy(testCopiedModelIDM);
+  console.log("testCopiedModelACC=",testCopiedModelACC);
+  console.log("testLongModel1=",testLongModel1);
+  console.log("testLongModel2=",testLongModel2);
+  a=giesskanne; // to stop program
+}
 
 //####################################################################
 // Global graphics specification 

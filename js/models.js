@@ -4,7 +4,19 @@
 
 
 /**
-longitudinal model IDM
+longModel-IDM constructor
+
+INFO: javascript does not know overloading!! cannot define
+default, explicit, and copy constructors simultaneously
+need methods for that such as IDM.copy(longModel).
+pseudo-default cstr works by passing no args 
+(these are then, of course, undefined at init):
+
+explicit cstr: longModel=new IDM(30,1.3,2,1,2);  //v0,T,s0,a,b);
+trivial Cstr: longModel=new IDM();
+reference copy: longModel2=longModel
+deep copy: longModel2=new IDM(); longModel2.copy(longModel)
+
 
 @param v:     desired speed [m/s]
 @param T:     desired time gap [s]
@@ -32,6 +44,35 @@ function IDM(v0,T,s0,a,b){
 }
 
 /**
+longModel IDM deep-copy-function (no cstr possible, see INFO above)
+used to define models individually rather than by reference. 
+Only then, speed limits etc can be implemented "on the fly" w/o 
+reference-side effects
+
+@param already defined longModel (at the moment, IDM or ACC)
+@return:      IDM instance (constructor)
+
+*/
+
+IDM.prototype.copy=function(longModel){
+  this.v0=longModel.v0; 
+  this.T=longModel.T;
+  this.s0=longModel.s0;
+  this.a=longModel.a;
+  this.b=longModel.b;
+
+  this.alpha_v0=1; // multiplicator for temporary reduction
+
+    // possible restrictions (value 1000 => initially no restriction)
+
+  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+  this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
+  this.bmax=16;
+}
+
+
+
+/**
 IDM acceleration function
 
 @param s:     actual gap [m]
@@ -43,7 +84,7 @@ IDM acceleration function
 */
 
 
-IDM.prototype.calcAcc=function(s,v,vl,al){ // this works as well
+IDM.prototype.calcAcc=function(s,v,vl,al){ 
 
         //MT 2016: noise to avoid some artifacts
 
@@ -100,6 +141,8 @@ IDM.prototype.calcAccGiveWay=function(sNew, v, vPrio){
 MT 2016: longitudinal model ACC: Has same parameters as IDM 
 but exactly triangular steady state and "cooler" reactions if gap too small
 
+INFO on (no) overloading: see longModel-IDM constructor
+
 @param v:     desired speed [m/s]
 @param T:     desired time gap [s]
 @param s0:    minimum gap [m]
@@ -117,19 +160,52 @@ function myTanh(x){
     return (x>50) ? 1 : (x<-50) ? -1 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
 }
 
-function ACC(v0,T,s0,a,b){
-    this.v0=v0; 
-    this.T=T;
-    this.s0=s0;
-    this.a=a;
-    this.b=b;
-    this.cool=0.99;
-    this.alpha_v0=1; // multiplicator for temporary reduction
 
-    this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
-    this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-    this.bmax=18;
+function ACC(v0,T,s0,a,b){
+  this.v0=v0; 
+  this.T=T;
+  this.s0=s0;
+  this.a=a;
+  this.b=b;
+
+  this.cool=0.99;
+  this.alpha_v0=1; // multiplicator for temporary reduction
+
+  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+  this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
+  this.bmax=18;
+
+  //console.log("in ACC cstr: this.v0=",this.v0);
 }
+
+/**
+ACC deep-copy-function (no cstr possible, see INFO above)
+used to define models individually rather than by reference. 
+Only then, speed limits etc can be implemented "on the fly" w/o 
+reference-side effects
+
+@param already defined longModel (at the moment, IDM or ACC)
+@return:      IDM instance (constructor)
+
+*/
+
+ACC.prototype.copy=function(longModel){
+  this.v0=longModel.v0; 
+  this.T=longModel.T;
+  this.s0=longModel.s0;
+  this.a=longModel.a;
+  this.b=longModel.b;
+
+  this.cool=0.99;
+  this.alpha_v0=1; // multiplicator for temporary reduction
+
+    // possible restrictions (value 1000 => initially no restriction)
+
+  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+  this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
+  this.bmax=16;
+}
+
 
 
 

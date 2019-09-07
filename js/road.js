@@ -12,7 +12,7 @@ Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
 
 
 //#############################################################
-// Physical dynamics of the vehicles on a road section
+// road segment (link) incl physical vehicle dynamics
 //#############################################################
 
 
@@ -54,6 +54,16 @@ they are specially drawn and externally influenced from the main program
                         (roundabout); sometimes also not wanted
 
 @return:                road segment instance
+
+NOTICE all vehicles are constructed w/o specific models 
+       (default longModel and LCModel defined for initialization), 
+       so vehicles can be associated freely with models later on, e.g.
+       to implement speed limits and other flow-cons bottlenecks
+
+NOTICE2 (MT-2019-09): !!! veh models still passed by reference. 
+Possibly individual models better? 
+First step: "deep-copy function" for implementing speed funnels: 
+longModel2=new ACC(); longModel2.copy(longModel1); longModel2.speedlimit=sl;
 */
 
 
@@ -1069,42 +1079,6 @@ road.prototype.findFollowerAt=function(u){
 }
 
 
-/* old
-// nearest followers
-
-road.prototype.findFollowersAt=function(u){
-    //console.log("in road.findFollowersAt");
-    var vehFollow=[];
-
-    // initialize for "no success"
-
-    for (var i=0; i<this.nLanes; i++){
-	vehFollow[i]=new vehicle(0,0,0,0,0,"car"); // new necessary here!
-	vehFollow[i].id=-1;
-    }
-
-
-    // do the actual finding
-
-    var i=this.veh.length-1;
-    while ((i>=0) && (this.veh[i].u<u)){
-	if(this.veh[i].isRegularVeh()){
-	    vehFollow[this.veh[i].lane]=this.veh[i];
-	}
-	i--; 
-    }
-
-
-    for (var il=0; il<this.nLanes; il++){
-	if(vehFollow[il].id==-1){
-	    console.log("road.findFollowersAt: warning: no follower at lane ",il);
-	}
-    }
-
-    return vehFollow;
-}
-
-*/
 
 /**
 
@@ -1773,6 +1747,8 @@ road.prototype.getNextOffIndex=function(u){
       
 }
 
+
+
 /** #####################################################
  MT 2019-09: implement speed funnel:
 
@@ -1784,6 +1760,7 @@ road.prototype.getNextOffIndex=function(u){
 //#####################################################*/
 
 road.prototype.updateSpeedFunnel=function(speedfunnel){
+
   if(true){
     console.log("road.updateSpeedFunnel: active limits: ");
     var success=false;
@@ -1795,7 +1772,10 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 		    " limit_kmh=",formd(3.6*speedlimit.value));
       }
     }
-    if(!success){console.log(" no active limits");}
+    if(!success){
+      console.log(" no active limits");
+      return;
+    }
   }
 }
 
@@ -1805,17 +1785,20 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 // (useful for modeling flow-conserving bottlenecks)
 //#####################################################
 
-road.prototype.setCFModelsInRange
-    =function(umin,umax,longModelCar,longModelTruck){
+road.prototype.setCFModelsInRange=function(umin,umax,
+					   longModelCar,longModelTruck){
 
-    for(var i=0; i<this.veh.length; i++){
-	var u=this.veh[i].u;
-	if((u>umin)&&(u<umax)){
-	    if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
-	    if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
-	}
+  for(var i=0; i<this.veh.length; i++){
+    var u=this.veh[i].u;
+    if((u>umin)&&(u<umax)){
+      //if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
+      //if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
+      if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
+      if(this.veh[i].type==="truck"){this.veh[i].longModel.copy(longModelTruck);}
     }
+  }
 }
+
 
 
 //#####################################################
@@ -3007,7 +2990,7 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	    this.veh[k].type=newType;
 	    this.veh[k].length=newLength;
 	    this.veh[k].width=newWidth;
-	    this.veh[k].longModel=newLongModel;
+	  this.veh[k].longModel.copy(newLongModel);// deep copy
 	}
     }
   }
@@ -3179,95 +3162,99 @@ road.prototype.updateBCup=function(Qin,dt,route){
   
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
-      var vehType=(Math.random()<truckFrac) ? "truck" : "car";
-      var vehLength=(vehType==="car") ? car_length:truck_length;
-      var vehWidth=(vehType==="car") ? car_width:truck_width;
-      var space=0; // available bumper-to-bumper space gap
-      var lane=this.nLanes-1; // start with right lane
-      if(this.veh.length===0){success=true; space=this.roadLen;}
+    var vehType=(Math.random()<truckFrac) ? "truck" : "car";
+    var vehLength=(vehType==="car") ? car_length:truck_length;
+    var vehWidth=(vehType==="car") ? car_width:truck_width;
+    var space=0; //available bumper-to-bumper space gap
+    var lane=this.nLanes-1; // start with right lane
+    if(this.veh.length===0){success=true; space=this.roadLen;}
 
-      // if new veh is a truck, try to insert it at the rightmost lane
-      // for some strange reason bug if "while(iLead>=0)": 
-      // first truck stands if it is the first to enter right
+    // if new veh is a truck, try to insert it at the rightmost lane
+    // for some strange reason bug if "while(iLead>=0)": 
+    // first truck stands if it is the first to enter right
       
-      if((!success)&&(vehType==="truck")){
-	  var iLead=this.veh.length-1;
-	  while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
-	  if(iLead==-1){success=true;}
-	  else{
-	      space=this.veh[iLead].u-this.veh[iLead].length;
-	      success=(space>smin);
-	  }
+    if((!success)&&(vehType==="truck")){
+      var iLead=this.veh.length-1;
+      while( (iLead>0)&&(this.veh[iLead].lane!=lane)){iLead--;}
+      if(iLead==-1){success=true;}
+      else{
+	space=this.veh[iLead].u-this.veh[iLead].length;
+	success=(space>smin);
       }
+    }
 
-      // MT jun19: proceed further depending on one of two strategies
-      // this.setTrucksAlwaysRight=true
-      //   => no other veh can enter of truck has no space on right
-      // this.setTrucksAlwaysRight=false
-      //   => trucks are tried to set to the right but not forcibly so
+    // MT jun19: proceed further depending on one of two strategies
+    // this.setTrucksAlwaysRight=true
+    //   => no other veh can enter of truck has no space on right
+    // this.setTrucksAlwaysRight=false
+    //   => trucks are tried to set to the right but not forcibly so
       
 
 
-      // if((!success) && setTrucksAlwaysRight && (vehType==="truck"))
-      // then success is terminally =false in this step
-      // do not need to do any further attempts
+    // if((!success) && setTrucksAlwaysRight && (vehType==="truck"))
+    // then success is terminally =false in this step
+    // do not need to do any further attempts
       
-      // version1 (new): set trucks forcedly on right lane(s),
-      // otherwise block 
+    // version1 (new): set trucks forcedly on right lane(s),
+    // otherwise block 
       
-      if((!success) &&((!this.setTrucksAlwaysRight)||(vehType=="car"))){
-          var spaceMax=0;
-          for(var candLane=this.nLanes-1; candLane>=0; candLane--){
-	      var iLead=this.veh.length-1;
-	      while( (iLead>=0)&&(this.veh[iLead].lane!=candLane)){
-		  iLead--;
-	      }
-	      space=(iLead>=0)
+    if((!success) &&((!this.setTrucksAlwaysRight)||(vehType=="car"))){
+      var spaceMax=0;
+      for(var candLane=this.nLanes-1; candLane>=0; candLane--){
+	var iLead=this.veh.length-1;
+	while( (iLead>=0)&&(this.veh[iLead].lane!=candLane)){
+	  iLead--;
+	}
+	space=(iLead>=0)
 	          ? this.veh[iLead].u-this.veh[iLead].length
 		  : this.roadLen+candLane;
-	      if(space>spaceMax){
+	if(space>spaceMax){
 	          lane=candLane;
 	          spaceMax=space;
-	      }
-	  }
-	  success=(space>=smin);
+	}
       }
+      success=(space>=smin);
+    }
  
 
-      // actually insert new vehicle
+    // actually insert new vehicle
 
-      if(success){
-	  var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
-	  var uNew=0;
-	  var speedNew=Math.min(longModelNew.v0, longModelNew.speedlimit, 
+    if(success){
+      var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
+      var uNew=0;
+      var speedNew=Math.min(longModelNew.v0, longModelNew.speedlimit,
 				space/longModelNew.T);
-	  var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
-	  //vehNew.longModel=longModelNew;
-	  vehNew.route=this.route;
+      var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
+ 
+      //!!! MT 2019-09: was commented out. Why?
 
-          //!! define ego vehicles for testing purposes
-	  if(false){
+      vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+      vehNew.route=this.route;
+
+      //!! define ego vehicles for testing purposes
+
+      if(false){
 	      var percEgo=5;
 	      if(vehNew.id%100<percEgo){vehNew.id=1;}
-	  }
+      }
 
-	  this.veh.push(vehNew); // add vehicle after pos nveh-1
-	  this.inVehBuffer -=1;
-	  if((lane!=this.nLanes-1)&&(vehType==="truck")){
-	      console.log("road.updateBCup: ID=",this.roadID,
+      this.veh.push(vehNew); // add vehicle after pos nveh-1
+      this.inVehBuffer -=1;
+      if((lane!=this.nLanes-1)&&(vehType==="truck")){
+	console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);
-	      console.log(this.veh.length);
-	      if(false){
+	console.log(this.veh.length);
+	if(false){
 	          for(var i=0; i<this.veh.length; i++){
 	              console.log("i=",i," u=",this.veh[i].u,
 			      " route=",this.veh[i].route,
 				  " longModel=",this.veh[i].longModel);
 		  }
-	      }
-	  }
-	  //if(this.route.length>0){console.log("new veh entered: route="+this.veh[this.veh.length-1].route);}//!!
+	}
       }
+     //if(this.route.length>0){console.log("new veh entered: route="+this.veh[this.veh.length-1].route);}//!!
+    }
   }
 
 }
