@@ -576,6 +576,9 @@ else{
 // Slider for long Model parameters
 //############################################################
 
+// var defs such as var IDM_v0=30: initial default; slider values are 
+// distributed in updateModels() and (as deep copies) 
+// in road.updateModelsOfAllVehicles
 
 // IDM_v0 slider
 
@@ -679,6 +682,8 @@ else{
 // per default no speed limit (speedL used in updateModels())
 
 var speedL=1000/3.6; 
+var speedL_truck=80/3.6; // default truck speedlimit (no slider)
+
 var slider_speedL, slider_speedLVal;
 if(document.getElementById("slider_speedL")===null) 
     console.log("no  speedL slider");
@@ -828,7 +833,6 @@ var LCModelTruckUphill;
 
 // fixed model parameters w/o sliders
 
-var speedL_truck=80/3.6; // speedL already initialized in sliders above 
 
 var MOBIL_bSafe=4;     // bSafe if v to v0  (threshold, bias in sliders)
 var MOBIL_bSafeMax=17; // bSafe if v to 0 //!! use it
@@ -843,12 +847,15 @@ var factor_a_truck=0.8;
 var factor_T_truck=1.2;
 
 
+// creates template models from the preset IDM_v0, IDM_a etc values
+// (2019-09)
+// these are now distributed by deep copy over the vehicles of the roads
+
 function updateModels(){
     var v0=Math.min(IDM_v0, speedL);
-    var v0_truck=Math.min(factor_v0_truck*IDM_v0, speedL_truck);
+    var v0_truck=Math.min(IDM_v0, speedL_truck);
     var T_truck=factor_T_truck*IDM_T;
     var a_truck=factor_a_truck*IDM_a;
-    console.log("updateModels: MOBIL_p=",MOBIL_p);
     longModelCar=new ACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelCar.speedlimit=speedL;
     longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
@@ -862,8 +869,8 @@ function updateModels(){
 			       MOBIL_mandat_p,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
-    console.log("control_gui.updateModels: LCModelCar=",LCModelCar,
-		" LCModelTruck=",LCModelTruck);
+  console.log("control_gui.updateModels:",
+	      " longModelTruck.speedlimit=",longModelTruck.speedlimit);
 
 
 }

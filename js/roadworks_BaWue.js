@@ -15,18 +15,26 @@ MOBIL_bSafeMax=17;
 
 density=0;
 
-qIn=50./3600; // 1550./3600; 
+qIn=1550./3600; // inflow 1550./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" Fz/h";
-
-speedL=80./3.6
-slider_speedL.value=3.6*speedL;
-slider_speedLVal.innerHTML=3.6*speedL+" Fz/h";
 
 truckFrac=0.30;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
+// reset standard IDM model parameters from control_gui.js
+// since no sliders for that.
+// Values are distributed in updateModels() => truck model derivatives
+// and (as deep copies) in road.updateModelsOfAllVehicles
+
+IDM_v0=30;
+IDM_T=1.4;
+IDM_a=1.2;
+IDM_b=3; 
+IDM_s0=2;
+speedL=1000/3.6; 
+speedL_truck=80/3.6;
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -214,20 +222,6 @@ mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
-if(false){// test copy constructors for individual models
-
-  testCopiedModelIDM=new IDM(30,1.3,2,1,2);//v0,T,s0,a,b);
-  testCopiedModelACC=new ACC(30,1.3,2,1,2);//v0,T,s0,a,b);
-
-  testLongModel1=new ACC(40,1.3,2,1,2);
-  testLongModel1.copy(testCopiedModelIDM);
-  testLongModel1.speedlimit=20;
-  testLongModel2=new ACC(); testLongModel2.copy(testCopiedModelIDM);
-  console.log("testCopiedModelACC=",testCopiedModelACC);
-  console.log("testLongModel1=",testLongModel1);
-  console.log("testLongModel2=",testLongModel2);
-  a=giesskanne; // to stop program
-}
 
 //####################################################################
 // Global graphics specification 
@@ -305,21 +299,6 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 
-//speedlimit images 
-
-var speedL_srcFileIndexOld=8; //  start with index8 = 80 km/h
-var speedL_srcFileIndex=8;
-var speedL_srcFiles = [];
-for (var i=0; i<13; i++){
-    speedL_srcFiles[i]="figs/Tempo"+i+"0.png";
-}
-speedL_srcFiles[13]='figs/sign_free_282_small.png'; 
-var speedlimitImgs = [];
-for (var i=0; i<=13; i++){
-    speedlimitImgs[i]=new Image();
-    speedlimitImgs[i].src=speedL_srcFiles[i];
-}
-var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
 
 //####################################################################
@@ -353,16 +332,22 @@ function updateSim(){
 
     // (1) update times
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
  
     // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+
+
+    // (2a) update speed limits of speedfunnel
+
+  mainroad.updateSpeedFunnel(speedfunnel);
+  mainroad.writeSpeedlimits();
 
     // (3) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
@@ -506,27 +491,6 @@ function drawSim() {
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin_col, vmax_col);
     
-    // (4a) implement varying speed-limit signs! -> uphill as template
-
-    var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
-    var speedL_srcFileIndex=Math.min(speedlimit_kmh/10,13);
-    if( (speedL_srcFileIndex !=speedL_srcFileIndexOld)||hasChanged
-	||userCanvasManip || (itime<=1) ){
-
-	speedL_srcFileIndexOld=speedL_srcFileIndex;
-	speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
-
-	var sizeSignPix=0.12*refSizePix;
-	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
-
-	var xPix=mainroad.get_xPix(0.16*mainroadLen,vOffset,scale);
-	var yPix=mainroad.get_yPix(0.16*mainroadLen,vOffset,scale);
-	xPix -= 0.5*sizeSignPix; // center of sign
-	yPix -= 0.5*sizeSignPix;
-	ctx.setTransform(1,0,0,1,0,0); 
-	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
-    }
-
 
   // (5) draw depot vehicles and speed funnel objects
   // !!!do it also outside, now!

@@ -66,6 +66,7 @@ First step: "deep-copy function" for implementing speed funnels:
 longModel2=new ACC(); longModel2.copy(longModel1); longModel2.speedlimit=sl;
 */
 
+var deepCopying=true;
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	      densInitPerLane,speedInit,truckFrac,isRing,doGridding){
@@ -469,6 +470,38 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
       }
   }
 }
+
+//######################################################################
+// write simple speedlimit info
+//######################################################################
+
+road.prototype.writeSpeedlimits= function(umin,umax) {
+  console.log("\nin road.writeSpeedlimit(): roadID=",this.roadID,
+		" nveh=",this.veh.length,
+		" nLanes=",this.nLanes," itime=",itime);
+
+  var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+  var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+
+    
+  for(var i=0; i<this.veh.length; i++){
+    if((this.veh[i].u>=uminLoc)&&(this.veh[i].u<=umaxLoc)){
+      if(this.veh[i].isRegularVeh()){
+	console.log(" veh["+i+"].type="+this.veh[i].type
+		    +" id="+this.veh[i].id
+		    +" type="+this.veh[i].type
+		    +" v0="+formd(this.veh[i].longModel.v0)
+		    +" IDM_a="+formd(this.veh[i].longModel.a)
+		    +" speedlimit="+formd(this.veh[i].longModel.speedlimit)
+		    +" u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +" speed="+formd(this.veh[i].speed)
+		    +" acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
+		    +"");
+      }
+    }
+  }
+}
+
 
 //######################################################################
 // write very simple info for id range of vehicles
@@ -1761,21 +1794,50 @@ road.prototype.getNextOffIndex=function(u){
 
 road.prototype.updateSpeedFunnel=function(speedfunnel){
 
-  if(true){
-    console.log("road.updateSpeedFunnel: active limits: ");
-    var success=false;
-    for(var i=0; i<speedfunnel.speedl.length; i++){
-      var speedlimit=speedfunnel.speedl[i];
-      if(speedlimit.isActive){
-	success=true;
-	console.log("u=",formd(speedlimit.u),
-		    " limit_kmh=",formd(3.6*speedlimit.value));
+
+  // sort by decreasing u values
+
+  speedfunnel.speedl.sort(function(a,b){
+	    return a.u < b.u;
+  })
+
+  // implement
+
+  var success=false;
+  var iveh=0;
+  for(var i=0; i<speedfunnel.speedl.length; i++){
+    var speedlimit=speedfunnel.speedl[i];
+    if(speedlimit.isActive){
+      success=true;
+ 
+     if(true){
+	console.log("road.updateSpeedFunnel: speed limit ",
+		    formd(3.6*speedlimit.value)," starting at ",
+		    formd(speedlimit.u));
       }
+
+      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u)){
+	var targetVeh=this.veh[iveh];
+	if(targetVeh.isRegularVeh()){
+	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
+	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
+	}
+	if(false){
+	  console.log("iveh=",iveh," u=",targetVeh.u,
+		    " speedlimit.u=",speedlimit.u,
+		    " isRegVeh=",targetVeh.isRegularVeh(),
+		      " speedlimit=",targetVeh.longModel.speedlimit);
+	}
+
+	iveh++;
+      }
+      if(iveh==this.veh.length){return;} // otherwise risk of range excess
+
     }
-    if(!success){
-      console.log(" no active limits");
-      return;
-    }
+  }
+
+  if(!success){
+    console.log(" no active limits");
   }
 }
 
@@ -1791,10 +1853,17 @@ road.prototype.setCFModelsInRange=function(umin,umax,
   for(var i=0; i<this.veh.length; i++){
     var u=this.veh[i].u;
     if((u>umin)&&(u<umax)){
-      //if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
-      //if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
-      if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
-      if(this.veh[i].type==="truck"){this.veh[i].longModel.copy(longModelTruck);}
+
+      if(deepCopying){
+        if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
+        if(this.veh[i].type==="truck"){this.veh[i].longModel.copy(longModelTruck);}
+      }
+
+      else{
+        if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
+        if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
+      }
+
     }
   }
 }
@@ -2127,7 +2196,7 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // calculate logical accelerations
     // accLat=accel to logical increasing lane indices=acc to right
     // roadCurv>0 for left curves, therefore "+"
-    //!!! implement externalEgoVeh.latCtrlModel=1 and =0
+    //!! implement externalEgoVeh.latCtrlModel=1 and =0
 
     ego.acc=externalEgoVeh.aLong; // !! driveAngle |dvdt*laneWidth/speed|<<1
     var acc_v=(externalEgoVeh.aLat+roadCurv*ego.speed*ego.speed)
@@ -2408,6 +2477,7 @@ for(var i=0; i<this.veh.length; i++)
   }
   //return changeSuccessful;
 }
+
 
 
 //######################################################################
@@ -2854,7 +2924,7 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
         //(dec17) need for LC as lagVeh!! up to now id<100 only obstacles
 	roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 
-      //!!! id ctrls veh image: 50=black obstacle,
+      //!! id ctrls veh image: 50=black obstacle,
       // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
       // for vehicles in depot!
       
@@ -2987,10 +3057,18 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
         // actually do the transformation if no collision entails by it
 
 	if(success){
-	    this.veh[k].type=newType;
-	    this.veh[k].length=newLength;
-	    this.veh[k].width=newWidth;
-	  this.veh[k].longModel.copy(newLongModel);// deep copy
+	  this.veh[k].type=newType;
+	  this.veh[k].length=newLength;
+	  this.veh[k].width=newWidth;
+
+	  if(deepCopying){
+	    this.veh[k].longModel.copy(newLongModel);
+	  }
+
+	  else{
+	    this.veh[k].longModel=newLongModel;
+	  }
+
 	}
     }
   }
@@ -3228,7 +3306,11 @@ road.prototype.updateBCup=function(Qin,dt,route){
  
       //!!! MT 2019-09: was commented out. Why?
 
-      vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+      if(deepCopying){
+        vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+      }
+      else{vehNew.longModel=longModelNew;}
+
       vehNew.route=this.route;
 
       //!! define ego vehicles for testing purposes
@@ -3349,13 +3431,31 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
   // normal acc and LC: 
   // distributed to the vehicles depending on car/truck here
 
-  for(var i=0; i<this.veh.length; i++){
+  if(deepCopying){
+    for(var i=0; i<this.veh.length; i++){
       if(this.veh[i].isRegularVeh()){// then do nothing
-          this.veh[i].longModel=(this.veh[i].type === "car")
-	    ? longModelCar : longModelTruck;
-          this.veh[i].LCModel=(this.veh[i].type === "car")
-	    ? LCModelCar : LCModelTruck;
+        this.veh[i].longModel.copy((this.veh[i].type === "car")
+				   ? longModelCar : longModelTruck);
+        this.veh[i].LCModel=(this.veh[i].type === "car")
+	  ? LCModelCar : LCModelTruck;
       }
+      if(false){
+        console.log("updateModelsOfAllVehicles: type=",this.veh[i].type,
+		  " speedl=",this.veh[i].longModel.speedlimit,
+		  " longModelTruck.speedlimit=",longModelTruck.speedlimit);
+      }
+    }
+  }
+
+  else{
+    for(var i=0; i<this.veh.length; i++){
+      if(this.veh[i].isRegularVeh()){// then do nothing
+        this.veh[i].longModel=(this.veh[i].type === "car")
+	  ? longModelCar : longModelTruck;
+        this.veh[i].LCModel=(this.veh[i].type === "car")
+	  ? LCModelCar : LCModelTruck;
+      }
+    }
   }
 
 
@@ -3396,19 +3496,22 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
           // and reduce speed if coming very near to "last exit"
  
 	  if(tacticalLC){
-	      var thisVeh=this.veh[i];
-	      var toRight=this.offrampToRight[iNextOff];
-	      var duRemaining=uLastExit-thisVeh.u;
-	      thisVeh.divergeAhead=true; //!!
-	      thisVeh.longModel=(thisVeh.type==="truck")
-		  ? this.longModelTacticalCar : this.longModelTacticalTruck;
+	    var thisVeh=this.veh[i];
+	    var toRight=this.offrampToRight[iNextOff];
+	    var duRemaining=uLastExit-thisVeh.u;
+	    thisVeh.divergeAhead=true; //!!
+	    if(deepCopying){
 	      thisVeh.longModel.alpha_v0
-		  =Math.max(0.1, 0.5*duRemaining/this.duTactical); //!!
-
-	      thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
+		  =Math.max(0.1, 0.5*duRemaining/this.duTactical);
+	    }
+	    else{
+	      thisVeh.longModel=(thisVeh.type==="truck")
+		? this.longModelTacticalTruck : this.longModelTacticalCar;
+	    }
+	    thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
 	          : this.LCModelTacticalLeft;
 
-	      if(false){
+	    if(false){
 		  console.log(
 		  "road.updateModelsOfAllVehicles: apply tacticalLC to Veh "+i
 	              +"!"
@@ -3418,8 +3521,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 		      +" u="+parseFloat(thisVeh.u).toFixed(1)
 		      +" uLastExit="+parseFloat(uLastExit).toFixed(1)
 		      +" bBiasRight="+thisVeh.LCModel.bBiasRight);
-	      }
-
+	    }
 	  }
 
       } // nextOfframpNearby

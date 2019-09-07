@@ -39,7 +39,7 @@ function IDM(v0,T,s0,a,b){
     // possible restrictions (value 1000 => initially no restriction)
 
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
-    this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
+    this.speedmax=1000; // if engine restricts speed, speedmax<speedlimit, v0
     this.bmax=16;
 }
 
@@ -65,9 +65,9 @@ IDM.prototype.copy=function(longModel){
 
     // possible restrictions (value 1000 => initially no restriction)
 
-  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
-  this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-  this.bmax=16;
+  this.speedlimit=longModel.speedlimit; 
+  this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
+  this.bmax=longModel.bmax;
 }
 
 
@@ -200,10 +200,9 @@ ACC.prototype.copy=function(longModel){
   this.alpha_v0=1; // multiplicator for temporary reduction
 
     // possible restrictions (value 1000 => initially no restriction)
-
-  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
-  this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-  this.bmax=16;
+  this.speedlimit=longModel.speedlimit; 
+  this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
+  this.bmax=longModel.bmax;
 }
 
 

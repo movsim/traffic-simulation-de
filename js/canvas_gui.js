@@ -754,13 +754,13 @@ function dragVehicle(xUser,yUser){
 }
 
 function dragFunnelObject(xPixUser,yPixUser){
-    console.log("in dragVehicleFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
+    //console.log("in dragVehicleFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
     funnelObject.xPix=xPixUser;
     funnelObject.yPix=yPixUser;
 }
 
 function dragRoad(xUser,yUser){
-    console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
+    //console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
 
     userCanvasManip=true; // if true, new backgr, new road drawn
 

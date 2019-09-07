@@ -69,12 +69,13 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   // initial association with speed limit 80,100,120,60,free
   // index={0=free,1=10 km/h, ..., 12=120 km/h}
  
-    var j=i%5;
+    var j=i%6;
     var speedInd=
-      (j==0) ? 8 :
-      (j==1) ? 10 : 
-      (j==2) ? 12 : 
-      (j==3) ? 6 : 0;
+      (j==0) ? 2 :
+      (j==1) ? 4 : 
+      (j==2) ? 6 : 
+      (j==3) ? 8 :
+      (j==4) ? 10 : 0;
 
     speedlImg=this.speedlImgRepo[speedInd];
     speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
@@ -289,7 +290,7 @@ SpeedFunnel.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
       dist2_min=dist2;
       speedlReturn=this.speedl[i];
     }
-    if(true){
+    if(false){
       console.log("SpeedFunnel: i=",i,
 		  " kmh=",formd0(3.6*this.speedl[i].value),
 		  " u=",formd0(this.speedl[i].u),
