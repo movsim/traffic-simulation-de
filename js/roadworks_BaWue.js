@@ -105,42 +105,19 @@ var center_xRel=0.43; // manipulae relative viewport by traj_x
 var center_yRel=-0.56;
 var arcRadiusRel=0.41;
 
+
+
 // constant  refSizePhys calculated by requirement fixed mainroadLen!!
 
 var refSizePhys=mainroadLen/(Math.PI*arcRadiusRel
 			     +2*(critAspectRatio-center_xRel));
 var scale=refSizePix/refSizePhys;
 
-var center_xPhys=center_xRel*refSizePhys; //[m]
-var center_yPhys=center_yRel*refSizePhys;
-
-var arcRadius=arcRadiusRel*refSizePhys;
-var arcLen=arcRadius*Math.PI;
-var straightLen=refSizePhys*critAspectRatio-center_xPhys;
-//var mainroadLen=arcLen+2*straightLen;
-console.log("calculated mainroadLen=",arcLen+2*straightLen);
-
-var uBeginRoadworks=straightLen+0.8*arcLen;
-var uEndRoadworks=straightLen+1.1*arcLen;
-var uStartLCMandatory=0.1*uBeginRoadworks; // uStart>u>uBeginR => mandat LC
-
-
-function updatePhysicalDimensions(){ // only if sizePhys changed
-    center_xPhys=center_xRel*refSizePhys; //[m]
-    center_yPhys=center_yRel*refSizePhys;
-
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=arcLen+2*straightLen;
-
-    uBeginRoadworks=straightLen+0.8*arcLen;
-    uEndRoadworks=straightLen+1.1*arcLen;
-    uStartLCMandatory=0.1*uBeginRoadworks;
-
-}
-
-
+var center_xPhys, center_yPhys;
+var arcRadius, arcLen, straightLen;
+var uBeginRoadworks, uEndRoadworks, uStartLCMandatory;
+ 
+updatePhysicalDimensions();
 
 // the following remains constant 
 // => road becomes more compact for smaller screens
@@ -156,6 +133,24 @@ var truck_width=7;
 var laneRoadwork=0;  // 0=left
 var lenRoadworkElement=7;
 var wRoadworkElement=7;
+
+
+function updatePhysicalDimensions(){ // only at init and if sizePhys changed
+  center_xPhys=center_xRel*refSizePhys; //[m]
+  center_yPhys=center_yRel*refSizePhys;
+
+  arcRadius=arcRadiusRel*refSizePhys;
+  arcLen=arcRadius*Math.PI;
+  straightLen=refSizePhys*critAspectRatio-center_xPhys;
+
+  uBeginRoadworks=straightLen+0.8*arcLen;
+  uEndRoadworks=straightLen+1.1*arcLen;
+  uStartLCMandatory=0.1*uBeginRoadworks;
+  console.log("calculated mainroadLen=",arcLen+2*straightLen);
+
+}
+
+
 
 
 // on constructing road, road elements are gridded and interna

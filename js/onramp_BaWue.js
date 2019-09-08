@@ -19,8 +19,12 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
-
-// override standard dettings control_gui.js
+//#############################################################
+// adapt standard IDM and MOBIL model parameters from control_gui.js
+// since no sliders for that.
+// Values are distributed in updateModels() => truck model derivatives
+// and (as deep copies) in road.updateModelsOfAllVehicles
+//#############################################################
 
 density=0.02; 
 
@@ -83,7 +87,7 @@ console.log("after addTouchListeners()");
 //##################################################################
 
 var isSmartphone=false;
-var critAspectRatio=120./95.;
+var critAspectRatio=16./9.; // optimized for 16:9 corresp. css.#contents
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 
@@ -96,10 +100,10 @@ var mainroadLen=1000; //!!
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43;
-var center_yRel=-0.54;
-var arcRadiusRel=0.35;
-var rampLenRel=0.95;
+var center_xRel=0.47;
+var center_yRel=-0.52;
+var arcRadiusRel=0.36;
+var rampLenRel=1.70;
 
 
 // constant  refSizePhys calculated by requirement fixed mainroadLen!!
@@ -108,40 +112,11 @@ var refSizePhys=mainroadLen/(Math.PI*arcRadiusRel
 			     +2*(critAspectRatio-center_xRel));
 var scale=refSizePix/refSizePhys;
 
+var center_xPhys, center_yPhys;
+var arcRadius, arcLen, straightLen;
+var rampLen, mergeLen, mainRampOffset, taperLen, rampRadius;
 
-
-var center_xPhys=center_xRel*refSizePhys; //[m]
-var center_yPhys=center_yRel*refSizePhys;
-
-
-var arcRadius=arcRadiusRel*refSizePhys;
-var arcLen=arcRadius*Math.PI;
-var straightLen=refSizePhys*critAspectRatio-center_xPhys;
-//var mainroadLen=arcLen+2*straightLen;
-console.log("calculated mainroadLen=",arcLen+2*straightLen);
-var rampLen=rampLenRel*refSizePhys; 
-var mergeLen=0.5*rampLen;
-var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-var taperLen=0.2*rampLen;
-var rampRadius=4*arcRadius;
-
-console.log(" mainroadLen=", mainroadLen);
-
-function updatePhysicalDimensions(){ // only if sizePhys changed
-    center_xPhys=center_xRel*refSizePhys; //[m]
-    center_yPhys=center_yRel*refSizePhys;
-
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=arcLen+2*straightLen;
-    rampLen=rampLenRel*refSizePhys; 
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
-}
-
+updatePhysicalDimensions();
 
 // the following remains constant 
 // => road becomes more compact for smaller screens
@@ -154,6 +129,24 @@ var car_length=7; // car length in m
 var car_width=5; // car width in m
 var truck_length=15; // trucks
 var truck_width=7; 
+
+
+function updatePhysicalDimensions(){ // only if sizePhys changed
+  center_xPhys=center_xRel*refSizePhys; //[m]
+  center_yPhys=center_yRel*refSizePhys;
+
+  arcRadius=arcRadiusRel*refSizePhys;
+  arcLen=arcRadius*Math.PI;
+  straightLen=refSizePhys*critAspectRatio-center_xPhys;
+ 
+  rampLen=rampLenRel*refSizePhys; 
+  mergeLen=0.3*rampLen;
+  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.2*straightLen;
+  taperLen=0.2*rampLen;
+  rampRadius=4*arcRadius;
+  console.log("calculated mainroadLen=",arcLen+2*straightLen);
+}
+
 
 
 // on constructing road, road elements are gridded and internal
@@ -185,7 +178,7 @@ function trajRamp_x(u){ // physical coordinates
 }
 
 
-// indefining dependent geometry,
+// in defining dependent geometry,
 //  do not refer to mainroad or onramp!! may not be defined: 
 // mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1!!
 
