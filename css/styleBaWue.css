@@ -257,7 +257,7 @@ at the former trafficSimulationDe info button */
 
 #sliders{ 
   position: absolute;
-  top: 40vmin;
+  top: 35vmin;
   height: 30vmin;
   left: 80vmin;
   width: 55vmin;
@@ -280,7 +280,7 @@ at the former trafficSimulationDe info button */
 
 #colorBox{
   position: absolute;
-  top:     42vmin;
+  top:     38vmin;
   height:  30vmin;
   left:   150vmin;
   width:   20vmin; 

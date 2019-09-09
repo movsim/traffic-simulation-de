@@ -278,7 +278,7 @@ function showHTMLfile(htmlfile){
  lane add/subtract callbacks
 #########################################################*/
 
-var nLanesMin=1;
+var nLanesMin=1; // can be overridden in main sim files
 var nLanesMax=4; 
 
 function addOneLane(){ 
@@ -291,7 +291,9 @@ function addOneLane(){
 
         // only ramp adapts to nLanes
 	if(typeof ramp!=="undefined"){// ramp!==undefined => DOS!
-	    ramp.gridTrajectories(trajRamp_x,trajRamp_y);
+	  //updatePhysicalDimensions();
+	  updateRampGeometry();
+	  ramp.gridTrajectories(trajRamp_x,trajRamp_y);//!!!?
 	}
 	updateSim();
     }
@@ -320,7 +322,9 @@ function subtractOneLane(){
 
         // only ramp adapts to nLanes
 	if(typeof ramp!=="undefined"){   // ramp!==undefined => DOS!
-	    ramp.gridTrajectories(trajRamp_x,trajRamp_y);
+	  //updatePhysicalDimensions();
+	  updateRampGeometry();
+	  ramp.gridTrajectories(trajRamp_x,trajRamp_y);//??!!!
 	}
 	updateSim();
     }

@@ -26,6 +26,9 @@ var userCanDropObstaclesAndTL=true;
 // and (as deep copies) in road.updateModelsOfAllVehicles
 //#############################################################
 
+nLanesMin=1;
+nLanesMax=4; 
+
 density=0.02; 
 
 //var nLanes_main=1; //!!debug
@@ -101,9 +104,9 @@ var mainroadLen=1000; //!!
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.47;
-var center_yRel=-0.52;
-var arcRadiusRel=0.36;
-var rampLenRel=1.70;
+var center_yRel=-0.48;
+var arcRadiusRel=0.34;
+var rampLenRel=1.60;
 
 
 // constant  refSizePhys calculated by requirement fixed mainroadLen!!
@@ -122,7 +125,6 @@ updatePhysicalDimensions();
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var laneWidthRamp=5;
 
 
 var car_length=7; // car length in m
@@ -141,8 +143,8 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
  
   rampLen=rampLenRel*refSizePhys; 
   mergeLen=0.3*rampLen;
-  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.2*straightLen;
-  taperLen=0.2*rampLen;
+  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.5*straightLen;
+  taperLen=50;
   rampRadius=4*arcRadius;
   console.log("calculated mainroadLen=",arcLen+2*straightLen);
 }
@@ -150,7 +152,8 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 
 
 // on constructing road, road elements are gridded and internal
-// road.traj_xy(u) are generated. Then, traj_xy*(u) obsolete
+// road.traj_xy(u) are generated if doGridding=true (here false). If true, 
+// traj_xy*(u) obsolete ??!!!
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -169,33 +172,84 @@ function traj_y(u){ // physical coordinates
 }
 
 
-function trajRamp_x(u){ // physical coordinates
-	//var xMergeBegin=traj_x(mainroadLen-straightLen);
-	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
-	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
-	return (u<rampLen-taperLen) 
-	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
-}
+// heading of onramp (0: towards positive x, pi/2 = towards positive y)
+// in logical onramp longitudinal coordinates
+// linear change of heading between the pivot points
 
-
-// in defining dependent geometry,
-//  do not refer to mainroad or onramp!! may not be defined: 
+// NOTICE: in defining dependent geometry,
+// do not refer to mainroad or onramp!! may not be defined: 
 // mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1!!
 
-function trajRamp_y(u){ // physical coordinates
+function headingRamp(u){
 
-    var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
-	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
-
-    var yMergeEnd=yMergeBegin+laneWidth;
-    return (u<rampLen-mergeLen)
-	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
-	: (u<rampLen-taperLen) ? yMergeBegin
-	: (u<rampLen-0.5*taperLen) 
-        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
-	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
+  var um1=0; var headingm1=0.2; // heading at ramp begin
+  var u0=0.3*(rampLen-mergeLen); var heading0=0; 
+  var u1=0.4*(rampLen-mergeLen); var heading1=0;
+  var u2=0.5*(rampLen-mergeLen); var heading2=0.0; // 0.2;
+  var u3=0.55*(rampLen-mergeLen); var heading3=0;
+  var u4=0.6*(rampLen-mergeLen); var heading4=0;
+  var u5=0.8*(rampLen-mergeLen); var heading5=0.25;
+  var u6=1.0*rampLen-mergeLen; var heading6=0;
+  var u7=rampLen-taperLen; var heading7=0;
+  var u8=rampLen-0.5*taperLen; var heading8=2*nLanes_rmp*laneWidth/taperLen;
+  var u9=rampLen; var heading9=0;
+  var heading= (u<u0) ? headingm1 + (u-um1)/(u0-um1)*(heading0-headingm1) :
+    (u<u1) ? heading0 + (u-u0)/(u1-u0)*(heading1-heading0) :
+    (u<u2) ? heading1 + (u-u1)/(u2-u1)*(heading2-heading1) :
+    (u<u3) ? heading2 + (u-u2)/(u3-u2)*(heading3-heading2) :
+    (u<u4) ? heading3 + (u-u3)/(u4-u3)*(heading4-heading3) :
+    (u<u5) ? heading4 + (u-u4)/(u5-u4)*(heading5-heading4) :
+    (u<u6) ? heading5 + (u-u5)/(u6-u5)*(heading6-heading5) :
+    (u<u7) ? heading6 + (u-u6)/(u7-u6)*(heading7-heading6) :
+    (u<u8) ? heading7 + (u-u7)/(u8-u7)*(heading8-heading7)
+    : heading8 + (u-u8)/(u9-u8)*(heading9-heading8);
+  return heading;
 }
 
+// construct ramp x/y arrays in phsyical space
+//!!! assuming for the moment mainroad heading=0 @ merge!
+
+var nArrRamp=100;
+var drampLen=rampLen/(nArrRamp-1);
+var xRamp=[];
+var yRamp=[];
+
+// updates array variables if new geometry, changed viewport size etc
+
+function updateRampGeometry(){
+
+  // crucial: correct x/y attachment at begin of merge 
+  // (assume heading=0 @ merge for the moment)
+
+  xRamp[nArrRamp-1]=traj_x(mainRampOffset+rampLen-mergeLen)+mergeLen;
+  yRamp[nArrRamp-1]=traj_y(mainRampOffset+rampLen-mergeLen)
+    -0.5*laneWidth*(nLanes_main-nLanes_rmp);
+
+  for(var i=nArrRamp-2; i>=0; i--){
+    var u=drampLen*(i+0.5);
+    xRamp[i]=xRamp[i+1]-drampLen*Math.cos(headingRamp(u));
+    yRamp[i]=yRamp[i+1]-drampLen*Math.sin(headingRamp(u));
+  }
+  console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
+	      " trajRamp_y(rampLen-50)=",trajRamp_y(rampLen-50)
+	     );
+
+}
+
+
+function trajRamp_x(u){ // physical coordinates
+  var idouble=u/drampLen;
+  var il=Math.max(0,Math.floor(idouble));
+  var iu=Math.min(nArrRamp-1,il+1);
+  return xRamp[il]+(idouble-il)*(xRamp[iu]-xRamp[il]);
+}
+
+function trajRamp_y(u){ // physical coordinates
+  var idouble=u/drampLen;
+  var il=Math.max(0,Math.floor(idouble));
+  var iu=Math.min(nArrRamp-1,il+1);
+  return yRamp[il]+(idouble-il)*(yRamp[iu]-yRamp[il]);
+}
 
 
 //##################################################################
@@ -351,6 +405,7 @@ function updateSim(){
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
 
+    updateRampGeometry();
 
     mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -434,6 +489,7 @@ function drawSim() {
 //##################################################
 
     //!! test relative motion isMoving
+
 
     var movingObserver=false;
     var uObs=0*time;

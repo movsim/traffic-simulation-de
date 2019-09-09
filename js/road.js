@@ -3565,7 +3565,12 @@ road.prototype.get_phi=function(u){
     var dx=this.traj_x(uLoc+du)-this.traj_x(uLoc-du);
     var dy=this.traj_y(uLoc+du)-this.traj_y(uLoc-du);
     if((Math.abs(dx)<smallVal)&&(Math.abs(dy)<smallVal)){
-	console.log("road.get_phi: error: cannot determine heading of two identical points"); return 0;
+      console.log("road.get_phi: id=",this.roadID,
+		  " uLoc+du=",uLoc+du," uLoc-du=",uLoc-du,
+		  " this.traj_x(uLoc+du)=",this.traj_x(uLoc+du),
+		  " this.traj_x(uLoc-du)=",this.traj_x(uLoc-du),
+      " error: cannot determine heading of two identical points"); 
+      return 0;
     }
     var phi=(Math.abs(dx)<smallVal) ? 0.5*Math.PI : Math.atan(dy/dx);
     if( (dx<0) || ((Math.abs(dx)<smallVal)&&(dy<0))){phi+=Math.PI;}
@@ -3671,6 +3676,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     // now condition in calling program
 
     if(changedGeometry){
+    //if(true){
     //if(Math.abs(scale-this.draw_scaleOld)>smallVal){
 	this.draw_scaleOld=scale;
         for (var iSegm=0; iSegm<this.nSegm; iSegm++){
@@ -3697,26 +3703,36 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     nSegmLine=Math.max(2, nSegmLine);
     //console.log("road.draw: ID=",this.roadID," nSegm=",this.nSegm);
     for (var iSegm=0; iSegm<this.nSegm; iSegm++){
-	var cosphi=this.draw_cosphi[iSegm];
-	var sinphi=this.draw_sinphi[iSegm];
-	var lSegmPix=scale*factor*lSegm;
-	var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
+      var cosphi=this.draw_cosphi[iSegm];
+      var sinphi=this.draw_sinphi[iSegm];
+      var lSegmPix=scale*factor*lSegm;
+      var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
 
-	var xCenterPix= scale*(this.draw_x[iSegm]-this.traj_x(uRef)+xRef); 
-	var yCenterPix=-scale*(this.draw_y[iSegm]-this.traj_y(uRef)+yRef);
+      var xCenterPix= scale*(this.draw_x[iSegm]-this.traj_x(uRef)+xRef);
+      var yCenterPix=-scale*(this.draw_y[iSegm]-this.traj_y(uRef)+yRef);
 
 
-	ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
-	var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
-	ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
-	if(false){
-	//if(this.roadID<10){
-	    console.log("road.draw: ID=",this.roadID," iSegm="+iSegm+
-		      " cosphi="+cosphi+" factor="+factor+
-		      " lSegmPix="+lSegmPix+" wSegmPix="+wSegmPix+
-		      " xCenterPix="+xCenterPix+" yCenterPix="+yCenterPix);
-	}
+      ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
+      var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
+      ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
+
+      if(false){
+      //if((this.roadID==2)&&(iSegm==this.nSegm-4)){
+        console.log(
+	  "road.draw: ID=",this.roadID," iSegm=",iSegm,
+	  " this.draw_y[iSegm]=",formd(this.draw_y[iSegm]),
+	  " this.traj_y(this.roadLen-50)=",formd(this.traj_y(this.roadLen-50)),
+	  //" lSegmPix=",formd(lSegmPix)," wSegmPix=",formd(wSegmPix),
+	  //" xCenterPix=",formd(xCenterPix),
+	  " yCenterPix=",formd(yCenterPix)
+	);
+      }
     }
+
+  if(this.roadID==2){
+    console.log("road.draw: u=this.roadLen-50=",formd(u),
+		" this.traj_y(this.roadLen-50)=",this.traj_y(this.roadLen-50));
+  }
 
 
 // draw traffic lights separately by its own command .draw(imgRed,imgGreen)

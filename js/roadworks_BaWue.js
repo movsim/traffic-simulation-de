@@ -9,6 +9,9 @@ var userCanDropObstaclesAndTL=true;
 // and (as deep copies) in road.updateModelsOfAllVehicles
 //#############################################################
 
+nLanesMin=2;
+nLanesMax=4; 
+
 IDM_T=1.4;
 IDM_a=1.2;
 IDM_b=3; 

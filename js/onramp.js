@@ -155,7 +155,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var laneWidthRamp=5;
+// var laneWidthRamp=5; // main linewidth used
 
 
 var car_length=7; // car length in m
