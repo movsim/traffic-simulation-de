@@ -5,6 +5,12 @@
 // common canvas-related callbacks (mouse, touch) in canvas_gui.js
 //#############################################
 
+// general helper function 
+// (control_gui.js is one of the first js to be called)
+
+function formd(x){return parseFloat(x).toFixed(2);}
+function formd0(x){return parseFloat(x).toFixed(0);}
+
 
 //################################################################
 // Start/Stop button action (triggered by "onclick" callback in html file)

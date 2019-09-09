@@ -1,6 +1,7 @@
 
 /*#############################################################
-depot of vehicle or obstacle images to be dragged to/from a road
+depot of vehicle or obstacle images or traffic lights 
+ to be dragged to/from a road
  and converted in vehicles and back at dropping/lifting time. 
 
 The images of the depot vehicles are given by the array obstacleImgs 
@@ -12,7 +13,7 @@ obstacle image number by
 Img-number=max(1,vehID%obstacleImgs.length)
 
 
-special vehicles:
+special vehicles: id<200:
 // types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
 // id's defined mainly in vehicle.js and vehicleDepot.js
 // id<100:              special vehicles/road objects
@@ -28,7 +29,10 @@ special vehicles:
 /**
 ##########################################################
 vehicleDepot object constructor
+WATCH OUT: no overloading exists. For example of copy constructors, 
+look for ".copy" in othe rjs files
 ##########################################################
+
 @param nImgs:   how many images in draw cmd to assign 
                 immutable image index at construction time
                 (>=2 images for distinguishing virt veh from depot veh)
@@ -42,58 +46,70 @@ vehicleDepot object constructor
 
 */
 
-// DOS, does not work, nothing defined
-//function vehicleDepot(){return new vehicleDepot(1,0,0,0,0,0,0,false);}
 
-
-function vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,
-		      containsObstacles){
+function vehicleDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,obstacleImgs){
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
 
     //console.log("vehicleDepot cstr: xDepot=",xDepot," yDepot=",yDepot);
 
-    this.nRow=nRow; // generally nRow*nCol != imageArray.length
-    this.nCol=nCol; 
-    this.nveh=nRow*nCol;
-    this.xDepot=xDepot;
-    this.yDepot=yDepot;
-    this.lVeh=lVeh;
-    this.wVeh=wVeh;
-    this.lVehRoad=0.5*lVeh;
-    this.wVehRoad=0.5*wVeh;
-    this.containsObstacles=containsObstacles;
-    this.gapRel=0.02; // lateral gap [veh width] between the vehicles in the depot
+  this.nRow=nRow; // generally nRow*nCol != imageArray.length
+  this.nCol=nCol; 
+  this.n=nRow*nCol;
+  this.xRelDepot=xRelDepot;
+  this.yRelDepot=yRelDepot;
+
+  // calculate pixel size variables (updated in this.calcDepotPositions)
+
+  this.gapRel=0.01; // relative spacing (sizeCanvas)
+  this.sizeRel=0.10; // relative size of speed-limit sign
+  this.sizeCanvas=Math.min(canvas.width, canvas.height);
+  this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
+  this.hPix=this.wPix;
+  this.active_scaleFact=0.7; // pixel size factor active objects (on road) 
+
 
     // determine vehicle id and image number
 
-    if(nImgs<2){console.log("vehicleDepot cstr: warning: useful is",
-		    " an image array of length>=2"); }
+  var nImgs=obstacleImgs.length;
+  if(nImgs<2){
+    console.log("vehicleDepot cstr: warning: useful is",
+			  " an image array of length>=2"); }
     this.veh=[];
     var idmin=50; // begin depot vehicles/obstacles, see top of this file
     var idminTL=100; // begin traffic-light objects, see top of this file
     console.log("idmin=",idmin," nImgs=",nImgs);
     while((idmin%nImgs!=0)&&(idmin<1000)){idmin++;} // !! second cond to avoid infinite loop if nImgs not defined
 
-    var latDistVeh=this.wVeh*(1+this.gapRel);
+    var latDistVeh=this.wVeh+this.sizeCanvas*this.gapRel;
 
-    for(var ir=0; ir<nRow; ir++){
-	for(var ic=0; ic<nCol; ic++){
-	    var i=ir*nCol+ic;
-	    var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);//!!!
-	    var xVehDepot=this.xDepot+latDistVeh*(ic+0.5*(1-nCol));
-	    var yVehDepot=this.yDepot+latDistVeh*(ir+0.5*(1-nRow));
-	    this.veh[i]={id:        idmin+i, 
-			 imgNumber: imgNmbr,
-			 type:      (containsObstacles) ? "obstacle" : "car",
-			 lVeh:      this.lVeh,
-			 wVeh:      this.wVeh,
-			 lVehRoad:  this.lVehRoad,
-			 wVehRoad:  this.wVehRoad,
-			 inDepot:   true,
-			 x:         xVehDepot, 
-		         y:         yVehDepot, 
-		         xDepot:    xVehDepot, 
-		         yDepot:    yVehDepot
-			};
+  // create imgs of speed-limit signs
+
+  this.speedlImgRepo = []; 
+  for (var i_img=0; i_img<13; i_img++){
+    this.speedlImgRepo[i_img]=new Image();
+    this.speedlImgRepo[i_img].src = "figs/Tempo"+(i_img)+"0svg.svg";
+  }
+
+
+  for(var ir=0; ir<nRow; ir++){
+    for(var ic=0; ic<nCol; ic++){
+      var i=ir*nCol+ic;
+      var imgNmbr=(nImgs===1) ? 0 : Math.max(1,i%nImgs);//!!!
+      var xVehDepot=this.xDepot+latDistVeh*(ic+0.5*(1-nCol));
+      var yVehDepot=this.yDepot+latDistVeh*(ir+0.5*(1-nRow));
+      this.veh[i]={id:        idmin+i,
+		   imgNumber: imgNmbr,
+		   type:      ((i>=2)&&(i<4)) ? "trafficLight" : "obstacle",//!!!
+		   lVeh:      this.xPix/scale, //!!!
+		   wVeh:      this.yPix/scale,
+		   lVehRoad:  this.lVeh*this.active_scaleFact, //!!!
+		   wVehRoad:  this.wVeh*this.active_scaleFact,
+		   inDepot:   true,
+		   x:         xVehDepot, 
+		   y:         yVehDepot,
+		   xDepot:    xVehDepot,
+		   yDepot:    yVehDepot
+		  };
 
             // ad hoc introduce 2 TL at the beginning (quick hack!!!)
 
@@ -130,7 +146,7 @@ vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
     var lPix=scale*this.lVeh; // vehicle length in pixels (depot lVeh,wVeh)
     var wPix=scale*this.wVeh;
 
-    for (var i=0; i<this.nveh; i++){
+    for (var i=0; i<this.n; i++){
 	//console.log("i=",i," this.veh[i].inDepot=",this.veh[i].inDepot);
 	if(this.veh[i].inDepot){
 	    var nr=this.veh[i].imgNumber;
@@ -146,8 +162,8 @@ vehicleDepot.prototype.draw=function(obstacleImgs,scale,canvas){
 		" hPix=",wPix);
 	    }
 	    
-	    ctx.drawImage(obstacleImgs[nr],-0.5*wPix, -0.5*lPix,
-			  wPix, lPix);
+	    //ctx.drawImage(obstacleImgs[nr],-0.5*wPix, -0.5*lPix,
+	//		  wPix, lPix);
 	}
     }
 }

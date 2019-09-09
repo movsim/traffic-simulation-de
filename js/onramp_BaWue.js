@@ -234,9 +234,9 @@ function updateRampGeometry(){
   //!!! necessary, since roads internal tables!
 
   ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
-  console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
-	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
-	     );
+  //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
+//	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
+//	     );
 
 }
 

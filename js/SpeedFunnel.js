@@ -1,9 +1,4 @@
 
-// helper function
-
-function formd(x){return parseFloat(x).toFixed(2);}
-function formd0(x){return parseFloat(x).toFixed(0);}
-
 
 /** #############################################################
 Represents a set of local speed limits as a measure for traffic control 
@@ -21,12 +16,15 @@ at construction time
 /**
 ##########################################################
 SpeedFunnel object constructor
+WATCH OUT: no overloading exists. For example of copy constructors, 
+look for ".copy" in othe rjs files
 ##########################################################
+
 @param canvas:  needed to position the speed-limit signs
 @param nRow:    number of rows of the depot of speed-limit signs
 @param nCol:    number of columns (nRow*nCol speed-limit objects)
-@param xDepot:  center x position[m] of depot (0=left)
-@param yDepot:  center y position[m] of depot (0=top, <0 in canvas)
+@param xDepot:  center x position[m] of depot (0=left, 1=right)
+@param yDepot:  center y position[m] of depot (0=bottom, 1=top)
 
 */
 
@@ -44,11 +42,15 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   this.xRelDepot=xRelDepot; // 0=left, 1=right
   this.yRelDepot=yRelDepot; // 0=bottom, 1=top
 
+  // calculate pixel size variables (updated in this.calcDepotPositions)
 
+  this.gapRel=0.01; // relative spacing (sizeCanvas)
+  this.sizeRel=0.10; // relative size of speed-limit sign
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
+  this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
+  this.hPix=this.wPix;
+  this.active_scaleFact=0.7; // pixel size factor active objects (on road) 
 
-  this.wPix=42; // only init
-  this.hPix=42; // only init
 
   // create imgs of speed-limit signs
 
@@ -136,23 +138,21 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
 SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 
-  var sRel=0.01; // relative spacing
-  var sizeRel=0.10; // relative size of speed-limit sign
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
-  var sPix=sRel*this.sizeCanvas; // spacing in pixels
+  var gapPix=this.gapRel*this.sizeCanvas; // spacing in pixels
   var xPixDepotCenter=canvas.width*this.xRelDepot; 
   var yPixDepotCenter=canvas.height*(1-this.yRelDepot);
 
-  this.wPix=sizeRel*this.sizeCanvas; // diameter of speed-limit signs in pixels
+  this.wPix=this.sizeRel*this.sizeCanvas; // diameter of speed-limit signs in pixels
   this.hPix=this.wPix;
 
   for (var i=0; i<this.n; i++){
     var icol=i%this.nCol;
     var irow=Math.floor(i/this.nCol);
     this.speedl[i].xPixDepot=xPixDepotCenter 
-      + (this.wPix+sPix)*(icol-0.5*(this.nCol-1));
+      + (this.wPix+gapPix)*(icol-0.5*(this.nCol-1));
     this.speedl[i].yPixDepot=yPixDepotCenter 
-      + (this.hPix+sPix)*(irow-0.5*(this.nRow-1));
+      + (this.hPix+gapPix)*(irow-0.5*(this.nRow-1));
     if(this.speedl[i].inDepot){
       this.speedl[i].xPix=this.speedl[i].xPixDepot;
       this.speedl[i].yPix=this.speedl[i].yPixDepot;
@@ -176,13 +176,12 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 SpeedFunnel.prototype.draw=function(canvas,road,scale){
 
   var active_drawTwoSigns=true; // if false, only sign above road drawn
-  var active_scaleFact=0.7; // size active/size passive signs
   var crossingLineWidth=1; // line to indicate begin of speedlimit region [m]
   ctx = canvas.getContext("2d");
   var wPixPassive=this.wPix;
   var hPixPassive=this.hPix;
-  var wPixActive=active_scaleFact*wPixPassive;
-  var hPixActive=active_scaleFact*hPixPassive;
+  var wPixActive=this.active_scaleFact*wPixPassive;
+  var hPixActive=this.active_scaleFact*hPixPassive;
 
   for (var i=0; i<this.speedl.length; i++){
     var SL=this.speedl[i];

@@ -3729,7 +3729,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       }
     }
 
-  if(this.roadID==2){
+  if(false){
+  //if(this.roadID==2){
     console.log("road.draw: u=this.roadLen-50=",formd(u),
 		" this.traj_y(u)=",formd(this.traj_y(this.roadLen-50)));
   }
