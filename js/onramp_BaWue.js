@@ -230,8 +230,12 @@ function updateRampGeometry(){
     xRamp[i]=xRamp[i+1]-drampLen*Math.cos(headingRamp(u));
     yRamp[i]=yRamp[i+1]-drampLen*Math.sin(headingRamp(u));
   }
+
+  //!!! necessary, since roads internal tables!
+
+  ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
   console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
-	      " trajRamp_y(rampLen-50)=",trajRamp_y(rampLen-50)
+	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
 	     );
 
 }
