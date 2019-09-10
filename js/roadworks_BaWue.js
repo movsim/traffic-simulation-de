@@ -13,8 +13,8 @@ nLanesMin=2;
 nLanesMax=4; 
 
 IDM_T=1.4;
-IDM_a=0.8;
-IDM_b=1.8; // low for more anticipation
+IDM_a=1.2;
+IDM_b=2.0; // low for more anticipation
 IDM_s0=2;
 speedL=1000/3.6; 
 speedL_truck=80/3.6;
@@ -38,9 +38,9 @@ IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-qIn=1550./3600; // inflow 1550./3600; 
+qIn=1900./3600; // inflow 1550./3600; 
 slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" Fz/h";
+slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 
 truckFrac=0.30;
 slider_truckFrac.value=100*truckFrac;
@@ -381,7 +381,8 @@ function updateSim(){
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
+    mainroad.changeLanes(); 
+
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow

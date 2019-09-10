@@ -224,10 +224,10 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
     if(s<0.001){return -this.bmax;}// particularly for s<0
 
-    // acceleration noise to avoid some artifacts (no noise if s<s0)
+    // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
 
-    var noiseAcc=(s<this.s0) ? 0 : 0.3; 
+    var noiseAcc=(s<this.s0) ? 0 : 0.03;    // ? 0 : 0.3; 
     var accRnd= noiseAcc*(Math.random()-0.5);
 
         // determine valid local v0
@@ -242,7 +242,8 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
     var sstar=this.s0
 	+Math.max(0, v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b));
     var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
-    var accIDM=accFree+accInt;
+  //var accIDM=accFree+accInt; //!!! normal IDM
+  var accIDM=Math.min(accFree, this.a+accInt); //!!! IDM+
 
     var accCAH=(vl*(v-vl) < -2*s*al)
 	? v*v*al/(vl*vl -2*s*al) 

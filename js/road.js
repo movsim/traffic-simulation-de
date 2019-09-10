@@ -1,4 +1,4 @@
-/*
+
 
 // !! debugging: making simulations reproducible (see docu at onramp.js)
 
@@ -7,7 +7,7 @@ console.log(Math.random());          // Always 0.0016341939679719736 with 42
 console.log(Math.random());          //s Always 0.9364577392619949 with 42
 Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
 
-*/
+
 
 
 
@@ -1814,7 +1814,7 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
     if(speedlimit.isActive){
       success=true;
  
-     if(true){
+     if(false){
 	console.log("road.updateSpeedFunnel: speed limit ",
 		    formd(3.6*speedlimit.value)," starting at ",
 		    formd(speedlimit.u));
@@ -2263,33 +2263,42 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
 
 road.prototype.updateSpeedPositions=function(){
 
-   // longitudinal and lateral position and speed update
-   // for non-ego vehicles and non-obstacles
+  // longitudinal and lateral position and speed update
+  // for non-ego vehicles and non-obstacles
 
-    for(var i=0; i<this.veh.length; i++){
-	if( (this.veh[i].id!=1) && (this.veh[i].isRegularVeh())){
+  for(var i=0; i<this.veh.length; i++){
+    if( (this.veh[i].id!=1) && (this.veh[i].isRegularVeh())){
 
-            // longitudinal positional with old speeds
 
-	    this.veh[i].u += Math.max(
-		0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
 
-            // longitudinal speed update 
+      // longitudinal positional with old speeds
 
-	    this.veh[i].speed 
-		= Math.max(this.veh[i].speed+this.veh[i].acc*dt, 0);
+      this.veh[i].u += Math.max(
+	0,this.veh[i].speed*dt+0.5*this.veh[i].acc*dt*dt);
 
-	}
+      // longitudinal speed update 
+
+      this.veh[i].speed=Math.max(this.veh[i].speed+this.veh[i].acc*dt, 0);
+
+      // MT 2019-09: quick hack since left vehicles always a bit
+      // faster than right ones: "push on right
+
+      if((this.veh[i].lane==this.nLanes-1)&&(this.veh[i].speed>1.5)){
+	this.veh[i].speed+=0.05*dt;
+      }
+
+    }
+
 
         // periodic BC closure
 
-	if(this.isRing &&(this.veh[i].u>this.roadLen)){
-	    this.veh[i].u -= this.roadLen;
-	}
+    if(this.isRing &&(this.veh[i].u>this.roadLen)){
+      this.veh[i].u -= this.roadLen;
     }
+  }
 
-    this.sortVehicles(); // positional update may have disturbed order
-    this.updateEnvironment();// crucial!!
+  this.sortVehicles(); // positional update may have disturbed order
+  this.updateEnvironment();// crucial!!
 }
 
 
@@ -3306,9 +3315,9 @@ road.prototype.updateBCup=function(Qin,dt,route){
       var uNew=0;
 
       //!!! MT 2019-09 hack since otherwise veh enter too fast 
-      // in speedfunnel scenarios
+      // in speedfunnel scenarios: retrict entering to truck speed
 
-      var v0New=0.8*Math.min(longModelNew.v0, longModelTruck.v0);
+      var v0New=0.9*Math.min(longModelNew.v0, longModelTruck.v0);
       var speedNew=Math.min(v0New, longModelNew.speedlimit,
 				space/longModelNew.T);
       var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
@@ -3332,7 +3341,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.veh.push(vehNew); // add vehicle after pos nveh-1
       this.inVehBuffer -=1;
       //if((lane!=this.nLanes-1)&&(vehType==="truck")){
-      if(true){
+      if(false){
 	console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);
