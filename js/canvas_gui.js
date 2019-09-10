@@ -286,28 +286,28 @@ function pickRoadOrObject(xUser,yUser){
   // (need to do it separately since green TL have no road-vehicle objects)
   // !!!TODO: do it also on secondary road in network scenarios! =>(4)
   // critical drag distance distCrit defined by road
-
-  var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
-  if(pickResults[0]){
-    console.log(" (1a) picked a traffic light on the road!");
-    var TL=pickResults[1];
-    var success=false;
-    for(var i=0; (!success)&&(i<depot.veh.length); i++){
-      success=(TL.id===depot.veh[i].id);
-      if(success) depot.veh[i].inDepot=true;
-    }
-    if(success){
+  if(!(typeof depot === 'undefined')){
+    var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
+    if(pickResults[0]){
+      console.log(" (1a) picked a traffic light on the road!");
+      var TL=pickResults[1];
+      var success=false;
+      for(var i=0; (!success)&&(i<depot.veh.length); i++){
+        success=(TL.id===depot.veh[i].id);
+        if(success) depot.veh[i].inDepot=true;
+      }
+      if(success){
 	console.log("  pickRoadOrObject: found nearby TL on road!");
-    }
-    else{
+      }
+      else{
 	console.log("  pickRoadOrObject: found no nearby TL on road!");
+      }
+      depotObjDragged=true;
+      funnelObjDragged=false;
+      roadDragged=false;
+      return;
     }
-    depotObjDragged=true;
-    funnelObjDragged=false;
-    roadDragged=false;
-    return;
-  }
-  //console.log(" pickRoadOrObject: found no TL  on road");
+    //console.log(" pickRoadOrObject: found no TL  on road");
 
     // pick/drag special road object other than traffic light
     // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
@@ -315,38 +315,39 @@ function pickRoadOrObject(xUser,yUser){
  
 
     //console.log("  (1b) test for a depot obstacle on road");
-  pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
-  if(pickResults[0]){
-    console.log(" (1b) picked a depot obstacle on the road");
-    specialRoadObject=pickResults[1];
-    transformToDepotObject(specialRoadObject,mainroad,depot);
+    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
+    if(pickResults[0]){
+      console.log(" (1b) picked a depot obstacle on the road");
+      specialRoadObject=pickResults[1];
+      transformToDepotObject(specialRoadObject,mainroad,depot);
 
-    depotObjDragged=true;
-    funnelObjDragged=false;
-    roadDragged=false;
-    return;
-  }
-  //else console.log("no depot obstacle on a road found");
+      depotObjDragged=true;
+      funnelObjDragged=false;
+      roadDragged=false;
+      return;
+    }
+    //else console.log("no depot obstacle on a road found");
 
 
     // (2) pick/drag depot vehicle: test for depotObjDragged
     // depot.pickVehicle ,.pickObject returns [successFlag, thePickedDepotVeh]
  
     //console.log("  (2) test for depot obstacle/TL outside road");
-  var distCrit=12;//[m]
-  pickResults=depot.pickObject(xPixUser, yPixUser, 
+    var distCrit=12;//[m]
+    pickResults=depot.pickObject(xPixUser, yPixUser, 
 				      distCrit*scale);
        //depot.pickVehicle(xUser, yUser, distCrit);
-  if(pickResults[0]){
-    console.log(" (2) picked a depot vehicle");
-    depotObject=pickResults[1];
-    depotObjDragged=true;
-    funnelObjDragged=false;
-    roadDragged=false;
-    return;
-  }
-  //else console.log("no obstacle or TL outside road found");
+    if(pickResults[0]){
+      console.log(" (2) picked a depot vehicle");
+      depotObject=pickResults[1];
+      depotObjDragged=true;
+      funnelObjDragged=false;
+      roadDragged=false;
+      return;
+    }
+    //else console.log("no obstacle or TL outside road found");
 
+  } // test for obstacle/TL objects if depot defined
 
   // (3) pick an active or passive SpeedFunnel object, 
   // speedfunnel uses pixels instead of meters, therefore scale factor
@@ -774,7 +775,7 @@ function dragDepotObject(xPixUser,yPixUser){ //!!! obsolete?!
 }
 
 function dragFunnelObject(xPixUser,yPixUser){
-    //console.log("in dragVehicleFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
+    console.log("in dragFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
     funnelObject.xPix=xPixUser;
     funnelObject.yPix=yPixUser;
 }

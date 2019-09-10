@@ -47,10 +47,12 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
   this.gapRel=0.01; // relative spacing (sizeCanvas)
   this.sizeRel=0.10; // relative size of speed-limit sign
-  this.sizeCanvas=Math.min(canvas.width, canvas.height);
-  this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
-  this.hPix=this.wPix;
+  this.aspectRatio=0.7; //w/h, depending on image
   this.active_scaleFact=0.7; // pixel size factor active objects (on road) 
+
+  this.sizeCanvas=Math.min(canvas.width, canvas.height);
+  this.hPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
+  this.wPix=this.aspectRatio*this.hPix;
 
 
   // create image repository of speed-limit signs
@@ -74,11 +76,11 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
  
     var j=i%6;
     var speedInd=
-      (j==0) ? 2 :
-      (j==1) ? 4 : 
-      (j==2) ? 6 : 
-      (j==3) ? 8 :
-      (j==4) ? 10 : 0;
+      (j==0) ? 6 :
+      (j==1) ? 8 : 
+      (j==2) ? 10 : 
+      (j==3) ? 0 :
+      (j==4) ? 12 : 0;
 
     speedlImg=this.speedlImgRepo[speedInd];
     speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
@@ -143,8 +145,8 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
   var xPixDepotCenter=canvas.width*this.xRelDepot; 
   var yPixDepotCenter=canvas.height*(1-this.yRelDepot);
 
-  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of speedl signs
-  this.hPix=this.wPix;
+  this.hPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of speedl signs
+  this.wPix=this.aspectRatio*this.hPix; // google uses both dim, firefox does not distort
 
   for (var i=0; i<this.n; i++){
     var icol=i%this.nCol;

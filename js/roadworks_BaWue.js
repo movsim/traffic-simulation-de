@@ -13,14 +13,14 @@ nLanesMin=2;
 nLanesMax=4; 
 
 IDM_T=1.4;
-IDM_a=1.2;
-IDM_b=3; 
+IDM_a=0.8;
+IDM_b=1.8; // low for more anticipation
 IDM_s0=2;
 speedL=1000/3.6; 
 speedL_truck=80/3.6;
 
-MOBIL_bBiasRigh_car=0.05;
-MOBIL_bBiasRight_truck=3;
+MOBIL_bBiasRigh_car=0.1;
+MOBIL_bBiasRight_truck=8;
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
 MOBIL_mandat_bias=1.5;
@@ -221,9 +221,9 @@ mainroad.updateEnvironment();
 
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.20*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
 mainDetectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.80*mainroadLen,30);
+mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
 //#########################################################
@@ -314,13 +314,23 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 //####################################################################
-//!!! ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+// external draggable objects
 //####################################################################
 
-var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
+//var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
 
-var speedfunnel=new SpeedFunnel(canvas,1,3,0.30,0.60);
+var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
 
+// initialize active speed limit for good performance of the speed funnel
+speedfunnel.speedl[1].isActive=true;
+speedfunnel.speedl[1].inDepot=false;
+speedfunnel.speedl[1].isDragged=false;
+speedfunnel.speedl[1].u=30;
+speedfunnel.speedl[1].xPix=mainroad.get_xPix(speedfunnel.speedl[1].u,0,scale);
+speedfunnel.speedl[1].yPix=mainroad.get_yPix(speedfunnel.speedl[1].u,0,scale);
+
+console.log("speedfunnel.speedl[1]=",speedfunnel.speedl[1]);
+console.log("speedfunnel.speedl[0]=",speedfunnel.speedl[0]);
 
 //############################################
 // run-time specification and functions
@@ -405,9 +415,9 @@ function updateSim(){
 
   // => see onramp.js for the workings if depotVehicles involved
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjDragged)){
-    depot.zoomBack();
-  }
+  //if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjDragged)){
+  //  depot.zoomBack();
+ // }
 
   if(funnelObjDragged==false){
     speedfunnel.zoomBack();
@@ -452,7 +462,7 @@ function drawSim() {
 
 	updatePhysicalDimensions();
       speedfunnel.calcDepotPositions(canvas);
-      depot.calcDepotPositions(canvas);
+      //depot.calcDepotPositions(canvas);
 
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -482,10 +492,10 @@ function drawSim() {
     }
 
 
-    // (3) draw mainroad
-    // (always drawn; but changedGeometry=true necessary
-    // if changed (it triggers building a new lookup table). 
-    // Otherwise, road drawn at old position
+  // (3) draw mainroad
+  // (always drawn; but changedGeometry=true necessary
+  // if changed (it triggers building a new lookup table). 
+  // Otherwise, road drawn at old position
 
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
@@ -501,36 +511,37 @@ function drawSim() {
     
 
   // (5) draw depot vehicles and speed funnel objects
-  // !!!do it also outside, now!
 
-
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-    depot.draw(canvas,mainroad,scale);
-  }
+  //if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+  //  depot.draw(canvas,mainroad,scale);
+  //}
   speedfunnel.draw(canvas,mainroad,scale);
 
+  //console.log("speedfunnel.speedl[1]=",speedfunnel.speedl[1]);
+  //console.log("speedfunnel.speedl[0]=",speedfunnel.speedl[0]);
 
 
     // (6) show simulation time and detector displays
 
-    displayTime(time,textsize);
-    for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].display(textsize);
-    }
+  displayTime(time,textsize);
+  for(var iDet=0; iDet<nDet; iDet++){
+    mainDetectors[iDet].display(textsize);
+  }
 
 
-    // (7) draw the speed colormap
+  // (7) draw the speed colormap 
+  // MT 2019: drawColormap=false if drawn statically by html file!
 
-    if(drawColormap){ 
-	displayColormap(0.22*refSizePix,
+  if(drawColormap){ 
+    displayColormap(0.22*refSizePix,
 			0.43*refSizePix,
 			0.1*refSizePix, 0.2*refSizePix,
 			vmin_col,vmax_col,0,100/3.6);
-    }
+  }
 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
  
 } // drawSim
  

@@ -852,9 +852,11 @@ var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_p=0;
 var MOBIL_mandat_bias=42;
 
-var factor_v0_truck=0.7; // define truck longModel as f(car longModel)
-var factor_a_truck=0.8;
-var factor_T_truck=1.2;
+// define truck longModel as f(car longModel)v0 limited by speed limit
+
+var factor_v0_truck=1; 
+var factor_a_truck=1.0;
+var factor_T_truck=1.1;
 
 
 // creates template models from the preset IDM_v0, IDM_a etc values

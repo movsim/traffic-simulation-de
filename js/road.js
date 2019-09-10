@@ -152,7 +152,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
         // actually construct vehicles (this also defined id)
 
 	this.veh[i]=new vehicle(vehLength, vehWidth,u,lane, 
-				0.8*speedInit,vehType);
+				0.8*speedInit,vehType); // IC
 
 
 
@@ -3186,7 +3186,7 @@ road.prototype.updateDensity=function(density){
 	    }
 
 	    var vehNew=new vehicle(vehLength,vehWidth,uNew,laneNew,
-				    speedNew,vehType);
+				    speedNew,vehType); //updateDensity
 
 	    if(emptyLanes){vehNew.speed=longModelTruck.v0;}
 	    this.veh.splice(k,0,vehNew); // add vehicle at position k  (k=0 ... n-1)
@@ -3299,12 +3299,17 @@ road.prototype.updateBCup=function(Qin,dt,route){
     }
  
 
-    // actually insert new vehicle
+    // actually insert new vehicle //IC
 
     if(success){
       var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
       var uNew=0;
-      var speedNew=Math.min(longModelNew.v0, longModelNew.speedlimit,
+
+      //!!! MT 2019-09 hack since otherwise veh enter too fast 
+      // in speedfunnel scenarios
+
+      var v0New=0.8*Math.min(longModelNew.v0, longModelTruck.v0);
+      var speedNew=Math.min(v0New, longModelNew.speedlimit,
 				space/longModelNew.T);
       var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
  
@@ -3326,7 +3331,8 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
       this.veh.push(vehNew); // add vehicle after pos nveh-1
       this.inVehBuffer -=1;
-      if((lane!=this.nLanes-1)&&(vehType==="truck")){
+      //if((lane!=this.nLanes-1)&&(vehType==="truck")){
+      if(true){
 	console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);

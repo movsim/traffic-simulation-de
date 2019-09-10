@@ -189,7 +189,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top: 1vmin;
   height: 8vmin;
-  left: 102vmin;
+  left: 52vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -201,7 +201,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top: 1vmin;
   height: 8vmin;
-  left: 93vmin;
+  left: 43vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -213,7 +213,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 84vmin;
+  left: 34vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -222,7 +222,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 75vmin;
+  left: 25vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -243,9 +243,8 @@ at the former trafficSimulationDe info button */
 #scenarios{
   position: absolute;
   top:     1vmin;
-  height:  22vmin;
-  left: 150vmin;
-  width: 20vmin;
+  left: 62vmin;
+  width: 20vmin; /* no height; otherwise obstacle objects can "get stuck"*/
   z-index: 2;  /*top-always focussed! */
 }
 
@@ -257,12 +256,12 @@ at the former trafficSimulationDe info button */
 
 #sliders{ 
   position: absolute;
-  top: 35vmin;
+  top: 45vmin;
   height: 30vmin;
   left: 80vmin;
   width: 55vmin;
   background-color: rgba(255,255,255,0.5);
-  z-index: 3; /* the higher the integer, the more on top */
+  z-index: 1; /* the higher the integer, the more on top */
 }
 
 
@@ -280,11 +279,11 @@ at the former trafficSimulationDe info button */
 
 #colorBox{
   position: absolute;
-  top:     38vmin;
-  height:  30vmin;
+  top:     48vmin;
+/*  height:  20vmin;*/
   left:   150vmin;
   width:   20vmin; 
-  z-index: 2;
+  z-index: 1;
 }
 
 
