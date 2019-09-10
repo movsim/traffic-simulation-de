@@ -20,11 +20,11 @@ WATCH OUT: no overloading exists. For example of copy constructors,
 look for ".copy" in othe rjs files
 ##########################################################
 
-@param canvas:  needed to position the speed-limit signs
-@param nRow:    number of rows of the depot of speed-limit signs
-@param nCol:    number of columns (nRow*nCol speed-limit objects)
-@param xDepot:  center x position[m] of depot (0=left, 1=right)
-@param yDepot:  center y position[m] of depot (0=bottom, 1=top)
+@param canvas:    needed to position the speed-limit signs if outside the roads
+@param nRow:      number of rows of the depot of speed-limit signs
+@param nCol:      number of columns (nRow*nCol speed-limit objects)
+@param xRelDepot: relative center x position[m] of depot (0=left, 1=right)
+@param yRelDepot: relative center y position[m] of depot (0=bottom, 1=top)
 
 */
 
@@ -42,6 +42,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   this.xRelDepot=xRelDepot; // 0=left, 1=right
   this.yRelDepot=yRelDepot; // 0=bottom, 1=top
 
+
   // calculate pixel size variables (updated in this.calcDepotPositions)
 
   this.gapRel=0.01; // relative spacing (sizeCanvas)
@@ -52,7 +53,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   this.active_scaleFact=0.7; // pixel size factor active objects (on road) 
 
 
-  // create imgs of speed-limit signs
+  // create image repository of speed-limit signs
 
   this.speedlImgRepo = []; 
   for (var i_img=0; i_img<13; i_img++){
@@ -83,11 +84,11 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
     speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
 
     //#################################################################
-    // central object
+    // central object this.speedl[i]
     // speed limit effective: isActive=true, u>=0,inDepot=isDragged=false 
     // speed limit sign dragged: isDragged=true, isActive=false=inDepot=false
     // speed limit sign dropped on road => speed limit effective
-    // speed limit sign dropped outside of road and notyet zoomed back =>
+    // speed limit sign dropped outside of road and not yet zoomed back =>
     // isDragged=isActive=inDepot=false
     //#################################################################
     
@@ -100,13 +101,12 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 		    u: -1, // physical long position [m] (only init,
 		           // >=0 if isActive, <0 if !isActive)
 		    xPix: 42, // pixel position of center (only init)
-		    yPix: 42,
+		    yPix: 42, // defined in calcDepotPositions
 		    xPixDepot: 42, // xPix=xPixDepot if !isActive and 
 		    yPixDepot: 42 // graphics zoomed back to depot
 		   };
   } // loop over elements
 
-  console.log("this.speedl[0].speedIndex=",this.speedl[0].speedIndex);
   this.calcDepotPositions(canvas); // sets pixel sizes, positions
 
     
@@ -143,7 +143,7 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
   var xPixDepotCenter=canvas.width*this.xRelDepot; 
   var yPixDepotCenter=canvas.height*(1-this.yRelDepot);
 
-  this.wPix=this.sizeRel*this.sizeCanvas; // diameter of speed-limit signs in pixels
+  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of speedl signs
   this.hPix=this.wPix;
 
   for (var i=0; i<this.n; i++){
@@ -255,7 +255,7 @@ SpeedFunnel.prototype.draw=function(canvas,road,scale){
 	  " xPix=",formd(SL.xPix),
 	  " yPix=",formd(SL.yPix),
 	  " wPixPassive=",formd(wPixPassive),
-	  " hPixPassive=",formd(wPix));
+	  " hPixPassive=",formd(hPixPassive));
       }
     }
   }

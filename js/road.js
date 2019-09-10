@@ -4,7 +4,7 @@
 
 Math.seedrandom(42); 
 console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
+console.log(Math.random());          //s Always 0.9364577392619949 with 42
 Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
 
 */
@@ -23,12 +23,15 @@ road segment (link) object constructor:
 
 logic-geometrical properties (u,v):  
 u=long coordinate [m] (increasing in driving direction
-v=lateral coordinate [lanewidth units] (real-valued; left: 0; right: nLanes-1)
+v=lateral coordinate[m] centered at road axis
+lane=0 (left), ..., this.nLanes-1 (right)
+vVeh=real-valued lane index
+=> v=laneWidth*(this.veh[i].v-0.5*(nLanes-1));
 
 connection to physical coordinates x (East), y (North) provided by
 the functions traj_x, traj_y provided as cstr parameters
 
-// id's defined mainly in vehicle.js and vehicleDepot.js
+// id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
@@ -2888,13 +2891,13 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 // drop an external depot vehicle to the road
 //#########################################################
 /**
-The dropped vehicle has the type of a vehicleDepot.veh element.
+The dropped vehicle has the type of a ObstacleTLDepot.veh element.
 It is converted to a road.veh element and dropped just 1m behind the 
 leading vehicle corresponding to the drop position u. 
 following vehicles are ignored; a crash may happen!
 Typically used for dropping obstacles as onmouseup callback => canvas_gui
 
-@param depotVehicle: the depot vehicle of type vehicleDepot.veh[i]
+@param depotVehicle: the depot vehicle of type ObstacleTLDepot.veh[i]
 @param u:            longitudinal road coordinate of dropping point
 @param v:            dropped on the lane nearest v
 @param imgRed,imgGreen:  images of traffic lights (otherwise, obstacles imgs
@@ -3758,7 +3761,7 @@ special vehicles (id defined mainly in veh cstr)
 have special appearance according to
 
 // types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
-// id's defined mainly in vehicle.js and vehicleDepot.js
+// id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 

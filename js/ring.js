@@ -212,9 +212,9 @@ roadImg2 = new Image();
 roadImg2=roadImgs2[nLanes_main-1];
 
 
-//!!vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+//!!ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 
-var depot=new vehicleDepot(obstacleImgs.length,3,2,
+var depot=new ObstacleTLDepot(obstacleImgs.length,3,2,
 			   center_xPhys+1.5*roadRadius,-roadRadius,
 			   30,30,true);
 

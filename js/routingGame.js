@@ -475,11 +475,11 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 
 //####################################################################
-// vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+// ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(1,0,0,0,0,0,0,false);
+var depot=new ObstacleTLDepot(1,0,0,0,0,0,0,false);
 
 
 //############################################

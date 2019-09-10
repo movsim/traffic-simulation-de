@@ -280,12 +280,14 @@ traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 // init obstacle images
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
     : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -312,16 +314,12 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 //####################################################################
-//!!! vehicleDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
+//!!! ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
 //####################################################################
 
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new vehicleDepot(obstacleImgs.length, 1,2,
-			   0.5*smallerDimPix/scale,
-			   -0.60*smallerDimPix/scale,
-			   30,30,true);
+var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
 
-var speedfunnel=new SpeedFunnel(canvas,2,3,0.30,0.60);
+var speedfunnel=new SpeedFunnel(canvas,1,3,0.30,0.60);
 
 
 //############################################
@@ -356,8 +354,11 @@ function updateSim(){
 
     // (2a) update speed limits of speedfunnel
 
-  mainroad.updateSpeedFunnel(speedfunnel);
+  mainroad.updateSpeedFunnel(speedfunnel); 
   //mainroad.writeSpeedlimits();
+
+// (2b) 
+  //!!! mainroad.update(depot) etc
 
     // (3) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
@@ -394,23 +395,19 @@ function updateSim(){
 
   // (6) initiate zooming back and activating/deactivating effects 
   // of depotVehicle and SpeedFunnel objects
-
-
-  // => see onramp.js for the workings if depotVehicles involved
-
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&depotVehZoomBack){
-    var res=depot.zoomBackVehicle();
-    depotVehZoomBack=res;
-    userCanvasManip=true;
-  }
-
-
-  // do zooming back action of speedfunnel objects
+  // do zooming back action 
   // independent of user input if mouse not pressed
   // sets userCanvasManip=true if zoombacks active, therefore before 
   // deciding whether background needs to be redrawn 
   // (the actual drawing of the speedfunnel and depot objects is, of course,
   // after the possible background drawing, see (5)
+
+
+  // => see onramp.js for the workings if depotVehicles involved
+
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjDragged)){
+    depot.zoomBack();
+  }
 
   if(funnelObjDragged==false){
     speedfunnel.zoomBack();
@@ -455,7 +452,8 @@ function drawSim() {
 
 	updatePhysicalDimensions();
       speedfunnel.calcDepotPositions(canvas);
- 
+      depot.calcDepotPositions(canvas);
+
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
 		        canvas.width," X ",canvas.height);
@@ -507,7 +505,7 @@ function drawSim() {
 
 
   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-    depot.draw(obstacleImgs,scale,canvas);
+    depot.draw(canvas,mainroad,scale);
   }
   speedfunnel.draw(canvas,mainroad,scale);
 

@@ -1,5 +1,5 @@
 // types: "car", "truck", "obstacle" (including red traffic lights)
-// id's defined mainly in vehicle.js and vehicleDepot.js
+// id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
 // id=10,11, ..49       disturbed vehicles 
