@@ -2,10 +2,10 @@
 
 // !! debugging: making simulations reproducible (see docu at onramp.js)
 
-Math.seedrandom(42); 
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          //s Always 0.9364577392619949 with 42
-Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
+//Math.seedrandom(42); 
+//console.log(Math.random());          // Always 0.0016341939679719736 with 42
+//console.log(Math.random());          //s Always 0.9364577392619949 with 42
+Math.seedrandom(44); // !! re-start reproducibly (undo console logs)
 
 
 
@@ -3341,7 +3341,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.veh.push(vehNew); // add vehicle after pos nveh-1
       this.inVehBuffer -=1;
       //if((lane!=this.nLanes-1)&&(vehType==="truck")){
-      if(false){
+      if(true){
 	console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);

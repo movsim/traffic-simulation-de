@@ -222,52 +222,52 @@ ACC acceleration function
 
 ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
-    if(s<0.001){return -this.bmax;}// particularly for s<0
+  if(s<0.001){return -this.bmax;}// particularly for s<0
 
     // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
 
-    var noiseAcc=(s<this.s0) ? 0 : 0.03;    // ? 0 : 0.3; 
-    var accRnd= noiseAcc*(Math.random()-0.5);
+  var noiseAcc=(s<this.s0) ? 0 : 0.3;    // ? 0 : 0.3; 
+  var accRnd= noiseAcc*(Math.random()-0.5);
 
         // determine valid local v0
 
-    var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
-    v0eff*=this.alpha_v0;
+  var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
+  v0eff*=this.alpha_v0;
 
         // actual acceleration model
 
-    var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
-	: this.a*(1-v/v0eff);
-    var sstar=this.s0
-	+Math.max(0, v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b));
-    var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
+  var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
+    : this.a*(1-v/v0eff);
+  var sstar=this.s0
+    +Math.max(0, v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b));
+  var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);
+
   //var accIDM=accFree+accInt; //!!! normal IDM
   var accIDM=Math.min(accFree, this.a+accInt); //!!! IDM+
 
-    var accCAH=(vl*(v-vl) < -2*s*al)
-	? v*v*al/(vl*vl -2*s*al) 
-	: al - Math.pow(v-vl,2)/(2*Math.max(s,0.01)) * ((v>vl) ? 1 : 0);
-    accCAH=Math.min(accCAH,this.a);
+  var accCAH=(vl*(v-vl) < -2*s*al)
+    ? v*v*al/(vl*vl -2*s*al)
+    : al - Math.pow(v-vl,2)/(2*Math.max(s,0.01)) * ((v>vl) ? 1 : 0);
+  accCAH=Math.min(accCAH,this.a);
 
-    var accMix=(accIDM>accCAH)
+  var accMix=(accIDM>accCAH)
 	    ? accIDM
 	    : accCAH+this.b*myTanh((accIDM-accCAH)/this.b);
-    var arg=(accIDM-accCAH)/this.b;
+  var arg=(accIDM-accCAH)/this.b;
 
-    var accACC=this.cool*accMix +(1-this.cool)*accIDM;
+  var accACC=this.cool*accMix +(1-this.cool)*accIDM;
 
-    var accReturn=(v0eff<0.00001) ? 0 : Math.max(-this.bmax, accACC + accRnd);
+  var accReturn=(v0eff<0.00001) ? 0 : Math.max(-this.bmax, accACC + accRnd);
 
         // log and return
 
 	//if(this.alpha_v0<0.6){ // alpha not yet used
 
-    if(false){
+  if(false){
     //if(s<2){
-          console.log("ACC.calcAcc:"
-		     // +" speedlimit="+this.speedlimit // no u,v!
-		      +" s="+parseFloat(s).toFixed(3)
+    console.log("ACC.calcAcc:"
+		+" s="+parseFloat(s).toFixed(3)
 		      +" v="+parseFloat(v).toFixed(3)
 		      +" vl="+parseFloat(vl).toFixed(3)
 		      +" al="+parseFloat(al).toFixed(3)
@@ -277,8 +277,8 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 		      +" accACC="+parseFloat(accACC).toFixed(3)
 		      +" accReturn="+parseFloat(accReturn).toFixed(3)
 		     );
-    }
-    return accReturn;
+  }
+  return accReturn;
 
 }//ACC.prototype.calcAcc
 
