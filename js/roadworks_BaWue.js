@@ -221,9 +221,9 @@ mainroad.updateEnvironment();
 
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,10);
+mainDetectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,10);
+mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,10);
 
 
 //#########################################################
@@ -487,7 +487,7 @@ function drawSim() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || userCanvasManip || (!drawRoad)){ 
+	if(hasChanged||(itime<=20) || userCanvasManip || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }

@@ -73,14 +73,28 @@ stationaryDetector.prototype.update=function(time,dt){
     }
 }
 
+
+stationaryDetector.prototype.reset=function(){
+  this.iAggr=0;
+  this.historyFlow=[];
+  this.historySpeed=[];
+  this.historyFlow[0]=0;
+  this.historySpeed[0]=0;
+  this.vehCount=0; // counting inside each aggregation interval (all lanes)
+  this.speedSum=0; // summing inside each aggregation interval
+}
+
+
 stationaryDetector.prototype.display=function(textsize){
     //console.log("in stationaryDetector.display(textsize)");
  
-    ctx.font=textsize+'px Arial';
+  ctx.font=textsize+'px Arial';
 
-    var flowStr="Flow: "+Math.round(3600*this.historyFlow[this.iAggr])
-	+" veh/h";
-    var speedStr="Speed: "+Math.round(3.6*this.historySpeed[this.iAggr])
+  var flowStr="Flow: "+Math.round(3600*this.historyFlow[this.iAggr])
+    +" veh/h";
+  var speedStr="Speed: "+((this.historyFlow[this.iAggr]>0)
+			  ? Math.round(3.6*this.historySpeed[this.iAggr])
+			  : "--")
 	+" km/h";
  
 

@@ -41,7 +41,7 @@ function myStartStopFunction(){
 }
 
 //################################################################
-// Restart the same simulation (triggered by "onclick" callback in html file)
+// Restart/reset the same simulation (triggered by "onclick" callback in html file)
 // all settings and GUI-moved objects unchanged
 //#################################################################
 
@@ -54,10 +54,12 @@ function myRestartFunction(){
   // NOTICE: works with objects by reference, although locally created ("var")
 
   var newVehicles = mainroad.veh.filter(selectNotRegularVeh);
-  //console.log("newVehicles=",newVehicles);
-  //console.log("mainroad.veh=",mainroad.veh);
   mainroad.veh=newVehicles;
-  //console.log("mainroad.veh=",mainroad.veh);
+
+  for(var iDet=0; iDet<nDet; iDet++){
+    mainDetectors[iDet].reset();
+  }
+
 
   if(typeof ramp!=="undefined"){
     console.log("do the same for onramp");

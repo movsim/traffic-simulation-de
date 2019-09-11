@@ -12,7 +12,6 @@
 *.out
 *.toc
 *.dvi
-*.bash
 *.save
 
 ## Figure files (no longer)
@@ -28,6 +27,7 @@ uphill_ger.html
 ring_ger.html
 roundabout_ger.html
 
+imgfileList
 
 *_ger.js
 *~
