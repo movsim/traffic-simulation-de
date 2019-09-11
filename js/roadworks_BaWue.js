@@ -19,7 +19,7 @@ IDM_s0=2;
 speedL=1000/3.6; 
 speedL_truck=80/3.6;
 
-MOBIL_bBiasRigh_car=0.1;
+MOBIL_bBiasRigh_car=0.5;
 MOBIL_bBiasRight_truck=8;
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
@@ -38,11 +38,11 @@ IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-qIn=1900./3600; // inflow 1550./3600; 
+qIn=1850./3600; // inflow 1550./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 
-truckFrac=0.30;
+truckFrac=0.25;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
 

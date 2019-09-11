@@ -2462,6 +2462,16 @@ for(var i=0; i<this.veh.length; i++)
 
 	 changeSuccessful=(this.veh[i].isRegularVeh())
 	      &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
+
+    //!!! MT 2019-09: prevent trucks to change to the left by force
+
+	if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
+	  //console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
+	  changeSuccessful=false;
+	  //a=giesskanne;
+	}
+
+
 	 if(changeSuccessful){
 	 
              // do lane change in the direction toRight (left if toRight=0)
@@ -3341,7 +3351,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.veh.push(vehNew); // add vehicle after pos nveh-1
       this.inVehBuffer -=1;
       //if((lane!=this.nLanes-1)&&(vehType==="truck")){
-      if(true){
+      if(false){
 	console.log("road.updateBCup: ID=",this.roadID,
 			  " new vehicle at pos u=0, lane=",lane,
 			  " type=",vehType," s=",space," speed=",speedNew);
