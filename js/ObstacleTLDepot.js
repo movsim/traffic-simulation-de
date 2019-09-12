@@ -61,7 +61,9 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
   // calculate pixel size variables (updated in this.calcDepotPositions)
 
   this.gapRel=0.01; // relative spacing (sizeCanvas)
-  this.sizeRel=0.10; // relative size of speed-limit sign
+  this.sizeRel=0.10; // relative size of passive graphical objects
+  this.lenPhys=10; // [m] determines size of active graphical objects
+  this.wPhys=7; // [m] 1..1.5 times road.lanewidth
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
   this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
   this.hPix=this.wPix;
@@ -94,12 +96,15 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
   for(var i=0; i<this.n; i++){
     var jObst=i-this.nTL;
 
-    // w/o black obstacle imgInd=2
-    var imgInd=(i<this.nTL) ? 0 : 3 + ((i-this.nTL)%obstImgNames.length);
-    // with black obstacle imgInd=2
-    // var imgInd=(i<this.nTL) ? 0 : 2 + ((i-this.nTL)%obstImgNames.length);
+    // w/o black obstacle imgInd=0,1,3,4,..., ID=100,101,51,52,...
 
-    var ID=(i<this.nTL) ? idminTL+i : idmin+i-this.nTL;
+    var imgInd=(i<this.nTL) ? 0 : 3 + ((i-this.nTL)%obstImgNames.length);
+    var ID=(i<this.nTL) ? idminTL+i : idmin+i+1-this.nTL;
+
+    // with black obstacle imgInd=0,1,2,3,... ID=100,101,50,51,...
+    // var imgInd=(i<this.nTL) ? 0 : 2 + ((i-this.nTL)%obstImgNames.length);
+    // var ID=(i<this.nTL) ? idminTL+i : idmin+i-this.nTL;
+
 
     //#################################################################
     // central object this.obstTL[i]
@@ -120,6 +125,8 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 		    u: -1, // physical long position [m] (only init,
 		           // >=0 if isActive, <0 if !isActive)
 		    lane: -1, // isActive: 0 to road.nLanes, !isActive: -1
+		    len: this.lenPhys,  //[m], for drawing of active obj.
+		    width: this.wPhys, //[m], about 1-1.5*road.lanewidth 
 		    xPix: 42, // pixel position of center (only init)
 		    yPix: 42, // defined in calcDepotPositions
 		    xPixDepot: 42, // xPix=xPixDepot if !isActive and 

@@ -3020,47 +3020,55 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 
   console.log("in road.dropDepotVehicle: u=",u," v=",v," this.nLanes=",this.nLanes);
 
-/*
-    var leadGap=1; // drop just leadGap behind rear bumper of leader
-    var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
-    var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
-    var uDrop=u; // OK if no leader <=> findResult[0]=false
-    if(findResult[0]){
-	var iLead=findResult[1];
-	uDrop=this.veh[iLead].u+this.veh[iLead].length+leadGap;
-    }
 
-    // construct normal road vehicle/obstacle from depot vehicle if id<100
+  var leadGap=1; // drop just leadGap behind rear bumper of leader
+  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
+  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
+  var uDrop=u; // just drop at u corresp. to mouse position if no leader
+  if(findResult[0]){// there is a leader
+    var iLead=findResult[1];
+    uDrop=this.veh[iLead].u+this.veh[iLead].length+leadGap;
+  }
 
-    if(depotVehicle.id<100){
-	var roadVehicle=new vehicle(depotVehicle.lVehRoad,
-				    depotVehicle.wVehRoad,
-				    u, lane, 0, depotVehicle.type);
-        //(dec17) need for LC as lagVeh!! up to now id<100 only obstacles
-	roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+  // construct normal road vehicle/obstacle from depot object
+  // if id=50...99
+
+  if(depotVehicle.id<100){
+    var roadVehicle=new vehicle(depotVehicle.len,
+				depotVehicle.width,
+				u, lane, 0, 
+				"obstacle"); //=depotVehicle.type
+
+    //(dec17) need longModel for LC as lagVeh!! 
+    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 
       //!! id ctrls veh image: 50=black obstacle,
       // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
       // for vehicles in depot!
       
-      roadVehicle.id=Math.max(51,depotVehicle.id);
+    roadVehicle.id=depotVehicle.id;
 
-        // insert vehicle (array position does not matter since sorted anyway)
-	this.veh.push(roadVehicle);
-	this.sortVehicles();
-	this.updateEnvironment(); // possibly crucial !!
-	console.log("road.dropDepotVehicle: dropped vehicle at uDrop=",u,
-		    " lane=",lane," id=",roadVehicle.id,
-		    " imgNumber=",roadVehicle.imgNumber);
-    }
+    // insert vehicle (array position does not matter since sorted anyway)
 
-    else{ // traffic light has its sorting pushing and splicing ops intnlly
+    this.veh.push(roadVehicle);
+    this.sortVehicles();
+    this.updateEnvironment(); // possibly crucial !!
+    console.log("road.dropDepotVehicle: dropped vehicle at uDrop=",u,
+		" lane=",lane," id=",roadVehicle.id,
+		" imgNumber=",roadVehicle.imgNumber);
+  }
+
+  // position a traffic light if depot object id=100 ... 199
+  // NOTICE: traffic light has its sorting/pushing/splicing methods
+
+/*
+  else{
 	this.addTrafficLight(depotVehicle.id,u,"red",
 			     imgRed,imgGreen);
 
     }
-
 */
+
 
 }// dropDepotVehicle
 
