@@ -317,9 +317,9 @@ roadImg2=roadImgs2[nLanes_main-1];
 // external draggable objects
 //####################################################################
 
-//var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
 
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
+//var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
 
 // initialize active speed limit for good performance of the speed funnel
 speedfunnel.speedl[1].isActive=true;

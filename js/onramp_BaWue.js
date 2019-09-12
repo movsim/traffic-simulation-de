@@ -381,10 +381,10 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 // external draggable objects
 //####################################################################
+//console.log("obstacleImgNames=",obstacleImgNames);
+var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
+var depot=  new ObstacleTLDepot(canvas,1,2,0.25,0.70,1,obstacleImgNames);
 
-var depot=  new ObstacleTLDepot(canvas,2,2,0.48,0.45,2,obstacleImgNames);
-
-var speedfunnel=new SpeedFunnel(canvas,1,3,0.30,0.50);
 
 
 
@@ -404,38 +404,45 @@ function updateSim(){
 
     // (1) update times
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
 
     // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
-    updateRampGeometry();
+  updateRampGeometry();
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
-    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+  ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    // (2a) update speed limits of speedfunnel
+  // (2a) timestep-triggered actions for speedfunnel
 
-  mainroad.updateSpeedFunnel(speedfunnel); 
-  //mainroad.writeSpeedlimits();
+  // (timestep triggered since vehicles move in new speedlimit zones)
+  // => (6) for event-triggered actions for speedfunnel 
+  // and obstacleTL objects
 
-// (2b) 
-  //!!! mainroad.update(depot) etc
-  //!!! ramp.update(depot) etc
+  mainroad.updateSpeedFunnel(speedfunnel);
 
 
-    // (3) externally impose mandatory LC behaviour
-    // all ramp vehicles must change lanes to the left (last arg=false)
+  // (2b) obstacleTL objects 
 
-    ramp.setLCMandatory(0, ramp.roadLen, false);
+  // obstacleTL have no timestep-triggered action here  
+  // -> canvas_gui.js -> (6) mainroad.dropDepotVehicle, ramp.dropDepotVehicle 
+
+
+
+
+  // (3) externally impose mandatory LC behaviour
+  // all ramp vehicles must change lanes to the left (last arg=false)
+
+  ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
     // (4) do central simulation update of vehicles
@@ -493,6 +500,8 @@ function updateSim(){
   if(funnelObjDragged==false){
     speedfunnel.zoomBack();
   }
+
+
 
 // (7) write vehicle positions of mainroad and onramp 
 // to console for external use
@@ -561,7 +570,7 @@ function drawSim() {
 
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
-	if(hasChanged||(itime<=2) || (itime===20) || userCanvasManip 
+	if(hasChanged||(itime<=15) || (itime===20) || userCanvasManip 
 	   || movingObserver || (!drawRoad)){
         ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }

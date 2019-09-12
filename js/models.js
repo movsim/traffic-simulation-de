@@ -382,7 +382,10 @@ MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
     var bSafeActual=vrel*this.bSafe+(1-vrel)*this.bSafeMax;
     //if(accLagNew<-bSafeActual){return false;} //!! <jun19
     //if((accLagNew<-bSafeActual)&&(signRight*this.bBiasRight<41)){return false;}//!!! override safety criterion to really enforce overtaking ban OPTIMIZE
-    if(signRight*this.bBiasRight>40){console.log("forced LC!"); return true;}
+    if(signRight*this.bBiasRight>40){
+      //console.log("forced LC!"); 
+      return true;
+    }
     if(accLagNew<Math.min(-bSafeActual,-Math.abs(this.bBiasRight))){return false;}//!!!
     
 

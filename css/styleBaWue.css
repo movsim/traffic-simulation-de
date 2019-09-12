@@ -256,8 +256,8 @@ at the former trafficSimulationDe info button */
 
 #sliders{ 
   position: absolute;
-  top: 45vmin;
-  height: 30vmin;
+  top: 41vmin;
+  height: 31vmin;
   left: 80vmin;
   width: 55vmin;
   background-color: rgba(255,255,255,0.5);

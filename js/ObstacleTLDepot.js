@@ -203,8 +203,7 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
   var wPixActive=this.active_scaleFact*wPixPassive;
   var hPixActive=this.active_scaleFact*hPixPassive;
 
-  //for (var i=0; i<this.obstTL.length; i++){
-  for (var i=1; i<3; i++){
+  for (var i=0; i<this.obstTL.length; i++){
  
 
     // draw active traffic lights

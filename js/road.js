@@ -1729,6 +1729,93 @@ road.prototype.initializeMicro=function(types,lengths,widths,
     }
 }  //initializeMicro
 
+//######################################################################
+// update truck percentage by changing vehicle type of existing vehs
+  // do not correct if minor mismatch 
+  // since this can happen due to inflow/outflow
+  // open roads: mismatchTolerated essentially any=1.0
+  // ring: mismatchTolerated nonzero but small
+//######################################################################
+
+// global var longModelCar, -Truck taken from control_gui
+
+road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
+  if(this.veh.length>0){
+    //console.log("road.updateTruckFrac: ID=",this.roadID," #vehs=",this.veh.length);
+    this.updateEnvironment(); //needs veh[i].iLag etc, so actual environment needed
+    var nActual=0;
+    var nTruck=0;
+    for (var i=0; i<this.veh.length; i++){
+	if(this.veh[i].isRegularVeh()) nActual++;
+	if(this.veh[i].type === "truck"){nTruck++;}
+    }
+    var nTruckDesired=Math.floor(nActual*truckFrac);
+    var truckFracReal=nTruck/nActual;  // int division gen. results in double: OK!
+
+    // action if truck frac not as wanted; 
+    // correct by one veh transformation per timestep
+
+    if(Math.abs(truckFracReal-truckFrac)>mismatchTolerated){
+	var truckFracTooLow=(nTruckDesired>nTruck);
+	var newType=(truckFracTooLow) ? "truck" : "car";
+	var newLength=(truckFracTooLow) ? truck_length : car_length;
+	var newWidth=(truckFracTooLow) ? truck_width : car_width;
+	var newLongModel=(truckFracTooLow) ? longModelTruck : longModelCar;
+	var diffSpace=((truckFracTooLow) ? -1 : 1)* (truck_length-car_length);
+	var success=0; // false at beginning
+
+        // find the candidate vehicle (truck or car) with the largest lag gap
+
+	var candidateType=(truckFracTooLow) ? "car" : "truck";
+	var k=0;  // considered veh index
+
+	if(truckFracTooLow){// change cars->trucks on the right lane if possible
+	  var maxSpace=0;
+	  for(var lane=this.nLanes-1; lane>=0; lane--){if(!success){
+	    for(var i=0; i<nActual; i++){
+	      if( (this.veh[i].lane===lane)&&(this.veh[i].type === candidateType)){
+	        var iLag= this.veh[i].iLag;
+	        var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
+	        if(iLag<i){s+=this.roadLen;}//periodic BC (OK for open BC as well)
+		if(s>maxSpace){k=i; maxSpace=s;}
+		success=(maxSpace>diffSpace);
+	      }
+	    }
+	  }}
+	}
+
+	else{ // change trucks->cars: transform truck with smallest space 
+	  var minSpace=10000;
+	  for(var i=0; i<nActual; i++){
+	    if(this.veh[i].type === candidateType){
+	      success=1; // always true for trucks->cars if there is a truck
+	      var iLag= this.veh[i].iLag;
+	      var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
+	      if( (iLag<i)&&(s<0) ){s+=this.roadLen;}//periodic BC (OK for open BC as well)
+	      if(s<minSpace){k=i; minSpace=s;}
+	    }
+	  }
+	}
+
+        // actually do the transformation if no collision entails by it
+
+	if(success){
+	  this.veh[k].type=newType;
+	  this.veh[k].length=newLength;
+	  this.veh[k].width=newWidth;
+
+	  if(deepCopying){
+	    this.veh[k].longModel.copy(newLongModel);
+	  }
+
+	  else{
+	    this.veh[k].longModel=newLongModel;
+	  }
+
+	}
+    }
+  }
+}//updateTruckFrac
 
 
 //#####################################################
@@ -1785,65 +1872,6 @@ road.prototype.getNextOffIndex=function(u){
 }
 
 
-
-/** #####################################################
- MT 2019-09: implement speed funnel:
-
- construct models according to the active speed limits 
- of the speedfunnel (free sign=>value=200./3.6=>effectively no influence)
- order the speedlimit positions, 
- and distribute them with this.setCFModelsInRange
-
-//#####################################################*/
-
-road.prototype.updateSpeedFunnel=function(speedfunnel){
-
-
-  // sort by decreasing u values
-
-  speedfunnel.speedl.sort(function(a,b){
-	    return a.u < b.u;
-  })
-
-  // implement
-
-  var success=false;
-  var iveh=0;
-  for(var i=0; i<speedfunnel.speedl.length; i++){
-    var speedlimit=speedfunnel.speedl[i];
-    if(speedlimit.isActive){
-      success=true;
- 
-     if(false){
-	console.log("road.updateSpeedFunnel: speed limit ",
-		    formd(3.6*speedlimit.value)," starting at ",
-		    formd(speedlimit.u));
-      }
-
-      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u)){
-	var targetVeh=this.veh[iveh];
-	if(targetVeh.isRegularVeh()){
-	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
-	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
-	}
-	if(false){
-	  console.log("iveh=",iveh," u=",targetVeh.u,
-		    " speedlimit.u=",speedlimit.u,
-		    " isRegVeh=",targetVeh.isRegularVeh(),
-		      " speedlimit=",targetVeh.longModel.speedlimit);
-	}
-
-	iveh++;
-      }
-      if(iveh==this.veh.length){return;} // otherwise risk of range excess
-
-    }
-  }
-
-  if(!success){
-    console.log(" no active limits");
-  }
-}
 
 
 //#####################################################
@@ -2906,6 +2934,68 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
 
 
+/** #####################################################
+ MT 2019-09: implement speed funnel:
+
+ construct models according to the active speed limits 
+ of the speedfunnel (free sign=>value=200./3.6=>effectively no influence)
+ order the speedlimit positions, 
+ and distribute them with this.setCFModelsInRange
+
+//#####################################################*/
+
+road.prototype.updateSpeedFunnel=function(speedfunnel){
+
+
+  // sort by decreasing u values
+
+  speedfunnel.speedl.sort(function(a,b){
+	    return a.u < b.u;
+  })
+
+  // implement
+
+  var success=false;
+  var iveh=0;
+  for(var i=0; i<speedfunnel.speedl.length; i++){
+    var speedlimit=speedfunnel.speedl[i];
+    if(speedlimit.isActive){
+      success=true;
+ 
+     if(false){
+	console.log("road.updateSpeedFunnel: speed limit ",
+		    formd(3.6*speedlimit.value)," starting at ",
+		    formd(speedlimit.u));
+      }
+
+      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u)){
+	var targetVeh=this.veh[iveh];
+	if(targetVeh.isRegularVeh()){
+	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
+	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
+	}
+	if(false){
+	  console.log("iveh=",iveh," u=",targetVeh.u,
+		    " speedlimit.u=",speedlimit.u,
+		    " isRegVeh=",targetVeh.isRegularVeh(),
+		      " speedlimit=",targetVeh.longModel.speedlimit);
+	}
+
+	iveh++;
+      }
+      if(iveh==this.veh.length){return;} // otherwise risk of range excess
+
+    }
+  }
+
+  if(!success){
+    //console.log(" no active limits");
+  }
+}
+
+
+
+
 //#########################################################
 // drop an external depot vehicle to the road
 //#########################################################
@@ -2928,7 +3018,9 @@ Typically used for dropping obstacles as onmouseup callback => canvas_gui
 road.prototype.dropDepotVehicle=function(depotVehicle, u, v, 
 					 imgRed,imgGreen){
 
-    console.log("in road.dropDepotVehicle: u=",u," v=",v," this.nLanes=",this.nLanes);
+  console.log("in road.dropDepotVehicle: u=",u," v=",v," this.nLanes=",this.nLanes);
+
+/*
     var leadGap=1; // drop just leadGap behind rear bumper of leader
     var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
     var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
@@ -2967,6 +3059,9 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
 			     imgRed,imgGreen);
 
     }
+
+*/
+
 }// dropDepotVehicle
 
 
@@ -2988,7 +3083,9 @@ the reverse process of dropping above
 
 road.prototype.pickSpecialVehicle=function(xUser, yUser){
 
-    var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
+  console.log("in road.pickSpecialVehicle: xUser=",xUser," yUser=",yUser);
+
+  var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
 
     function isDepotObstacle(veh){return veh.isDepotObstacle();}
 
@@ -3009,93 +3106,6 @@ road.prototype.pickSpecialVehicle=function(xUser, yUser){
 
 
 
-//######################################################################
-// update truck percentage by changing vehicle type of existing vehs
-  // do not correct if minor mismatch 
-  // since this can happen due to inflow/outflow
-  // open roads: mismatchTolerated essentially any=1.0
-  // ring: mismatchTolerated nonzero but small
-//######################################################################
-
-// global var longModelCar, -Truck taken from control_gui
-
-road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
-  if(this.veh.length>0){
-    //console.log("road.updateTruckFrac: ID=",this.roadID," #vehs=",this.veh.length);
-    this.updateEnvironment(); //needs veh[i].iLag etc, so actual environment needed
-    var nActual=0;
-    var nTruck=0;
-    for (var i=0; i<this.veh.length; i++){
-	if(this.veh[i].isRegularVeh()) nActual++;
-	if(this.veh[i].type === "truck"){nTruck++;}
-    }
-    var nTruckDesired=Math.floor(nActual*truckFrac);
-    var truckFracReal=nTruck/nActual;  // int division gen. results in double: OK!
-
-    // action if truck frac not as wanted; 
-    // correct by one veh transformation per timestep
-
-    if(Math.abs(truckFracReal-truckFrac)>mismatchTolerated){
-	var truckFracTooLow=(nTruckDesired>nTruck);
-	var newType=(truckFracTooLow) ? "truck" : "car";
-	var newLength=(truckFracTooLow) ? truck_length : car_length;
-	var newWidth=(truckFracTooLow) ? truck_width : car_width;
-	var newLongModel=(truckFracTooLow) ? longModelTruck : longModelCar;
-	var diffSpace=((truckFracTooLow) ? -1 : 1)* (truck_length-car_length);
-	var success=0; // false at beginning
-
-        // find the candidate vehicle (truck or car) with the largest lag gap
-
-	var candidateType=(truckFracTooLow) ? "car" : "truck";
-	var k=0;  // considered veh index
-
-	if(truckFracTooLow){// change cars->trucks on the right lane if possible
-	  var maxSpace=0;
-	  for(var lane=this.nLanes-1; lane>=0; lane--){if(!success){
-	    for(var i=0; i<nActual; i++){
-	      if( (this.veh[i].lane===lane)&&(this.veh[i].type === candidateType)){
-	        var iLag= this.veh[i].iLag;
-	        var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
-	        if(iLag<i){s+=this.roadLen;}//periodic BC (OK for open BC as well)
-		if(s>maxSpace){k=i; maxSpace=s;}
-		success=(maxSpace>diffSpace);
-	      }
-	    }
-	  }}
-	}
-
-	else{ // change trucks->cars: transform truck with smallest space 
-	  var minSpace=10000;
-	  for(var i=0; i<nActual; i++){
-	    if(this.veh[i].type === candidateType){
-	      success=1; // always true for trucks->cars if there is a truck
-	      var iLag= this.veh[i].iLag;
-	      var s=this.veh[i].u-this.veh[iLag].u - this.veh[i].length;
-	      if( (iLag<i)&&(s<0) ){s+=this.roadLen;}//periodic BC (OK for open BC as well)
-	      if(s<minSpace){k=i; minSpace=s;}
-	    }
-	  }
-	}
-
-        // actually do the transformation if no collision entails by it
-
-	if(success){
-	  this.veh[k].type=newType;
-	  this.veh[k].length=newLength;
-	  this.veh[k].width=newWidth;
-
-	  if(deepCopying){
-	    this.veh[k].longModel.copy(newLongModel);
-	  }
-
-	  else{
-	    this.veh[k].longModel=newLongModel;
-	  }
-
-	}
-    }
-  }
-}
 
 
 //######################################################################

@@ -489,7 +489,7 @@ function handleMouseUp(evt) {
 
 function finishDistortOrDropVehicle(){
   if(true){
-    console.log("onmouseup/touchEnd: in finishDistortOrDropVehicle:",
+    console.log("onmouseup/touchEnd:\nfinishDistortOrDropVehicle start:",
     		" roadDragged=",roadDragged,
     		" depotObjDragged=",depotObjDragged,
     		" funnelObjDragged=",funnelObjDragged,
@@ -520,6 +520,9 @@ function finishDistortOrDropVehicle(){
     var dropInfo=mainroad.findNearestDistanceTo(xUser, yUser);
     var distCrit=0.6*(mainroad.nLanes * mainroad.laneWidth);
 
+    //!!! also test drop on possible ramp or other segments!
+
+
     // unsuccessful drop: initiate zoom back to depots
     // depotVehZoomBack is true if further zooms are needed
     // (called also in main.update)
@@ -529,9 +532,9 @@ function finishDistortOrDropVehicle(){
 	depotObject.isActive=false;  // all this initiates zoom back by 
 	depotObject.inDepot=false;   // ObstacleTLDepot.zoomBack() called in 
 	depotObject.isDragged=false; // drawSim method in eachtimestep
-
-        // !!! relevant if dragged a red TL or obstacle  from the road
-	//mainroad.updateObstacleTL(depot); 
+	console.log("finishDistortOrDropVehicle: drop on mainroad failed");
+        // !!! check: probably no road action needed for unsuccessful drop 
+        // since action already at picking
 
       }
       if(funnelObjDragged){
@@ -540,7 +543,7 @@ function finishDistortOrDropVehicle(){
 	funnelObject.isDragged=false; // drawSim method in eachtimestep
 
         // relevant if dragged an active sign from the road
-	mainroad.updateSpeedFunnel(speedfunnel); 
+	//mainroad.updateSpeedFunnel(speedfunnel); 
 
       }
     }
@@ -549,10 +552,16 @@ function finishDistortOrDropVehicle(){
     // or funnelObject as an active road sign
 
     else{
+      //!!! specify on which road the object is dropped => var targetroad
       if(depotObjDragged){
 	depotVehZoomBack=false;
 	depotObject.inDepot=false;
-	    //console.log("in dropping of depot vehicle");
+	if(true){
+	  console.log("finishDistortOrDropVehicle: drop on mainroad success",
+		      "\ndepotObject=",depotObject,
+		      " dropInfo[1]=u=",dropInfo[1],
+		      " dropInfo[2]=v=",dropInfo[2]);
+	}
 	mainroad.dropDepotVehicle(depotObject, dropInfo[1], 
 				  dropInfo[2],
 				  traffLightRedImg,traffLightGreenImg);
