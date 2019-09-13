@@ -277,29 +277,34 @@ function pickRoadOrObject(xUser,yUser){
   if(true){
     console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrObject");
     console.log(" xUser=",xUser," yUser=",yUser);
-    console.log(" depotObjDragged=",depotObjDragged,
-		" funnelObjDragged=",funnelObjDragged,
-		" roadDragged=",roadDragged);
   }
 
-  // (1a) pick/drag a traffic light
+
+  // !!! (1a) pick/drag a traffic light
+  //!!! make a function out of it / generalize transformToDepotObject
+  // to be more flexible with >1 road links
   // (need to do it separately since green TL have no road-vehicle objects)
-  // !!!TODO: do it also on secondary road in network scenarios! =>(4)
+  // notice: road.pickTrafficLight splices road.veh (road.removeTrafficLight)
+  // !!!TODO: do it also on secondary road in network scenarios! => see (4)
   // critical drag distance distCrit defined by road
+
   if(!(typeof depot === 'undefined')){
-    var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,TL]
+    var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,obj,dist]
     if(pickResults[0]){
       console.log(" (1a) picked a traffic light on the road!");
       var TL=pickResults[1];
       var success=false;
-      for(var i=0; (!success)&&(i<depot.veh.length); i++){
-        success=(TL.id===depot.veh[i].id);
-        if(success) depot.veh[i].inDepot=true;
+      for(var i=0; (!success)&&(i<depot.obstTL.length); i++){
+        success=(TL.id===depot.obstTL[i].id);
+        if(success){
+	  depot.obstTL[i].isActive=false;
+	  depot.obstTL[i].isDragged=true;
+	  depot.obstTL[i].inDepot=false;
+	  console.log("pickRoadOrObject: removed TL on road ",
+		      depot.obstTL[i]);
+	}
       }
-      if(success){
-	console.log("  pickRoadOrObject: found nearby TL on road!");
-      }
-      else{
+      if(!success){
 	console.log("  pickRoadOrObject: found no nearby TL on road!");
       }
       depotObjDragged=true;
@@ -309,13 +314,15 @@ function pickRoadOrObject(xUser,yUser){
     }
     //console.log(" pickRoadOrObject: found no TL  on road");
 
-    // pick/drag special road object other than traffic light
-    // road.pickSpecialVehicle returns [success, thePickedRoadVeh, dist (,i)]
+
+
+    // (1b) pick/drag special road object other than traffic light
     // !!!TODO: do it also on secondary road in network scenarios! =>(4)
- 
+    // notice: road.pickSpecialVehicle splices road.veh
 
     //console.log("  (1b) test for a depot obstacle on road");
-    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // splices road.veh!
+
+    pickResults=mainroad.pickSpecialVehicle(xUser,yUser); // [success,obj,dist]
     if(pickResults[0]){
       console.log(" (1b) picked a depot obstacle on the road");
       specialRoadObject=pickResults[1];
@@ -511,7 +518,6 @@ function finishDistortOrDropVehicle(){
   if(depotObjDragged||funnelObjDragged){
 
     //console.log("in canvas_gui.onmouseup: finishDistortOrDropVehicle: ",
-    //" WARNING: only mainroad handled until now!");
 
     userCanvasManip=true;   // if true, new backgr, new road drawn
 
@@ -555,7 +561,10 @@ function finishDistortOrDropVehicle(){
       //!!! specify on which road the object is dropped => var targetroad
       if(depotObjDragged){
 	depotVehZoomBack=false;
+	depotObject.isActive=true;  
 	depotObject.inDepot=false;
+	depotObject.isDragged=false;
+	depotObject.u=dropInfo[1];
 	if(true){
 	  console.log("finishDistortOrDropVehicle: drop on mainroad success",
 		      "\ndepotObject=",depotObject,
@@ -735,15 +744,17 @@ function handleDependencies(){
 // to depot vehicle
 //#####################################################
 
-/* eliminates this vehicle from the road, 
-and reverts "inDepot" property of corresp depot vehicle 
+/* eliminates obstacle from the road, 
+and reverts "inDepot" property of this object 
+(notice: traffic lights treated separately)
 */
+
 function transformToDepotObject(specialRoadObject,road,depot){
-    if(false){
+    if(true){
 	console.log("canvas.transformToDepotObject: ",
 		    "  specialRoadObject=",specialRoadObject);
 	console.log("\ndepot indices:");
-	for (var i=0;i<depot.veh.length; i++){console.log(depot.veh[i].id);}
+	for (var i=0;i<depot.obstTL.length; i++){console.log(depot.obstTL[i].id);}
 	console.log("\nroad vehicles:");
 	road.writeVehiclesSimple();
     }
@@ -753,11 +764,14 @@ function transformToDepotObject(specialRoadObject,road,depot){
    // and integrate it by setting .inDepot=true
 
     var success=false;
-    for(var i=0; (!success)&&(i<depot.veh.length); i++){
-	success=(specialRoadObject.id===depot.veh[i].id);
+    for(var i=0; (!success)&&(i<depot.obstTL.length); i++){
+	success=(specialRoadObject.id===depot.obstTL[i].id);
 	if(success){
-	    console.log("canvas.transformToDepotObject: found fitting depot vehicle!");
-	    depot.veh[i].inDepot=true;
+	  depot.obstTL[i].isActive=false;
+	  depot.obstTL[i].isDragged=true;
+	  depot.obstTL[i].inDepot=false;
+	  console.log("transformToDepotObject: transformed obstacle ",
+		      depot.obstTL[i]);
 	}
     }
     if(!success){

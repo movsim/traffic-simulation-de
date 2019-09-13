@@ -3061,13 +3061,12 @@ road.prototype.dropDepotVehicle=function(depotVehicle, u, v,
   // position a traffic light if depot object id=100 ... 199
   // NOTICE: traffic light has its sorting/pushing/splicing methods
 
-/*
+
   else{
-	this.addTrafficLight(depotVehicle.id,u,"red",
-			     imgRed,imgGreen);
+	this.addTrafficLight(depotVehicle.id,u,"red");
 
     }
-*/
+
 
 
 }// dropDepotVehicle
