@@ -66,7 +66,7 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
   this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
   this.hPix=this.wPix;
-  this.active_scaleFact=0.8; // pixel size factor of active TL
+  this.active_scaleFact=1.0; // pixel size factor of active TL (best=1)
   this.lenPhys=25; // [m] physical length of active obstacles (drawn by road)
   this.wPhys=10; // [m] 1..1.5 times road.lanewidth
 
@@ -124,15 +124,19 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 		    inDepot:  true,
 		    isDragged: false,
 		    road: 'undefined', // defined if isActive=true
-		    u: -1, // physical long position [m] (only init,
-		           // >=0 if isActive, <0 if !isActive)
-		    lane: -1, // isActive: 0 to road.nLanes, !isActive: -1
+		    u: -1,          // physical long position [m] (only init,
+		                    // >=0 if isActive, <0 if !isActive)
+		    lane: -1,       // isActive: 0 to road.nLanes, !isActive: -1
 		    len: this.lenPhys,  //[m], for drawing of active obj.
 		    width: this.wPhys, //[m], about 1-1.5*road.lanewidth 
-		    xPix: 42, // pixel position of center (only init)
-		    yPix: 42, // defined in calcDepotPositions
-		    xPixDepot: 42, // xPix=xPixDepot if !isActive and 
-		    yPixDepot: 42 // graphics zoomed back to depot
+		    xPix: 42,       // pixel position of center (only init)
+		    yPix: 42,       // defined in calcDepotPositions
+		    xPixLight1: 42, // pixel pos of more distant active TL img
+		    yPixLight1: 42, // (if type==trafficLight)
+		    xPixLight2: 42, // pixel pos of nearer active TL img
+		    yPixLight2: 42, // defined in draw(...)
+		    xPixDepot: 42,  // xPix=xPixDepot if !isActive and 
+		    yPixDepot: 42   // graphics zoomed back to depot
 		   };
   } // loop over elements
 
@@ -247,11 +251,14 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
       
       var distCenter=0.5*crossingLineLength+0.6*road.laneWidth;
       var v=(cphi>0) ? -distCenter : distCenter; // [m]
-      var xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
-      var yPix=yCenterPix+scale*v*cphi;  // -*-=+
+      xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
+      yPix=yCenterPix+scale*v*cphi;  // -*-=+
       ctx.setTransform(1,0,0,1,xPix,yPix);
       ctx.drawImage(TL.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
+      TL.xPixLight1=xPix;                // save pixel positions 
+      TL.yPixLight1=yPix-0.8*hPixActive; // of light centers for later picking
+                                     
 
       if(active_drawTwoImgs){ // draw signs on both sides
 	v*=-1;
@@ -260,14 +267,16 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
         ctx.setTransform(1,0,0,1,xPix,yPix);
         ctx.drawImage(TL.image,-0.5*wPixActive,
 		      -hPixActive,wPixActive, hPixActive);
+	TL.xPixLight2=xPix;         
+	TL.yPixLight2=yPix-0.8*hPixActive;
       }
 
 	
       if(false){
 	console.log("ObstacleTLDepot.draw active TL: i=",i,
 		    " TL.u=",TL.u,
-		    " xPix=",xPix,
-		    " yPix=",yPix);
+		    " TL.xPixLight1=",TL.xPixLight1,
+		    " TL.yPixLight1=",TL.yPixLight1);
       }
 
     }// end draw active TL
@@ -369,6 +378,64 @@ ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
   return[success,obstTLreturn];
 }
  
+
+/**
+#############################################################
+(sep19) user-driven change of the state of traffic light by click on canvas
+@return: success flag
+#############################################################
+*/
+
+ObstacleTLDepot.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
+    
+  if(true){
+    console.log("in ObstacleTLDepot.changeTrafficLightByUser:",
+		" xPixUser=",xPixUser," yPixUser=",yPixUser);
+  }
+
+  var refSizePix=Math.min(canvas.height,canvas.width);
+  var distPixCrit=0.03*refSizePix;
+  var success=false;
+  var TL;
+  for(var i=0; (!success)&&(i<this.obstTL.length); i++){
+    if(this.obstTL[i].type==='trafficLight'){
+      TL=this.obstTL[i];
+      var dxPix1=xPixUser-TL.xPixLight1;
+      var dyPix1=yPixUser-TL.yPixLight1;
+      var dxPix2=xPixUser-TL.xPixLight2;
+      var dyPix2=yPixUser-TL.yPixLight2;
+      var distPix1=Math.sqrt(dxPix1*dxPix1+dyPix1*dyPix1);
+      var distPix2=Math.sqrt(dxPix2*dxPix2+dyPix2*dyPix2);
+      if(Math.min(distPix1,distPix2)<=distPixCrit){
+	TL.value=(TL.value==='red') ? 'green' : 'red'; // toggle
+	TL.road.changeTrafficLight(TL.id, TL.value); // transfer to road obj
+	TL.image=(TL.value==='red') ? this.imgRepo[0] : this.imgRepo[1];
+        success=true;
+      }
+      console.log(" i_obstTL=",i," TL=",TL,
+		  " TL.xPixLight1=",TL.xPixLight1,
+		  " distPix1=",distPix1,
+		  " distPix2=",distPix2,
+		  " distPixCrit=",distPixCrit,
+		  " success=",success);
+    }
+  }
+
+
+  if(true){
+    if(success){
+      console.log("road.changeTrafficLightByUser: changed traffic light",
+		  " to ",TL.value,
+		  " at u=",TL.u," on road ID ",TL.road.roadID);
+      TL.road.writeTrafficLights();
+    }
+    else{console.log("road.changeTrafficLightByUser: no success");}
+  }
+  return success;
+}
+
+
+
 
 /*####################################################################
 bring back all dragged obstTL objects back to the depot 

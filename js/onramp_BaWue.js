@@ -467,7 +467,7 @@ function updateSim(){
   // (2b) obstacleTL objects 
 
   // obstacleTL have no timestep-triggered action here  
-  // -> canvas_gui.js -> (6) mainroad.dropDepotVehicle, ramp.dropDepotVehicle 
+  // -> canvas_gui.js -> (6) mainroad.dropDepotObject, ramp.dropDepotObject 
 
 
 
@@ -548,6 +548,9 @@ function updateSim(){
 	//console.log("\nonramp vehicles:");
 	ramp.writeVehiclesSimple();
     }
+  if(true){
+    mainroad.writeTrafficLights();
+  }
 
 }//updateSim
 

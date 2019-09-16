@@ -38,8 +38,8 @@ var roadDragged=false; // true if none of the above and distRoad<crit   " "
 
 //var depotVehZoomBack=false; // =true after unsuccessful drop
 
-var depotObject;    // !!!element depot.obstTL[i]; among others phys. Pos x,y
-var funnelObject;    // !!!element speedfunnel.speedl[i]
+var depotObject;    // element depot.obstTL[i] of global var depot
+var funnelObject;    // element speedl[i] of global var speedfunne
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
 var distDragCrit=0.8;  // drag function if dragged more [m]; otherwise click
 var distDrag=0; // physical distance[m] of the dragging
@@ -590,7 +590,7 @@ function finishDistortOrDropObject(xUser, yUser){
 		      " dropInfoNearest[1]=u=",dropInfoNearest[1],
 		      " dropInfoNearest[2]=v=",dropInfoNearest[2]);
 	}
-	roadNearest.dropDepotVehicle(depotObject, dropInfoNearest[1], 
+	roadNearest.dropDepotObject(depotObject, dropInfoNearest[1], 
 				  dropInfoNearest[2],
 				  traffLightRedImg,traffLightGreenImg);
       }
@@ -641,31 +641,30 @@ function handleClick(event){
 function influenceClickedVehOrTL(xUser,yUser){
   console.log("onclick: in influenceClickedVehOrTL");
 
-    // first change lights if a traffic light is nearby (crit dist def in road)
+  if(distDrag<distDragCrit){ // only do actions if click, no drag
 
-    var success= mainroad.changeTrafficLightByUser(xUser,yUser);
-    var success2=false;
-    if(isNetworkScenario){
-	success2=secondaryRoad.changeTrafficLightByUser(xUser,yUser);}
+  // first change lights if a traffic light is nearby
 
+    var success=depot.changeTrafficLightByUser(xPixUser,yPixUser);
 
     // only slowdown clicked vehicles if 
     // (i) TL switch no success, (ii) only insignificant drag ;  
-    // (iii) nearest selected vehicle is nearer than distCrit 
-    // (dragging actions with converse filter by onmousedown,-move,-up ops
+    // (iii) nearest selected vehicle is nearer than distDragCrit 
+    // distDragCrit controls both (ii) and (iii)
+    // Note: dragging actions with converse filter by onmousedown,-move,-up ops
 
-    if(!(success||success2)){
-        var distCrit=10; 
-        if(distDrag<distDragCrit){ 
-	    slowdownVehNearestTo(xUser,yUser,distCrit);
-	}
+    if((!success)&&(distDrag<distDragCrit)){
+      slowdownVehNearestTo(xUser,yUser,distDragCrit);
     }
 
+  }
 
-    // reset drag distance recorder
 
-    distDrag=0;
-}
+  // reset drag distance recorder
+
+  distDrag=0;
+
+} // influenceClickedVehOrTL
 
 
 
