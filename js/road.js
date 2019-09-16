@@ -696,6 +696,120 @@ road.prototype.addTrafficLight= function(id,pos,state) {
 		" this.trafficLights.length=",this.trafficLights.length);
 }
 
+/**
+#############################################################
+(jun17) user-driven change of the state of traffic light by click on canvas
+#############################################################
+*/
+
+//!!! export it to ObstacleTLDepot.js or arg depotTLobject
+
+road.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
+  console.log("in road.changeTrafficLight: roadID=",this.roadID,
+	      " xPixUser=",xPixUser," yPixUser=",yPixUser);
+  var refSizePix=Math.min(canvas.height,canvas.width);
+  var distCritPix=0.02*refSizePix;
+  var success=false;
+  for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+    var TL=this.trafficLights[i];
+	//console.log("TL=",TL);
+    var dxPixLeft=xPixUser-TL.xPixLightLeft;
+    var dyPixLeft=yPixUser-TL.yPixLightLeft;
+    var dxPixRight=xPixUser-TL.xPixLightRight;
+    var dyPixRight=yPixUser-TL.yPixLightRight;
+    var distPixL=Math.sqrt(dxPixLeft*dxPixLeft+dyPixLeft*dyPixLeft);
+    var distPixR=Math.sqrt(dxPixRight*dxPixRight+dyPixRight*dyPixRight);
+    if(Math.min(distPixL,distPixR)<=distCritPix){
+      this.changeTrafficLight(TL.id);
+      success=true;
+    }
+    console.log(" i=",i," TL=",TL," distPixL=",distPixL," distPixR=",distPixR);
+  }
+
+  if(true){
+      if(success){
+	console.log("road.changeTrafficLightByUser: changed traffic light ",
+		    TL);
+  }
+  else{
+	console.log("road.changeTrafficLightByUser: no success");
+      }
+  }
+}
+
+/**
+#############################################################
+(jun17) programmatically change state of traffic light
+and implement effects
+#############################################################
+
+@param id:     unique id in [100,199]
+@param state:  (optional) "red", or "green". 
+               If not given, the state is toggled
+@return:       if a traffic light of this id is found, 
+               its state is changed accordingly
+*/
+
+road.prototype.changeTrafficLight=function(id,state){
+
+    // change state of trafficLight object
+
+    console.log("in road.changeTrafficLight: id=",id," state=",state);
+    //this.writeVehicles();
+
+    var success=false;
+    var pickedTL;
+    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+	if(id===this.trafficLights[i].id){
+	    success=true;
+	    pickedTL=this.trafficLights[i];
+
+	    if(typeof(state) === "undefined"){
+		console.log("road.changeTrafficLight: id=",id, "no state given:",
+			    " old state=",pickedTL.state);
+		pickedTL.state=(pickedTL.state==="red")
+		    ? "green" : "red";
+		console.log("road.changeTrafficLight: id=",id, "no state given:",
+			    " new state=",pickedTL.state);
+
+	    }
+	    else{pickedTL.state=state;}
+	}
+    }
+    if(!success)console.log("road.changeTrafficLight: no TL of id ",id," found!");
+
+    // implement effect to traffic by adding/removing virtual obstacles
+
+    //if(false){
+    if(success){
+	if(pickedTL.state==="green"){
+	    for(var i=0; i<this.veh.length; i++){
+		if(this.veh[i].id===id){
+		    this.veh.splice(i, this.nLanes); // nLanes red TL removed
+		}
+	    }
+	}
+	else{ // pickedTL.state="red"
+	    for(var il=0; il<this.nLanes; il++){
+	    //for(var il=0; il<1; il++){
+		var virtVeh=new vehicle(1,this.laneWidth,
+					pickedTL.u, il, 0, "obstacle");
+                //(dec17) need longModel for later LC as lagVeh!! 
+		virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+		virtVeh.id=id;
+		this.veh.push(virtVeh);
+	    }
+	}
+	this.sortVehicles();
+	this.updateEnvironment();
+
+    }
+
+    //console.log("\nexiting road.changeTrafficLight(..):\n");
+    //this.writeVehicles();
+} // changeTrafficLight
+
+
 
 /**
 #############################################################
@@ -737,6 +851,7 @@ road.prototype.removeTrafficLight= function(id) {
 @param imgRed,imgGreen: images of the complete red and green traffic light
 */
 
+/*
 road.prototype.drawTrafficLights=function(imgRed,imgGreen){
     //  (jun17) draw also traffic light at the end of road, before vehicles
 
@@ -791,7 +906,7 @@ road.prototype.drawTrafficLights=function(imgRed,imgGreen){
     }
 }// draw traffic lights
 
-
+*/
 
 
 /**#########################################################
@@ -836,117 +951,6 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
 //		     distCrit);
     return [success,TLreturn];
 }
-
-
-/**
-#############################################################
-(jun17) user-driven change of the state of traffic light by click on canvas
-#############################################################
-*/
-
-
-road.prototype.changeTrafficLightByUser=function(xUser, yUser){
-    var refSizePix=Math.min(canvas.height,canvas.width);
-    var distCritPix=0.02*refSizePix; 
-    var success=false;
-    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	var TL=this.trafficLights[i];
-	//console.log("TL=",TL);
-	var dxPixLeft=scale*xUser-TL.xPixLightLeft;
-	var dyPixLeft=-scale*yUser-TL.yPixLightLeft;
-	var dxPixRight=scale*xUser-TL.xPixLightRight;
-	var dyPixRight=-scale*yUser-TL.yPixLightRight;
-	var distPixL=Math.sqrt(dxPixLeft*dxPixLeft+dyPixLeft*dyPixLeft);
-	var distPixR=Math.sqrt(dxPixRight*dxPixRight+dyPixRight*dyPixRight);
-	if(Math.min(distPixL,distPixR)<=distCritPix){
-	    this.changeTrafficLight(TL.id);
-	    success=true;
-	    //console.log("road.changeTrafficLightByUser: success!");
-	}
-	if(false){
-	    console.log("road.changeTrafficLightByUser: i=",i,
-			" scale*xUser=",scale*xUser," TL.xPixLightLeft=",
-			TL.xPixLightLeft,
-			" distPixL=",distPixL," distPixR=",distPixR);
-	}
-    }
-    if(false){
-    //if(!success){
-	console.log("road.changeTrafficLightByUser: no success");
-    }
-}
-
-/**
-#############################################################
-(jun17) change state of traffic light
-#############################################################
-
-@param id:     unique id in [100,199]
-@param state:  (optional) "red", or "green". 
-               If not given, the state is toggled
-@return:       if a traffic light of this id is found, 
-               its state is changed accordingly
-*/
-
-road.prototype.changeTrafficLight=function(id,state){
-
-    // change state of trafficLight object
-
-    console.log("in road.changeTrafficLight: id=",id," state=",state);
-    console.log("\nentering road.changeTrafficLight: id=",id," state=",state);
-    //this.writeVehicles();
-
-    var success=false;
-    var pickedTL;
-    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	if(id===this.trafficLights[i].id){
-	    success=true;
-	    pickedTL=this.trafficLights[i];
-
-	    if(typeof(state) === "undefined"){
-		console.log("road.changeTrafficLight: id=",id, "no state given:",
-			    " old state=",pickedTL.state);
-		pickedTL.state=(pickedTL.state==="red")
-		    ? "green" : "red";
-		console.log("road.changeTrafficLight: id=",id, "no state given:",
-			    " new state=",pickedTL.state);
-
-	    }
-	    else{pickedTL.state=state;}
-	}
-    }
-    if(!success)console.log("road.changeTrafficLight: no TL of id ",id," found!");
-
-    // implement effect to traffic by adding/removing virtual obstacles
-
-    //if(false){
-    if(success){
-	if(pickedTL.state==="green"){
-	    for(var i=0; i<this.veh.length; i++){
-		if(this.veh[i].id===id){
-		    this.veh.splice(i, this.nLanes); // nLanes red TL removed
-		}
-	    }
-	}
-	else{ // pickedTL.state="red"
-	    for(var il=0; il<this.nLanes; il++){
-	    //for(var il=0; il<1; il++){
-		var virtVeh=new vehicle(1,this.laneWidth,
-					pickedTL.u, il, 0, "obstacle");
-                //(dec17) need longModel for later LC as lagVeh!! 
-		virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-		virtVeh.id=id;
-		this.veh.push(virtVeh);
-	    }
-	}
-	this.sortVehicles();
-	this.updateEnvironment();
-
-    }
-
-    //console.log("\nexiting road.changeTrafficLight(..):\n");
-    //this.writeVehicles();
-} // changeTrafficLight
 
 
 

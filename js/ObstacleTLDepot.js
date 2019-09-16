@@ -58,16 +58,17 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
   this.yRelDepot=yRelDepot;
   this.nTL=nTL;
 
+
   // calculate pixel size variables (updated in this.calcDepotPositions)
 
   this.gapRel=0.01; // relative spacing (sizeCanvas)
   this.sizeRel=0.10; // relative size of passive graphical objects
-  this.lenPhys=10; // [m] determines size of active graphical objects
-  this.wPhys=7; // [m] 1..1.5 times road.lanewidth
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
   this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
   this.hPix=this.wPix;
-  this.active_scaleFact=0.7; // pixel size factor active objects (on road) 
+  this.active_scaleFact=0.8; // pixel size factor of active TL
+  this.lenPhys=25; // [m] physical length of active obstacles (drawn by road)
+  this.wPhys=10; // [m] 1..1.5 times road.lanewidth
 
 
   // create image repository of traffic lights and obstacles
@@ -122,6 +123,7 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 		    isActive: false,
 		    inDepot:  true,
 		    isDragged: false,
+		    road: 'undefined', // defined if isActive=true
 		    u: -1, // physical long position [m] (only init,
 		           // >=0 if isActive, <0 if !isActive)
 		    lane: -1, // isActive: 0 to road.nLanes, !isActive: -1
@@ -200,7 +202,7 @@ ObstacleTLDepot.prototype.calcDepotPositions=function(canvas){
 
 ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
 
-  var active_drawTwoTL=true; // if false, only one TL above road drawn
+  var active_drawTwoImgs=true; // if false, only one TL above road drawn
                              // (in any case, only one obstacle 
                              // on the dropped lane)
   var crossingLineWidth=1;   // stopping line of TL
@@ -251,7 +253,7 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
       ctx.drawImage(TL.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
 
-      if(active_drawTwoSigns){ // draw signs on both sides
+      if(active_drawTwoImgs){ // draw signs on both sides
 	v*=-1;
         xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
         yPix=yCenterPix+scale*v*cphi;  // -*-=+

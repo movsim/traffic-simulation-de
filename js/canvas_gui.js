@@ -166,7 +166,7 @@ function handleTouchEnd(evt) {
 
     // do the action (=> see mouse section)
 
-    finishDistortOrDropVehicle(xUser, yUser); 
+    finishDistortOrDropObject(xUser, yUser); 
     influenceClickedVehOrTL(xUser,yUser);
 
     // test
@@ -485,7 +485,7 @@ function handleMouseUp(evt) {
   //console.log("in handleMouseUp(evt)");
 
   getMouseCoordinates(evt); // => xUser, yUser
-  finishDistortOrDropVehicle(xUser, yUser); 
+  finishDistortOrDropObject(xUser, yUser); 
   drawSim();
 
 }
@@ -494,9 +494,9 @@ function handleMouseUp(evt) {
 // Notice: klicking action influenceClickedVehOrTL(..) is separately below 
 // while both called in handleTouchEnd(evt)
 
-function finishDistortOrDropVehicle(){
+function finishDistortOrDropObject(xUser, yUser){
   if(true){
-    console.log("onmouseup/touchEnd:\nfinishDistortOrDropVehicle start:",
+    console.log("onmouseup/touchEnd:\nfinishDistortOrDropObject start:",
     		" roadDragged=",roadDragged,
     		" depotObjDragged=",depotObjDragged,
     		" funnelObjDragged=",funnelObjDragged,
@@ -517,28 +517,46 @@ function finishDistortOrDropVehicle(){
 
   if(depotObjDragged||funnelObjDragged){
 
-    //console.log("in canvas_gui.onmouseup: finishDistortOrDropVehicle: ",
+    //console.log("in canvas_gui.onmouseup: finishDistortOrDropObject: ",
 
     userCanvasManip=true;   // if true, new backgr, new road drawn
 
     // check if drop near a road (return=[dist,uReturn,vLanes])
 
-    var dropInfo=mainroad.findNearestDistanceTo(xUser, yUser);
-    var distCrit=0.6*(mainroad.nLanes * mainroad.laneWidth);
+    var roadNearest=mainroad;
+    var dropInfoNearest=mainroad.findNearestDistanceTo(xUser, yUser);
+    if(!(secondaryRoad==='undefined')){
+      var dropInfo2=secondaryRoad.findNearestDistanceTo(xUser, yUser);
+      if(dropInfo2[0]<dropInfoNearest[0]){
+	roadNearest=secondaryRoad;
+	dropInfoNearest=dropInfo2;
+      }
+    }
+
+
+    var distCrit=1.2*(roadNearest.nLanes * roadNearest.laneWidth);
 
     //!!! also test drop on possible ramp or other segments!
 
 
     // unsuccessful drop: initiate zoom back to depots
     // depotVehZoomBack is true if further zooms are needed
+    // (depotObject=global variable=selected object)
     // (called also in main.update)
 
-    if(dropInfo[0]>distCrit){
+    if(dropInfoNearest[0]>distCrit){
       if(depotObjDragged){
 	depotObject.isActive=false;  // all this initiates zoom back by 
+	depotObject.road='undefined';
 	depotObject.inDepot=false;   // ObstacleTLDepot.zoomBack() called in 
 	depotObject.isDragged=false; // drawSim method in eachtimestep
-	console.log("finishDistortOrDropVehicle: drop on mainroad failed");
+	if(true){
+	  console.log("\n\nfinishDistortOrDropObject: roadID=",
+		      roadNearest.roadID,
+		      " dropInfoNearest=",dropInfoNearest," distCrit=",distCrit,
+		      " drop failed since no road nearby");
+	}
+
         // !!! check: probably no road action needed for unsuccessful drop 
         // since action already at picking
 
@@ -554,25 +572,26 @@ function finishDistortOrDropVehicle(){
       }
     }
 
-    // successful drop: integrate depotObject to the road vehicles
+    // successful drop!!: integrate depotObject to the road vehicles
     // or funnelObject as an active road sign
 
     else{
-      //!!! specify on which road the object is dropped => var targetroad
       if(depotObjDragged){
 	depotVehZoomBack=false;
-	depotObject.isActive=true;  
+	depotObject.isActive=true;
+	depotObject.road=roadNearest;
 	depotObject.inDepot=false;
 	depotObject.isDragged=false;
-	depotObject.u=dropInfo[1];
+	depotObject.u=dropInfoNearest[1];
 	if(true){
-	  console.log("finishDistortOrDropVehicle: drop on mainroad success",
+	  console.log("\n\nfinishDistortOrDropObject: drop on a road success",
 		      "\ndepotObject=",depotObject,
-		      " dropInfo[1]=u=",dropInfo[1],
-		      " dropInfo[2]=v=",dropInfo[2]);
+		      " roadID=",roadNearest.roadID,
+		      " dropInfoNearest[1]=u=",dropInfoNearest[1],
+		      " dropInfoNearest[2]=v=",dropInfoNearest[2]);
 	}
-	mainroad.dropDepotVehicle(depotObject, dropInfo[1], 
-				  dropInfo[2],
+	roadNearest.dropDepotVehicle(depotObject, dropInfoNearest[1], 
+				  dropInfoNearest[2],
 				  traffLightRedImg,traffLightGreenImg);
       }
 
@@ -580,7 +599,7 @@ function finishDistortOrDropVehicle(){
 	funnelObject.isActive=true;  
 	funnelObject.inDepot=false;  
 	funnelObject.isDragged=false;
-	funnelObject.u=dropInfo[1];
+	funnelObject.u=dropInfoNearest[1];
 	if(true){console.log("funnelObject dropped:",
 			     " funnelObject.xPix=",funnelObject.xPix,
 			     " funnelObject.yPix=",funnelObject.yPix,
@@ -590,7 +609,7 @@ function finishDistortOrDropVehicle(){
 	//funnelObject.xPix=xPixUser;
 	//funnelObject.yPix=yPixUser;
 
-	mainroad.updateSpeedFunnel(speedfunnel);
+	roadNearest.updateSpeedFunnel(speedfunnel);
       }
     }
 
@@ -601,7 +620,7 @@ function finishDistortOrDropVehicle(){
     funnelObjDragged=false;
   }
 
-} // handleMouseUp -> finishDistortOrDropVehicle
+} // handleMouseUp -> finishDistortOrDropObject
 
 
 
@@ -610,14 +629,17 @@ function finishDistortOrDropVehicle(){
 //#####################################################
 
 function handleClick(event){
-    //console.log("in handleClick(event)");
-    getMouseCoordinates(event); //=> xUser,yUser;
-    influenceClickedVehOrTL(xUser,yUser);
+  getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
+  if(true){
+    console.log("in handleClick(event): xPixUser=",xPixUser,
+		" yPixUser=",yPixUser, " xUser=",xUser," yUser=",yUser);
+  }
+  influenceClickedVehOrTL(xUser,yUser);
 }
 
 
 function influenceClickedVehOrTL(xUser,yUser){
-    //console.log("onclick: in influenceClickedVehOrTL");
+  console.log("onclick: in influenceClickedVehOrTL");
 
     // first change lights if a traffic light is nearby (crit dist def in road)
 
@@ -746,7 +768,7 @@ function handleDependencies(){
 
 /* eliminates obstacle from the road, 
 and reverts "inDepot" property of this object 
-(notice: traffic lights treated separately)
+(notice: traffic lights treated separately)!!!
 */
 
 function transformToDepotObject(specialRoadObject,road,depot){

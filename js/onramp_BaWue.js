@@ -19,6 +19,9 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
+nLanesMin=1;
+nLanesMax=4; 
+
 //#############################################################
 // adapt standard IDM and MOBIL model parameters from control_gui.js
 // since no sliders for that.
@@ -26,14 +29,41 @@ var userCanDropObstaclesAndTL=true;
 // and (as deep copies) in road.updateModelsOfAllVehicles
 //#############################################################
 
-nLanesMin=1;
-nLanesMax=4; 
 
-density=0.02; 
 
-//var nLanes_main=1; //!!debug
-var nLanes_main=3;
-var nLanes_rmp=1;
+IDM_T=1.4;
+IDM_a=0.7;
+IDM_b=2.0; // low for more anticipation
+IDM_s0=2;
+speedL=1000/3.6; 
+speedL_truck=80/3.6;
+
+MOBIL_bBiasRigh_car=0.1;
+MOBIL_bBiasRight_truck=8;
+MOBIL_mandat_bSafe=18;
+MOBIL_mandat_bThr=0.5;   // >0
+MOBIL_mandat_bias=1.5;
+
+MOBIL_bSafe=5;
+MOBIL_bSafeMax=17;
+
+//#############################################################
+// initialize sliders (qIn etc defined in control_gui.js)
+//#############################################################
+
+density=0.005; // 0.02
+
+IDM_v0=140./3.6;
+slider_IDM_v0.value=3.6*IDM_v0;
+slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
+
+qIn=1000./3600; // inflow 4400./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
+
+truckFrac=0.10;
+slider_truckFrac.value=100*truckFrac;
+slider_truckFracVal.innerHTML=100*truckFrac+"%";
 
 
 /*######################################################
@@ -101,6 +131,7 @@ var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 var mainroadLen=1000; //!!
 
+
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.47;
@@ -125,6 +156,8 @@ updatePhysicalDimensions();
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
+var nLanes_main=3;
+var nLanes_rmp=1;
 
 
 var car_length=7; // car length in m
@@ -383,7 +416,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 //console.log("obstacleImgNames=",obstacleImgNames);
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
-var depot=  new ObstacleTLDepot(canvas,1,2,0.25,0.70,1,obstacleImgNames);
+var depot=  new ObstacleTLDepot(canvas,1,5,0.30,0.70,2,obstacleImgNames);
 
 
 
@@ -587,11 +620,9 @@ function drawSim() {
 		movingObserver,0, 
 		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
 		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
-    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  

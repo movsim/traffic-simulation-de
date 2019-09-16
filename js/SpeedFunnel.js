@@ -177,7 +177,7 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 
 SpeedFunnel.prototype.draw=function(canvas,road,scale){
 
-  var active_drawTwoSigns=true; // if false, only sign above road drawn
+  var active_drawTwoImgs=true; // if false, only sign above road drawn
   var crossingLineWidth=1; // line to indicate begin of speedlimit region [m]
   ctx = canvas.getContext("2d");
   var wPixPassive=this.wPix;
@@ -223,7 +223,7 @@ SpeedFunnel.prototype.draw=function(canvas,road,scale){
       ctx.drawImage(SL.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
 
-      if(active_drawTwoSigns){ // draw signs on both sides
+      if(active_drawTwoImgs){ // draw signs on both sides
 	v*=-1;
         xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
         yPix=yCenterPix+scale*v*cphi;  // -*-=+

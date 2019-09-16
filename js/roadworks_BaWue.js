@@ -2,6 +2,9 @@
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
 
+nLanesMin=2;
+nLanesMax=4; 
+
 //#############################################################
 // adapt standard IDM and MOBIL model parameters from control_gui.js
 // since no sliders for that.
@@ -9,8 +12,6 @@ var userCanDropObstaclesAndTL=true;
 // and (as deep copies) in road.updateModelsOfAllVehicles
 //#############################################################
 
-nLanesMin=2;
-nLanesMax=4; 
 
 IDM_T=1.4;
 IDM_a=1.2;
@@ -501,7 +502,6 @@ function drawSim() {
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  
