@@ -575,29 +575,29 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 }
 
 //######################################################################
-// write non-regular vehicles traffic lights, obstacles
+// write all relevant veh-type obstacles derived from the depot vheicles
 //######################################################################
 
-road.prototype.writeNonregularVehicles= function(umin,umax) {
-    console.log("\nin road.writeNonregularVehicles: nveh=",this.veh.length,
-		" itime="+itime);
+road.prototype.writeDepotVehObjects= function(umin,umax){
+  console.log("\nin road.writeDepotVehObjects: roadID=",this.roadID,
+	      " nveh=",this.veh.length);
 
-    var uminLoc=(typeof umin!=='undefined') ? umin : 0;
-    var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
+  var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+  var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
 
-    for(var i=0; i<this.veh.length; i++) if(!this.veh[i].isRegularVeh()){
-	var u=this.veh[i].u;
-	if((u>uminLoc) && (u<umaxLoc) ){
+  for(var i=0; i<this.veh.length; i++){ 
+    if((this.veh[i].isDepotObstacle()) || (this.veh[i].isTrafficLight())){
+      var u=this.veh[i].u;
+      if((u>uminLoc) && (u<umaxLoc) ){
 
-	    console.log(" veh["+i+"].type="+this.veh[i].type
-		        +"  id="+this.veh[i].id
-		        +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
-		        +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
-		        +"  longModel=",this.veh[i].longModel
-		        +"  LC=",this.veh[i].LCModel
-		        +"");
-	}
+        console.log(" veh["+i+"].type="+this.veh[i].type
+		    +"  id="+this.veh[i].id
+		    +"  u="+formd(this.veh[i].u)
+		    +"  v="+formd(this.veh[i].v)
+		    +"");
+      }
     }
+  }
 }
 
 //######################################################################
@@ -826,6 +826,33 @@ road.prototype.removeTrafficLight= function(id) {
     else this.trafficLights.splice(iDel,1);
 }
 
+/**
+#############################################################
+(sep19) remove obstacle object with given id
+#############################################################
+
+@param id:     unique id in [50,99]
+
+@return:       removes the obstacle if id is found in road.veh
+*/
+road.prototype.removeObstacle= function(id) {
+    // change value of trafficLight object
+
+  console.log("in road.removeObstacle: id=",id);
+  var success=false;
+  var iDel=-1;
+  for(var i=0; (!success)&&(i<this.veh.length); i++){
+    if(this.veh[i].id===id){
+      success=true;
+      iDel=i;
+    }
+  }
+  if(iDel===-1) console.log("road.removeObstacle: no id ",id," found!");
+  else this.veh.splice(iDel,1);
+}
+
+
+
 
 
 /**
@@ -853,7 +880,7 @@ and dragging, not only clicking, needed
 */
 
 
-road.prototype.pickTrafficLight=function(xUser, yUser){
+road.prototype.pickTrafficLight_old=function(xUser, yUser){
 
     var success=false;
     var TLreturn;
@@ -874,7 +901,8 @@ road.prototype.pickTrafficLight=function(xUser, yUser){
 	    TLreturn=this.trafficLights[i];
 	}
     }
-    if(success) this.removeTrafficLight(TLreturn.id);
+    //if(success) this.removeTrafficLight(TLreturn.id);//!!!
+    if(false) this.removeTrafficLight(TLreturn.id);//!!!
     //else console.log("road.pickTrafficLight: no TL found nearer than ",
 //		     distCrit);
     return [success,TLreturn];
@@ -3019,7 +3047,7 @@ the reverse process of dropping above
 */
 
 
-road.prototype.pickSpecialVehicle=function(xUser, yUser){
+road.prototype.pickSpecialVehicle_old=function(xUser, yUser){
 
   console.log("in road.pickSpecialVehicle: xUser=",xUser," yUser=",yUser);
 

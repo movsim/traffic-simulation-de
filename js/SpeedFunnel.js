@@ -87,11 +87,11 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
     //#################################################################
     // central object this.speedl[i]
-    // speed limit effective: isActive=true, u>=0,inDepot=isDragged=false 
-    // speed limit sign dragged: isDragged=true, isActive=false=inDepot=false
+    // speed limit effective: isActive=true, u>=0,inDepot=isPicked=false 
+    // speed limit sign dragged: isPicked=true, isActive=false=inDepot=false
     // speed limit sign dropped on road => speed limit effective
     // speed limit sign dropped outside of road and not yet zoomed back =>
-    // isDragged=isActive=inDepot=false
+    // isPicked=isActive=inDepot=false
     //#################################################################
     
     this.speedl[i]={speedIndex: speedInd,
@@ -99,7 +99,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 		    value: speedLimit,
 		    isActive: false, 
 		    inDepot: true, 
-		    isDragged: false,
+		    isPicked: false,
 		    u: -1, // physical long position [m] (only init,
 		           // >=0 if isActive, <0 if !isActive)
 		    xPix: 42, // pixel position of center (only init)

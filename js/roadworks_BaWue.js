@@ -417,11 +417,11 @@ function updateSim(){
 
   // => see onramp.js for the workings if depotVehicles involved
 
-  //if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjDragged)){
+  //if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
   //  depot.zoomBack();
  // }
 
-  if(funnelObjDragged==false){
+  if(funnelObjPicked==false){
     speedfunnel.zoomBack();
   }
 

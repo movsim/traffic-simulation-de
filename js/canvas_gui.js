@@ -31,9 +31,9 @@ var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 var touchdown=false; //true if touchstart event fired, but not yet touchend
 
-var depotObjDragged=false; //true if a depot obj < distmin @ last mousedown
-var funnelObjDragged=false; //same for a SpeedFunnel object
-var roadDragged=false; // true if none of the above and distRoad<crit   " "
+var depotObjPicked=false; //true if a depot obj < distmin @ last mousedown
+var funnelObjPicked=false; //same for a SpeedFunnel object
+var roadPicked=false; // true if none of the above and distRoad<crit   " "
 
 
 //var depotVehZoomBack=false; // =true after unsuccessful drop
@@ -41,7 +41,7 @@ var roadDragged=false; // true if none of the above and distRoad<crit   " "
 var depotObject;    // element depot.obstTL[i] of global var depot
 var funnelObject;    // element speedl[i] of global var speedfunne
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
-var distDragCrit=0.8;  // drag function if dragged more [m]; otherwise click
+var distDragCrit=10;  // !!!drag function if dragged more [m]; otherwise click
 var distDrag=0; // physical distance[m] of the dragging
 var idPerturbed=10;   // id=10 is that of first perturbed veh; then incr
 
@@ -251,24 +251,25 @@ function getMouseCoordinates(event){
 }
 
 
-// do the action
+// #########################################################
+// do the action 1: pick
 
 // var mainroad=new road(...), ramp=new road(...),
 // var depot=new ObstacleTLDepot(..), and 
 // var speedfunnel=new SpeedFunnel(...) defined in the main sim files
+// #########################################################
 
 function pickRoadOrObject(xUser,yUser){
 
   /* priorities (at most one action initiated at a given time):
 
-    (1) pick/drag a special road vehicle/TL. If success=>depotObject=>(2)
-    (2) pick/drag depot vehicle: depotObjDragged=true
-    (3) pick/drag SpeedFunnel object: funnelObjDragged=true
-    (4) test for a road section nearby
+    (1) pick/drag obstacles or TL on a road or in the depot. 
+    (2) pick/drag SpeedFunnel object: funnelObjPicked=true
+    (3) test for a road section nearby
 
     later stages not here but at onmousemove or onmouseup (onclick) callbacks
-    (5) drag on road less than crit and then mouse up => click: slow down road
-    (6) drag on road more than crit: roadDragged=true
+    (4) drag on road less than crit and then mouse up => click: slow down road
+    (5) drag on road more than crit: roadPicked=true
 
   */
 
@@ -276,19 +277,13 @@ function pickRoadOrObject(xUser,yUser){
 
   if(true){
     console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrObject");
-    console.log(" xUser=",xUser," yUser=",yUser);
+    console.log(" xUser=",formd(xUser)," yUser=",formd(yUser),
+		" xPixUser=",formd0(xPixUser)," yPixUser=",formd(yPixUser));
   }
 
 
-  // !!! (1a) pick/drag a traffic light
-  //!!! make a function out of it / generalize transformToDepotObject
-  // to be more flexible with >1 road links
-  // (need to do it separately since green TL have no road-vehicle objects)
-  // notice: road.pickTrafficLight splices road.veh (road.removeTrafficLight)
-  // !!!TODO: do it also on secondary road in network scenarios! => see (4)
-  // critical drag distance distCrit defined by road
 
-  if(!(typeof depot === 'undefined')){
+/*
     var pickResults=mainroad.pickTrafficLight(xUser,yUser); //[success,obj,dist]
     if(pickResults[0]){
       console.log(" (1a) picked a traffic light on the road!");
@@ -297,19 +292,24 @@ function pickRoadOrObject(xUser,yUser){
       for(var i=0; (!success)&&(i<depot.obstTL.length); i++){
         success=(TL.id===depot.obstTL[i].id);
         if(success){
-	  depot.obstTL[i].isActive=false;
-	  depot.obstTL[i].isDragged=true;
-	  depot.obstTL[i].inDepot=false;
-	  console.log("pickRoadOrObject: removed TL on road ",
-		      depot.obstTL[i]);
+	  //depot.obstTL[i].isActive=false;
+	  //depot.obstTL[i].isPicked=true;
+	  //depot.obstTL[i].inDepot=false;
+	  //console.log("pickRoadOrObject: removed TL on road ",
+	//	      depot.obstTL[i]);
 	}
       }
-      if(!success){
-	console.log("  pickRoadOrObject: found no nearby TL on road!");
+
+      funnelObjPicked=false;
+      roadPicked=false;
+      if(success){
+        depotObjPicked=true;
+        console.log(" (1a) associated picked TL with a depot obj!");
       }
-      depotObjDragged=true;
-      funnelObjDragged=false;
-      roadDragged=false;
+      else{
+        depotObjPicked=false;
+        console.log(" (1a) error: could not associated picked TL with a depot obj!");
+      }
       return;
     }
     //console.log(" pickRoadOrObject: found no TL  on road");
@@ -328,82 +328,106 @@ function pickRoadOrObject(xUser,yUser){
       specialRoadObject=pickResults[1];
       transformToDepotObject(specialRoadObject,mainroad,depot);
 
-      depotObjDragged=true;
-      funnelObjDragged=false;
-      roadDragged=false;
+      depotObjPicked=true;
+      funnelObjPicked=false;
+      roadPicked=false;
       return;
     }
     //else console.log("no depot obstacle on a road found");
+*/
 
-
-    // (2) pick/drag depot vehicle: test for depotObjDragged
-    // depot.pickVehicle ,.pickObject returns [successFlag, thePickedDepotVeh]
  
-    //console.log("  (2) test for depot obstacle/TL outside road");
-    var distCrit=12;//[m]
+  //==============================================================
+  // (1) pick/select an active or passive obstacleTL object from depot.
+  // depot.pickObject returns [successFlag, thePickedObj]
+  //==============================================================
+
+
+  if(!(typeof depot === 'undefined')){
+
+    var distCrit_m=12;//[m]
     pickResults=depot.pickObject(xPixUser, yPixUser, 
-				      distCrit*scale);
-       //depot.pickVehicle(xUser, yUser, distCrit);
+				      distCrit_m*scale);
     if(pickResults[0]){
-      console.log(" (2) picked a depot vehicle");
       depotObject=pickResults[1];
-      depotObjDragged=true;
-      funnelObjDragged=false;
-      roadDragged=false;
+      depotObjPicked=true;
+      funnelObjPicked=false;
+      roadPicked=false;
+      console.log("pickRoadOrObject (1): picked a depot object of type ",
+		  depotObject.type,
+		  " isActive=",depotObject.isActive,
+		  " inDepot=",depotObject.inDepot);
       return;
     }
-    //else console.log("no obstacle or TL outside road found");
+    else console.log("pickRoadOrObject (1): no depot object found");
 
   } // test for obstacle/TL objects if depot defined
 
-  // (3) pick an active or passive SpeedFunnel object, 
-  // speedfunnel uses pixels instead of meters, therefore scale factor
-  // speedfunnel.pickObject returns [successFlag, thePickedObject]
 
-  var distCrit=12;//[m] 
-  pickResults=speedfunnel.pickObject(xPixUser, yPixUser, 
-				      distCrit*scale);
-  if(pickResults[0]){
-    console.log(" (3) picked a SpeedFunnel object,",
-		"  speed limit_kmh=",formd(3.6*pickResults[1].value));
-    funnelObject=pickResults[1];
-    depotObjDragged=false;
-    funnelObjDragged=true;
-    roadDragged=false;
-    return;
+
+  //=================================================
+  // (2) pick an active or passive SpeedFunnel object from speedfunnel, 
+  // speedfunnel.pickObject returns [successFlag, thePickedOb]
+  //=================================================
+
+  if(!(typeof speedfunnel === 'undefined')){
+
+    var distCrit_m=12;//[m] 
+    pickResults=speedfunnel.pickObject(xPixUser, yPixUser, 
+				      distCrit_m*scale);
+    if(pickResults[0]){
+      funnelObject=pickResults[1];
+      depotObjPicked=false;
+      funnelObjPicked=true;
+      roadPicked=false;
+      console.log("pickRoadOrObject (2): picked a SpeedFunnel object,",
+	  	"  speed limit_kmh=",formd(3.6*pickResults[1].value));
+      return;
+    }
+    else console.log("pickRoadOrObject (2): no speedfunnel object found");
   }
 
 
-  // (4) test for a road section nearby
+  // (3) test for a road section nearby
+// road.testCRG returns [success,distmin_m,dx_m, dy_m]
 
-  var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
-  var pickResults2=[false,1e6,1e6,1e6];
-  if(isNetworkScenario){
+  if(userCanDistortRoads){
+    var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
+    var pickResults2=[false,1e6,1e6,1e6];
+    if(isNetworkScenario){
 	pickResults2=secondaryRoad.testCRG(xUser, yUser);
-  }
-  var success=(pickResults1[0] || pickResults2[0]);
-  if(success){
-    console.log(" (4) picked a road section for dragging",
+    }
+    var success=(pickResults1[0] || pickResults2[0]);
+    if(success){
+      console.log("pickRoadOrObject (3):  picked a road section for dragging",
 		" as soon as distDrag>distDragCrit");
 
-	draggedRoad=(pickResults1[1]<pickResults2[1])
-	    ? mainroad : secondaryRoad;
-	depotObjDragged=false;
-	funnelObjDragged=false;
-	roadDragged=true;
+      draggedRoad=(pickResults1[1]<pickResults2[1])
+	      ? mainroad : secondaryRoad;
+      depotObjPicked=false;
+      funnelObjPicked=false;
+      roadPicked=true;
+    }
+    else{
+      console.log("pickRoadOrObject (3): no nearby road found possibly because",
+		" pickResults1 (mainroad)[2]=",pickResults1[2]," a NaN");
+    }
+  }
+  else{
+    console.log("pickRoadOrObject (3): user cannot distort roads, so n.a.");
   }
 
- // (5) pick normal road vehicle to slowing it down: onclick callback: 
+ // (4) pick normal road vehicle to slowing it down: onclick callback: 
  // handled onclick (=onmouseup) by 
  // this.influenceClickedVehOrTL(xUser,yUser)
  // but only if distDrag<distDragCrit at this time
 
- // (6) pick a road section to change road geometry (CRG) by dragging it
+ // (5) pick a road section to change road geometry (CRG) by dragging it
  // road.testCRG returns [success,Deltax,Deltay]
  // handled in onmousemove+onmousedown and onmouseup events only if 
  // distDrag>distDragCrit at this time
 
-  else console.log("pickRoadOrObject: found no suitable action!");
+  console.log("pickRoadOrObject: found no suitable action!");
 
 
 } // canvas onmousedown or touchStart: pickRoadOrObject
@@ -431,7 +455,7 @@ function handleMouseMove(event){
 
 
 // do drag actions if onmousemove&&mousedown or if touchdown=true
-//which action(s) (booleans depotObjDragged, funnelObjDragged,roadDragged) 
+//which action(s) (booleans depotObjPicked, funnelObjPicked,roadPicked) 
 //is determined by onmousedown/touchStart  callback
 
 
@@ -444,23 +468,22 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 			   + Math.pow(yUser-yUserDown,2));
 
 	if(false){
-	    console.log("mousemove && mousedown: roadDragged=",roadDragged,
-		    " depotObjDragged=",depotObjDragged,
-		    " funnelObjDragged=",funnelObjDragged,
+	    console.log("mousemove && mousedown: roadPicked=",roadPicked,
+		    " depotObjPicked=",depotObjPicked,
+		    " funnelObjPicked=",funnelObjPicked,
 		    " xUser=",xUser,"xUserDown=",xUserDown,
 		    " distDrag=",distDrag,
 		    " distDragCrit=",distDragCrit);
 	}
 
 	if(distDrag>distDragCrit){ // do no dragging actions if only click
-	    if(depotObjDragged){
-	        //dragVehicle(xUser,yUser); //!!! obsolete?!
+	    if(depotObjPicked){
 	        dragDepotObject(xPixUser,yPixUser);
 	    }
-	    if(funnelObjDragged){
+	    if(funnelObjPicked){
 	        dragFunnelObject(xPixUser,yPixUser);
 	    }
-	    if(roadDragged){
+	    if(roadPicked){
 	        dragRoad(xUser,yUser);
 	    }
 
@@ -490,32 +513,50 @@ function handleMouseUp(evt) {
 
 }
 
-// finalize dragging action 
+
+// #########################################################
+// do the action 2: drop=finalize dragging action 
 // Notice: klicking action influenceClickedVehOrTL(..) is separately below 
 // while both called in handleTouchEnd(evt)
+// #########################################################
 
 function finishDistortOrDropObject(xUser, yUser){
   if(true){
-    console.log("onmouseup/touchEnd:\nfinishDistortOrDropObject start:",
-    		" roadDragged=",roadDragged,
-    		" depotObjDragged=",depotObjDragged,
-    		" funnelObjDragged=",funnelObjDragged,
+    console.log("onmouseup/touchEnd:\n finishDistortOrDropObject start:",
+    		" roadPicked=",roadPicked,
+    		" depotObjPicked=",depotObjPicked,
+    		" funnelObjPicked=",funnelObjPicked,
 		"");
   }
 
   mousedown=false;
   touchdown=false;
- 
-  if(roadDragged&&(distDrag>distDragCrit)){
-    userCanvasManip=true; // if true, new backgr, new road drawn
-    roadDragged=false;
-    //console.log(" before draggedRoad.finishCRG()");
-    draggedRoad.finishCRG();
-    handleDependencies();
+  if(distDrag<distDragCrit){
+    console.log("finishDistortOrDropObject (0): dragging criterion ",
+		" distDrag=",distDrag,"<distDragCrit=",distDragCrit,
+		" not satisfied (only clicked, not dragged) => do nothing");
+    return;
   }
 
 
-  if(depotObjDragged||funnelObjDragged){
+  // ============================================
+  // finishDistortOrDropObject (1) drop distorted road
+  // ============================================
+
+  if(roadPicked){
+    userCanvasManip=true; // if true, new backgr, new road drawn
+    roadPicked=false;
+    //console.log(" before draggedRoad.finishCRG()");
+    draggedRoad.finishCRG();
+    handleDependencies();
+    console.log("finishDistortOrDropObject (1): distorted road");
+  }
+
+  // ============================================
+  // finishDistortOrDropObject (2) drop obstacle, TL or speedfunnel object
+  // ============================================
+
+  if(depotObjPicked||funnelObjPicked){
 
     //console.log("in canvas_gui.onmouseup: finishDistortOrDropObject: ",
 
@@ -536,76 +577,107 @@ function finishDistortOrDropObject(xUser, yUser){
 
     var distCrit=1.2*(roadNearest.nLanes * roadNearest.laneWidth);
 
-    //!!! also test drop on possible ramp or other segments!
+    if(true){
+      console.log("\n\nfinishDistortOrDropObject (2): nearest roadID=",
+		  roadNearest.roadID,
+		  ", drop onto road",
+		  ((dropInfoNearest[0]>distCrit) ? "failed" : "successful"),
+		  ", dropped object type=",
+		  (depotObjPicked) ? "depot object" : "traffic light");
+      }
 
-
-    // unsuccessful drop: initiate zoom back to depots
+    // UNSUCCESSFUL DROP/RE-DROP DEPOT OBJ ON ROAD: 
+    // initiate zoom back to depots
     // depotVehZoomBack is true if further zooms are needed
     // (depotObject=global variable=selected object)
     // (called also in main.update)
 
-    if(dropInfoNearest[0]>distCrit){
-      if(depotObjDragged){
-	depotObject.isActive=false;  // all this initiates zoom back by 
-	depotObject.road='undefined';
-	depotObject.inDepot=false;   // ObstacleTLDepot.zoomBack() called in 
-	depotObject.isDragged=false; // drawSim method in eachtimestep
-	if(true){
-	  console.log("\n\nfinishDistortOrDropObject: roadID=",
-		      roadNearest.roadID,
-		      " dropInfoNearest=",dropInfoNearest," distCrit=",distCrit,
-		      " drop failed since no road nearby");
-	}
+    if( (dropInfoNearest[0]>distCrit)&&depotObjPicked){
+ 
 
-        // !!! check: probably no road action needed for unsuccessful drop 
-        // since action already at picking
+        // manipulate relevant depot object for unsuccessful drop
 
+      depotObject.isActive=false;  // all this initiates zoom back by 
+      depotObject.road='undefined';
+      depotObject.u=-1;
+      depotObject.inDepot=false;  // ObstacleTLDepot.zoomBack() called in 
+      depotObject.isPicked=false; // drawSim method in eachtimestep
+      console.log("depotObject.type=",depotObject.type," id=",depotObject.id);
+
+     // manipulate (remove element) of corresponding road's operational TLs
+     // and vehicle objects of type obstacle
+
+      if(depotObject.type==='trafficLight'){
+	roadNearest.removeTrafficLight(depotObject.id);
+	console.log("removed corresp road.trafficLights[i] obj");
       }
-      if(funnelObjDragged){
-	funnelObject.isActive=false;  // all this initiates zoom back by 
-	funnelObject.inDepot=false;   // speedfunnel.zoomBack() called in 
-	funnelObject.isDragged=false; // drawSim method in eachtimestep
 
-        // relevant if dragged an active sign from the road
-	//mainroad.updateSpeedFunnel(speedfunnel); 
-
+      else if(depotObject.type==='obstacle'){
+	roadNearest.removeObstacle(depotObject.id);
+	console.log("removed corresp obstacle on road");
       }
     }
 
-    // successful drop!!: integrate depotObject to the road vehicles
-    // or funnelObject as an active road sign
 
-    else{
-      if(depotObjDragged){
-	depotVehZoomBack=false;
-	depotObject.isActive=true;
-	depotObject.road=roadNearest;
-	depotObject.inDepot=false;
-	depotObject.isDragged=false;
-	depotObject.u=dropInfoNearest[1];
-	if(true){
-	  console.log("\n\nfinishDistortOrDropObject: drop on a road success",
-		      "\ndepotObject=",depotObject,
-		      " roadID=",roadNearest.roadID,
-		      " dropInfoNearest[1]=u=",dropInfoNearest[1],
-		      " dropInfoNearest[2]=v=",dropInfoNearest[2]);
-	}
-	roadNearest.dropDepotObject(depotObject, dropInfoNearest[1], 
-				  dropInfoNearest[2],
-				  traffLightRedImg,traffLightGreenImg);
+    // UNSUCCESSFUL DROP/RE-DROP FUNNEL OBJ ON ROAD
+
+    if( (dropInfoNearest[0]>distCrit)&&funnelObjPicked){
+ 
+      funnelObject.isActive=false;  // all this initiates zoom back by 
+      funnelObject.inDepot=false;   // speedfunnel.zoomBack() called in 
+      funnelObject.isPicked=false; // drawSim method in eachtimestep
+
+      // relevant if dragged an active sign from the road
+
+      mainroad.updateSpeedFunnel(speedfunnel); 
+    }
+
+
+    // SUCCESSFUL DROP/RE-DROP DEPOT OBJ ON ROAD:
+    // integrate depotObject to the road vehicles
+
+    if( (dropInfoNearest[0]<=distCrit) && depotObjPicked){
+
+        // manipulate relevant depot object
+
+      depotVehZoomBack=false;
+      depotObject.isActive=true;
+      depotObject.road=roadNearest;
+      depotObject.inDepot=false;
+      depotObject.isPicked=false;
+      depotObject.u=dropInfoNearest[1];
+      if(true){
+	console.log("finishDistortOrDropObject (2): drop on a road success",
+		    "\ndepotObject=",depotObject,
+		    " roadID=",roadNearest.roadID,
+		    " dropInfoNearest[1]=u=",dropInfoNearest[1],
+		    " dropInfoNearest[2]=v=",dropInfoNearest[2]);
       }
 
-      if(funnelObjDragged){
-	funnelObject.isActive=true;  
-	funnelObject.inDepot=false;  
-	funnelObject.isDragged=false;
-	funnelObject.u=dropInfoNearest[1];
-	if(true){console.log("funnelObject dropped:",
-			     " funnelObject.xPix=",funnelObject.xPix,
-			     " funnelObject.yPix=",funnelObject.yPix,
-			     " xPixUser=",xPixUser,
-			     " yPixUser=",yPixUser);
-		}
+       //!!!
+       // manipulate (add element to) the corresponding road's operational TLs
+
+      roadNearest.dropDepotObject(depotObject, dropInfoNearest[1],
+				  dropInfoNearest[2],
+				  traffLightRedImg,traffLightGreenImg);
+    }
+
+    // SUCCESSFUL DROP/RE-DROP  FUNNEL OBJ ON ROAD:
+    // integrate funnelObject as an active road sign 
+
+    if( (dropInfoNearest[0]<=distCrit) && funnelObjPicked){
+
+      funnelObject.isActive=true; 
+      funnelObject.inDepot=false;  
+      funnelObject.isPicked=false;
+      funnelObject.u=dropInfoNearest[1];
+      if(true){
+	console.log("finishDistortOrDropObject (2): drop on a road success",
+		      " funnelObject.xPix=",funnelObject.xPix,
+		      " funnelObject.yPix=",funnelObject.yPix,
+		      " xPixUser=",xPixUser,
+		      " yPixUser=",yPixUser);
+
 	//funnelObject.xPix=xPixUser;
 	//funnelObject.yPix=yPixUser;
 
@@ -613,12 +685,12 @@ function finishDistortOrDropObject(xUser, yUser){
       }
     }
 
-    // conclude actions for (depotObjDragged||funnelObjDragged) 
+    // conclude actions for (depotObjPicked||funnelObjPicked) 
     // drop -> no longer any object dragged
 
-    depotObjDragged=false;
-    funnelObjDragged=false;
-  }
+    depotObjPicked=false;
+    funnelObjPicked=false;
+  } // depotObj or funnelObj picked
 
 } // handleMouseUp -> finishDistortOrDropObject
 
@@ -676,9 +748,9 @@ function cancelActivities(event){
     //console.log("in cancelActivities");
     mousedown=false;
     touchdown=false;
-    depotObjDragged=false;
-    funnelObjDragged=false;
-    roadDragged=false;
+    depotObjPicked=false;
+    funnelObjPicked=false;
+    roadPicked=false;
     depotVehZoomBack=true;
 }
 
@@ -789,7 +861,7 @@ function transformToDepotObject(specialRoadObject,road,depot){
 	success=(specialRoadObject.id===depot.obstTL[i].id);
 	if(success){
 	  depot.obstTL[i].isActive=false;
-	  depot.obstTL[i].isDragged=true;
+	  depot.obstTL[i].isPicked=true;
 	  depot.obstTL[i].inDepot=false;
 	  console.log("transformToDepotObject: transformed obstacle ",
 		      depot.obstTL[i]);
@@ -806,14 +878,9 @@ function transformToDepotObject(specialRoadObject,road,depot){
 // helper function for drag (onmousemove if onmousedown) events
 //##############################################################
 
-function dragVehicle(xUser,yUser){ //!!! obsolete?!
-    //console.log("in dragVehicle: xUser=",xUser," yUser=",yUser);
-    depotObject.x=xUser;
-    depotObject.y=yUser;
-}
 
-function dragDepotObject(xPixUser,yPixUser){ //!!! obsolete?!
-    //console.log("in dragDepotObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
+function dragDepotObject(xPixUser,yPixUser){ 
+    console.log("in dragDepotObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
     depotObject.xPix=xPixUser;
     depotObject.yPix=yPixUser;
 }

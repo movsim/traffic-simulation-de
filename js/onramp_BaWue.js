@@ -526,11 +526,11 @@ function updateSim(){
 
   // => see onramp.js for the workings if depotVehicles involved
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjDragged)){
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
   }
 
-  if(funnelObjDragged==false){
+  if(funnelObjPicked==false){
     speedfunnel.zoomBack();
   }
 
@@ -549,7 +549,13 @@ function updateSim(){
 	ramp.writeVehiclesSimple();
     }
   if(true){
-    mainroad.writeTrafficLights();
+    onlyTL=false;
+    console.log("time=",time);
+    mainroad.writeTrafficLights(); // the road's operational TL objects
+    ramp.writeTrafficLights(); 
+    mainroad.writeDepotVehObjects(); // the road's vehicle-type obstacles
+    ramp.writeDepotVehObjects(); 
+    depot.writeObjects(onlyTL);    //the depots general TL objects
   }
 
 }//updateSim

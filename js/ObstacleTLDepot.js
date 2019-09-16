@@ -109,11 +109,11 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 
     //#################################################################
     // central object this.obstTL[i]
-    // obstacle/TL on road: isActive=true, u>=0,inDepot=isDragged=false 
-    // object dragged: isDragged=true, isActive=false=inDepot=false
+    // obstacle/TL on road: isActive=true, u>=0,inDepot=isPicked=false 
+    // object picked/dragged: isPicked=true, isActive=false=inDepot=false
     // object dropped on road => becomes active
     // object  dropped outside of road and not yet completely zoomed back =>
-    // isDragged=isActive=inDepot=false
+    // isPicked=isActive=inDepot=false xxx
     //#################################################################
 
     this.obstTL[i]={id:       ID,
@@ -122,7 +122,7 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 		    type:     (i<this.nTL) ? "trafficLight" : "obstacle",
 		    isActive: false,
 		    inDepot:  true,
-		    isDragged: false,
+		    isPicked: false,
 		    road: 'undefined', // defined if isActive=true
 		    u: -1,          // physical long position [m] (only init,
 		                    // >=0 if isActive, <0 if !isActive)
@@ -219,7 +219,7 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
   for (var i=0; i<this.obstTL.length; i++){
  
 
-    // draw active traffic lights
+    // draw active traffic lights //!!! filter road, NO LONGER pass as arg!!
     // ===========================
 
     if((this.obstTL[i].isActive)&&(this.obstTL[i].type==="trafficLight")){
@@ -332,48 +332,38 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
 @param  distCrit:    only if the distance to the nearest sign
                      is less than distCrit [Pix], the operation is successful
 @return [successFlag, thePickedSign]
-@sidefeffect: thePickedSign.isActive is set to false
 */
 
 
-ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
+ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCritPix){
   var dist2_min=1e9;
-  var dist2_crit=distCrit*distCrit;
-  var obstTLreturn=null;
-  var success=false;
+  var dist2_crit=distCritPix*distCritPix;
+  var i_opt=-1;
   for(var i=0; i<this.obstTL.length; i++){
     var dist2=Math.pow(xPixUser-this.obstTL[i].xPix,2)
       + Math.pow(yPixUser-this.obstTL[i].yPix,2);
-    if( (dist2<dist2_crit) && (dist2<dist2_min)){
-      success=true;
+    if(dist2<dist2_min){
       dist2_min=dist2;
-      obstTLreturn=this.obstTL[i];
-    }
-    if(false){
-      console.log("ObstacleTLDepot: i=",i,
-		  " kmh=",formd0(3.6*this.obstTL[i].value),
-		  " u=",formd0(this.obstTL[i].u),
-		  " uNearest=",formd0(mainroad.findNearestDistanceTo(xPixUser/scale,-yPixUser/scale)[1]),
-		  " xPix=",formd0(this.obstTL[i].xPix),
-		  " xPixUser=", formd0(xPixUser),
-		  " yPix=",formd0(this.obstTL[i].yPix),
-		  " yPixUser=", formd0(yPixUser),
-		  " dist2=",formd0(dist2),
-		  " dist2_crit=",formd0(dist2_crit),
-		  " success=",success);
+      i_opt=i;
     }
   }
 
+  var success=(dist2_min<dist2_crit);
+  var obstTLreturn=(success) ? this.obstTL[i_opt] : 'null';
   if(true){
-    var msg=(success)
-      ? "successfully picked obstacleTLDepot obj id= "+obstTLreturn.id
-      : "no sign picked";
-    console.log("ObstacleTLDepot.pickObject: ",msg);
+    console.log("\n\nObstacleTLDepot.pickObject:");
+    if(success){
+      console.log(" successfully picked object of type ",obstTLreturn.type,
+		  " isActive=",obstTLreturn.isActive);
+    }
+    else{
+      console.log(" no success, xPixUser=",xPixUser," yPixUser=",yPixUser,
+		  " nearest object has type", this.obstTL[i_opt].type,
+		  " xPix=",this.obstTL[i_opt].xPix,
+		  " yPix=",this.obstTL[i_opt].yPix,
+		  "");
+    }
   }
-
-  // deactivate in case the picked sign was on the road
-
-  if(success){obstTLreturn.isActive=false;} 
  
   return[success,obstTLreturn];
 }
@@ -388,7 +378,7 @@ ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
 
 ObstacleTLDepot.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
     
-  if(true){
+  if(false){
     console.log("in ObstacleTLDepot.changeTrafficLightByUser:",
 		" xPixUser=",xPixUser," yPixUser=",yPixUser);
   }
@@ -412,12 +402,14 @@ ObstacleTLDepot.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
 	TL.image=(TL.value==='red') ? this.imgRepo[0] : this.imgRepo[1];
         success=true;
       }
-      console.log(" i_obstTL=",i," TL=",TL,
+      if(false){
+        console.log(" i_obstTL=",i," TL=",TL,
 		  " TL.xPixLight1=",TL.xPixLight1,
 		  " distPix1=",distPix1,
 		  " distPix2=",distPix2,
 		  " distPixCrit=",distPixCrit,
 		  " success=",success);
+      }
     }
   }
 
@@ -543,3 +535,36 @@ ObstacleTLDepot.prototype.zoomBackVehicleOld=function(){
     }
     return(isActive);
 }
+
+
+/**
+#############################################################
+(sep19) write out all objects 
+if onlyTL exists and is true, write out only the TL objects
+#############################################################
+*/
+
+ObstacleTLDepot.prototype.writeObjects=function(onlyTL){
+  var justTL=false;
+  if(!(typeof onlyTL === 'undefined')){
+    justTL=onlyTL;
+  }
+
+  console.log("in ObstacleTLDepot.writeObjects, justTL=",justTL,":");
+  for(var i=0; i<this.obstTL.length; i++){
+    if((!justTL) || (this.obstTL[i].type==='trafficLight')){
+      var obj=this.obstTL[i];
+      console.log("  i=",i," roadID=",obj.road.roadID,
+		  " u=", formd(obj.u),
+		  " type=", obj.type,
+		  " value=",obj.value,
+		  " xPix=",formd0(obj.xPix),
+		  " yPix=",formd0(obj.yPix),
+		  " isActive=",obj.isActive,
+		  " inDepot=",obj.inDepot,
+		  " isPicked=",obj.isPicked
+		 );
+    }
+  }
+}
+
