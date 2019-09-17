@@ -239,7 +239,7 @@ function headingRamp(u){
   return heading;
 }
 
-// construct ramp x/y arrays in phsyical space
+// construct ramp x/y arrays in physical space
 //!!! assuming for the moment mainroad heading=0 @ merge!
 
 var nArrRamp=100;
@@ -458,11 +458,10 @@ function updateSim(){
   // (2a) timestep-triggered actions for speedfunnel
 
   // (timestep triggered since vehicles move in new speedlimit zones)
-  // NOTICE: also removing works since in every timestep 
+  // NOTICE: also removing speedlimits works since in every timestep 
   // speedlimits are reset by above road.prototype.updateModelsOfAllVehicles
-
-  // => (6) for event-triggered actions for speedfunnel 
-  // and obstacleTL objects!!!
+  // NOTICE 2: (6) for event-triggered actions for speedfunnel 
+  // and obstacleTL objects
 
   mainroad.updateSpeedFunnel(speedfunnel);
   ramp.updateSpeedFunnel(speedfunnel);

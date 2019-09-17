@@ -506,7 +506,7 @@ road.prototype.writeSpeedlimits= function(umin,umax) {
       }
     }
   }
-}
+} // writeSpeedlimits
 
 
 //######################################################################
@@ -2891,16 +2891,18 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 /** #####################################################
  MT 2019-09: implement speed funnel:
 
- construct models according to the active speed limits 
- of the speedfunnel (free sign=>value=200./3.6=>effectively no influence)
- order the speedlimit positions, 
- and distribute them with this.setCFModelsInRange
+ distribute speed limits to the regular vehicle's longmodels
+ (free sign=>value=200./3.6=>effectively no influence)
+ need to order the speedlimit positions first 
+
+ NOTICE: In top-level sim, all speedlimits should be set to 1000 or something
+ to take care of the effect of removing limits
 
 //#####################################################*/
 
 road.prototype.updateSpeedFunnel=function(speedfunnel){
 
-  console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
+  //console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
 
   // sort by decreasing u values (mixing of different roads OK since filtered)
 
@@ -2908,7 +2910,7 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 	    return a.u < b.u;
   })
 
-  // implement !!! check of removing limits leads to default limit
+  // implement (all speedlimits should be set to 1000 prior to this action)
 
   var success=false;
   var iveh=0;
@@ -2948,7 +2950,7 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
     //console.log(" no active limits");
   }
 
-  console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
+  //console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
 }
 
 
