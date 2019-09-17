@@ -356,15 +356,20 @@ ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCritPix){
   if(true){
     console.log("\n\nObstacleTLDepot.pickObject:");
     if(success){
-      console.log(" successfully picked object of type ",obstTLreturn.type,
-		  " isActive=",obstTLreturn.isActive);
+      console.log("  successfully picked object of type ",obstTLreturn.type,
+		  " isActive=",obstTLreturn.isActive,
+		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
+		  " xPix=",formd0(this.obstTL[i_opt].xPix),
+		  " yPix=",formd0(this.obstTL[i_opt].yPix),
+		  "\n\n");
     }
     else{
-      console.log(" no success, xPixUser=",xPixUser," yPixUser=",yPixUser,
+      console.log("  no success", 
 		  " nearest object has type", this.obstTL[i_opt].type,
-		  " xPix=",this.obstTL[i_opt].xPix,
-		  " yPix=",this.obstTL[i_opt].yPix,
-		  "");
+		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
+		  " xPix=",formd0(this.obstTL[i_opt].xPix),
+		  " yPix=",formd0(this.obstTL[i_opt].yPix),
+		  "\n\n");
     }
   }
  

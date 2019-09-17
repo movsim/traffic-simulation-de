@@ -52,7 +52,7 @@ they are specially drawn and externally influenced from the main program
 @param speedInit:       initial longitudinal speed [m/s]
 @param truckFrac:   initial truck fraction [0-1]
 @param isRing:          true if periodic BC, false if open BC
-@param doGridding (opt):  true: user can change road geometry !!! does not work
+@param doGridding (opt):  true: user can change road geometry !!! does not work?
                         in combination with using traj of other roads
                         (roundabout); sometimes also not wanted
 
@@ -63,10 +63,7 @@ NOTICE all vehicles are constructed w/o specific models
        so vehicles can be associated freely with models later on, e.g.
        to implement speed limits and other flow-cons bottlenecks
 
-NOTICE2 (MT-2019-09): !!! veh models still passed by reference. 
-Possibly individual models better? 
-First step: "deep-copy function" for implementing speed funnels: 
-longModel2=new ACC(); longModel2.copy(longModel1); longModel2.speedlimit=sl;
+NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 */
 
 var deepCopying=true;
@@ -109,7 +106,7 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
     this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
-    this.setTrucksAlwaysRight=true; //!!! relates to trucks at inflow
+    this.setTrucksAlwaysRight=true; //!! relates to trucks at inflow
     this.padding=20;    // this.mergeDiverge: visibility extension
                         // for origin drivers to target vehs
                         // both sides of actual merge/diverge zone
@@ -485,7 +482,7 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeSpeedlimits= function(umin,umax) {
-  console.log("\nin road.writeSpeedlimit(): roadID=",this.roadID,
+  console.log("\nin road.writeSpeedlimits(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" nLanes=",this.nLanes," itime=",itime);
 
@@ -499,11 +496,11 @@ road.prototype.writeSpeedlimits= function(umin,umax) {
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +" id="+this.veh[i].id
 		    +" type="+this.veh[i].type
-		    +" v0="+formd(this.veh[i].longModel.v0)
-		    +" IDM_a="+formd(this.veh[i].longModel.a)
-		    +" speedlimit="+formd(this.veh[i].longModel.speedlimit)
 		    +" u="+parseFloat(this.veh[i].u,10).toFixed(1)
+		    +" speedlimit_kmh="
+		    +formd0(3.6*this.veh[i].longModel.speedlimit)
 		    +" speed="+formd(this.veh[i].speed)
+		    +" v0="+formd(this.veh[i].longModel.v0)
 		    +" acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
 		    +"");
       }
@@ -902,10 +899,6 @@ road.prototype.pickTrafficLight_old=function(xUser, yUser){
 	    TLreturn=this.trafficLights[i];
 	}
     }
-    //if(success) this.removeTrafficLight(TLreturn.id);//!!!
-    if(false) this.removeTrafficLight(TLreturn.id);//!!!
-    //else console.log("road.pickTrafficLight: no TL found nearer than ",
-//		     distCrit);
     return [success,TLreturn];
 }
 
@@ -2907,6 +2900,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
 road.prototype.updateSpeedFunnel=function(speedfunnel){
 
+  console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
 
   // sort by decreasing u values (mixing of different roads OK since filtered)
 
@@ -2936,10 +2930,11 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
 	}
 	if(false){
-	  console.log("iveh=",iveh," u=",targetVeh.u,
-		    " speedlimit.u=",speedlimit.u,
-		    " isRegVeh=",targetVeh.isRegularVeh(),
-		      " speedlimit=",targetVeh.longModel.speedlimit);
+	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
+		      " speedlimit.u=",formd(speedlimit.u),
+		      " isRegVeh=",targetVeh.isRegularVeh(),
+		      " speedlimit_kmh=",
+		      formd0(3.6*targetVeh.longModel.speedlimit));
 	}
 
 	iveh++;
@@ -2952,6 +2947,8 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
   if(!success){
     //console.log(" no active limits");
   }
+
+  console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
 }
 
 
@@ -2987,8 +2984,11 @@ road.prototype.dropDepotObject=function(depotObj, u, v,
 
   // just drop at u corresp. to mouse position 
   // (road dynamics handles possible crashes silently)   
+  // NOTICE: since u always denotes the front pos, 
+  // shift is by 0.5*depotObj.len for conventionally drawn veh-like objects
+  // for a better graphical focus
 
-  var uDrop=u; 
+  var uDrop=(depotObj.id<100) ? u+0.5*depotObj.len : u; 
   depotObj.u=uDrop;
 
   // construct normal road vehicle/obstacle from depot object
@@ -3309,8 +3309,6 @@ road.prototype.updateBCup=function(Qin,dt,route){
 				space/longModelNew.T);
       var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
  
-      //!!! MT 2019-09: was commented out. Why?
-
       if(deepCopying){
         vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
       }
@@ -3341,7 +3339,6 @@ road.prototype.updateBCup=function(Qin,dt,route){
 		  }
 	}
       }
-     //if(this.route.length>0){console.log("new veh entered: route="+this.veh[this.veh.length-1].route);}//!!
     }
   }
 
@@ -3352,7 +3349,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 // returns targetVehicles, an array of all vehicles on the target lane 
 // inside the arclength range [umin, umax].
 // Also sets iTargetFirst, the first vehicle (smallest i) within range
-//!!! does not consider ring roads
+//!!! does not take care of specialities of ring roads
 // => set "stitch" of ring road far away from merges
 //######################################################################
 

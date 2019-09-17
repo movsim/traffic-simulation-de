@@ -458,11 +458,14 @@ function updateSim(){
   // (2a) timestep-triggered actions for speedfunnel
 
   // (timestep triggered since vehicles move in new speedlimit zones)
+  // NOTICE: also removing works since in every timestep 
+  // speedlimits are reset by above road.prototype.updateModelsOfAllVehicles
+
   // => (6) for event-triggered actions for speedfunnel 
-  // and obstacleTL objects
+  // and obstacleTL objects!!!
 
   mainroad.updateSpeedFunnel(speedfunnel);
-
+  ramp.updateSpeedFunnel(speedfunnel);
 
   // (2b) obstacleTL objects 
 
@@ -522,9 +525,6 @@ function updateSim(){
   // deciding whether background needs to be redrawn 
   // (the actual drawing of the speedfunnel and depot objects is, of course,
   // after the possible background drawing, see (5)
-
-
-  // => see onramp.js for the workings if depotVehicles involved
 
   if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
