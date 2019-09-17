@@ -123,7 +123,8 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 		    isActive: false,
 		    inDepot:  true,
 		    isPicked: false,
-		    road: 'undefined', // defined if isActive=true
+		    road: 'undefined', // defined in canvas_gui
+                                       // if isActive=true
 		    u: -1,          // physical long position [m] (only init,
 		                    // >=0 if isActive, <0 if !isActive)
 		    lane: -1,       // isActive: 0 to road.nLanes, !isActive: -1
@@ -200,17 +201,16 @@ ObstacleTLDepot.prototype.calcDepotPositions=function(canvas){
 
 
 /**
-@return draw into graphics context ctx (defined by canvas)
+@return draw into graphics context
 */
 
 
-ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
+ObstacleTLDepot.prototype.draw=function(){
 
   var active_drawTwoImgs=true; // if false, only one TL above road drawn
                              // (in any case, only one obstacle 
                              // on the dropped lane)
   var crossingLineWidth=1;   // stopping line of TL
-  ctx = canvas.getContext("2d");
   var wPixPassive=this.wPix;
   var hPixPassive=this.hPix;
   var wPixActive=this.active_scaleFact*wPixPassive;
@@ -219,6 +219,7 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
   for (var i=0; i<this.obstTL.length; i++){
  
 
+
     // draw active traffic lights //!!! filter road, NO LONGER pass as arg!!
     // ===========================
 
@@ -226,6 +227,7 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
 
       var TL=this.obstTL[i];
       TL.image=(TL.value==="red") ? this.imgRepo[0] : this.imgRepo[1];
+      var road=TL.road;
 
       // draw the stopping line 
 
@@ -291,7 +293,8 @@ ObstacleTLDepot.prototype.draw=function(canvas,road,scale){
     if((this.obstTL[i].isActive)&&(this.obstTL[i].type==="obstacle")){
       if(true){
         console.log("ObstacleDepot.draw:",
-		    "  active obstacles drawn by road.drawVehicle");
+		    "  active obstacles drawn by the drawVehicle method of",
+		    " road with ID", this.obstTL[i].road.roadID);
       }
     }
 

@@ -714,14 +714,15 @@ All drawing is controlled by the depotObjects (elements of the obstTL[])
 */
 
 road.prototype.addTrafficLight= function(depotObject) {
-    var trafficLight={id: depotObject.id,
-		      u: depotObject.u,
-		      value: depotObject.value, // "red" or "green"
-		     };
-    this.trafficLights.push(trafficLight);
-    this.changeTrafficLight(depotObject.id,depotObject.value);
-    console.log("road.addTrafficLight: added the traffic light",trafficLight,
-		" this.trafficLights.length=",this.trafficLights.length);
+  var trafficLight={id: depotObject.id,
+		    u: depotObject.u,
+		    value: depotObject.value, // "red" or "green"
+		   };
+  this.trafficLights.push(trafficLight);
+  this.changeTrafficLight(depotObject.id,depotObject.value);
+  console.log("road.addTrafficLight: roadID=",this.roadID,
+	      " added traffic light id=",depotObject.id,
+	      " at u=",formd(depotObject.u)," value=",depotObject.value);
 }
 
 
@@ -2907,19 +2908,19 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 road.prototype.updateSpeedFunnel=function(speedfunnel){
 
 
-  // sort by decreasing u values
+  // sort by decreasing u values (mixing of different roads OK since filtered)
 
   speedfunnel.speedl.sort(function(a,b){
 	    return a.u < b.u;
   })
 
-  // implement
+  // implement !!! check of removing limits leads to default limit
 
   var success=false;
   var iveh=0;
   for(var i=0; i<speedfunnel.speedl.length; i++){
     var speedlimit=speedfunnel.speedl[i];
-    if(speedlimit.isActive){
+    if((speedlimit.isActive) && (speedlimit.road.roadID==this.roadID)){
       success=true;
  
      if(false){

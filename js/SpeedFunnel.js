@@ -86,12 +86,12 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
     speedLimit=(speedInd>0) ? 10.*speedInd/3.6 : 200./3.6;
 
     //#################################################################
-    // central object this.speedl[i]
+    // central object this.speedl[i] 
     // speed limit effective: isActive=true, u>=0,inDepot=isPicked=false 
     // speed limit sign dragged: isPicked=true, isActive=false=inDepot=false
     // speed limit sign dropped on road => speed limit effective
     // speed limit sign dropped outside of road and not yet zoomed back =>
-    // isPicked=isActive=inDepot=false
+    // isPicked=isActive=inDepot=false  xxx
     //#################################################################
     
     this.speedl[i]={speedIndex: speedInd,
@@ -100,6 +100,8 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 		    isActive: false, 
 		    inDepot: true, 
 		    isPicked: false,
+		    road: 'undefined', // defined in canvas_gui
+                                       // if isActive=true
 		    u: -1, // physical long position [m] (only init,
 		           // >=0 if isActive, <0 if !isActive)
 		    xPix: 42, // pixel position of center (only init)
@@ -175,11 +177,10 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 */
 
 
-SpeedFunnel.prototype.draw=function(canvas,road,scale){
+SpeedFunnel.prototype.draw=function(){
 
   var active_drawTwoImgs=true; // if false, only sign above road drawn
   var crossingLineWidth=1; // line to indicate begin of speedlimit region [m]
-  ctx = canvas.getContext("2d");
   var wPixPassive=this.wPix;
   var hPixPassive=this.hPix;
   var wPixActive=this.active_scaleFact*wPixPassive;
@@ -192,6 +193,8 @@ SpeedFunnel.prototype.draw=function(canvas,road,scale){
     // draw active objects (two signs+line on road)
     
     if(SL.isActive){
+
+      var road=SL.road;
 
       // the marker line between active sign(s)
 
