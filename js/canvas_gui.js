@@ -274,7 +274,7 @@ function pickRoadOrObject(xUser,yUser){
   */
 
 
-  if(true){
+  if(false){
     console.log("\handleMouseDown/handleTouchStart: entering pickRoadOrObject");
     console.log(" xUser=",formd(xUser)," yUser=",formd(yUser),
 		" xPixUser=",formd0(xPixUser)," yPixUser=",formd(yPixUser));
@@ -326,11 +326,11 @@ function pickRoadOrObject(xUser,yUser){
       depotObjPicked=false;
       funnelObjPicked=true;
       roadPicked=false;
-      console.log("pickRoadOrObject (2): picked a SpeedFunnel object,",
-	  	"  speed limit_kmh=",formd(3.6*pickResults[1].value));
+      //console.log("pickRoadOrObject (2): picked a SpeedFunnel object,",
+//	  	"  speed limit_kmh=",formd(3.6*pickResults[1].value));
       return;
     }
-    else console.log("pickRoadOrObject (2): no speedfunnel object found");
+    //else console.log("pickRoadOrObject (2): no speedfunnel object found");
   }
 
 
@@ -544,17 +544,17 @@ function finishDistortOrDropObject(xUser, yUser){
 
       if(depotObjPicked && (depotObject.type==='trafficLight')){
 	roadOld.removeTrafficLight(depotObject.id);
-	console.log(" (2a) removed traffic light on road",roadOld.roadID);
+	//console.log(" (2a) removed traffic light on road",roadOld.roadID);
       }
 
       else if(depotObjPicked && (depotObject.type==='obstacle')){
 	roadOld.removeObstacle(depotObject.id);
-	console.log(" (2a) removed obstacle on road", roadOld.roadID);
+	//console.log(" (2a) removed obstacle on road", roadOld.roadID);
       }
       else if(funnelObjPicked){ 
         // no roadOld.updateSpeedFunnel needed
-        console.log(" (2a) removed one speedlimit/updated funnel on road",
-		    roadOld.roadID);
+        //console.log(" (2a) removed one speedlimit/updated funnel on road",
+	//	    roadOld.roadID);
       }
     }
 
@@ -565,7 +565,7 @@ function finishDistortOrDropObject(xUser, yUser){
 
 
 
-    if(true){
+    if(false){
     
       console.log("finishDistortOrDropObject (2b): nearest roadID=",
 		  roadNearest.roadID,
@@ -606,7 +606,7 @@ function finishDistortOrDropObject(xUser, yUser){
       funnelObject.u=-1;
       funnelObject.inDepot=false;   // speedfunnel.zoomBack() called in 
       funnelObject.isPicked=false; // drawSim method in eachtimestep
-      console.log("finishDistortOrDropObject (2b.2): drop funnelObject failed"); 
+      //console.log("finishDistortOrDropObject (2b.2): drop funnelObject failed"); 
     }
 
 
@@ -684,7 +684,7 @@ function finishDistortOrDropObject(xUser, yUser){
 
 function handleClick(event){
   getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
-  if(true){
+  if(false){
     console.log("in handleClick(event): xPixUser=",xPixUser,
 		" yPixUser=",yPixUser, " xUser=",xUser," yUser=",yUser);
   }
@@ -693,7 +693,7 @@ function handleClick(event){
 
 
 function influenceClickedVehOrTL(xUser,yUser){
-  console.log("onclick: in influenceClickedVehOrTL");
+  //console.log("onclick: in influenceClickedVehOrTL");
 
   if(distDrag<distDragCrit){ // only do actions if click, no drag
 

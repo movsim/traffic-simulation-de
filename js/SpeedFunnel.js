@@ -117,7 +117,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
   // logging
 
 
-  if(true){
+  if(false){
     for(var i=0; i<this.n; i++){
       console.log("SpeedFunnel cstr: i=",i,
 		  " speedIndex=",this.speedl[i].speedIndex,
@@ -135,7 +135,7 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
 
 //######################################################################
-// set/reset speedfunnel object onto a road
+// programmatically set/reset speedfunnel object onto a road
 //######################################################################
 
 /**
@@ -168,10 +168,12 @@ SpeedFunnel.prototype.activateLimit=function(i, targetRoad, u){
   funnelObject.isDragged=false;
   funnelObject.xPix=targetRoad.get_xPix(u,0,scale); // scale global var
   funnelObject.yPix=targetRoad.get_yPix(u,0,scale); 
-  console.log("programmatically set speedlimit ",
+  if(false){
+    console.log("programmatically set speedlimit ",
 	      formd0(3.6*funnelObject.value),
 	      " km/h onto road ",funnelObject.road.roadID,
 	      " at position u=",funnelObject.u);
+  }
 }
 
 
@@ -365,7 +367,7 @@ SpeedFunnel.prototype.pickObject=function(xPixUser,yPixUser,distCrit){
     }
   }
 
-  if(true){
+  if(false){
     var msg=(success)
       ? "successfully picked speedlimit "+formd(3.6*speedlReturn.value)
       : "no sign picked";

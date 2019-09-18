@@ -447,7 +447,7 @@ else{
 
 // ramp flow slider
 
-var qOn=0.9/3.6; //total onramp flow of onramp scenario
+var qOn=900/3600.; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
 if(document.getElementById("slider_qOn")===null) 
     console.log("no qOn slider");

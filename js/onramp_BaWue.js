@@ -48,22 +48,116 @@ MOBIL_bSafe=5;
 MOBIL_bSafeMax=17;
 
 //#############################################################
-// initialize sliders (qIn etc defined in control_gui.js)
+// initialize sliders differently from standard
+//  (qIn etc defined in control_gui.js)
 //#############################################################
 
-density=0.005; // 0.02
+density=0.02; // 0.02
 
 IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-qIn=1000./3600; // inflow 4400./3600; 
+
+qIn=4400/3600.; // inflow 4400./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 
 truckFrac=0.10;
 slider_truckFrac.value=100*truckFrac;
 slider_truckFracVal.innerHTML=100*truckFrac+"%";
+
+qIn=4400/3600.; // inflow 4400./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
+
+qOn=1000/3600.; //total onramp flow of onramp scenario
+slider_qOn.value=3600*qOn;
+slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
+
+//#############################################################
+// programmatic traffic light control
+//#############################################################
+
+// switches the active traffic-light object TL (element of depot.obstTL[])
+// as a function of time.
+
+// (1) upstream switching. Should represent the cycle time of the secondary
+// network from which this ramp is fed. qOn is the average ramp demand
+
+var isGreenOld1=false; //quick hack for propagating to vehs !!!
+
+
+function switchingSchemeTLup(TL,qOn,time){
+  //if(!((TL.type==='trafficLight')&&(TL.isActive))){ //!!! quick hack comm out
+  //  console.log("error: can only switch active traffic light objects");
+  //  return;
+  //}
+  var qmax=IDM_v0/(IDM_v0*IDM_T+car_length);  // upper limit, only cars 
+
+  var cycleTime=120;      // small ramp meter cycle time
+
+  var fracGreen=Math.min(qOn/qmax, 1.); // single-lane onramp
+  var nCycle=Math.floor(time/cycleTime);
+  var fracCycle=time/cycleTime-nCycle;
+  var isGreen=(fracCycle<fracGreen);
+
+  // do the action
+
+  TL.value=(isGreen) ? "green" : "red";
+  if(isGreen!=isGreenOld2){ //quick hack!!
+    if(TL.isActive){TL.road.changeTrafficLight(TL.id,TL.value);}
+    isGreenOld1=isGreen;
+  }
+
+  // debug output
+
+  if(false){
+    console.log("switchingSchemeTLup: time=",time,
+		" fracGreen=",fracGreen," nCycle=",nCycle,
+		" fracCycle=",fracCycle," isGreen=",isGreen);
+  }
+
+}
+
+// (2) ramp metering (nearly identical to above but that may change)
+
+var isGreenOld2=false; //quick hack for propagating to vehs !!!
+
+function switchingSchemeTLmeter(TL,qOn,time){
+
+  //if(!((TL.type==='trafficLight')&&(TL.isActive))){
+  //  console.log("error: can only switch active traffic light objects");
+  //  return;
+  //}
+
+  var qmax=IDM_v0/(IDM_v0*IDM_T+car_length);  // upper limit, only cars 
+
+  var cycleTime=8;      // small ramp meter cycle time
+
+  //var fracGreen=Math.min(qOn/qmax, 1.); // single-lane onramp
+  var fracGreen=0.5; //!!!
+  var nCycle=Math.floor(time/cycleTime);
+  var fracCycle=time/cycleTime-nCycle;
+  var isGreen=(fracCycle<fracGreen);
+
+  // do the action
+
+  TL.value=(isGreen) ? "green" : "red";
+  if(isGreen!=isGreenOld2){ //quick hack!!
+    if(TL.isActive){TL.road.changeTrafficLight(TL.id,TL.value);}
+    isGreenOld2=isGreen;
+  }
+
+  // debug output
+
+  if(false){
+    console.log("switchingSchemeTLmeter: time=",time,
+		" fracGreen=",fracGreen," nCycle=",nCycle,
+		" fracCycle=",fracCycle," isGreen=",isGreen);
+  }
+}
+
 
 
 /*######################################################
@@ -311,6 +405,7 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
 		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
 
+updateRampGeometry(); //!! needed since ramp geometry depends on mainroad
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
@@ -323,9 +418,9 @@ ramp.veh.unshift(virtualStandingVeh);
 
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,10);
+mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
+mainDetectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,10);
 
 
 //#########################################################
@@ -418,8 +513,8 @@ rampImg=roadImgs1[nLanes_rmp-1];
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
 var depot=  new ObstacleTLDepot(canvas,1,4,0.30,0.70,2,obstacleImgNames);
 
-
-
+//depot.activateTrafficLight(0,ramp,100); // !!! change from index to id
+depot.activateTrafficLight(1,ramp,rampLen-mergeLen-20);
 
 //############################################
 // run-time specification and functions
@@ -455,7 +550,7 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  // (2a) timestep-triggered actions for speedfunnel
+  // (2a) timestep-triggered actions for speedfunnel 
 
   // (timestep triggered since vehicles move in new speedlimit zones)
   // NOTICE: also removing speedlimits works since in every timestep 
@@ -466,7 +561,18 @@ function updateSim(){
   mainroad.updateSpeedFunnel(speedfunnel);
   ramp.updateSpeedFunnel(speedfunnel);
 
-  // (2b) obstacleTL objects 
+  // (2b) timestep-triggered actions for trafficLight depot objects 
+  // need to activateTrafficLight(0,...) or (1,...) first
+
+  //switchingSchemeTLup(depot.obstTL[0],qOn,time);  // secondary network
+  switchingSchemeTLmeter(depot.obstTL[1],qOn,time); // ramp meter
+
+
+  qOnMax=1700./3600.;
+  cycleTime=200;
+  qOn=qOnMax/2*(1+Math.sin(2*Math.PI*time/cycleTime));
+  slider_qOn.value=3600*qOn;
+  slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
 
   // obstacleTL have no timestep-triggered action here  
   // -> canvas_gui.js -> (6) mainroad.dropDepotObject, ramp.dropDepotObject 
@@ -539,21 +645,22 @@ function updateSim(){
 // to console for external use
 
     //if((itime>=125)&&(itime<=128)){
-    if(false){
+  if(false){
 	console.log("updateSim: Simulation time=",time,
 		    " itime=",itime);
 	console.log("\nmainroad vehicles:");
 	mainroad.writeVehiclesSimple();
 	//console.log("\nonramp vehicles:");
 	ramp.writeVehiclesSimple();
-    }
-  if(true){
-    onlyTL=false;
+  }
+
+  if(false){
+    onlyTL=true;
     console.log("time=",time);
+    //mainroad.writeDepotVehObjects(); // the road's vehicle-type obstacles
+    //ramp.writeDepotVehObjects(); 
     mainroad.writeTrafficLights(); // the road's operational TL objects
     ramp.writeTrafficLights(); 
-    mainroad.writeDepotVehObjects(); // the road's vehicle-type obstacles
-    ramp.writeDepotVehObjects(); 
     depot.writeObjects(onlyTL);    //the depots general TL objects
   }
 

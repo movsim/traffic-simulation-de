@@ -118,7 +118,7 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 
     this.obstTL[i]={id:       ID,
 		    image:    this.imgRepo[imgInd],
-		    value:    (i<this.nTL) ? "red" : "n.a.",
+		    value:    (i<this.nTL) ? "red" : "n.a.", // "green"
 		    type:     (i<this.nTL) ? "trafficLight" : "obstacle",
 		    isActive: false,
 		    inDepot:  true,
@@ -573,6 +573,52 @@ ObstacleTLDepot.prototype.writeObjects=function(onlyTL){
 		  " isPicked=",obj.isPicked
 		 );
     }
+  }
+}
+
+//######################################################################
+// programmatically place/shift a traffic light onto a road
+//######################################################################
+
+/**
+@param i: obstTL object to be activated = obstTL[i] (at time of calling)
+@param targetRoad: road onto which the speed limit is positioned
+@param u: longitudinal logical coordinate of this road
+
+@return put the obstTL object onto road targetRoad at position u
+
+
+*/
+
+ObstacleTLDepot.prototype.activateTrafficLight=function(i, targetRoad, u){
+  if (i>=this.obstTL.length){
+    console.log("error: cannot position an obstTLimit object with index",
+		i," greater than the length ",this.obstTL.length,
+		" of the obstTL[] array");
+    return;
+  }
+  var TL=this.obstTL[i];
+  if(!(TL.type==='trafficLight')){
+    console.log("error: can only activate a depot object of type trafficLight");
+    return;
+  }
+  TL.isActive=true;
+  TL.road=targetRoad;
+  TL.u=u;
+  TL.inDepot=false;; 
+  TL.isPicked=false;
+  TL.isDragged=false;
+  TL.xPix=targetRoad.get_xPix(u,0,scale); // scale global var
+  TL.yPix=targetRoad.get_yPix(u,0,scale); 
+
+  // propagate effect to vehicles: dropDepotObject(TL,u,v,img_red,img_green)
+
+  targetRoad.dropDepotObject(TL,u,0,traffLightRedImg,traffLightGreenImg);
+
+  if(true){
+    console.log("programmatically set the traffic light ",i,
+		" value ",TL.value," onto road ",TL.road.roadID,
+	      " at position u=",TL.u);
   }
 }
 

@@ -422,7 +422,7 @@ function updateSim(){
 
 // (7) some debugging writeout
 
-  speedfunnel.write();
+  //speedfunnel.write();
   
 }//updateSim
 

@@ -742,7 +742,7 @@ road.prototype.changeTrafficLight=function(id,value){
 
   // change state of one of the road's trafficLights objects selected by id
 
-  console.log("in road.changeTrafficLight: id=",id," value=",value);
+  //console.log("in road.changeTrafficLight: id=",id," value=",value);
 
   var success=false;
   var pickedTL;
