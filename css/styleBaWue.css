@@ -258,7 +258,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top: 41vmin;
   height: 31vmin;
-  left: 80vmin;
+  left: 68vmin;
   width: 55vmin;
   background-color: rgba(255,255,255,0.5);
   z-index: 1; /* the higher the integer, the more on top */

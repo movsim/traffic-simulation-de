@@ -652,6 +652,10 @@ function finishDistortOrDropObject(xUser, yUser){
       funnelObject.xPix=xPixUser; 
       funnelObject.yPix=yPixUser;
 
+      // NOTICE: no action needed for the speedlimits since, in every timestep, 
+      // the models are reset for all road vehicles and 
+      // then road.updateSpeedFunnel(speedfunnel) is called for all roads
+
       //roadNearest.updateSpeedFunnel(speedfunnel);
       //roadNearest.writeSpeedlimits();
 

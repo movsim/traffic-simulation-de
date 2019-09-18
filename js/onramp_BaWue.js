@@ -135,8 +135,8 @@ var mainroadLen=1000; //!!
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.47;
-var center_yRel=-0.48;
-var arcRadiusRel=0.34;
+var center_yRel=-0.505;
+var arcRadiusRel=0.36;
 var rampLenRel=1.60;
 
 
@@ -416,7 +416,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 //console.log("obstacleImgNames=",obstacleImgNames);
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
-var depot=  new ObstacleTLDepot(canvas,1,5,0.30,0.70,2,obstacleImgNames);
+var depot=  new ObstacleTLDepot(canvas,1,4,0.30,0.70,2,obstacleImgNames);
 
 
 

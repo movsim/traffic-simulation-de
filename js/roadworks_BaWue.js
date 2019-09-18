@@ -106,8 +106,8 @@ var mainroadLen=1000; //!!
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43; // manipulae relative viewport by traj_x
-var center_yRel=-0.56;
-var arcRadiusRel=0.41;
+var center_yRel=-0.55;
+var arcRadiusRel=0.405;
 
 
 
@@ -323,15 +323,9 @@ var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
 //var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
 
 // initialize active speed limit for good performance of the speed funnel
-speedfunnel.speedl[1].isActive=true;
-speedfunnel.speedl[1].inDepot=false;
-speedfunnel.speedl[1].isDragged=false;
-speedfunnel.speedl[1].u=30;
-speedfunnel.speedl[1].xPix=mainroad.get_xPix(speedfunnel.speedl[1].u,0,scale);
-speedfunnel.speedl[1].yPix=mainroad.get_yPix(speedfunnel.speedl[1].u,0,scale);
 
-console.log("speedfunnel.speedl[1]=",speedfunnel.speedl[1]);
-console.log("speedfunnel.speedl[0]=",speedfunnel.speedl[0]);
+speedfunnel.activateLimit(1, mainroad, 30); // index, road, u
+
 
 //############################################
 // run-time specification and functions
@@ -425,6 +419,10 @@ function updateSim(){
     speedfunnel.zoomBack();
   }
 
+
+// (7) some debugging writeout
+
+  speedfunnel.write();
   
 }//updateSim
 
@@ -516,7 +514,7 @@ function drawSim() {
   //if(userCanDropObstaclesAndTL&&(!isSmartphone)){
   //  depot.draw(canvas,mainroad,scale);
   //}
-  speedfunnel.draw(canvas,mainroad,scale);
+  speedfunnel.draw();
 
   //console.log("speedfunnel.speedl[1]=",speedfunnel.speedl[1]);
   //console.log("speedfunnel.speedl[0]=",speedfunnel.speedl[0]);

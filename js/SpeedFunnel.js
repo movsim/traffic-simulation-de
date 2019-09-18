@@ -134,7 +134,63 @@ function SpeedFunnel(canvas,nRow,nCol,xRelDepot,yRelDepot){
 
 
 
+//######################################################################
+// set/reset speedfunnel object onto a road
+//######################################################################
 
+/**
+@param i: speedlimit object to be activated = speedl[i] (at time of calling)
+@param targetRoad: road onto which the speed limit is positioned
+@param u: longitudinal logical coordinate of this road
+
+@return put the speedlimit object onto road targetRoad at position u
+
+NOTICE: no action needed for the propagation 
+to the vehicle's speedlimits  since, in every timestep, 
+the models should be reset for all road vehicles and 
+then road.updateSpeedFunnel(speedfunnel) should be called for all roads
+
+*/
+
+SpeedFunnel.prototype.activateLimit=function(i, targetRoad, u){
+  if (i>=this.speedl.length){
+    console.log("error: cannot position a speedlimit object with index",
+		i," greater than the length ",this.speedl.length,
+		" of the speedl[] array");
+    return;
+  }
+  var funnelObject=this.speedl[i];
+  funnelObject.isActive=true;
+  funnelObject.road=targetRoad;
+  funnelObject.u=u;
+  funnelObject.inDepot=false;; 
+  funnelObject.isPicked=false;
+  funnelObject.isDragged=false;
+  funnelObject.xPix=targetRoad.get_xPix(u,0,scale); // scale global var
+  funnelObject.yPix=targetRoad.get_yPix(u,0,scale); 
+  console.log("programmatically set speedlimit ",
+	      formd0(3.6*funnelObject.value),
+	      " km/h onto road ",funnelObject.road.roadID,
+	      " at position u=",funnelObject.u);
+}
+
+
+
+//######################################################################
+// write out all relevant speedfunnel object properties
+//######################################################################
+
+SpeedFunnel.prototype.write=function(){
+  for (var i=0; i<this.speedl.length; i++){
+    var funnelObject=this.speedl[i];
+    console.log("i=",i," value_kmh=",formd0(3.6*funnelObject.value),
+		" isActive=",funnelObject.isActive,
+		" road ID=",funnelObject.road.roadID,
+		" xPix=", formd0(funnelObject.xPix),
+		" yPix=", formd0(funnelObject.yPix)
+	       );
+  }
+}
 
 //######################################################################
 // calculate depot positions (call at init and after each resize)
@@ -173,7 +229,7 @@ SpeedFunnel.prototype.calcDepotPositions=function(canvas){
 
 
 /**
-@return draw into graphics context ctx (defined by canvas)
+@return draw into graphics context 
 */
 
 
