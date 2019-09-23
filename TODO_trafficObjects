@@ -1,0 +1,56 @@
+class: 
+TrafficObjects unifies ObstacleTLDepot.js and SpeedFunnel.js
+
+Main data element: 
+an array traffObj[].  Each traffObj[i] has elements as in ObstacleTLDepot.js
+* id: unique ID
+* type: one of "speedLimit", "trafficLight", "obstacle"
+  there are nObj=nObst+nTL+nSpeedl objects
+* isActive: if dropped onto a road (otherwise, it is in the depot or
+  dragged or zooming back)
+* value: speedlimit_ms, "red"/"green", or "n.a." (if obstacle) 
+* road (reference if active, null otherwise)
+
+Main methods:
+
+(0) constructor defining nObst+nTL+nSpeedl
+
+(1) graphical operations such as drag, zoomBack
+
+(2a) selectByUser(xPixUser, yPixUser) 
+
+(2b) selectById(id)
+
+[(2c) selectByRoadCoords(road,u,v)]
+
+(3) pickObject(xPixUser, yPixUser) 
+uses selectByUser; if in depot, just change internal state, if from
+road, additionally 
+deactivate its traffic effects and change graphics from road to
+depot appearance (set isActive to false)
+
+(4) dropObject(id, xPixUser, yPixUser, network)
+determines nearest road from network 
+drops on associated coords u,v +activate its traffic effects + graph
+appearance + set object's road reference if nearer to road axis than limit,
+otherwise activate zoomBack
+
+(5a) activateObject(id, road)
+calls appropriate road.activateTrafficLight, road.activateSpeedLimit,
+road.putObstacle according to the type and the value (creates special vehicle
+objects and/or propagate parameters to the vehicle models).
+The road is
+known from the dropObject method which calls this method, or from a
+programmatic activation during the initialization
+
+(5b) updateObject(id, road) calls of road.x similar to activateObject
+is called by changeValue (id,newValue)
+
+(5c) deactivateObject(id) 
+calls appropriate road.deactivate* routines if object id is active
+(then, it knows "his" road)
+
+(6) changeValue(id,newValue)
+If this object isActive, updateObject is called. In any case, the
+value  (and the graph appearance) is changed. Typically the reaction
+to onclick
