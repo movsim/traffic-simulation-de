@@ -191,7 +191,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=1.0; // open system: need tolerance, otherwise
+var fracTruckToleratedMismatch=1.0; // open system: need tolerance, otherwise
                       // sudden changes with new incoming/outgoing vehicles
 
 var speedInit=20; // IC for speed
@@ -200,11 +200,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)
@@ -341,12 +341,12 @@ function updateSim(){
     // transfer effects from slider interaction 
     // and changed mandatory states to the vehicles and models 
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);

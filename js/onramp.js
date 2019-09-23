@@ -29,9 +29,9 @@ var nLanes_main=3;
 var nLanes_rmp=1;
 
 /*
-truckFrac=0.4; 
-slider_truckFrac.value=100*truckFrac;
-slider_truckFrac.innerHTML=100*truckFrac+"%";
+fracTruck=0.4; 
+slider_fracTruck.value=100*fracTruck;
+slider_fracTruck.innerHTML=100*fracTruck+"%";
 
 timewarp=2;
 slider_timewarp.value=timewarp;
@@ -221,7 +221,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
@@ -229,11 +229,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)
@@ -367,12 +367,12 @@ function updateSim(){
     itime++;
     isSmartphone=mqSmartphone();
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);

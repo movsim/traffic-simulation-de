@@ -32,8 +32,8 @@ nLanesMax=4;
 
 
 IDM_T=1.4;
-IDM_a=0.7;
-IDM_b=2.0; // low for more anticipation
+IDM_a=1;
+IDM_b=2.5; // low for more anticipation
 IDM_s0=2;
 speedL=1000/3.6; 
 speedL_truck=80/3.6;
@@ -52,7 +52,7 @@ MOBIL_bSafeMax=17;
 //  (qIn etc defined in control_gui.js)
 //#############################################################
 
-density=0.02; // 0.02
+density=0.02; // density per lane (0.02)
 
 IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
@@ -63,17 +63,29 @@ qIn=4400/3600.; // inflow 4400./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 
-truckFrac=0.10;
-slider_truckFrac.value=100*truckFrac;
-slider_truckFracVal.innerHTML=100*truckFrac+"%";
+fracTruck=0.06;
+slider_fracTruck.value=100*fracTruck;
+slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
-qIn=4400/3600.; // inflow 4400./3600; 
+qIn=4800/3600.; // inflow 4400./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 
 qOn=1000/3600.; //total onramp flow of onramp scenario
-slider_qOn.value=3600*qOn;
-slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
+if(!(typeof uOffset === 'undefined')){
+  slider_qOn.value=3600*qOn;
+  slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
+}
+
+function externalOnrampDemand(time){
+  qOnMax=1800./3600.;
+  cycleTime=120;
+  if(!(typeof uOffset === 'undefined')){
+    slider_qOn.value=3600*qOn;
+    slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
+  }
+  return qOnMax*Math.pow(Math.sin(1*Math.PI*time/cycleTime), 4);
+}
 
 //#############################################################
 // programmatic traffic light control
@@ -231,7 +243,7 @@ var mainroadLen=1000; //!!
 var center_xRel=0.47;
 var center_yRel=-0.505;
 var arcRadiusRel=0.36;
-var rampLenRel=1.60;
+var rampLenRel=1.80;
 
 
 // constant  refSizePhys calculated by requirement fixed mainroadLen!!
@@ -269,8 +281,8 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
   straightLen=refSizePhys*critAspectRatio-center_xPhys;
  
   rampLen=rampLenRel*refSizePhys; 
-  mergeLen=0.3*rampLen;
-  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.5*straightLen;
+  mergeLen=0.4*rampLen;
+  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen+0.4*straightLen;
   taperLen=50;
   rampRadius=4*arcRadius;
   console.log("calculated mainroadLen=",arcLen+2*straightLen);
@@ -391,7 +403,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
@@ -399,11 +411,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*density, speedInit, truckFrac, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 updateRampGeometry(); //!! needed since ramp geometry depends on mainroad
 
@@ -540,12 +552,12 @@ function updateSim(){
 
   updateRampGeometry();
 
-  mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+  ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
@@ -567,12 +579,7 @@ function updateSim(){
   //switchingSchemeTLup(depot.obstTL[0],qOn,time);  // secondary network
   switchingSchemeTLmeter(depot.obstTL[1],qOn,time); // ramp meter
 
-
-  qOnMax=1700./3600.;
-  cycleTime=200;
-  qOn=qOnMax/2*(1+Math.sin(2*Math.PI*time/cycleTime));
-  slider_qOn.value=3600*qOn;
-  slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
+  qOn=externalOnrampDemand(time);
 
   // obstacleTL have no timestep-triggered action here  
   // -> canvas_gui.js -> (6) mainroad.dropDepotObject, ramp.dropDepotObject 

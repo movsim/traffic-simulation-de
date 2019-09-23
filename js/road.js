@@ -50,7 +50,7 @@ they are specially drawn and externally influenced from the main program
 @param traj_y:          function arc length u -> phys y coordinate (North)
 @param densInitPerLane: initial linear density [veh/m/lane]
 @param speedInit:       initial longitudinal speed [m/s]
-@param truckFrac:   initial truck fraction [0-1]
+@param fracTruck:   initial truck fraction [0-1]
 @param isRing:          true if periodic BC, false if open BC
 @param doGridding (opt):  true: user can change road geometry !!! does not work?
                         in combination with using traj of other roads
@@ -69,7 +69,7 @@ NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 var deepCopying=true;
 
 function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
-	      densInitPerLane,speedInit,truckFrac,isRing,doGridding){
+	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
 
 
@@ -78,7 +78,6 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.roadLen=roadLen;
     this.laneWidth=laneWidth;
     this.nLanes=nLanes;
-    var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
     // network related properties
 
@@ -101,40 +100,43 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
     // tactical and LC related global aspects
 
-    this.waitTime=4;   // waiting time after passive LC to do an active LC
+  this.waitTime=4;   // waiting time after passive LC to do an active LC
                        //similar value as default vehicle.dt_LC at cstr
-    this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
+  this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
-    this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
-    this.setTrucksAlwaysRight=true; //!! relates to trucks at inflow
-    this.padding=20;    // this.mergeDiverge: visibility extension
+  this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
+  this.setTrucksAlwaysRight=true; //!! relates to trucks at inflow
+  this.padding=20;    // this.mergeDiverge: visibility extension
                         // for origin drivers to target vehs
                         // both sides of actual merge/diverge zone
 
-    this.paddingLTC=20; // this.mergeDiverge if merge && prioOwn: visibility  
+  this.paddingLTC=20; // this.mergeDiverge if merge && prioOwn: visibility  
                         // extension for target drivers to origin vehs
                         // only upstream of merging zone
 
     // drawing-related vatiables
 
-    this.draw_scaleOld=0;
-    this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
-    this.draw_curvMax=0.05; // maximum assmued curvature !!
-    this.markVehsMerge=false; // for debugging
-    this.drawVehIDs=false;// for debugging
+  this.draw_scaleOld=0;
+  this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
+  this.draw_curvMax=0.05; // maximum assmued curvature !!
+  this.markVehsMerge=false; // for debugging
+  this.drawVehIDs=false;// for debugging
 
-    this.draw_x=[];  // arrays defined in the draw(..) method
-    this.draw_y=[];
-    this.draw_phi=[];
-    this.draw_cosphi=[];
-    this.draw_sinphi=[];
+  this.draw_x=[];  // arrays defined in the draw(..) method
+  this.draw_y=[];
+  this.draw_phi=[];
+  this.draw_cosphi=[];
+  this.draw_sinphi=[];
 
     // construct vehicle array
     // u=long logical coordinate; i=0: first vehicle=maximum u
     // =(n-1)/n*roadLen
     // lane or v is transversal coordinate
 
-    this.veh=[];
+  this.veh=[];
+  this.initRegularVehicles(densInitPerLane,fracTruck);
+/*
+    var nveh=Math.floor(this.nLanes*this.roadLen*densInitPerLane);
 
     for(var i=0; i<nveh; i++){
 
@@ -142,11 +144,11 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
 	var u=(nveh-i-1)*this.roadLen/(nveh); //!!(nveh+1)
 	var lane=i%this.nLanes; // left: 0; right: nLanes-1
-	var truckFracRight=Math.min(this.nLanes*truckFrac,1);
-	var truckFracRest=(this.nLanes*truckFrac>1)
-	    ? ((this.nLanes*truckFrac-1)/(this.nLanes-1)) : 0;
-	var truckFrac=(lane===this.nLanes-1) ? truckFracRight : truckFracRest;
-	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
+	var fracTruckRight=Math.min(this.nLanes*fracTruck,1);
+	var fracTruckRest=(this.nLanes*fracTruck>1)
+	    ? ((this.nLanes*fracTruck-1)/(this.nLanes-1)) : 0;
+	var fracTruck=(lane===this.nLanes-1) ? fracTruckRight : fracTruckRest;
+	var vehType=(Math.random()<fracTruck) ? "truck" : "car";
 	var vehLength=(vehType === "car") ? car_length:truck_length;
 	var vehWidth=(vehType === "car") ? car_width:truck_width;
 
@@ -155,16 +157,15 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 	this.veh[i]=new vehicle(vehLength, vehWidth,u,lane, 
 				0.8*speedInit,vehType); // IC
 
-
-
     }
+*/
 
     // formally define ego vehicle for external reference
     // if applicable, it will be attributed to one element of this.veh, 
     // in this.updateEgoVeh(externalEgoVeh), later on.
 
 
-    this.egoVeh=new vehicle(0,0,0,0,0,"car");
+  this.egoVeh=new vehicle(0,0,0,0,0,"car");
 
     //########################################################
     // (jun17) transform functions traj_x, traj_y into tables 
@@ -177,19 +178,20 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     // but does not produce any errors!
     //########################################################
 
-    this.traj_x=traj_x; // will be redefined if doGridding
-    this.traj_y=traj_y;
+  this.traj_x=traj_x; // will be redefined if doGridding
+  this.traj_y=traj_y;
 
-    this.xtab=[];
-    this.ytab=[];
-    this.xtabOld=[]; // tables before begin of user-change action
-    this.ytabOld=[];
+  this.xtab=[];
+  this.ytab=[];
+  this.xtabOld=[]; // tables before begin of user-change action
+  this.ytabOld=[];
 
     //initializes tables tab_x, tab_y, 
     // defines this.traj_x, this.traj_y = basis of this.get_phi 
     //  and then re-samples them (the error by resampling is OK 
     // since initialization with smooth curves)
-    if(this.doGridding){
+
+  if(this.doGridding){
 
         this.gridTrajectories(traj_x,traj_y); 
         this.update_nSegm_tabxy();
@@ -215,10 +217,65 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
         this.kernel=[];
         this.createKernel();
-    }
+  }
     // end transform functions kin road.cstr
 
 } // cstr
+
+//######################################################################
+// initialize road with prescribed density per lane and truck fraction
+// all special vehicles (obstacles, traffic lights...) are retained, if
+// they exist
+//######################################################################
+
+road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
+
+  var nvehPlus=Math.floor(this.nLanes*this.roadLen*densityPerLane);
+  var nVehOld=this.veh.length;
+  var vehPlus=[];
+  var iveh=0;
+  for(var i=0; i<nvehPlus; i++){
+
+        // position trucks mainly on the right lane nLanes-1
+
+    var u=(nvehPlus-i-1)*this.roadLen/(nvehPlus); //!!(nvehPlus+1)
+    var lane=i%this.nLanes; // left: 0; right: nLanes-1
+    var fracTruckRight=Math.min(this.nLanes*fracTruck,1);
+    var fracTruckRest=(this.nLanes*fracTruck>1)
+      ? ((this.nLanes*fracTruck-1)/(this.nLanes-1)) : 0;
+    var fracTruck=(lane===this.nLanes-1) ? fracTruckRight : fracTruckRest;
+    var vehType=(Math.random()<fracTruck) ? "truck" : "car";
+    var vehLength=(vehType === "car") ? car_length:truck_length;
+    var vehWidth=(vehType === "car") ? car_width:truck_width;
+
+    var leaderInfo=this.findLeaderAtLane(u,lane);     // accesses this.veh
+    var followerInfo=this.findFollowerAtLane(u,lane); // accesses this.veh
+    var leader=(leaderInfo[0]) ? this.veh[leaderInfo[1]] : null;
+    var follower=(followerInfo[0]) ? this.veh[followerInfo[1]] : null;
+    var sLead=(leaderInfo[0]) ? leader.u-leader.length-u : 1000;
+    var sFollow=(followerInfo[0]) ? u-vehLength-follower.u : 1000;
+
+    // actually construct vehicles (this also defined id)
+    // do not place new vehicles within obstacles, traffic lights etc
+
+    if((sLead>2)&&(sFollow>2)){ 
+      vehPlus[iveh]=new vehicle(vehLength, vehWidth,u,lane,
+			    0.8*speedInit,vehType); // IC
+      iveh++;
+    }
+  }
+
+  // merge with already existing obstacles and other vehicle-like objects 
+  // such as red traffic lights 
+
+  for(var ivehplus=0; ivehplus<iveh; ivehplus++){
+    this.veh[nVehOld+ivehplus]=vehPlus[ivehplus];
+  }
+  this.sortVehicles();
+  this.updateEnvironment();
+
+}//initRegularVehicles
+
 
 
 //######################################################################
@@ -1037,9 +1094,9 @@ road.prototype.findLeaderAt=function(u){
     return vehLead;
 }
 
-//######################################
-// nearest followers
-//######################################
+//################################################################
+// nearest followers on any lane (only use in stationary detectors)
+//################################################################
 
 road.prototype.findFollowerAt=function(u){
 
@@ -1061,9 +1118,9 @@ road.prototype.findFollowerAt=function(u){
 	i--; 
     }
 
-
     if(vehFollow.id==-1){
-	console.log("road.findFollowersAt: warning: no follower at lane ",il);
+      console.log("road.findFollowersAt: warning: no follower at position ",u,
+		  " on any lane");
     }
 
     return vehFollow;
@@ -1072,7 +1129,6 @@ road.prototype.findFollowerAt=function(u){
 
 
 /**
-
 #############################################################
 (jun17) find nearest leader at position u on a given lane
 #############################################################
@@ -1092,6 +1148,31 @@ road.prototype.findLeaderAtLane=function(u,lane){
 	    iLead=i;
 	}
 	i++;
+    }
+   return [success,iLead];
+}
+
+
+/**
+#############################################################
+(sep19) find nearest follower at position u on a given lane
+#############################################################
+
+
+@param  xUser,yUser: the external physical position
+@return [success flag, the nearest vehicle which is no obstacle, dist_min]
+*/
+
+road.prototype.findFollowerAtLane=function(u,lane){
+    var success=false;
+    var i=this.veh.length-1;
+    var iLead;
+    while ((i>0) && (this.veh[i].u<u)){
+	if(this.veh[i].lane===lane){
+	    success=true;
+	    iLead=i;
+	}
+	i--;
     }
    return [success,iLead];
 }
@@ -1693,7 +1774,7 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 
 // global var longModelCar, -Truck taken from control_gui
 
-road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
+road.prototype.updateTruckFrac=function(fracTruck, mismatchTolerated){
   if(this.veh.length>0){
     //console.log("road.updateTruckFrac: ID=",this.roadID," #vehs=",this.veh.length);
     this.updateEnvironment(); //needs veh[i].iLag etc, so actual environment needed
@@ -1703,27 +1784,27 @@ road.prototype.updateTruckFrac=function(truckFrac, mismatchTolerated){
 	if(this.veh[i].isRegularVeh()) nActual++;
 	if(this.veh[i].type === "truck"){nTruck++;}
     }
-    var nTruckDesired=Math.floor(nActual*truckFrac);
-    var truckFracReal=nTruck/nActual;  // int division gen. results in double: OK!
+    var nTruckDesired=Math.floor(nActual*fracTruck);
+    var fracTruckReal=nTruck/nActual;  // int division gen. results in double: OK!
 
     // action if truck frac not as wanted; 
     // correct by one veh transformation per timestep
 
-    if(Math.abs(truckFracReal-truckFrac)>mismatchTolerated){
-	var truckFracTooLow=(nTruckDesired>nTruck);
-	var newType=(truckFracTooLow) ? "truck" : "car";
-	var newLength=(truckFracTooLow) ? truck_length : car_length;
-	var newWidth=(truckFracTooLow) ? truck_width : car_width;
-	var newLongModel=(truckFracTooLow) ? longModelTruck : longModelCar;
-	var diffSpace=((truckFracTooLow) ? -1 : 1)* (truck_length-car_length);
+    if(Math.abs(fracTruckReal-fracTruck)>mismatchTolerated){
+	var fracTruckTooLow=(nTruckDesired>nTruck);
+	var newType=(fracTruckTooLow) ? "truck" : "car";
+	var newLength=(fracTruckTooLow) ? truck_length : car_length;
+	var newWidth=(fracTruckTooLow) ? truck_width : car_width;
+	var newLongModel=(fracTruckTooLow) ? longModelTruck : longModelCar;
+	var diffSpace=((fracTruckTooLow) ? -1 : 1)* (truck_length-car_length);
 	var success=0; // false at beginning
 
         // find the candidate vehicle (truck or car) with the largest lag gap
 
-	var candidateType=(truckFracTooLow) ? "car" : "truck";
+	var candidateType=(fracTruckTooLow) ? "car" : "truck";
 	var k=0;  // considered veh index
 
-	if(truckFracTooLow){// change cars->trucks on the right lane if possible
+	if(fracTruckTooLow){// change cars->trucks on the right lane if possible
 	  var maxSpace=0;
 	  for(var lane=this.nLanes-1; lane>=0; lane--){if(!success){
 	    for(var i=0; i<nActual; i++){
@@ -3138,7 +3219,7 @@ road.prototype.updateDensity=function(density){
 
 	var laneNew=0;
 	var uNew=0.5*this.roadLen
-	var vehType=(Math.random()<truckFrac) ? "truck" : "car";
+	var vehType=(Math.random()<fracTruck) ? "truck" : "car";
 	var vehLength=(vehType==="car") ? car_length:truck_length;
 	var vehWidth=(vehType==="car") ? car_width:truck_width;
 	var speedNew=0; // always overwritten
@@ -3242,7 +3323,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
   
   if(this.inVehBuffer>=1){
     // get new vehicle characteristics
-    var vehType=(Math.random()<truckFrac) ? "truck" : "car";
+    var vehType=(Math.random()<fracTruck) ? "truck" : "car";
     var vehLength=(vehType==="car") ? car_length:truck_length;
     var vehWidth=(vehType==="car") ? car_width:truck_width;
     var space=0; //available bumper-to-bumper space gap

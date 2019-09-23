@@ -12,9 +12,9 @@ slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 density=0.015;
 
-truckFrac=0.15;
-slider_truckFrac.value=100*truckFrac;
-slider_truckFracVal.innerHTML=100*truckFrac+"%";
+fracTruck=0.15;
+slider_fracTruck.value=100*fracTruck;
+slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
 IDM_a=0.7; // low to allow stopGo
 slider_IDM_a.value=IDM_a;
@@ -188,17 +188,17 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
 duTactical=250; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(2,offLen,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
-		     0.1*density,speedInit,truckFrac,isRing,false);
+		     0.1*density,speedInit,fracTruck,isRing,false);
 
 var offrampIDs=[2];
 var offrampLastExits=[mainRampOffset+divergeLen];
@@ -337,11 +337,11 @@ function updateSim(){
     // to the vehicles and models
 
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
-    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);

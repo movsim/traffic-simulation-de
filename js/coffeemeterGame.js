@@ -247,10 +247,10 @@ var isRing=0;  // 0: false; 1: true
 var roadIDmain=1;
 var density=0;
 var speedInit=0; // not relevant since initially no vehicles
-var truckFrac=0; // not relevant since initially no vehicles
+var fracTruck=0; // not relevant since initially no vehicles
 
 var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,traj_x,traj_y, 
-		      density, speedInit,truckFrac, isRing);
+		      density, speedInit,fracTruck, isRing);
 console.log("mainroad.egoVeh=",mainroad.egoVeh);
 
 

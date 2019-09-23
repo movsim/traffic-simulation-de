@@ -115,10 +115,10 @@ function traj_y(u){
 var isRing=true;  // 0: false; 1: true
 var roadID=1;
 var speedInit=20; // IC for speed
-var truckFracToleratedMismatch=0.02; // avoid sudden changes in open systems
+var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      density,speedInit,truckFrac,isRing,userCanDistortRoads);
+		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
 
 
 
@@ -244,7 +244,7 @@ function updateSim(){
     //console.log("Math.tanh(5)=",Math.tanh(5));
 
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);

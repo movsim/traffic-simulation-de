@@ -26,7 +26,7 @@ slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 
-truckFrac=0.15;
+fracTruck=0.15;
 
 IDM_a=0.9; 
 
@@ -338,15 +338,15 @@ function trajRamp_y(u){ // physical coordinates
 
 var speedInit=20; // m/s
 var density=0.001;
-var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
 duTactical=300; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      density,speedInit,truckFrac,isRing);
+		      density,speedInit,fracTruck,isRing);
 var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
-		       0.1*density,speedInit,truckFrac,isRing);
+		       0.1*density,speedInit,fracTruck,isRing);
 
 var offrampIDs=[2];
 var offrampLastExits=[umainDiverge+lrampDev];
@@ -527,7 +527,7 @@ function updateSim(){
     // updateModelsOfAllVehicles also selectively sets LCModelMandatory
     // to offramp vehs based on their routes!
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
@@ -540,7 +540,7 @@ function updateSim(){
     mainroad.setLCMandatory(uBeginRoadworks-0.5*arcLen, uBeginRoadworks, 
 			    true);
 
-    ramp.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);

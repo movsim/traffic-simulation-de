@@ -29,7 +29,7 @@ var fracArmEnd=0.92; // merge end at fracArmEnd of arm length
 
 // vehicle and traffic properties
 
-truckFrac=0.2; // overrides control_gui 0.15
+fracTruck=0.2; // overrides control_gui 0.15
 factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
                      // (incorporated/updated in sim by updateModels) 
 IDM_b=1;
@@ -282,7 +282,7 @@ var mergeEnd=fracArmEnd*lArm;
 //##################################################################
 // Specification of logical road network
 // template new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		     density,speedInit,truckFrac,isRing,doGridding[opt]);
+//		     density,speedInit,fracTruck,isRing,doGridding[opt]);
 // road with inflow/outflow: just add updateBCup/down at simulation time
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
@@ -296,7 +296,7 @@ var speedInit=20; // m/s
 var density=0.00;
 
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		       density,speedInit,truckFrac,isRing,doGridding[opt]);
+//		       density,speedInit,fracTruck,isRing,doGridding[opt]);
 
 // need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 

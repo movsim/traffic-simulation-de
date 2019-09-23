@@ -237,8 +237,13 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
         // actual acceleration model
 
-  var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
-    : this.a*(1-v/v0eff);
+  // !!! no strong response for v>v0
+  //var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
+  //  : this.a*(1-v/v0eff); 
+
+  // !!! strong response wanted for baWue application (dec19)
+  var accFree=this.a*(1-Math.pow(v/v0eff,4));
+
   var sstar=this.s0
     +Math.max(0, v*this.T+0.5*v*(v-vl)/Math.sqrt(this.a*this.b));
   var accInt=-this.a*Math.pow(sstar/Math.max(s,this.s0),2);

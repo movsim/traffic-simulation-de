@@ -10,9 +10,9 @@ var userCanDropObstaclesAndTL=true;
 density=0.;
     
 
-truckFrac=0.40; //  0.25
-slider_truckFrac.value=100*truckFrac;
-slider_truckFracVal.innerHTML=100*truckFrac+"%";
+fracTruck=0.40; //  0.25
+slider_fracTruck.value=100*fracTruck;
+slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
 timewarp=5; //  default 6 in control_gui.js
 slider_timewarp.value=timewarp;
@@ -194,12 +194,12 @@ function traj_y(u){ // physical coordinates
 var isRing=false;  // 0: false; 1: true
 var roadID=1;
 var speedInit=20; // IC for speed
-var truckFracToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // m/s
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
-		      density, speedInit,truckFrac, isRing, userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing, userCanDistortRoads);
 mainroad.uminLC=uminLC;
 
 
@@ -370,7 +370,7 @@ function updateSim(){
     // transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
-    mainroad.updateTruckFrac(truckFrac, truckFracToleratedMismatch);
+    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);

@@ -54,16 +54,24 @@ function myRestartFunction(){
   // NOTICE: works with objects by reference, although locally created ("var")
 
   var newVehicles = mainroad.veh.filter(selectNotRegularVeh);
+
+  // add regular vehicles according to the given init density per lane
+
   mainroad.veh=newVehicles;
+  mainroad.initRegularVehicles(density,fracTruck);
+
 
   for(var iDet=0; iDet<nDet; iDet++){
     mainDetectors[iDet].reset();
   }
 
+  // do the same for the ramp, if it exists (no detectors)
 
   if(typeof ramp!=="undefined"){
-    console.log("do the same for onramp");
+    ramp.veh = ramp.veh.filter(selectNotRegularVeh);
+    ramp.initRegularVehicles(0,fracTruck);
   }
+
 
   if(isStopped){
     isStopped=false;
@@ -467,20 +475,20 @@ else{
 
 // truck fraction slider
 
-var truckFrac=0.10; // 0.10
-var slider_truckFrac;
-var slider_truckFracVal;
-if(document.getElementById("slider_truckFrac")===null) 
-    console.log("no truckFrac slider");
+var fracTruck=0.10; // 0.10
+var slider_fracTruck;
+var slider_fracTruckVal;
+if(document.getElementById("slider_fracTruck")===null) 
+    console.log("no fracTruck slider");
 else{
-    slider_truckFrac = document.getElementById("slider_truckFrac");
-    slider_truckFracVal = document.getElementById("slider_truckFracVal");
-    slider_truckFrac.value=100*truckFrac;
-    slider_truckFracVal.innerHTML=100*truckFrac+"%";
+    slider_fracTruck = document.getElementById("slider_fracTruck");
+    slider_fracTruckVal = document.getElementById("slider_fracTruckVal");
+    slider_fracTruck.value=100*fracTruck;
+    slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
-    slider_truckFrac.oninput = function() {
-        slider_truckFracVal.innerHTML = this.value+"%";
-        truckFrac=parseFloat(this.value/100.);
+    slider_fracTruck.oninput = function() {
+        slider_fracTruckVal.innerHTML = this.value+"%";
+        fracTruck=parseFloat(this.value/100.);
     }
 }
 
