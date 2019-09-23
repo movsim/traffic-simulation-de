@@ -2993,6 +2993,7 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 
   // implement (all speedlimits should be set to 1000 prior to this action)
 
+  var duAntic=100; // anticipation distance for  obeying the speed limit
   var success=false;
   var iveh=0;
   for(var i=0; i<speedfunnel.speedl.length; i++){
@@ -3000,13 +3001,13 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
     if((speedlimit.isActive) && (speedlimit.road.roadID==this.roadID)){
       success=true;
  
-     if(false){
+      if(false){
 	console.log("road.updateSpeedFunnel: speed limit ",
 		    formd(3.6*speedlimit.value)," starting at ",
 		    formd(speedlimit.u));
       }
 
-      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u)){
+      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u-duAntic)){
 	var targetVeh=this.veh[iveh];
 	if(targetVeh.isRegularVeh()){
 	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
