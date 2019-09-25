@@ -15,42 +15,114 @@ Main methods:
 
 (0) constructor defining nObst+nTL+nSpeedl
 
-(1) graphical operations such as drag, zoomBack
 
-(2a) selectByUser(xPixUser, yPixUser) 
+(1) graphical operations such as drag, zoomBack reuse from
+SpeedFunnel, not ObstacleTL
 
+
+(2a) selectByUser(xPixUser, yPixUser, distCritPix)
+     -> [success, 'null' or object]
+     * take directly from ObstacleDepot.pickObject
+     
 (2b) selectById(id)
+     -> [success, 'null' or object]
 
 [(2c) selectByRoadCoords(road,u,v)]
 
-(3) pickObject(xPixUser, yPixUser) 
-uses selectByUser; if in depot, just change internal state, if from
-road, additionally 
-deactivate its traffic effects and change graphics from road to
-depot appearance (set isActive to false)
 
-(4) dropObject(id, xPixUser, yPixUser, network)
-determines nearest road from network 
-drops on associated coords u,v +activate its traffic effects + graph
-appearance + set object's road reference if nearer to road axis than limit,
-otherwise activate zoomBack
+(3a) activateObject(object, road)
+* sets object.road reference
+* if object.type==='trafficLight' then road.addTrafficLight(object)
+* (optionally) calls road.updateTrafficObjects(this) (not necessary
+since done timestep oriented in next timestep anyway)
 
-(5a) activateObject(id, road)
 calls appropriate road.activateTrafficLight, road.activateSpeedLimit,
 road.putObstacle according to the type and the value (creates special vehicle
 objects and/or propagate parameters to the vehicle models).
-The road is
-known from the dropObject method which calls this method, or from a
-programmatic activation during the initialization
+The road and object are known from the callers:
+(i) mouse drop->dropObject method
+(ii) programmatic activation during the initialization
 
-(5b) updateObject(id, road) calls of road.x similar to activateObject
-is called by changeValue (id,newValue)
 
-(5c) deactivateObject(id) 
+(3b) deactivateObject(object) 
 calls appropriate road.deactivate* routines if object id is active
 (then, it knows "his" road)
 
-(6) changeValue(id,newValue)
-If this object isActive, updateObject is called. In any case, the
-value  (and the graph appearance) is changed. Typically the reaction
-to onclick
+
+
+(4) road.updateTrafficObjects(this)
+
+ * Special case: called in main simulation loop
+   timestep-based (needed for speed limits etc when vehs cross the u
+   coordinate of an object)
+
+ * timestep-based, not event-oriented=> road is
+   caller, not trafficObjects.
+
+ * Up to now completely covered in road.prototype.updateSpeedFunnel
+
+
+
+
+
+
+GUI callbacks
+
+
+(5a) onmousedown callback: pickObject(xPixUser, yPixUser, distCritPix)
+  -> [success, null or object]
+     
+  * template from ObstacleTLDepot.js
+     
+  * uses selectByUser
+  
+  * if success -> object defined{
+
+    * if object.inDepot, just change internal state (isDragged etc)
+
+    * if (object.isActive&&(object.type==='trafficLight))
+      then object.isActive=false; road.removeTrafficLight(object.id)
+
+    * if (object.isActive&&(object.type==='trafficLight))
+      then object.isActive=false; road.removeObstacle(object.id)
+
+
+(5b) onmouseup callback: dropObject(object, xPixUser, yPixUser,
+  distCritPix, network)
+
+  * determines nearest road from network -> road
+
+  * if !nearer to road center than distCritPix -> zoomback
+
+  * if nearer than distCritPix:
+
+    * set isActive=true;
+    
+    * calculate u,v from graphics (shift by one obstacle  length for
+      obstacles)
+
+    * if object.type==='obstacle' then road.dropDepotObject(...)
+      -> road.addObstacle
+
+    * if object.type==='trafficLight' then road.addTrafficLight(object)
+
+    * if object.type==='speedLimit' no action needed because of
+      timestep-based road.updateSpeedFunnel (in contrast to obstacles
+      and TLs, speed limits do not introduce vehicle-like objects but
+      change the vehicle model characteristics themselves)
+
+
+(5c) onclick callback: changeValue(object,newValue)
+
+  * sets new value
+
+  * sets isActive (indirectly new graphical appearance) if applicable
+
+  * If object.isActive&&(object.type==='trafficLight'),
+    road.changeTrafficLight(object.id, object.value)
+
+  * change of speed limit taken care of by road.updateTrafficObject in
+    next timestep
+
+
+

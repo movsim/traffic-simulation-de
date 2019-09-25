@@ -372,7 +372,12 @@ ObstacleTLDepot.prototype.pickObject=function(xPixUser,yPixUser,distCritPix){
 		  "\n\n");
     }
   }
- 
+
+  // deactivate in case the obstacleTL object was on the road
+
+  if(success){obstTLreturn.isActive=false;} 
+
+  
   return[success,obstTLreturn];
 }
  

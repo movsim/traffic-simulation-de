@@ -757,207 +757,12 @@ road.prototype.writeTrucksLC= function() {
 
 /**
 #############################################################
-(jun17) introduce traffic lights
-#############################################################
-
-@param depotObject=an element of the obstTL[] array of ObstacleTLDepot
-
-@return adds a traffic-light object to this.trafficLights[] serving 
-purely for the road operations of the traffic light. 
-All drawing is controlled by the depotObjects (elements of the obstTL[])
-*/
-
-road.prototype.addTrafficLight= function(depotObject) {
-  var trafficLight={id: depotObject.id,
-		    u: depotObject.u,
-		    value: depotObject.value, // "red" or "green"
-		   };
-  this.trafficLights.push(trafficLight);
-  this.changeTrafficLight(depotObject.id,depotObject.value);
-  console.log("road.addTrafficLight: roadID=",this.roadID,
-	      " added traffic light id=",depotObject.id,
-	      " at u=",formd(depotObject.u)," value=",depotObject.value);
-}
-
-
-
-
-/**
-#############################################################
-(jun17) programmatically change state (=value) of traffic light
-and implement effects
-#############################################################
-
-@param id:     unique id in [100,199]
-@param value:  (optional) "red", or "green". 
-               If not given, the value is toggled
-@return:       if a traffic light of this id is found, 
-               its state is changed accordingly
-*/
-
-road.prototype.changeTrafficLight=function(id,value){
-
-  // change state of one of the road's trafficLights objects selected by id
-
-  //console.log("in road.changeTrafficLight: id=",id," value=",value);
-
-  var success=false;
-  var pickedTL;
-  for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-    if(id===this.trafficLights[i].id){
-      success=true;
-      pickedTL=this.trafficLights[i];
-
-      if(typeof(value) === "undefined"){
-	pickedTL.value=(pickedTL.value==="red")
-	  ? "green" : "red";
-	console.log("road.changeTrafficLight: id=",id, "no TL state given:",
-		    " new value=opposite of old value=",pickedTL.value);
-      }
-      else{pickedTL.value=value;}
-    }
-  }
-
-  if(!success){
-    console.log("road.changeTrafficLight: no TL of id ",id," found!");
-    return;
-  }
-
-    // implement effect to traffic by adding/removing virtual obstacles
-    // (1) new TL value green
-
-  if(pickedTL.value==="green"){
-    for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].id===id){
-	this.veh.splice(i, this.nLanes); // nLanes red TL removed
-      }
-    }
-  }
-
-    // (2) new TL value red
-
-  else{
-    for(var il=0; il<this.nLanes; il++){
-      var virtVeh=new vehicle(1,this.laneWidth,
-			      pickedTL.u, il, 0, "obstacle");
-      virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
-      virtVeh.id=id;
-      this.veh.push(virtVeh);
-    }
-  }
-  this.sortVehicles();
-  this.updateEnvironment();
-} // changeTrafficLight
-
-
-
-/**
-#############################################################
-(jun17) remove traffic light
-#############################################################
-
-@param id:     unique id in [100,199]
-
-@return:       removes a traffic light of the list if id is found, 
-               if last value was red, also removes the virtual
-               vehicles associated with it
-*/
-
-road.prototype.removeTrafficLight= function(id) {
-    // change value of trafficLight object
-
-    console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
-    var success=false;
-    var iDel=-1;
-    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	console.log("i=",i," trafficLight=",this.trafficLights[i]);
-	if(this.trafficLights[i].id===id){
-	    success=true;
-	    iDel=i;
-	    this.changeTrafficLight(id,"green"); // to remove virt vehicles
-	}
-    }
-    if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
-    else this.trafficLights.splice(iDel,1);
-}
-
-/**
-#############################################################
-(sep19) remove obstacle object with given id
-#############################################################
-
-@param id:     unique id in [50,99]
-
-@return:       removes the obstacle if id is found in road.veh
-*/
-road.prototype.removeObstacle= function(id) {
-    // change value of trafficLight object
-
-  console.log("in road.removeObstacle: id=",id);
-  var success=false;
-  var iDel=-1;
-  for(var i=0; (!success)&&(i<this.veh.length); i++){
-    if(this.veh[i].id===id){
-      success=true;
-      iDel=i;
-    }
-  }
-  if(iDel===-1) console.log("road.removeObstacle: no id ",id," found!");
-  else this.veh.splice(iDel,1);
-}
-
-
-
-
-
-/**
-#############################################################
 (jun17) draw the traffic lights on the standard canvas "canvas"
 #############################################################
 
 @param imgRed,imgGreen: images of the complete red and green traffic light
 */
 
-
-
-/**#########################################################
-check if a traffic light is near the physical input coords (xUser, yUser)
-if so, remove it from the road and return its id
-#########################################################
-
-notice that, in contrast to clicking to change the state, 
-the user-action should be centered onto the white stopping line 
-and dragging, not only clicking, needed 
-
-@param  xUser, yUser: external physical coordinates [m]
-@return [success, virtualVehicleRepresentingTL]  
-        (undefined if no success)
-*/
-
-
-road.prototype.pickTrafficLight_old=function(xUser, yUser){
-
-    var success=false;
-    var TLreturn;
-
-    //!! chose a very small distCrit since otherwise conflict with 
-    // user-clicked change of TL value!
-
-    var distCrit=0.2*this.nLanes*this.laneWidth; // 0.5 => only inside road
-    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	var u=this.trafficLights[i].u;
-	var dx=xUser-this.traj_x(u);
-	var dy=yUser-this.traj_y(u);
-	var dist=Math.sqrt(dx*dx+dy*dy);
-	if(dist<distCrit){
-	    console.log("road.pickTrafficLight: found TL nearer than ",
-			distCrit);
-	    success=true;
-	    TLreturn=this.trafficLights[i];
-	}
-    }
-    return [success,TLreturn];
-}
 
 
 
@@ -2969,194 +2774,6 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 
 
 
-/** #####################################################
- MT 2019-09: implement speed funnel:
-
- distribute speed limits to the regular vehicle's longmodels
- (free sign=>value=200./3.6=>effectively no influence)
- need to order the speedlimit positions first 
-
- NOTICE: In top-level sim, all speedlimits should be set to 1000 or something
- to take care of the effect of removing limits
-
-//#####################################################*/
-
-road.prototype.updateSpeedFunnel=function(speedfunnel){
-
-  //console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
-
-  // sort by decreasing u values (mixing of different roads OK since filtered)
-
-  speedfunnel.speedl.sort(function(a,b){
-	    return a.u < b.u;
-  })
-
-  // implement (all speedlimits should be set to 1000 prior to this action)
-
-  var duAntic=100; // anticipation distance for  obeying the speed limit
-  var success=false;
-  var iveh=0;
-  for(var i=0; i<speedfunnel.speedl.length; i++){
-    var speedlimit=speedfunnel.speedl[i];
-    if((speedlimit.isActive) && (speedlimit.road.roadID==this.roadID)){
-      success=true;
- 
-      if(false){
-	console.log("road.updateSpeedFunnel: speed limit ",
-		    formd(3.6*speedlimit.value)," starting at ",
-		    formd(speedlimit.u));
-      }
-
-      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u-duAntic)){
-	var targetVeh=this.veh[iveh];
-	if(targetVeh.isRegularVeh()){
-	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
-	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
-	}
-	if(false){
-	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
-		      " speedlimit.u=",formd(speedlimit.u),
-		      " isRegVeh=",targetVeh.isRegularVeh(),
-		      " speedlimit_kmh=",
-		      formd0(3.6*targetVeh.longModel.speedlimit));
-	}
-
-	iveh++;
-      }
-      if(iveh==this.veh.length){return;} // otherwise risk of range excess
-
-    }
-  }
-
-  if(!success){
-    //console.log(" no active limits");
-  }
-
-  //console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
-}
-
-
-
-
-//#########################################################
-// drop an external depot vehicle to the road
-//#########################################################
-/**
-The dropped vehicle has the type of a ObstacleTLDepot.veh element.
-It is converted to a road.veh element and dropped just 1m behind the 
-leading vehicle corresponding to the drop position u. 
-following vehicles are ignored; a crash may happen!
-Typically used for dropping obstacles as onmouseup callback => canvas_gui
-
-@param depotObj: the depot vehicle of type ObstacleTLDepot.veh[i]
-@param u:            longitudinal road coordinate of dropping point
-@param v:            dropped on the lane nearest v
-@param imgRed,imgGreen:  images of traffic lights (otherwise, obstacles imgs
-                         are passed by road.draw)
-@return:             void. the road "this" has one more vehicle.
-*/
-
-
-road.prototype.dropDepotObject=function(depotObj, u, v, 
-					 imgRed,imgGreen){
-
-  console.log("in road.dropDepotObject: u=",u,
-	      " v=",v," this.nLanes=",this.nLanes);
-
-  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
-  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
-
-  // just drop at u corresp. to mouse position 
-  // (road dynamics handles possible crashes silently)   
-  // NOTICE: since u always denotes the front pos, 
-  // shift is by 0.5*depotObj.len for conventionally drawn veh-like objects
-  // for a better graphical focus
-
-  var uDrop=(depotObj.id<100) ? u+0.5*depotObj.len : u; 
-  depotObj.u=uDrop;
-
-  // construct normal road vehicle/obstacle from depot object
-  // if id=50...99
-
-  if(depotObj.id<100){
-    var roadVehicle=new vehicle(depotObj.len,
-				depotObj.width,
-				depotObj.u, lane, 0, 
-				"obstacle"); //=depotObj.type
-
-    //(dec17) need longModel for LC as lagVeh!! 
-    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-
-      //!! id ctrls veh image: 50=black obstacle,
-      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
-      // for vehicles in depot!
-      
-    roadVehicle.id=depotObj.id;
-
-    // insert vehicle (array position does not matter since sorted anyway)
-
-    this.veh.push(roadVehicle);
-    this.sortVehicles();
-    this.updateEnvironment(); // possibly crucial !!
-    console.log("road.dropDepotObject: dropped vehicle at uDrop=",u,
-		" lane=",lane," id=",roadVehicle.id,
-		" imgNumber=",roadVehicle.imgNumber);
-  }
-
-  // position a traffic light if depot object id=100 ... 199
-  // NOTICE: traffic light has its sorting/pushing/splicing methods
-
-
-  else{
-    this.addTrafficLight(depotObj);
-  }
-
-
-
-}// dropDepotObject
-
-
-
-
-//#########################################################
-// check if the nearest  external depot obstacle (no traffic light)
-// is nearer than distCrit (calculated internally) and if so, remove it 
-// from the road.veh and return it
-//#########################################################
-/**
-the reverse process of dropping above
-@param xUser,yUser:  physical coordinates corresponding to click/touch
-
-@return:             [success, convertedDepotObject]
-                     if success, the road "this" has one vehicle less
-*/
-
-
-road.prototype.pickSpecialVehicle_old=function(xUser, yUser){
-
-  console.log("in road.pickSpecialVehicle: xUser=",xUser," yUser=",yUser);
-
-  var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
-
-    function isDepotObstacle(veh){return veh.isDepotObstacle();}
-
-    var findResults=this.findNearestVehTo(xUser,yUser,isDepotObstacle);
-
-    if( (!findResults[0]) || (findResults[2]>distCrit)){
-	findResults=[false,'undefined',1e8];
-    }
-    else{
-	this.veh.splice(findResults[3],1); // findResults[3]=index
-	this.sortVehicles();
-	this.updateEnvironment();
-    }
-    //console.log("in road.pickSpecialVehicle: findResult=",findResults);
-    return findResults;// [success, vehReturn, dist, i for internal use]
-}
-
-
-
-
 
 
 //######################################################################
@@ -4139,4 +3756,313 @@ road.prototype.revertVehMarkings=function(){
 	this.veh[i].colorStyle=0;
     }
 }
+
+
+
+
+/** #####################################################
+ MT 2019-09: implement speed funnel:
+
+ distribute speed limits to the regular vehicle's longmodels
+ (free sign=>value=200./3.6=>effectively no influence)
+ need to order the speedlimit positions first 
+
+ NOTICE: In top-level sim, all speedlimits should be set to 1000 or something
+ to take care of the effect of removing limits
+
+//#####################################################*/
+
+road.prototype.updateSpeedFunnel=function(speedfunnel){
+
+  //console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
+
+  // sort by decreasing u values (mixing of different roads
+  // and object types OK since filtered in loop)
+
+  speedfunnel.speedl.sort(function(a,b){
+	    return a.u < b.u;
+  })
+
+  // implement (all speedlimits should be set to 1000 prior to this action)
+
+  var duAntic=100; // anticipation distance for  obeying the speed limit
+  var success=false;
+  var iveh=0;
+  for(var i=0; i<speedfunnel.speedl.length; i++){
+    var speedlimit=speedfunnel.speedl[i];
+    if((speedlimit.isActive) && (speedlimit.road.roadID==this.roadID)){
+      success=true;
+ 
+      if(false){
+	console.log("road.updateSpeedFunnel: speed limit ",
+		    formd(3.6*speedlimit.value)," starting at ",
+		    formd(speedlimit.u));
+      }
+
+      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u-duAntic)){
+	var targetVeh=this.veh[iveh];
+	if(targetVeh.isRegularVeh()){
+	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
+	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
+	}
+	if(false){
+	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
+		      " speedlimit.u=",formd(speedlimit.u),
+		      " isRegVeh=",targetVeh.isRegularVeh(),
+		      " speedlimit_kmh=",
+		      formd0(3.6*targetVeh.longModel.speedlimit));
+	}
+
+	iveh++;
+      }
+      if(iveh==this.veh.length){return;} // otherwise risk of range excess
+
+    }
+  }
+
+  if(!success){
+    //console.log(" no active limits");
+  }
+
+  //console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
+}
+
+
+
+
+//#########################################################
+// drop an external depot vehicle to the road
+//#########################################################
+/**
+The dropped vehicle has the type of a ObstacleTLDepot.veh element.
+It is converted to a road.veh element and dropped just 1m behind the 
+leading vehicle corresponding to the drop position u. 
+following vehicles are ignored; a crash may happen!
+Typically used for dropping obstacles as onmouseup callback => canvas_gui
+
+@param depotObj: the depot vehicle of type ObstacleTLDepot.veh[i]
+@param u:            longitudinal road coordinate of dropping point
+@param v:            dropped on the lane nearest v
+@param imgRed,imgGreen:  images of traffic lights (otherwise, obstacles imgs
+                         are passed by road.draw)
+@return:             void. the road "this" has one more vehicle.
+*/
+
+
+road.prototype.dropDepotObject=function(depotObj, u, v, 
+					 imgRed,imgGreen){
+
+  console.log("in road.dropDepotObject: u=",u,
+	      " v=",v," this.nLanes=",this.nLanes);
+
+  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
+  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
+
+  // just drop at u corresp. to mouse position 
+  // (road dynamics handles possible crashes silently)   
+  // NOTICE: since u always denotes the front pos, 
+  // shift is by 0.5*depotObj.len for conventionally drawn veh-like objects
+  // for a better graphical focus
+
+  var uDrop=(depotObj.id<100) ? u+0.5*depotObj.len : u; 
+  depotObj.u=uDrop;
+
+  // construct normal road vehicle/obstacle from depot object
+  // if id=50...99
+
+  if(depotObj.id<100){
+    var roadVehicle=new vehicle(depotObj.len,
+				depotObj.width,
+				depotObj.u, lane, 0, 
+				"obstacle"); //=depotObj.type
+
+    //(dec17) need longModel for LC as lagVeh!! 
+    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+
+      //!! id ctrls veh image: 50=black obstacle,
+      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
+      // for vehicles in depot!
+      
+    roadVehicle.id=depotObj.id;
+
+    // insert vehicle (array position does not matter since sorted anyway)
+
+    this.veh.push(roadVehicle);
+    this.sortVehicles();
+    this.updateEnvironment(); // possibly crucial !!
+    console.log("road.dropDepotObject: dropped vehicle at uDrop=",u,
+		" lane=",lane," id=",roadVehicle.id,
+		" imgNumber=",roadVehicle.imgNumber);
+  }
+
+  // position a traffic light if depot object id=100 ... 199
+  // NOTICE: traffic light has its sorting/pushing/splicing methods
+
+
+  else{
+    this.addTrafficLight(depotObj);
+  }
+
+
+
+}// dropDepotObject
+
+
+
+
+/**
+#############################################################
+(jun17) introduce traffic lights
+#############################################################
+
+@param depotObject=an element of the obstTL[] array of ObstacleTLDepot
+
+@return adds a traffic-light object to this.trafficLights[] serving 
+purely for the road operations of the traffic light. 
+All drawing is controlled by the depotObjects (elements of the obstTL[])
+*/
+
+road.prototype.addTrafficLight= function(depotObject) {
+  var trafficLight={id: depotObject.id,
+		    u: depotObject.u,
+		    value: depotObject.value, // "red" or "green"
+		   };
+  this.trafficLights.push(trafficLight);
+  this.changeTrafficLight(depotObject.id,depotObject.value);
+  console.log("road.addTrafficLight: roadID=",this.roadID,
+	      " added traffic light id=",depotObject.id,
+	      " at u=",formd(depotObject.u)," value=",depotObject.value);
+}
+
+
+
+
+/**
+#############################################################
+(jun17) programmatically change state (=value) of traffic light
+and implement effects
+#############################################################
+
+@param id:     unique id in [100,199]
+@param value:  (optional) "red", or "green". 
+               If not given, the value is toggled
+@return:       if a traffic light of this id is found, 
+               its state is changed accordingly
+*/
+
+road.prototype.changeTrafficLight=function(id,value){
+
+  // change state of one of the road's trafficLights objects selected by id
+
+  //console.log("in road.changeTrafficLight: id=",id," value=",value);
+
+  var success=false;
+  var pickedTL;
+  for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+    if(id===this.trafficLights[i].id){
+      success=true;
+      pickedTL=this.trafficLights[i];
+
+      if(typeof(value) === "undefined"){
+	pickedTL.value=(pickedTL.value==="red")
+	  ? "green" : "red";
+	console.log("road.changeTrafficLight: id=",id, "no TL state given:",
+		    " new value=opposite of old value=",pickedTL.value);
+      }
+      else{pickedTL.value=value;}
+    }
+  }
+
+  if(!success){
+    console.log("road.changeTrafficLight: no TL of id ",id," found!");
+    return;
+  }
+
+    // implement effect to traffic by adding/removing virtual obstacles
+    // (1) new TL value green
+
+  if(pickedTL.value==="green"){
+    for(var i=0; i<this.veh.length; i++){
+      if(this.veh[i].id===id){
+	this.veh.splice(i, this.nLanes); // nLanes red TL removed
+      }
+    }
+  }
+
+    // (2) new TL value red
+
+  else{
+    for(var il=0; il<this.nLanes; il++){
+      var virtVeh=new vehicle(1,this.laneWidth,
+			      pickedTL.u, il, 0, "obstacle");
+      virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
+      virtVeh.id=id;
+      this.veh.push(virtVeh);
+    }
+  }
+  this.sortVehicles();
+  this.updateEnvironment();
+} // changeTrafficLight
+
+
+
+/**
+#############################################################
+(jun17) remove traffic light
+#############################################################
+
+@param id:     unique id in [100,199]
+
+@return:       removes a traffic light of the list if id is found, 
+               if last value was red, also removes the virtual
+               vehicles associated with it
+*/
+
+road.prototype.removeTrafficLight= function(id) {
+    // change value of trafficLight object
+
+    console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
+    var success=false;
+    var iDel=-1;
+    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+	console.log("i=",i," trafficLight=",this.trafficLights[i]);
+	if(this.trafficLights[i].id===id){
+	    success=true;
+	    iDel=i;
+	    this.changeTrafficLight(id,"green"); // to remove virt vehicles
+	}
+    }
+    if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
+    else this.trafficLights.splice(iDel,1);
+}
+
+/**
+#############################################################
+(sep19) remove obstacle object with given id
+#############################################################
+
+@param id:     unique id in [50,99]
+
+@return:       removes the obstacle if id is found in road.veh
+*/
+road.prototype.removeObstacle= function(id) {
+    // change value of trafficLight object
+
+  console.log("in road.removeObstacle: id=",id);
+  var success=false;
+  var iDel=-1;
+  for(var i=0; (!success)&&(i<this.veh.length); i++){
+    if(this.veh[i].id===id){
+      success=true;
+      iDel=i;
+    }
+  }
+  if(iDel===-1) console.log("road.removeObstacle: no id ",id," found!");
+  else this.veh.splice(iDel,1);
+}
+
+
+
+
+
 

@@ -15,6 +15,9 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
  Math.seedrandom(42);                // undo side effects of console commands 
 */
 
+// following in control_gui.js; call bash/eng2ger.bash to propagate it to ger
+//function formd0(x){return parseFloat(x).toFixed(0);}
+//function formd(x){return parseFloat(x).toFixed(2);}
 
 var userCanDistortRoads=false;
 var userCanDropObstaclesAndTL=true;
@@ -57,7 +60,6 @@ density=0.02; // density per lane (0.02)
 IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
-
 
 qIn=4400/3600.; // inflow 4400./3600; 
 slider_qIn.value=3600*qIn;
@@ -484,7 +486,7 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle image names
 
 obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
@@ -521,7 +523,9 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //####################################################################
 // external draggable objects
 //####################################################################
-//console.log("obstacleImgNames=",obstacleImgNames);
+
+
+
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
 var depot=  new ObstacleTLDepot(canvas,1,4,0.30,0.70,2,obstacleImgNames);
 
