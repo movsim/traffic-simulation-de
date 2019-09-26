@@ -2,7 +2,7 @@
  * wm-html-include.js  v0.1.3
  * Includes (injects) HTML pages
  *
- * Copyright (c) 2015 http://wamer.net
+ * Copyright (c) 2015 https://wamer.net
  * Released under the MIT license
  *
  * Latest Update: 2015-04-21
@@ -383,7 +383,7 @@ function include_js (arg_scr) {
 
     function make_xml (src) {
         return '<?xml version="1.0" encoding="UTF-8" ?>' +
-            '<wm-xml xmlns:ws="http://wamer.net/stencils">\n' + 
+            '<wm-xml xmlns:ws="https://wamer.net/stencils">\n' + 
             ((src && typeof src === 'string') ? src.replace (/<!DOCTYPE[^>]*>/, '') : '')+
             '\n</wm-xml>';
     }

@@ -257,14 +257,16 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle image names
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -317,16 +319,12 @@ var signTruckOvertakingBan = new Image();
 
 
 
-//####################################################################
-//!!! ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
-//####################################################################
+//############################################
+// traffic objects
+//############################################
 
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new ObstacleTLDepot(obstacleImgs.length, 3,3,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
-			   25,25,true);
-
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
+var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 
 
@@ -400,14 +398,10 @@ function updateSim(){
     }
 
 
-     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
- 
+   if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+    depot.zoomBack();
+  }
+
 }//updateSim
 
 
@@ -440,7 +434,8 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-	updatePhysicalDimensions();
+      updatePhysicalDimensions();
+      depot.calcDepotPositions(canvas); 
 
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -465,7 +460,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(userCanvasManip||hasChanged||banButtonClicked
-	   ||(itime<=1) || (itime===20) || false || (!drawRoad)){
+	   ||(itime<=15) || (itime===30) || false || (!drawRoad)){
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -479,7 +474,6 @@ function drawSim() {
     
      var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
      mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-     mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  
@@ -491,7 +485,7 @@ function drawSim() {
 	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
     if(userCanvasManip||hasChanged||banButtonClicked
-       ||(itime<=1) || (itime===20) ){
+       ||(itime<=30) ){ // (itime<=30)because of repeatedly draw bg initially
 
 	banButtonClicked=false;
 	var sizeSignPix=0.1*refSizePix;
@@ -514,7 +508,7 @@ function drawSim() {
 	ctx.setTransform(1,0,0,1,0,0); 
 	ctx.drawImage(signUphillImg,xPixUp,yPixUp,sizeSignPix,sizeSignPix);
 	ctx.drawImage(signFreeImg,xPixEnd,yPixEnd,sizeSignPix,sizeSignPix);
-	if(banIsActive){// defined/changed in uphill_gui.js
+	if(banIsActive){// defined/changed in control_gui.js
 	  ctx.drawImage(signTruckOvertakingBan,xPixBan,yPixBan,
 			sizeSignPix,sizeSignPix);
 	}

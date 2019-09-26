@@ -441,14 +441,16 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle images
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -473,13 +475,12 @@ rampImg = new Image();
 rampImg=roadImgs1[nLanes_rmp-1];
 
 
+//############################################
+// traffic objects
+//############################################
 
-//####################################################################
-// ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
-//####################################################################
-
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new ObstacleTLDepot(1,0,0,0,0,0,0,false);
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
+//var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 
 //############################################
@@ -612,7 +613,7 @@ function updateSim(){
 	depotVehZoomBack=res;
 	userCanvasManip=true;
     }
-*/
+  */
 
 
 }//updateSim
@@ -652,7 +653,8 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-	updatePhysicalDimensions();
+      updatePhysicalDimensions();
+      //depot.calcDepotPositions(canvas);
         mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
         ramp.gridTrajectories(trajRamp_x,trajRamp_y);
     }
@@ -688,10 +690,8 @@ function drawSim() {
 
     ramp.draw(rampImg,rampImg,scale,changedGeometry);
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
-    ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 

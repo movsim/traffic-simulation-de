@@ -184,7 +184,8 @@ traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
 
-// xxxNew define obstacle image names
+// xxxNew 
+// define obstacle images
 
 obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
@@ -196,7 +197,7 @@ for (var i=0; i<10; i++){
   obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
-// xxxNew remove!
+// xxxNew remove old def obstacle images
 /*
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
@@ -228,6 +229,12 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 //xxxNew
 
+
+//############################################
+// traffic objects
+//############################################
+
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
 var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 
@@ -340,7 +347,8 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       updatePhysicalDimensions();
-      depot.calcDepotPositions(canvas); //xxxNew
+      //xxxNew
+      depot.calcDepotPositions(canvas); 
 
     }
 
@@ -369,6 +377,8 @@ function drawSim() {
  
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+
+    //xxxNew remove
     //mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
 
     // (4) draw vehicles

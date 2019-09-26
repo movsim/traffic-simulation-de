@@ -47,9 +47,9 @@ look for ".copy" in othe rjs files
 */
 
 
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
 function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
 			 nTL,obstImgNames){
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
 
   this.nRow=nRow; // generally nRow*nCol != imageArray.length
   this.nCol=nCol; 
@@ -113,7 +113,7 @@ function ObstacleTLDepot(canvas,nRow,nCol,xRelDepot,yRelDepot,
     // object picked/dragged: isPicked=true, isActive=false=inDepot=false
     // object dropped on road => becomes active
     // object  dropped outside of road and not yet completely zoomed back =>
-    // isPicked=isActive=inDepot=false xxx
+    // isPicked=isActive=inDepot=false
     //#################################################################
 
     this.obstTL[i]={id:       ID,

@@ -65,6 +65,8 @@ cp $html_files $targetDir
 cd $startDir/js
 cp $js_files $targetDir/js
 
+
+
 # determine which image files are needed from the repos
 # from imgfileList created by the following:
 

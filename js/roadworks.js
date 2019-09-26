@@ -260,14 +260,16 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle image names
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -307,18 +309,12 @@ for (var i=0; i<=13; i++){
 }
 var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
+//############################################
+// traffic objects
+//############################################
 
-//####################################################################
-//!!! ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
-//####################################################################
-
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new ObstacleTLDepot(obstacleImgs.length, 3,3,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
-			   30,30,true);
-
-
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
+var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 
 //############################################
@@ -383,15 +379,9 @@ function updateSim(){
     }
 
 
-    // see onramp.js why this is necessary
-
-     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+    depot.zoomBack();
+  }
 
 
 }//updateSim
@@ -430,7 +420,8 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-	updatePhysicalDimensions();
+      updatePhysicalDimensions();
+      depot.calcDepotPositions(canvas); 
 
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -454,7 +445,7 @@ function drawSim() {
 
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
-	if(hasChanged||(itime<=1) || userCanvasManip || (!drawRoad)){ 
+	if(hasChanged||(itime<=15) || (itime===30) || userCanvasManip || (!drawRoad)){ 
           ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -468,7 +459,6 @@ function drawSim() {
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
 
  

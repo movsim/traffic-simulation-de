@@ -527,6 +527,8 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 
 var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
+
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
 var depot=  new ObstacleTLDepot(canvas,1,4,0.30,0.70,2,obstacleImgNames);
 
 //depot.activateTrafficLight(0,ramp,100); // !!! change from index to id

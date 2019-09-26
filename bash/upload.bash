@@ -6,7 +6,7 @@
 # ATTENTION: Selection of actual main theme simulatin in engl2ger.bash
 
 #############################################
-# (0) translate some js files to German
+# (0) get dir names and translate some js files to German
 #############################################
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
@@ -31,7 +31,8 @@ if test -d $targetDir;
        mkdir $targetDir
 fi
 mkdir $targetDir/js
-# fig, info, css and icons subdirs creeated by cp -r
+mkdir $targetDir/figs
+# info, and css subdirs creeated by cp -r
 
 #############################################
 # (2) select files
@@ -51,11 +52,16 @@ done
 # add the index html (just one of the projects)
 html_files="${html_files} index.html index_ger.html" 
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js vehicleDepot.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
+# add the BaWue files
+html_files="${html_files} onramp_BaWue.html roadworks_BaWue.html" 
+
+js_files="redirect.js redirect_ger.js redirect_BaWue.js seedrandom.min.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js ObstacleTLDepot.js SpeedFunnel.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
 done
+# add the BaWue files
+js_files="${js_files} onramp_BaWue.js roadworks_BaWue.js" 
 
 
 #############################################
@@ -70,11 +76,14 @@ cp $html_files $targetDir
 
 cd $startDir/js
 cp $js_files $targetDir/js
-cd $startDir
 
+cd $startDir/figs
+# see uploadBaWue.bash for how to obtain the actually used images
+img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png road*Crop*png Tempo*svg infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif flagUSA.png flagGerman.png icon*Fig_small.jpg iconRing_small.jpg iconRoundabout_small.jpg sign_free_282_small.png Zeichen_Steigung4_small.png truckOvertakingBan_small.gif"
+cp $img_files $targetDir/figs
+
+cd $startDir
 cp -rp css $targetDir
-cp -rp figs $targetDir
-cp -rp icons $targetDir
 cp -rp info $targetDir
 
 

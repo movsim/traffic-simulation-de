@@ -1,5 +1,5 @@
 
-var userCanDropObstaclesAndTL=true;
+var userCanDropObstaclesAndTL=false;
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -441,14 +441,16 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle images
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -477,16 +479,14 @@ armImg2=roadImgs2[nLanes_arm-1];
 
 
 
-//####################################################################
-// ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
-//####################################################################
 
+//############################################
+// traffic objects
+//############################################
 
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new ObstacleTLDepot(obstacleImgs.length, 2,1,
-			   0.8*smallerDimPix/scale,
-			   -0.7*smallerDimPix/scale,
-			   10,10,true);
+//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
+var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+
 
 
 //############################################
@@ -681,14 +681,9 @@ function updateSim(){
 	}
     } 
 
-
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+    depot.zoomBack();
+  }
 
 
     //##############################################################
@@ -796,7 +791,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     if(drawBackground){
 	if(userCanvasManip ||hasChanged
-	   ||(itime<=1) || (itime%2===0) || false || (!drawRoad)){
+	   ||(itime<=10) || (itime%2===20) || false || (!drawRoad)){
 	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
       }
     }
@@ -811,10 +806,6 @@ function drawSim() {
 	arm[i].draw(armImg1,armImg2,scale,changedGeometry);
     }
     mainroad.draw(ringImg1,ringImg2,scale,changedGeometry);
-
-    // (3a) if applicable, draw traffic lights after ring=mainroad, before vehs
-
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
 
     
     // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
