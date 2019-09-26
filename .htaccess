@@ -1,0 +1,14 @@
+
+#ErrorDocument 404 www.traffic-simulation.de/Fehlermeldungen/toterLink.html
+
+#############################################
+# (2) Weiterleitungen
+#############################################
+
+# Folgende Zeile immer notwendig fuer rewrites, 
+RewriteEngine On
+
+# Aktiviere https:
+# alle http-Anfragen (Port 80 !=Port 443) werden auf https umgeleitet
+RewriteCond %{SERVER_PORT} !=443
+RewriteRule ^(.*)$ https://traffic-simulation.de/$1 [R=301,L]

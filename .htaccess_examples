@@ -1,0 +1,58 @@
+# https://www.ionos.de/digitalguide/hosting/hosting-technik/htaccess-tricks/
+
+#############################################
+# (1) Fehlermeldungen 
+#############################################
+
+# Eigene Fehlermeldungen lokaler Speicherort ( / = root-Verz der Webseite)
+#ErrorDocument 404 /errorMsg/404.html
+
+# Eigene Fehlermeldungen externer Speicherort 
+# (https oder http vermeiden, sucht sich dann aus; www besser als ohne)
+
+ErrorDocument 404 www.traffic-simulation.de/Fehlermeldungen/toterLink.html
+
+#############################################
+# (2) Weiterleitungen
+#############################################
+
+# Folgende Zeile immer notwendig fuer rewrites, 
+#ACHTUNG: Macht ionos von sich aus anscheinend, da ich Fehlermeldungen
+#bekam "This webpage has a redirect loop"
+
+RewriteEngine On
+
+# Aktiviere https:
+# alle http-Anfragen (Port 80 !=Port 443) werden auf https umgeleitet
+# Achtung: ohne $ nach 443, wie mancherorts steht, sonst geht nix!
+# Achtung: https://www statt https:// bringt nix, wird anscheinend
+# bei Ionos intern wieder ueberschrieben
+RewriteCond %{SERVER_PORT} !=443
+RewriteRule ^(.*)$ https://traffic-simulation.de/$1 [R=301,L]
+
+# alle Namen (wenn nicht direkt geaender, besser!) 
+# werden auf https ohne www umgeleitet
+# R=301=permanentes Rewrite (302 waere temporaer),
+# das L ("last") beendet die rule
+#RewriteCond %{HTTP_HOST} ^traffic-simulation\.de [NC]
+#RewriteRule (.*) traffic-simulation.de/$1 [R=301,L]
+
+# alle Anfragen werden auf die Variante mit www umgeleitet 
+# (Einheitlichkeit soll gut fuer Suchmaschinen sein)
+# (warum . bei rule nicht escaped? warum ! davor? warum $ statt [NC]?
+RewriteCond %{HTTP_HOST} !^www.traffic-simulation.de$
+RewriteRule ^(.*)$ https://www.traffic-simulation.de/$1 [R=301,L]
+
+
+
+
+
+#############################################
+# (3) Passwoertschutz (auch in .htpasswd moeglich?)
+#############################################
+
+AuthType Basic
+AuthName "Passwortgeschützter Bereich"
+AuthUserFile /<absoluter Pfad zur Passwortdatei>/.htpasswd
+AuthPGAuthoritative Off
+require user User1 User2 User3
