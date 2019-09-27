@@ -990,7 +990,7 @@ road.prototype.findFollowerAtLane=function(u,lane){
 #############################################################
 (jun17) get nearest distance of the road axis (center)
  to an external physical position
-@return [distance in m, u in m, v in lanes ]
+@return [distance in m, u in m, v in lanes]
 
 Notice1: u discretized to width of road segments, typically about 10 m
 see also this.get_xPix(u,v,scale), this.get_yPix(u,v,scale)
@@ -3842,7 +3842,7 @@ Typically used for dropping obstacles as onmouseup callback => canvas_gui
 
 @param depotObj: the depot vehicle of type ObstacleTLDepot.veh[i]
 @param u:            longitudinal road coordinate of dropping point
-@param v:            dropped on the lane nearest v
+@param v:            dropped on the lane nearest v (0=left, nLanes-1=right
 @param imgRed,imgGreen:  images of traffic lights (otherwise, obstacles imgs
                          are passed by road.draw)
 @return:             void. the road "this" has one more vehicle.
@@ -3906,6 +3906,58 @@ road.prototype.dropDepotObject=function(depotObj, u, v,
 
 
 }// dropDepotObject
+
+
+road.prototype.dropObjectNew=function(depotObj){
+
+  console.log("in road.dropDepotObject: u=",depotObj.u,
+	      " v=",depotObj.v," this.nLanes=",this.nLanes);
+
+  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
+  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
+
+
+  // construct normal road vehicle/obstacle from depot object
+  // if id=50...99
+
+  if(depotObj.type==='obstacle'){
+    var roadVehicle=new vehicle(depotObj.len,
+				depotObj.width,
+				depotObj.u, lane, 0, 
+				"obstacle"); //=depotObj.type
+
+    //(dec17) need longModel for LC as lagVeh!! 
+    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+
+      //!! id ctrls veh image: 50=black obstacle,
+      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
+      // for vehicles in depot!
+      
+    roadVehicle.id=depotObj.id;
+
+    // insert vehicle (array position does not matter since sorted anyway)
+
+    this.veh.push(roadVehicle);
+    this.sortVehicles();
+    this.updateEnvironment(); // possibly crucial !!
+    console.log("road.dropDepotObject: dropped vehicle at uDrop=",u,
+		" lane=",lane," id=",roadVehicle.id,
+		" imgNumber=",roadVehicle.imgNumber);
+  }
+
+  // position a traffic light if depot object id=100 ... 199
+  // NOTICE: traffic light has its sorting/pushing/splicing methods
+
+
+  else if(depotObj.type==='trafficLight'){
+    this.addTrafficLight(depotObj);
+  }
+
+  else {
+    ; // speedlimit signs are taken care of automatically in update step
+    // setting isActive=true in TrafficObjects.activateObject is enough
+  }
+}// dropObjectNew
 
 
 

@@ -102,14 +102,16 @@ GUI callbacks
       obstacles)
 
     * if object.type==='obstacle' then road.dropDepotObject(...)
-      -> road.addObstacle
+      -> road.dropObject
 
     * if object.type==='trafficLight' then road.addTrafficLight(object)
+      -> road.dropObject
 
     * if object.type==='speedLimit' no action needed because of
       timestep-based road.updateSpeedFunnel (in contrast to obstacles
       and TLs, speed limits do not introduce vehicle-like objects but
       change the vehicle model characteristics themselves)
+      -> road.dropObject
 
 
 (5c) onclick callback: changeValue(object,newValue)

@@ -339,9 +339,11 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // traffic objects
 //############################################
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
+//(canvas,nRow,nCol,xRelDepot,yRelDepot,nTL,obstacleImgNames
 var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
+// canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,2,2,0.60,0.50,2,3);
 
 
 
@@ -533,6 +535,7 @@ function drawSim() {
 
    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
+	trafficObjs.draw(scale);
     }
 
 

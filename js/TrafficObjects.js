@@ -2,8 +2,8 @@
 /*#############################################################
 a set of traffic-related objects that can be dragged by the user 
 from a "depot" to a network link (road) and back. 
-Main component of this class is an array trafficObject[] 
-of the traffic objects (traffObj=trafficObject[i]) 
+Main component of this class is an array trafficObj[] 
+of the traffic objects (traffObj=trafficObj[i]) 
 
 * At present, there are three types of objects:
 
@@ -88,7 +88,7 @@ look for ".copy" in other js files
 */
 
 
-function TrafficObjects(canvas, nTL,nLimit, xRelDepot,yRelDepot, nRow,nCol){
+function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 
   this.nRow=nRow;
   this.nCol=nCol; 
@@ -129,22 +129,23 @@ function TrafficObjects(canvas, nTL,nLimit, xRelDepot,yRelDepot, nRow,nCol){
   this.imgTyellow.src="figs/trafficLight_yellow.png";
 
   this.imgSpeedlRepo = []; 
-  for (var i_img=0; i_img<13; i_img++){
-    this.imgSpeedlRepo[i_img]=new Image();
-    this.imgSpeedlRepo[i_img].src = "figs/speedLimit"+(i_img)+"0svg.svg";
+  for (var i=0; i<13; i++){
+    this.imgSpeedlRepo[i]=new Image();
+    this.imgSpeedlRepo[i].src = "figs/speedLimit_"+(i)+"0.svg";
   }
 
   this.imgObstRepo = []; 
   for (var i=0; i<Math.min(this.nObst, this.nObstMax); i++){
-    this.imgObstRepo[i].src = "obstacle_"+(50+i)+".png";
+    this.imgObstRepo[i]=new Image();
+    this.imgObstRepo[i].src = "figs/obstacle_"+(50+i)+".png";
   }
 
 
   
-  // create all instances of trafficObject[]
+  // create all instances of trafficObj[]
 
-  this.trafficObject=[];
-  var initSpeedInd={6,8,10,0,12,3,4,5,1,2}; // speed 60 km/h,80,100,free..
+  this.trafficObj=[];
+  var initSpeedInd=[6,8,10,0,12,3,4,5,1,2]; // speed 60 km/h,80,100,free..
   for(var i=0; i<this.n; i++){
 
     var isTL=(i<this.nTL);
@@ -152,12 +153,15 @@ function TrafficObjects(canvas, nTL,nLimit, xRelDepot,yRelDepot, nRow,nCol){
     var isObst=!(isTL||isSpeedl);
 
     var iSpeed=i-this.nTL;
-    var iObst=i-this.nTL-this.nSpeedl;
+    var iObst=i-this.nTL-this.nLimit;
     
- 
+    var img=(isTL) ? this.imgTLred : (isSpeedl)
+      ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
+    console.log("TrafficObjects cstr: i=",i,
+		" img=",img," iObst=",iObst);
 
     //#################################################################
-    // central object this.obstTL[i]
+    // xxx central object this.trafficObj[i]
     // obstacle/TL on road: isActive=true, u>=0,inDepot=isPicked=false 
     // object picked/dragged: isPicked=true, isActive=false=inDepot=false
     // object dropped on road => becomes active
@@ -165,58 +169,62 @@ function TrafficObjects(canvas, nTL,nLimit, xRelDepot,yRelDepot, nRow,nCol){
     // isPicked=isActive=inDepot=false
     //#################################################################
 
-    this.trafficObject[i]={
+    this.trafficObj[i]={
       id:    (isTL) ? 100+i : (isSpeedl) ? 150+iSpeed : 50+iObst,
       type:  (isTL) ? "trafficLight" : (isSpeedl) ? "speedLimit" : "obstacle",
       image: (isTL) ? this.imgTLred : (isSpeedl)
-	? imgSpeedlRepo[initSpeedInd[iSpeed]] : imgObstRepo[iObst],
+	? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst],
       value: (isTL) ? "red" : (isObst) ? "null" : 10*initSpeedInd[iSpeed],
       isActive: false,
       inDepot:  true,
       isPicked: false,
-      road: 'undefined', // only defined if isActive=true
+      isDragged: false,
+      road: 'void',      // only defined if isActive=true
       u: -1,             // physical long position [m] (<0 if !isActive)
-      lane: -1,          // isActive: 0 to road.nLanes, !isActive: -1
+                         // for graph focus, advanced by du=this.lenPhys/2 
+                         // if obstacle 
+      lane: -1,          // =round(v); isActive: 0 to road.nLanes-1,
+                         // !isActive: -1
       len: this.lenPhys, //[m], for drawing of active obj of type "obstacle"
       width: this.wPhys, //[m], about 1-1.5*road.lanewidth 
-      xPix: 42,          // pixel positions to be calculated later
+      xPix: 42,          // actual pixel position (to be calculated later
       yPix: 42,          // in calcDepotPositions
-      xPixLight1: 42,    // pixel pos of more distant active TL/speedl img
-      yPixLight1: 42,    // defined in draw(...)
-      xPixLight2: 42,    // pixel pos of nearer active TL/speedl img
-      yPixLight2: 42,
+      xPixSign1: 42,    // pixel pos of more distant active TL/speedl img
+      yPixSign1: 42,    // to be calculated in draw(...)
+      xPixSign2: 42,    // pixel pos of nearer active TL/speedl img
+      yPixSign2: 42,
       xPixDepot: 42,     // xPix=xPixDepot if !isActive and 
       yPixDepot: 42      // graphics zoomed back to depot
     };
 
-    if((trafficObject[i].type=="speedLimit") &&(trafficObject[i].value==0)){
-      trafficObject[i].value=300; // no speedlimit if index 0->00 km/h
+    if((this.trafficObj[i].type=="speedLimit") 
+       &&(this.trafficObj[i].value==0)){
+      this.trafficObj[i].value=300; // no speedlimit if index 0->00 km/h
     }
 
     
   } // loop over elements
+
 
   this.calcDepotPositions(canvas); // sets pixel sizes, positions
 
     
   // logging
 
-
   if(true){
     console.log("TrafficObjects Cstr: this.nTL=",this.nTL);
     for(var i=0; i<this.n; i++){
       console.log("TrafficObjects cstr: i=",i,
-		  " value=",this.obstTL[i].value,
-		  " type=",this.obstTL[i].type,
-		  " id=",this.obstTL[i].id,
-		  " imgfile=",this.obstTL[i].image.src,
-		  " isActive=",this.obstTL[i].isActive);
+		  " value=",this.trafficObj[i].value,
+		  " type=",this.trafficObj[i].type,
+		  " id=",this.trafficObj[i].id,
+		  " imgfile=",this.trafficObj[i].image.src,
+		  " isActive=",this.trafficObj[i].isActive);
     }
-    //a=giesskanne;
-
   }
 
 } // end TrafficObjects Cstr
+
 
 
 //######################################################################
@@ -226,7 +234,7 @@ function TrafficObjects(canvas, nTL,nLimit, xRelDepot,yRelDepot, nRow,nCol){
 TrafficObjects.prototype.calcDepotPositions=function(canvas){
 
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
-  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of obstTL signs
+  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of trafficObj signs
   this.hPix=this.wPix;
 
   var gapPix=this.gapRel*this.sizeCanvas; // spacing in pixels
@@ -237,63 +245,66 @@ TrafficObjects.prototype.calcDepotPositions=function(canvas){
   for (var i=0; i<this.n; i++){
     var icol=i%this.nCol;
     var irow=Math.floor(i/this.nCol);
-    this.obstTL[i].xPixDepot=xPixDepotCenter 
+    this.trafficObj[i].xPixDepot=xPixDepotCenter 
       + (this.wPix+gapPix)*(icol-0.5*(this.nCol-1));
-    this.obstTL[i].yPixDepot=yPixDepotCenter 
+    this.trafficObj[i].yPixDepot=yPixDepotCenter 
       + (this.hPix+gapPix)*(irow-0.5*(this.nRow-1));
-    if(this.obstTL[i].inDepot){
-      this.obstTL[i].xPix=this.obstTL[i].xPixDepot;
-      this.obstTL[i].yPix=this.obstTL[i].yPixDepot;
+    if(this.trafficObj[i].inDepot){
+      this.trafficObj[i].xPix=this.trafficObj[i].xPixDepot;
+      this.trafficObj[i].yPix=this.trafficObj[i].yPixDepot;
     }
   }
 }
 
 
 //######################################################################
-// draw active and passive obstTLimit signs
+// draw active and passive trafficObjimit signs
 // active: on road
 // passive: zooming back or stationary in depot
 //######################################################################
 
 
 /**
-@return draw into graphics context
+@return drawing into graphics context
 */
 
 
 TrafficObjects.prototype.draw=function(){
 
-  var active_drawTwoImgs=true; // if false, only one TL above road drawn
+  var active_drawTwoSigns=true; // if false, only one TL/sign above road drawn
                              // (in any case, only one obstacle 
                              // on the dropped lane)
-  var crossingLineWidth=1;   // stopping line of TL
+
+  var crossingLineWidth=1;   // width[m] of white line at sign/TL
+
   var wPixPassive=this.wPix;
   var hPixPassive=this.hPix;
   var wPixActive=this.active_scaleFact*wPixPassive;
   var hPixActive=this.active_scaleFact*hPixPassive;
 
-  for (var i=0; i<this.obstTL.length; i++){
+  for (var i=0; i<this.trafficObj.length; i++){
  
 
+    var obj=this.trafficObj[i];
 
-    // draw active traffic lights //!!! filter road, NO LONGER pass as arg!!
-    // ===========================
+    // (1) draw active traffic lights or speed limits 
+    // ==============================================
 
-    if((this.obstTL[i].isActive)&&(this.obstTL[i].type==="trafficLight")){
+    if((obj.isActive)
+       &&((obj.type==="trafficLight")||(obj.type==="speedLimit"))){
 
-      var TL=this.obstTL[i];
-      TL.image=(TL.value==="red") ? this.imgRepo[0] : this.imgRepo[1];
-      var road=TL.road;
+      var obj=this.trafficObj[i];
+      var road=obj.road;
 
       // draw the stopping line 
 
       var crossingLineLength=road.nLanes*road.laneWidth;
 
-      var xCenterPix=  scale*road.traj_x(TL.u);
-      var yCenterPix= -scale*road.traj_y(TL.u); // minus!!
+      var xCenterPix=  scale*road.traj_x(obj.u);
+      var yCenterPix= -scale*road.traj_y(obj.u); // minus!!
       var wPix=scale*crossingLineWidth;
       var lPix=scale*crossingLineLength;
-      var phi=road.get_phi(TL.u);
+      var phi=road.get_phi(obj.u);
       var cphi=Math.cos(phi);
       var sphi=Math.sin(phi);
 
@@ -312,58 +323,62 @@ TrafficObjects.prototype.draw=function(){
       xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
       yPix=yCenterPix+scale*v*cphi;  // -*-=+
       ctx.setTransform(1,0,0,1,xPix,yPix);
-      ctx.drawImage(TL.image,-0.5*wPixActive,
+
+      // obj.image defined/set at cstr or gonclick callback
+      ctx.drawImage(obj.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
-      TL.xPixLight1=xPix;                // save pixel positions 
-      TL.yPixLight1=yPix-0.8*hPixActive; // of light centers for later picking
+      obj.xPixSign1=xPix;                // save pixel positions 
+      obj.yPixSign1=yPix-0.8*hPixActive; // of light centers for later picking
                                      
 
-      if(active_drawTwoImgs){ // draw signs on both sides
+      if(active_drawTwoSigns){ // draw signs on both sides
 	v*=-1;
         xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
         yPix=yCenterPix+scale*v*cphi;  // -*-=+
         ctx.setTransform(1,0,0,1,xPix,yPix);
-        ctx.drawImage(TL.image,-0.5*wPixActive,
+        ctx.drawImage(obj.image,-0.5*wPixActive,
 		      -hPixActive,wPixActive, hPixActive);
-	TL.xPixLight2=xPix;         
-	TL.yPixLight2=yPix-0.8*hPixActive;
+	obj.xPixSign2=xPix;         
+	obj.yPixSign2=yPix-0.8*hPixActive;
       }
 
 	
       if(false){
-	console.log("TrafficObjects.draw active TL: i=",i,
-		    " TL.u=",TL.u,
-		    " TL.xPixLight1=",TL.xPixLight1,
-		    " TL.yPixLight1=",TL.yPixLight1);
+	console.log("TrafficObjects.draw active obj: i=",i,
+		    " type=",obj.type,
+		    " obj.u=",obj.u,
+		    " obj.xPixSign1=",obj.xPixSign1,
+		    " obj.yPixSign1=",obj.yPixSign1);
       }
 
-    }// end draw active TL
+    }// end draw active TL or speedlimit
     
 
-    // draw active obstacles
+    // (2) draw active obstacles
     // ======================
 
     // =>!!! DONE by road.drawVehicle since active obstacles are road objects
 
 
-    if((this.obstTL[i].isActive)&&(this.obstTL[i].type==="obstacle")){
-      if(true){
+    if((this.trafficObj[i].isActive)
+       &&(this.trafficObj[i].type==="obstacle")){
+
+      if(false){
         console.log("ObstacleDepot.draw:",
 		    "  active obstacles drawn by the drawVehicle method of",
-		    " road with ID", this.obstTL[i].road.roadID);
+		    " road with ID", this.trafficObj[i].road.roadID);
       }
     }
 
 
-    // draw passive objects (in depot or zooming back)
+
+
+    // (3) draw all passive objects (in depot or zooming back)
     // ===============================================
 
-    if(!this.obstTL[i].isActive){
+    if(!obj.isActive){
 
-
-      var obj=this.obstTL[i];
-
-      if(false){
+      if(true){
 	console.log(
 	  "in TrafficObjects.draw: i=",i,
 	  " fname=",obj.image.src,
@@ -381,26 +396,25 @@ TrafficObjects.prototype.draw=function(){
 } // draw
 
 
-//######################################################################
-// pick obstacleTL object in depot or on the road by user action
-//######################################################################
 
+//######################################################################
+// object selection method 1: Graphically by user
+//######################################################################
 
 /**
 @param  xPixUser,yPixUser: the external pixel position
 @param  distCrit:    only if the distance to the nearest sign
                      is less than distCrit [Pix], the operation is successful
-@return [successFlag, thePickedSign]
+@return [successFlag, the selected object]
 */
 
-
-TrafficObjects.prototype.pickObject=function(xPixUser,yPixUser,distCritPix){
+TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
   var dist2_min=1e9;
   var dist2_crit=distCritPix*distCritPix;
   var i_opt=-1;
-  for(var i=0; i<this.obstTL.length; i++){
-    var dist2=Math.pow(xPixUser-this.obstTL[i].xPix,2)
-      + Math.pow(yPixUser-this.obstTL[i].yPix,2);
+  for(var i=0; i<this.trafficObj.length; i++){
+    var dist2=Math.pow(xPixUser-this.trafficObj[i].xPix,2)
+      + Math.pow(yPixUser-this.trafficObj[i].yPix,2);
     if(dist2<dist2_min){
       dist2_min=dist2;
       i_opt=i;
@@ -408,72 +422,231 @@ TrafficObjects.prototype.pickObject=function(xPixUser,yPixUser,distCritPix){
   }
 
   var success=(dist2_min<dist2_crit);
-  var obstTLreturn=(success) ? this.obstTL[i_opt] : 'null';
+  var trafficObjreturn=(success) ? this.trafficObj[i_opt] : 'null';
+
   if(true){
-    console.log("\n\nTrafficObjects.pickObject:");
+    console.log("\n\nTrafficObjects.selectByUser:");
     if(success){
-      console.log("  successfully picked object of type ",obstTLreturn.type,
-		  " isActive=",obstTLreturn.isActive,
+      console.log("  successfully selected object of type ",
+		  trafficObjreturn.type,
+		  " isActive=",trafficObjreturn.isActive,
 		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
-		  " xPix=",formd0(this.obstTL[i_opt].xPix),
-		  " yPix=",formd0(this.obstTL[i_opt].yPix),
+		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
+		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
 		  "\n\n");
     }
     else{
       console.log("  no success", 
-		  " nearest object has type", this.obstTL[i_opt].type,
+		  " nearest object has type", this.trafficObj[i_opt].type,
 		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
-		  " xPix=",formd0(this.obstTL[i_opt].xPix),
-		  " yPix=",formd0(this.obstTL[i_opt].yPix),
+		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
+		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
 		  "\n\n");
     }
   }
-
-  // deactivate in case the obstacleTL object was on the road
-
-  if(success){obstTLreturn.isActive=false;} 
-
   
-  return[success,obstTLreturn];
+  return[success,trafficObjreturn];
 }
  
 
+//######################################################################
+// object selection method 2: by id
+//######################################################################
+
 /**
-#############################################################
-(sep19) user-driven change of the state of traffic light by click on canvas
-@return: success flag
-#############################################################
+@param  id: the object's id to be looked for
+@return [successFlag, the selected object] 
+
+*/
+TrafficObjects.prototype.selectById=function(id){
+  success=false;
+  var i_success=-1;
+  for(var i=0; (i<this.trafficObj.length)&&(!success); i++){
+    if(this.trafficObj[i].id==id){
+      success=true;
+      i_success=i;
+    }
+  }
+  var trafficObjreturn=(success) ? this.trafficObj[i_success] : "null";
+  return[success,trafficObjreturn];
+}
+
+//######################################################################
+// activate an object
+//######################################################################
+
+/** implement traffic effects of a trafficObject 
+by creating one or more virtual vehicle-objects on the target road 
+(obstacle or TL), or adding the new speedlimit 
+to the road;s list of speed limits
+
+@param obj: the trafficObject to be activated
+@param road: target road for activation
+@return: changed road data to reflect activation
+
+Notice: obj.inDepot,isDragged,isPicked,u,v defined by this.dropObject(.)
 */
 
-TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
+
+TrafficObjects.prototype.activateObject=function(obj, road){
+  obj.road=road;
+  road.dropObjectNew(obj);
+  obj.isActive=true; // for safety last cmd
+}
+
+
+//######################################################################
+// deactivate an object and its road effects
+//######################################################################
+
+TrafficObjects.prototype.deactivateObject=function(obj){
+  var road=obj.road;
+  if(obj.isActive){
+    if(obj.type==='trafficLight'){road.removeTrafficLight(obj.id);}
+    if(obj.type==='obstacle'){road.removeObstacle(obj.id);}
+    // no action needed for speedLimit
+    obj.isActive=false; // for safety last cmd
+  }
+}
+
+
+
+//######################################################################
+// pick an object
+//######################################################################
+
+/** 
+
+  * find nearest object to pointer coordinates
+  * if this object is nearer than distCritPix, select it, otherwise do nothing
+  * if selected object is active, make it passive 
+    and deactivate road effects
+
+@param xPixUser:    users pixel coordinates ((0,0)=left top)
+@param yPixUser:
+@param distCritPix: pick successful if distPix to neares road<distCritPix
+*/
+
+
+TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
+
+  var results=this.selectByUser(xPixUser, yPixUser, distCritPix);
+  //[success,trafficObjreturn]
+
+  var success=results[0];
+  var obj=results[1];
+  if(success){
+    obj.isPicked=true;
+    obj.inDepot=false;
+    obj.isDragged=false;
+    if(obj.isActive){
+      this.deactivateObject(obj); //=> obj.isActive=false
+    }
+  }
+}
+
+
+TrafficObjects.prototype.dropObject=function(obj, network, 
+				    xPixUser, yPixUser, distCritPix, scale){
+
+  // transform pointer to physical coordinates since road geometry
+  // defined in these coordinates
+
+  var xUser=xPixUser/scale;
+  var yUser=-yPixUser/scale;
+
+  // find really nearest road, not just sufficiently near one
+
+  var iroadNearest=-1;
+  var distMin=100000;
+  for(var iroad=0; iroad<network.length; iroad++){
+
+    var dropInfoNearest=network[iroad].findNearestDistanceTo(xUser,yUser);
+    // => [distance in m, u in m, v in lanes]
+
+    if(dropInfoNearest[0]<distMin){
+      distMin=dropInfoNearest[0];
+      iroadNearest=iroad;
+    }
+  }
+
+  // check success
+
+  var success=(scale*distMin<=distCritPix);
+  var road=(success) ? network[iroadNearest] : 'void';
+
+  // update trafficObject state depending on success
+
+  obj.road=road;
+  // obj.isActive set later by this.activateObject()
+  obj.inDepot=false;
+  obj.isPicked=false;
+  obj.isDragged=false;
+
+  obj.u=(success) ? dropInfoNearest[1] : -1;
+  obj.lane=(success) ? 0 : -1; // do not use v from mouse pointer/touch
+  var du=0.5*obj.lenPhysObst;  // focus should be on object center,
+                               // not front => move obstacles forward
+  if(success && obj.type==='obstacle'){
+    obj.u+=du;
+    obj.lane=Math.max(0, Math.min(road.nLanes-1,dropInfoNearest[2]));
+  }
+
+  // update pixel coordinates to "snapped" objects for later picking
+
+  if(success){
+    obj.xPix=road.get_xPix(obj.u-du, obj.v, scale);
+    obj.yPix=road.get_yPix(obj.u-du, obj.v, scale);
+  }
+
+
+  // implement traffic effects on road if successful drop
+
+  if(success){
+    this.activateObject(obj, road); // uses updated u,lane info
+  }
+
+}
+
+
+
+
+//#############################################################
+/** select single signs or traffic by click on canvas
+used:
+ - directly to pop up choicebox in canvas_gui.js
+ - as helper function in changeTrafficLightByUser(..)
+
+@return: success flag and relevant trafficObject */
+//#############################################################
+
+TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
     
   if(false){
-    console.log("in TrafficObjects.changeTrafficLightByUser:",
+    console.log("in TrafficObjects.selectSignOrTL:",
 		" xPixUser=",xPixUser," yPixUser=",yPixUser);
   }
 
   var refSizePix=Math.min(canvas.height,canvas.width);
   var distPixCrit=0.03*refSizePix;
   var success=false;
-  var TL;
-  for(var i=0; (!success)&&(i<this.obstTL.length); i++){
-    if(this.obstTL[i].type==='trafficLight'){
-      TL=this.obstTL[i];
-      var dxPix1=xPixUser-TL.xPixLight1;
-      var dyPix1=yPixUser-TL.yPixLight1;
-      var dxPix2=xPixUser-TL.xPixLight2;
-      var dyPix2=yPixUser-TL.yPixLight2;
+  var objFound='void';
+  for(var i=0; (!success)&&(i<this.trafficObj.length); i++){
+    var obj=this.trafficObj[i];
+    if((obj.type==='trafficLight')||(obj.type==='speedLimit')){
+      var dxPix1=xPixUser-TL.xPixSign1;
+      var dyPix1=yPixUser-TL.yPixSign1;
+      var dxPix2=xPixUser-TL.xPixSign2;
+      var dyPix2=yPixUser-TL.yPixSign2;
       var distPix1=Math.sqrt(dxPix1*dxPix1+dyPix1*dyPix1);
       var distPix2=Math.sqrt(dxPix2*dxPix2+dyPix2*dyPix2);
       if(Math.min(distPix1,distPix2)<=distPixCrit){
-	TL.value=(TL.value==='red') ? 'green' : 'red'; // toggle
-	TL.road.changeTrafficLight(TL.id, TL.value); // transfer to road obj
-	TL.image=(TL.value==='red') ? this.imgRepo[0] : this.imgRepo[1];
         success=true;
+	objFound=obj;
       }
       if(false){
-        console.log(" i_obstTL=",i," TL=",TL,
-		  " TL.xPixLight1=",TL.xPixLight1,
+        console.log("selectSignOrTL: obj i=",i,
+		  " xPixSign1=",obj.xPixSign1,
 		  " distPix1=",distPix1,
 		  " distPix2=",distPix2,
 		  " distPixCrit=",distPixCrit,
@@ -482,24 +655,44 @@ TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser, yPixUser){
     }
   }
 
-
-  if(true){
-    if(success){
-      console.log("road.changeTrafficLightByUser: changed traffic light",
-		  " to ",TL.value,
-		  " at u=",TL.u," on road ID ",TL.road.roadID);
-      TL.road.writeTrafficLights();
-    }
-    else{console.log("road.changeTrafficLightByUser: no success");}
-  }
-  return success;
+  return [success,objFound];
 }
 
+//#############################################################
+/** user-driven change of the state of traffic light by click on canvas
+@return: success flag and changed state, if success */
+//#############################################################
 
+TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
 
+  var results=this.selectSignOrTL(xPixUser,yPixUser);
+  var success=false; // successfully picked AND is traffic light
+  if(results[0]){
+    var obj=results[1];
+    if(obj.type==='trafficLight'){
+      success=true;
+      obj.value=(obj.value==='red') ? 'green' : 'red'; // toggle
+      obj.road.changeTrafficLight(obj.id, obj.value); // transfer to road obj
+      obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
+
+      if(true){
+       console.log("road.changeTrafficLightByUser: changed traffic light",
+		  " to ",obj.value,
+		  " at u=",obj.u," on road ID ",obj.road.roadID);
+	obj.road.writeTrafficLights();
+      }
+
+    }
+  }
+
+  if((!success)&&true){
+    console.log("road.changeTrafficLightByUser: no success");
+  }
+
+}
 
 /*####################################################################
-bring back all dragged obstTL objects back to the depot 
+bring back all dragged trafficObj objects back to the depot 
 if dropped too far from a road (object.isActive=false, obj.inDepot=false)
 automatic action at every timestep w/o GUI interaction 
 ####################################################################*/
@@ -508,8 +701,8 @@ automatic action at every timestep w/o GUI interaction
 TrafficObjects.prototype.zoomBack=function(){
   var relDisplacementPerCall=0.02; // zooms back as attached to a rubber band
   var pixelsPerCall=relDisplacementPerCall*this.sizeCanvas;
-  for(var i=0; i<this.obstTL.length; i++){
-    var obj=this.obstTL[i];
+  for(var i=0; i<this.trafficObj.length; i++){
+    var obj=this.trafficObj[i];
     if((!obj.isActive)&&(!obj.inDepot)){
       userCanvasManip=true; 
       var dx=obj.xPixDepot-obj.xPix;
@@ -529,7 +722,7 @@ TrafficObjects.prototype.zoomBack=function(){
         console.log("TrafficObjects.zoomBack: i=",i,
 		    " obj.xPix=",obj.xPix,
 		    " obj.xPix=",obj.xPix,
-		    " this.obstTL[i].xPix=",this.obstTL[i].xPix);
+		    " this.trafficObj[i].xPix=",this.trafficObj[i].xPix);
       }
     }
   }
@@ -562,14 +755,14 @@ TrafficObjects.prototype.pickVehicleOld=function(xUser,yUser,distCrit){
     var dist2_crit=distCrit*distCrit;
     var vehReturn
     var success=false;
-    for(var i=0; i<this.obstTL.length; i++){
-	if(this.obstTL[i].inDepot){
-	    var dist2=Math.pow(xUser-this.obstTL[i].x,2)
-		+ Math.pow(yUser-this.obstTL[i].y,2);
+    for(var i=0; i<this.trafficObj.length; i++){
+	if(this.trafficObj[i].inDepot){
+	    var dist2=Math.pow(xUser-this.trafficObj[i].x,2)
+		+ Math.pow(yUser-this.trafficObj[i].y,2);
 	    if( (dist2<dist2_crit) && (dist2<dist2_min)){
 		success=true;
 		dist2_min=dist2;
-		vehReturn=this.obstTL[i];
+		vehReturn=this.trafficObj[i];
 	    }
 	}
     }
@@ -586,19 +779,19 @@ bring back dragged vehicle to depot if dropped too far from a road
 TrafficObjects.prototype.zoomBackVehicleOld=function(){
     var isActive=false;
     var displacementPerCall=10; // zooms back as attached to a rubber band
-    for(var i=0; i<this.obstTL.length; i++){
-	if(this.obstTL[i].inDepot){
-	    var dx=this.obstTL[i].xDepot-this.obstTL[i].x;
-	    var dy=this.obstTL[i].yDepot-this.obstTL[i].y;
+    for(var i=0; i<this.trafficObj.length; i++){
+	if(this.trafficObj[i].inDepot){
+	    var dx=this.trafficObj[i].xDepot-this.trafficObj[i].x;
+	    var dy=this.trafficObj[i].yDepot-this.trafficObj[i].y;
 	    var dist=Math.sqrt(dx*dx+dy*dy);
 	    if(dist<displacementPerCall){
-		this.obstTL[i].x=this.obstTL[i].xDepot;
-		this.obstTL[i].y=this.obstTL[i].yDepot;
+		this.trafficObj[i].x=this.trafficObj[i].xDepot;
+		this.trafficObj[i].y=this.trafficObj[i].yDepot;
 	    }
 	    else{
 		isActive=true; // need to zoom further back in next call
-		this.obstTL[i].x += displacementPerCall*dx/dist;
-		this.obstTL[i].y += displacementPerCall*dy/dist;
+		this.trafficObj[i].x += displacementPerCall*dx/dist;
+		this.trafficObj[i].y += displacementPerCall*dy/dist;
 	    }
 	}
     }
@@ -620,9 +813,9 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
   }
 
   console.log("in TrafficObjects.writeObjects, justTL=",justTL,":");
-  for(var i=0; i<this.obstTL.length; i++){
-    if((!justTL) || (this.obstTL[i].type==='trafficLight')){
-      var obj=this.obstTL[i];
+  for(var i=0; i<this.trafficObj.length; i++){
+    if((!justTL) || (this.trafficObj[i].type==='trafficLight')){
+      var obj=this.trafficObj[i];
       console.log("  i=",i," roadID=",obj.road.roadID,
 		  " u=", formd(obj.u),
 		  " type=", obj.type,
@@ -642,23 +835,25 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
 //######################################################################
 
 /**
-@param i: obstTL object to be activated = obstTL[i] (at time of calling)
+@param i: trafficObj object to be activated = trafficObj[i] (at time of calling)
 @param targetRoad: road onto which the speed limit is positioned
 @param u: longitudinal logical coordinate of this road
 
-@return put the obstTL object onto road targetRoad at position u
+@return put the trafficObj object onto road targetRoad at position u
 
 
 */
 
+//!!! id->i
+
 TrafficObjects.prototype.activateTrafficLight=function(i, targetRoad, u){
-  if (i>=this.obstTL.length){
-    console.log("error: cannot position an obstTLimit object with index",
-		i," greater than the length ",this.obstTL.length,
-		" of the obstTL[] array");
+  if (i>=this.trafficObj.length){
+    console.log("error: cannot position an trafficObjimit object with index",
+		i," greater than the length ",this.trafficObj.length,
+		" of the trafficObj[] array");
     return;
   }
-  var TL=this.obstTL[i];
+  var TL=this.trafficObj[i];
   if(!(TL.type==='trafficLight')){
     console.log("error: can only activate a depot object of type trafficLight");
     return;
