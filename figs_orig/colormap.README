@@ -1,0 +1,5 @@
+(2017-06-24)
+Screenshot of the ring-road scenario with settings 
+
+drawBackground=false; drawColormap=true;
+var vmin=0; var vmax=100/3.6;

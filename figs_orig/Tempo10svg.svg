@@ -1,0 +1,19 @@
+<?xml version="1.0" standalone="no"?>
+<!-- Creator: fig2dev Version 3.2.6a -->
+<!-- CreationDate: 2019-09-04 17:20:26 -->
+<!-- Magnification: 1.05 -->
+<svg	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="132pt" height="200pt"
+	viewBox="2377 2017 2086 3170">
+<g fill="none">
+<!-- Line -->
+<rect x="3285" y="3960" width="180" height="1215" rx="105" fill="#7f7f7f"
+	stroke="#000000" stroke-width="8px"/>
+<!-- Circle -->
+<circle cx="3420" cy="3060" r="893" fill="#ffffff"
+	stroke="#ff0000" stroke-width="285px"/>
+<!-- Text -->
+<text xml:space="preserve" x="2925" y="3420" fill="#000000" font-family="Helvetica" font-style="normal" font-weight="bold" font-size="960" text-anchor="start">10</text>
+</g>
+</svg>
