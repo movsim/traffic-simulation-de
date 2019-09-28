@@ -378,7 +378,7 @@ TrafficObjects.prototype.draw=function(){
 
     if(!obj.isActive){
 
-      if(true){
+      if(false){
 	console.log(
 	  "in TrafficObjects.draw: i=",i,
 	  " fname=",obj.image.src,
@@ -543,6 +543,7 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
       this.deactivateObject(obj); //=> obj.isActive=false
     }
   }
+  return [success,obj];
 }
 
 

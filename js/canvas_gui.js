@@ -34,12 +34,13 @@ var touchdown=false; //true if touchstart event fired, but not yet touchend
 var depotObjPicked=false; //true if a depot obj < distmin @ last mousedown
 var funnelObjPicked=false; //same for a SpeedFunnel object
 var roadPicked=false; // true if none of the above and distRoad<crit   " "
-
+var trafficObjPicked=false; // xxxNew
 
 //var depotVehZoomBack=false; // =true after unsuccessful drop
 
 var depotObject;       // element depot.obstTL[i] of global var depot
 var funnelObject;      // element speedl[i] of global var speedfunne
+var trafficObject;     // xxxNew one traffic light, speed limit, or obstacle
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
 var distDragCrit=10;   // drag function if dragged more [m]; otherwise click
 var distDrag=0;        // physical distance[m] of the dragging
@@ -303,7 +304,7 @@ function pickRoadOrObject(xUser,yUser){
 		  depotObject.type,
 		  " isActive=",depotObject.isActive,
 		  " inDepot=",depotObject.inDepot);
-      return;
+      //return; //xxxNew
     }
     else console.log("pickRoadOrObject (1): no depot object found");
 
@@ -328,11 +329,29 @@ function pickRoadOrObject(xUser,yUser){
       roadPicked=false;
       //console.log("pickRoadOrObject (2): picked a SpeedFunnel object,",
 //	  	"  speed limit_kmh=",formd(3.6*pickResults[1].value));
-      return;
+      //return; //xxxNew
     }
     //else console.log("pickRoadOrObject (2): no speedfunnel object found");
   }
 
+  //xxxNew 
+
+  if(!(typeof trafficObjs === 'undefined')){
+    var distCrit_m=20; //[m] !! make it rather larger  
+    var pickResults=trafficObjs.pickObject(xPixUser, yPixUser, 
+				      distCrit_m*scale);
+    if(pickResults[0]){
+      trafficObject=pickResults[1];
+      trafficObjPicked=true;
+      roadPicked=false;
+      console.log("pickRoadOrObject (1): picked a trafficObject of type ",
+		  trafficObject.type,
+		  " isActive=",trafficObject.isActive,
+		  " inDepot=",trafficObject.inDepot);
+      return;
+    }
+    else console.log("pickRoadOrObject (1): no trafficObject found");
+  }
 
   // (3) test for a road section nearby
 // road.testCRG returns [success,distmin_m,dx_m, dy_m]
@@ -376,7 +395,7 @@ function pickRoadOrObject(xUser,yUser){
   console.log("pickRoadOrObject: found no suitable action!");
 
 
-} // canvas onmousedown or touchStart: pickRoadOrObject
+  } // canvas onmousedown or touchStart: pickRoadOrObject
 
 
 
@@ -428,6 +447,10 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 	    }
 	    if(funnelObjPicked){
 	        dragFunnelObject(xPixUser,yPixUser);
+	    }
+	    if(trafficObjPicked){//xxxNew
+	      trafficObject.xPix=xPixUser;
+	      trafficObject.yPix=yPixUser;
 	    }
 	    if(roadPicked){
 	        dragRoad(xUser,yUser);
