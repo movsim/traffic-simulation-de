@@ -610,7 +610,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
     console.log("end of TrafficObjects.dropObject,",
 		" before calling activateObject:",
 		" obj.id=",obj.id," obj.road.roadID=",obj.road.roadID,
-		" obj.u=",obj.u," obj.lane=",obj.lane," obj=",obj);
+		" obj.u=",obj.u," obj.lane=",obj.lane);
     this.activateObject(obj, road); // uses updated u,lane info
   }
 
