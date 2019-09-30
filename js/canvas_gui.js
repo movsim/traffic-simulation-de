@@ -329,12 +329,12 @@ function pickRoadOrObject(xUser,yUser){
       roadPicked=false;
       //console.log("pickRoadOrObject (2): picked a SpeedFunnel object,",
 //	  	"  speed limit_kmh=",formd(3.6*pickResults[1].value));
-      //return; //xxxNew
+      //return;
     }
     //else console.log("pickRoadOrObject (2): no speedfunnel object found");
   }
 
-  //xxxNew 
+
 
   if(!(typeof trafficObjs === 'undefined')){
     var distCrit_m=20; //[m] !! make it rather larger  
@@ -344,11 +344,12 @@ function pickRoadOrObject(xUser,yUser){
       trafficObject=pickResults[1];
       trafficObjPicked=true;
       roadPicked=false;
-      console.log("pickRoadOrObject (1): picked a trafficObject of type ",
+      console.log("pickRoadOrObject (1): picked trafficObject id=",
+		  trafficObject.id," type ",
 		  trafficObject.type,
 		  " isActive=",trafficObject.isActive,
 		  " inDepot=",trafficObject.inDepot);
-      return;
+       return;
     }
     else console.log("pickRoadOrObject (1): no trafficObject found");
   }
@@ -697,6 +698,27 @@ function finishDistortOrDropObject(xUser, yUser){
     funnelObjPicked=false;
   } // depotObj or funnelObj picked
 
+  
+  if(trafficObjPicked){//xxxNew
+
+    var network=[];
+    network[0]=mainroad;
+    if(isNetworkScenario){
+      network[1]=secondaryRoad; //xxxNew !!! define top-level at beg of file
+    }
+    var distCrit_m=20;  // optimize!!!
+    var distCritPix=distCrit_m*scale;
+    console.log("before calling trafficObjs.dropObject: trafficObject.id=",
+		trafficObject.id," trafficObject.u=",trafficObject.u);
+    trafficObjs.dropObject(trafficObject, network, 
+			   xPixUser, yPixUser, distCritPix, scale);
+    console.log("after calling trafficObjs.dropObject: trafficObject.id=",
+		trafficObject.id," trafficObject.u=",trafficObject.u,
+		" trafficObject.road.roadID=",trafficObject.road.roadID);
+   
+  }
+
+  
 } // handleMouseUp -> finishDistortOrDropObject
 
 

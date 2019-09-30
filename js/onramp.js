@@ -423,7 +423,8 @@ function updateSim(){
 
   if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
-  }
+    trafficObjs.zoomBack();
+ }
 
 
     // write vehicle positions of mainroad and onramp to console for external use
@@ -475,7 +476,7 @@ function drawSim() {
 
       updatePhysicalDimensions();
       depot.calcDepotPositions(canvas); //xxxNew
-
+      trafficObjs.calcDepotPositions(canvas);
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
 		        canvas.width," X ",canvas.height);

@@ -550,9 +550,10 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
 TrafficObjects.prototype.dropObject=function(obj, network, 
 				    xPixUser, yPixUser, distCritPix, scale){
 
+
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
-
+  
   var xUser=xPixUser/scale;
   var yUser=-yPixUser/scale;
 
@@ -586,6 +587,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 
   obj.u=(success) ? dropInfoNearest[1] : -1;
   obj.lane=(success) ? 0 : -1; // do not use v from mouse pointer/touch
+                               // unless obstacle (see below)
   var du=0.5*obj.lenPhysObst;  // focus should be on object center,
                                // not front => move obstacles forward
   if(success && obj.type==='obstacle'){
@@ -596,14 +598,19 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // update pixel coordinates to "snapped" objects for later picking
 
   if(success){
-    obj.xPix=road.get_xPix(obj.u-du, obj.v, scale);
-    obj.yPix=road.get_yPix(obj.u-du, obj.v, scale);
+    obj.xPix=road.get_xPix(obj.u-du, obj.lane, scale);
+    obj.yPix=road.get_yPix(obj.u-du, obj.lane, scale);
   }
 
 
   // implement traffic effects on road if successful drop
 
   if(success){
+
+    console.log("end of TrafficObjects.dropObject,",
+		" before calling activateObject:",
+		" obj.id=",obj.id," obj.road.roadID=",obj.road.roadID,
+		" obj.u=",obj.u," obj.lane=",obj.lane," obj=",obj);
     this.activateObject(obj, road); // uses updated u,lane info
   }
 

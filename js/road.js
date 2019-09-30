@@ -3908,23 +3908,23 @@ road.prototype.dropDepotObject=function(depotObj, u, v,
 }// dropDepotObject
 
 
-road.prototype.dropObjectNew=function(depotObj){
+road.prototype.dropObjectNew=function(trafficObj){
+  var u=trafficObj.u;
+  var lane=trafficObj.lane;
+  console.log("in road.dropDepotObjectNew: trafficObj.u=",u,
+	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
 
-  console.log("in road.dropDepotObject: u=",depotObj.u,
-	      " v=",depotObj.v," this.nLanes=",this.nLanes);
-
-  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
   var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
 
 
   // construct normal road vehicle/obstacle from depot object
   // if id=50...99
 
-  if(depotObj.type==='obstacle'){
-    var roadVehicle=new vehicle(depotObj.len,
-				depotObj.width,
-				depotObj.u, lane, 0, 
-				"obstacle"); //=depotObj.type
+  if(trafficObj.type==='obstacle'){
+    var roadVehicle=new vehicle(trafficObj.len,
+				trafficObj.width,
+				u, lane, 0, 
+				"obstacle"); //=trafficObj.type
 
     //(dec17) need longModel for LC as lagVeh!! 
     roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
@@ -3933,7 +3933,7 @@ road.prototype.dropObjectNew=function(depotObj){
       // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
       // for vehicles in depot!
       
-    roadVehicle.id=depotObj.id;
+    roadVehicle.id=trafficObj.id;
 
     // insert vehicle (array position does not matter since sorted anyway)
 
@@ -3949,8 +3949,8 @@ road.prototype.dropObjectNew=function(depotObj){
   // NOTICE: traffic light has its sorting/pushing/splicing methods
 
 
-  else if(depotObj.type==='trafficLight'){
-    this.addTrafficLight(depotObj);
+  else if(trafficObj.type==='trafficLight'){
+    this.addTrafficLight(trafficObj);
   }
 
   else {
