@@ -28,7 +28,7 @@ of the traffic objects (traffObj=trafficObj[i])
      plus a white line on the road, the obstacles are 
      aligned in the direction of the road axis
 
-- passive: in the depot or dragged or zooming back
+- passive: in the "depot" or dragged or zooming back
 
 
 * The TL and speed limit objects also have values:
@@ -107,9 +107,9 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
   this.sizeRel=0.10;         // relative size of passive graphical objects
   this.active_scaleFact=1.0; // pixel size factor active/passive objects
                              // other than obstacles (phys length relevant)
-  this.lenPhysObst=25;       // physical length[m] of active obstacles
+  this.lenPhys=25;       // physical length[m] of active obstacles
                              // (drawn by the road.draw methods)
-  this.wPhysObst=10;         // 1..1.5 times road.lanewidth
+  this.wPhys=10;         // 1..1.5 times road.lanewidth
 
   
   // variable size variables (updated in this.calcDepotPositions)
@@ -547,10 +547,14 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
 }
 
 
+
+
 TrafficObjects.prototype.dropObject=function(obj, network, 
 				    xPixUser, yPixUser, distCritPix, scale){
 
-
+  console.log("entering TrafficObjects.dropObject: obj.id=",obj.id,
+	      " obj.xPix=",obj.xPix,
+	      " network[0].roadLen=",network[0].roadLen);
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
   
@@ -560,16 +564,20 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // find really nearest road, not just sufficiently near one
 
   var iroadNearest=-1;
+  var dropInfoNearest;
   var distMin=100000;
   for(var iroad=0; iroad<network.length; iroad++){
 
-    var dropInfoNearest=network[iroad].findNearestDistanceTo(xUser,yUser);
+    var dropInfo=network[iroad].findNearestDistanceTo(xUser,yUser);
     // => [distance in m, u in m, v in lanes]
-
-    if(dropInfoNearest[0]<distMin){
+    console.log(" TrafficObjects.dropObject: iroad=",iroad,
+		" dropInfoNearest=",dropInfoNearest," distMin=",distMin);
+    if(dropInfo[0]<distMin){
+      dropInfoNearest=dropInfo;
       distMin=dropInfoNearest[0];
       iroadNearest=iroad;
     }
+    console.log("end iroad loop cmds: iroadNearest=",iroadNearest);
   }
 
   // check success
@@ -588,16 +596,18 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   obj.u=(success) ? dropInfoNearest[1] : -1;
   obj.lane=(success) ? 0 : -1; // do not use v from mouse pointer/touch
                                // unless obstacle (see below)
-  var du=0.5*obj.lenPhysObst;  // focus should be on object center,
+  var du=0.5*obj.len;  // focus should be on object center,
                                // not front => move obstacles forward
   if(success && obj.type==='obstacle'){
     obj.u+=du;
-    obj.lane=Math.max(0, Math.min(road.nLanes-1,dropInfoNearest[2]));
+    obj.lane=Math.round(
+      Math.max(0, Math.min(road.nLanes-1,dropInfoNearest[2])));
   }
 
   // update pixel coordinates to "snapped" objects for later picking
 
   if(success){
+    console.log("obj.u-du=",obj.u-du," obj.lane=",obj.lane," scale=",scale);
     obj.xPix=road.get_xPix(obj.u-du, obj.lane, scale);
     obj.yPix=road.get_yPix(obj.u-du, obj.lane, scale);
   }
@@ -606,15 +616,21 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // implement traffic effects on road if successful drop
 
   if(success){
-
-    console.log("end of TrafficObjects.dropObject,",
-		" before calling activateObject:",
-		" obj.id=",obj.id," obj.road.roadID=",obj.road.roadID,
-		" obj.u=",obj.u," obj.lane=",obj.lane);
     this.activateObject(obj, road); // uses updated u,lane info
   }
 
-}
+
+  if(true){
+    console.log("end TrafficObjects.dropObject: success=",success,
+		" nearest roadID=",road.roadID,
+	        " road.roadLen=",road.roadLen,
+	        " obj.id=",obj.id,
+	        " obj.u=",obj.u,
+	        " obj.xPix=",obj.xPix,
+		"");
+  }
+
+} // dropObject
 
 
 
@@ -711,7 +727,7 @@ TrafficObjects.prototype.zoomBack=function(){
   var pixelsPerCall=relDisplacementPerCall*this.sizeCanvas;
   for(var i=0; i<this.trafficObj.length; i++){
     var obj=this.trafficObj[i];
-    if((!obj.isActive)&&(!obj.inDepot)){
+    if((!obj.isActive)&&(!obj.inDepot)&&(!obj.isDragged)&&(!obj.isPicked)){
       userCanvasManip=true; 
       var dx=obj.xPixDepot-obj.xPix;
       var dy=obj.yPixDepot-obj.yPix;
@@ -742,69 +758,6 @@ TrafficObjects.prototype.drag=function(xPixUser,yPixUser){
 }
 
 
-//################################################
-// OLD BELOW
-
-//######################################################################
-// pick depot vehicles by user action
-//######################################################################
-
-
-/**
-@param  xUser,yUser: the external physical position
-@param  distCrit:    only if the distance to the nearest veh in the depot
-                     is less than distCrit, the operation is successful
-@return [successFlag, thePickedVeh]
-*/
-
-
-TrafficObjects.prototype.pickVehicleOld=function(xUser,yUser,distCrit){
-    var dist2_min=1e9;
-    var dist2_crit=distCrit*distCrit;
-    var vehReturn
-    var success=false;
-    for(var i=0; i<this.trafficObj.length; i++){
-	if(this.trafficObj[i].inDepot){
-	    var dist2=Math.pow(xUser-this.trafficObj[i].x,2)
-		+ Math.pow(yUser-this.trafficObj[i].y,2);
-	    if( (dist2<dist2_crit) && (dist2<dist2_min)){
-		success=true;
-		dist2_min=dist2;
-		vehReturn=this.trafficObj[i];
-	    }
-	}
-    }
-
-    return[success,vehReturn]
-}
- 
-
-/*####################################################################
-bring back dragged vehicle to depot if dropped too far from a road
-####################################################################*/
-
-
-TrafficObjects.prototype.zoomBackVehicleOld=function(){
-    var isActive=false;
-    var displacementPerCall=10; // zooms back as attached to a rubber band
-    for(var i=0; i<this.trafficObj.length; i++){
-	if(this.trafficObj[i].inDepot){
-	    var dx=this.trafficObj[i].xDepot-this.trafficObj[i].x;
-	    var dy=this.trafficObj[i].yDepot-this.trafficObj[i].y;
-	    var dist=Math.sqrt(dx*dx+dy*dy);
-	    if(dist<displacementPerCall){
-		this.trafficObj[i].x=this.trafficObj[i].xDepot;
-		this.trafficObj[i].y=this.trafficObj[i].yDepot;
-	    }
-	    else{
-		isActive=true; // need to zoom further back in next call
-		this.trafficObj[i].x += displacementPerCall*dx/dist;
-		this.trafficObj[i].y += displacementPerCall*dy/dist;
-	    }
-	}
-    }
-    return(isActive);
-}
 
 
 /**
@@ -824,65 +777,21 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
   for(var i=0; i<this.trafficObj.length; i++){
     if((!justTL) || (this.trafficObj[i].type==='trafficLight')){
       var obj=this.trafficObj[i];
-      console.log("  i=",i," roadID=",obj.road.roadID,
+      console.log("  id=",obj.id,
+		  " roadID=",obj.road.roadID,
 		  " u=", formd(obj.u),
+		  " lane=", formd(obj.lane),
 		  " type=", obj.type,
 		  " value=",obj.value,
 		  " xPix=",formd0(obj.xPix),
-		  " yPix=",formd0(obj.yPix),
-		  " isActive=",obj.isActive,
-		  " inDepot=",obj.inDepot,
-		  " isPicked=",obj.isPicked
-		 );
+		  " image=",obj.image,
+		 // " yPix=",formd0(obj.yPix),
+		 // " isActive=",obj.isActive,
+		 // " inDepot=",obj.inDepot,
+		 // " isPicked=",obj.isPicked
+		  "");
+		 
     }
-  }
-}
-
-//######################################################################
-// programmatically place/shift a traffic light onto a road
-//######################################################################
-
-/**
-@param i: trafficObj object to be activated = trafficObj[i] (at time of calling)
-@param targetRoad: road onto which the speed limit is positioned
-@param u: longitudinal logical coordinate of this road
-
-@return put the trafficObj object onto road targetRoad at position u
-
-
-*/
-
-//!!! id->i
-
-TrafficObjects.prototype.activateTrafficLight=function(i, targetRoad, u){
-  if (i>=this.trafficObj.length){
-    console.log("error: cannot position an trafficObjimit object with index",
-		i," greater than the length ",this.trafficObj.length,
-		" of the trafficObj[] array");
-    return;
-  }
-  var TL=this.trafficObj[i];
-  if(!(TL.type==='trafficLight')){
-    console.log("error: can only activate a depot object of type trafficLight");
-    return;
-  }
-  TL.isActive=true;
-  TL.road=targetRoad;
-  TL.u=u;
-  TL.inDepot=false;; 
-  TL.isPicked=false;
-  TL.isDragged=false;
-  TL.xPix=targetRoad.get_xPix(u,0,scale); // scale global var
-  TL.yPix=targetRoad.get_yPix(u,0,scale); 
-
-  // propagate effect to vehicles: dropDepotObject(TL,u,v,img_red,img_green)
-
-  targetRoad.dropDepotObject(TL,u,0,traffLightRedImg,traffLightGreenImg);
-
-  if(true){
-    console.log("programmatically set the traffic light ",i,
-		" value ",TL.value," onto road ",TL.road.roadID,
-	      " at position u=",TL.u);
   }
 }
 

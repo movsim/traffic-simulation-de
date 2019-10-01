@@ -3588,7 +3588,6 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 				    speedmin,speedmax,xOffset,yOffset,
 				    otherRoad, uOffset){
 
-
     var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
     var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
 
@@ -3637,9 +3636,10 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 
     // special corrections for special (depot) obstacles 
     // normal obstacles are drawn with obstacleImgs[0]=black box
+  // !!! special index 50-> obstacleImgs[1] etc 
 
-    var obstacleImgIndex=(this.veh[i].isSpecialVeh())
-		? this.veh[i].id % obstacleImgs.length : 0;
+  var obstacleImgIndex=(this.veh[i].isSpecialVeh())
+    ? (this.veh[i].id-49) % obstacleImgs.length : 0;
     
     if(type==="obstacle"){
 	      //console.log("obstacle id=",this.veh[i].id);
@@ -3848,7 +3848,7 @@ Typically used for dropping obstacles as onmouseup callback => canvas_gui
 @return:             void. the road "this" has one more vehicle.
 */
 
-
+/*
 road.prototype.dropDepotObject=function(depotObj, u, v, 
 					 imgRed,imgGreen){
 
@@ -3906,12 +3906,12 @@ road.prototype.dropDepotObject=function(depotObj, u, v,
 
 
 }// dropDepotObject
-
+*/
 
 road.prototype.dropObjectNew=function(trafficObj){
   var u=trafficObj.u;
   var lane=trafficObj.lane;
-  console.log("in road.dropDepotObjectNew: trafficObj.u=",u,
+  console.log("in road.dropObjectNew: trafficObj.u=",u,
 	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
 
   var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
@@ -3930,7 +3930,7 @@ road.prototype.dropObjectNew=function(trafficObj){
     roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
 
       //!! id ctrls veh image: 50=black obstacle,
-      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
+      // 51=constructionVeh1.png etc. Attribute veh.imgNumber defined only
       // for vehicles in depot!
       
     roadVehicle.id=trafficObj.id;
@@ -3940,7 +3940,7 @@ road.prototype.dropObjectNew=function(trafficObj){
     this.veh.push(roadVehicle);
     this.sortVehicles();
     this.updateEnvironment(); // possibly crucial !!
-    console.log("road.dropDepotObject: dropped vehicle at uDrop=",u,
+    console.log("road.dropObjectNew: dropped vehicle at uDrop=",u,
 		" lane=",lane," id=",roadVehicle.id,
 		" imgNumber=",roadVehicle.imgNumber);
   }

@@ -1,6 +1,17 @@
 class: 
 TrafficObjects unifies ObstacleTLDepot.js and SpeedFunnel.js
 
+(2019-10-02)
+Nearly finished!!
+2 bugs still there
+
+(1) 3 instead of 2 signs drawn
+(2) traffic light cannot be switched
+
+===================================================
+
+GENERAL
+
 Main data element: 
 an array traffObj[].  Each traffObj[i] has elements as in ObstacleTLDepot.js
 * id: unique ID

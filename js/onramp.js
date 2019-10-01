@@ -148,6 +148,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed
     mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
     taperLen=0.2*rampLen;
     rampRadius=4*arcRadius;
+  console.log("updatePhysicalDimensions: mainroadLen=",mainroadLen);
 }
 
 
@@ -340,7 +341,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //############################################
 
 //(canvas,nRow,nCol,xRelDepot,yRelDepot,nTL,obstacleImgNames
-var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+//var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 // canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,2,0.60,0.50,2,3);
@@ -422,12 +423,14 @@ function updateSim(){
     // just stay where they have been dropped outside of a road
 
   if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
+    //depot.zoomBack();
     trafficObjs.zoomBack();
  }
 
 
-    // write vehicle positions of mainroad and onramp to console for external use
+    // debug output
+
+  if(true){
 
     //if((itime>=125)&&(itime<=128)){
     if(false){
@@ -438,6 +441,13 @@ function updateSim(){
 	//console.log("\nonramp vehicles:");
 	ramp.writeVehiclesSimple();
     }
+
+    if(true){
+      trafficObjs.writeObjects();
+    }
+  }
+
+
 
 }//updateSim
 
@@ -463,6 +473,7 @@ function drawSim() {
 
     var hasChanged=false;
 
+  //updatePhysicalDimensions(); //!!!
 
     if ((canvas.width!=simDivWindow.clientWidth)
 	||(canvas.height != simDivWindow.clientHeight)){
@@ -471,11 +482,11 @@ function drawSim() {
         canvas.height  = simDivWindow.clientHeight;
 	aspectRatio=canvas.width/canvas.height;
 	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+      updatePhysicalDimensions(); //!!! why DOS???
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-      updatePhysicalDimensions();
-      depot.calcDepotPositions(canvas); //xxxNew
+      //depot.calcDepotPositions(canvas); //xxxNew
       trafficObjs.calcDepotPositions(canvas);
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -534,26 +545,25 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-	trafficObjs.draw(scale);
-    }
+  if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+	//depot.draw(obstacleImgs,scale,canvas);
+    trafficObjs.draw(scale);
+  }
 
 
-    // (6) show simulation time and detector displays
+  // (6) show simulation time and detector displays
 
-    displayTime(time,textsize);
-    for(var iDet=0; iDet<nDet; iDet++){
+  displayTime(time,textsize);
+  for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].display(textsize);
-    }
+  }
+
+  // (6a) show scale info
 
   if(false){
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
-
-
-    /*
     var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
@@ -565,22 +575,23 @@ function drawSim() {
     ctx.fillStyle="rgb(0,0,0)";
     ctx.fillText(scaleStr, scaleStr_xlb+0.2*textsize, 
 		 scaleStr_ylb-0.2*textsize);
-    */
-
+  }
 
       // (7) draw the speed colormap
       //!!! Now always false; drawn statically by html file!
 
-    if(drawColormap){
+  if(drawColormap){
       displayColormap(0.22*refSizePix,
                    0.43*refSizePix,
                    0.1*refSizePix, 0.2*refSizePix,
 		   vmin_col,vmax_col,0,100/3.6);
-    }
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
   }
+
+    // revert to neutral transformation at the end!
+
+  ctx.setTransform(1,0,0,1,0,0);
 }
+
  
 
 
