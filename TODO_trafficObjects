@@ -5,9 +5,23 @@ TrafficObjects unifies ObstacleTLDepot.js and SpeedFunnel.js
 Nearly finished!!
 2 bugs still there
 
-(1) 3 instead of 2 signs drawn
-(2) traffic light cannot be switched
+(1) 3 instead of 2 signs drawn OK
 
+(2) traffic light cannot be switched still BUG
+
+(3) obj deactivate if only clicked, not dragged: wrong!
+
+use isDragged: Deactivate objects on road only if isDragged=true;
+               Don't set isDragged=false in TrafficObjects! that is
+	       the responsibility of canvas_gui!
+         onmousemove="handleMouseMove(event)"
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)" 
+          onclick="handleClick(event)"
+
+(4) du in TrafficObjects.js erroneously also used for traffic
+lights/signs OK
+	       
 ===================================================
 
 GENERAL

@@ -659,11 +659,10 @@ road.prototype.writeDepotVehObjects= function(umin,umax){
 //######################################################################
 
 road.prototype.writeTrafficLights= function(umin,umax) {
-  console.log("\nin road.writeTrafficLights:",
-	      "  writing the road's operational TL objects",
+  console.log("\nitime=",itime," in road.writeTrafficLights:",
+	      " writing the road's operational TL objects",
 	      " roaroadID=",this.roadID,
-	      " nTL=",this.trafficLights.length,
-	      " itime="+itime);
+	      " nTL=",this.trafficLights.length);
 
   var uminLoc=(typeof umin!=='undefined') ? umin : 0;
   var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -672,7 +671,7 @@ road.prototype.writeTrafficLights= function(umin,umax) {
     var u=this.trafficLights[i].u;
     if((u>uminLoc) && (u<umaxLoc) ){
 
-      console.log(" trafficLights[",i,"]:",
+      console.log("  trafficLights[",i,"]:",
 		      "  id="+this.trafficLights[i].id,
 		      "  u="+formd(this.trafficLights[i].u),
 		      "  value="+this.trafficLights[i].value,
@@ -3830,88 +3829,12 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 
 
 
-//#########################################################
-// drop an external depot vehicle to the road
-//#########################################################
-/**
-The dropped vehicle has the type of a ObstacleTLDepot.veh element.
-It is converted to a road.veh element and dropped just 1m behind the 
-leading vehicle corresponding to the drop position u. 
-following vehicles are ignored; a crash may happen!
-Typically used for dropping obstacles as onmouseup callback => canvas_gui
-
-@param depotObj: the depot vehicle of type ObstacleTLDepot.veh[i]
-@param u:            longitudinal road coordinate of dropping point
-@param v:            dropped on the lane nearest v (0=left, nLanes-1=right
-@param imgRed,imgGreen:  images of traffic lights (otherwise, obstacles imgs
-                         are passed by road.draw)
-@return:             void. the road "this" has one more vehicle.
-*/
-
-/*
-road.prototype.dropDepotObject=function(depotObj, u, v, 
-					 imgRed,imgGreen){
-
-  console.log("in road.dropDepotObject: u=",u,
-	      " v=",v," this.nLanes=",this.nLanes);
-
-  var lane=Math.max(0, Math.min(this.nLanes-1, Math.round(v)));
-  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
-
-  // just drop at u corresp. to mouse position 
-  // (road dynamics handles possible crashes silently)   
-  // NOTICE: since u always denotes the front pos, 
-  // shift is by 0.5*depotObj.len for conventionally drawn veh-like objects
-  // for a better graphical focus
-
-  var uDrop=(depotObj.id<100) ? u+0.5*depotObj.len : u; 
-  depotObj.u=uDrop;
-
-  // construct normal road vehicle/obstacle from depot object
-  // if id=50...99
-
-  if(depotObj.id<100){
-    var roadVehicle=new vehicle(depotObj.len,
-				depotObj.width,
-				depotObj.u, lane, 0, 
-				"obstacle"); //=depotObj.type
-
-    //(dec17) need longModel for LC as lagVeh!! 
-    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
-
-      //!! id ctrls veh image: 50=black obstacle,
-      // 51=constructionVeh1.png etc. Attribute veh.imgNmbr defined only
-      // for vehicles in depot!
-      
-    roadVehicle.id=depotObj.id;
-
-    // insert vehicle (array position does not matter since sorted anyway)
-
-    this.veh.push(roadVehicle);
-    this.sortVehicles();
-    this.updateEnvironment(); // possibly crucial !!
-    console.log("road.dropDepotObject: dropped vehicle at uDrop=",u,
-		" lane=",lane," id=",roadVehicle.id,
-		" imgNumber=",roadVehicle.imgNumber);
-  }
-
-  // position a traffic light if depot object id=100 ... 199
-  // NOTICE: traffic light has its sorting/pushing/splicing methods
-
-
-  else{
-    this.addTrafficLight(depotObj);
-  }
-
-
-
-}// dropDepotObject
-*/
 
 road.prototype.dropObjectNew=function(trafficObj){
   var u=trafficObj.u;
   var lane=trafficObj.lane;
-  console.log("in road.dropObjectNew: trafficObj.u=",u,
+  console.log("itime=",itime,
+	      " in road.dropObjectNew: trafficObj.u=",u,
 	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
 
   var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
@@ -3940,7 +3863,7 @@ road.prototype.dropObjectNew=function(trafficObj){
     this.veh.push(roadVehicle);
     this.sortVehicles();
     this.updateEnvironment(); // possibly crucial !!
-    console.log("road.dropObjectNew: dropped vehicle at uDrop=",u,
+    console.log("  end road.dropObjectNew: dropped obstacle at uDrop=",u,
 		" lane=",lane," id=",roadVehicle.id,
 		" imgNumber=",roadVehicle.imgNumber);
   }
@@ -3951,6 +3874,7 @@ road.prototype.dropObjectNew=function(trafficObj){
 
   else if(trafficObj.type==='trafficLight'){
     this.addTrafficLight(trafficObj);
+    console.log("  end road.dropObjectNew: added traffic light");
   }
 
   else {
@@ -3981,9 +3905,13 @@ road.prototype.addTrafficLight= function(depotObject) {
 		   };
   this.trafficLights.push(trafficLight);
   this.changeTrafficLight(depotObject.id,depotObject.value);
-  console.log("road.addTrafficLight: roadID=",this.roadID,
+
+  if(true){
+    console.log("itime=",itime," road.addTrafficLight: roadID=",this.roadID,
 	      " added traffic light id=",depotObject.id,
-	      " at u=",formd(depotObject.u)," value=",depotObject.value);
+		" at u=",formd(depotObject.u)," value=",depotObject.value);
+  }
+  
 }
 
 

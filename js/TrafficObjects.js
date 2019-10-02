@@ -287,7 +287,8 @@ TrafficObjects.prototype.draw=function(){
 
     var obj=this.trafficObj[i];
 
-    // (1) draw active traffic lights or speed limits 
+    // (1) draw active traffic lights or speed limits
+    // (active obstacles drawn by road) 
     // ==============================================
 
     if((obj.isActive)
@@ -324,7 +325,7 @@ TrafficObjects.prototype.draw=function(){
       yPix=yCenterPix+scale*v*cphi;  // -*-=+
       ctx.setTransform(1,0,0,1,xPix,yPix);
 
-      // obj.image defined/set at cstr or gonclick callback
+      // obj.image defined/set at cstr or onclick callback
       ctx.drawImage(obj.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
       obj.xPixSign1=xPix;                // save pixel positions 
@@ -354,45 +355,33 @@ TrafficObjects.prototype.draw=function(){
     }// end draw active TL or speedlimit
     
 
-    // (2) draw active obstacles
-    // ======================
-
-    // =>!!! DONE by road.drawVehicle since active obstacles are road objects
-
-
-    if((this.trafficObj[i].isActive)
-       &&(this.trafficObj[i].type==="obstacle")){
-
-      if(false){
-        console.log("ObstacleDepot.draw:",
-		    "  active obstacles drawn by the drawVehicle method of",
-		    " road with ID", this.trafficObj[i].road.roadID);
-      }
-    }
-
-
-
+ 
 
     // (3) draw all passive objects (in depot or zooming back)
     // ===============================================
 
     if(!obj.isActive){
 
-      if(false){
-	console.log(
-	  "in TrafficObjects.draw: i=",i,
-	  " fname=",obj.image.src,
-	  " xPix=",formd(obj.xPix),
-	  " yPix=",formd(obj.yPix),
-	  " wPixPassive=",formd(wPixPassive),
-	  " hPixPassive=",formd(hPixPassive));
-      }
       ctx.setTransform(1,0,0,1, obj.xPix,obj.yPix);
       ctx.drawImage(obj.image,-0.5*wPixPassive,-0.5*hPixPassive,
 		    wPixPassive,hPixPassive);
 
-   }
-  }
+      if(false){
+      //if(obj.value==60){
+	console.log(
+	  "time=",time," in TrafficObjects.draw: passive objects: id=",obj.id,
+	  " value=",obj.value,
+	  //" fname=",obj.image.src,
+	  //" xPix=",formd(obj.xPix),
+	  //" yPix=",formd(obj.yPix),
+	  //" wPixPassive=",formd(wPixPassive),
+	  //" hPixPassive=",formd(hPixPassive),
+	  "");
+      }
+ 
+    }
+    
+  } // objects loop
 } // draw
 
 
@@ -425,23 +414,25 @@ TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
   var trafficObjreturn=(success) ? this.trafficObj[i_opt] : 'null';
 
   if(true){
-    console.log("\n\nTrafficObjects.selectByUser:");
     if(success){
-      console.log("  successfully selected object of type ",
-		  trafficObjreturn.type,
+      console.log("itime=",itime," in TrafficObjects.selectByUser:",
+		  " success! type=", trafficObjreturn.type,
 		  " isActive=",trafficObjreturn.isActive,
-		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
-		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
-		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
-		  "\n\n");
+		  //" xPixUser=",formd0(xPixUser),
+		  //" yPixUser=",formd0(yPixUser),
+		  //" xPix=",formd0(this.trafficObj[i_opt].xPix),
+		  //" yPix=",formd0(this.trafficObj[i_opt].yPix),
+		  "end");
     }
     else{
-      console.log("  no success", 
+      console.log("itime=",itime," in TrafficObjects.selectByUser:",
+		  " no success",
 		  " nearest object has type", this.trafficObj[i_opt].type,
-		  " xPixUser=",formd0(xPixUser)," yPixUser=",formd0(yPixUser),
-		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
-		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
-		  "\n\n");
+		 // " xPixUser=",formd0(xPixUser),
+		 // " yPixUser=",formd0(yPixUser),
+		 // " xPix=",formd0(this.trafficObj[i_opt].xPix),
+		 // " yPix=",formd0(this.trafficObj[i_opt].yPix),
+		  "end");
     }
   }
   
@@ -492,6 +483,7 @@ TrafficObjects.prototype.activateObject=function(obj, road){
   obj.road=road;
   road.dropObjectNew(obj);
   obj.isActive=true; // for safety last cmd
+  hasChanged=true;
 }
 
 
@@ -548,13 +540,30 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
 
 
 
+//######################################################################
+// drop an object
+//######################################################################
+
+/** 
+
+  * drop the selected object. 
+  * If the global var isDragged=false, restore the state before picking
+
+@param obj:         the object to be dropped
+@param network:     an array of road objects as candidates for dropping
+@param xPixUser:    users pixel coordinates ((0,0)=left top)
+@param yPixUser:
+@param distCritPix: drop on a road successful if distPix to nearest 
+                    road less than distCritPix
+*/
 
 TrafficObjects.prototype.dropObject=function(obj, network, 
 				    xPixUser, yPixUser, distCritPix, scale){
 
-  console.log("entering TrafficObjects.dropObject: obj.id=",obj.id,
+  console.log("itime=",itime
+	      ," in TrafficObjects.dropObject: obj.id=",obj.id,
 	      " obj.xPix=",obj.xPix,
-	      " network[0].roadLen=",network[0].roadLen);
+	      " network[0].roadID=",network[0].roadID);
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
   
@@ -570,14 +579,14 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 
     var dropInfo=network[iroad].findNearestDistanceTo(xUser,yUser);
     // => [distance in m, u in m, v in lanes]
-    console.log(" TrafficObjects.dropObject: iroad=",iroad,
-		" dropInfoNearest=",dropInfoNearest," distMin=",distMin);
+    //console.log("  TrafficObjects.dropObject: iroad=",iroad,
+//		" dropInfoNearest=",dropInfoNearest," distMin=",distMin);
     if(dropInfo[0]<distMin){
       dropInfoNearest=dropInfo;
       distMin=dropInfoNearest[0];
       iroadNearest=iroad;
     }
-    console.log("end iroad loop cmds: iroadNearest=",iroadNearest);
+    //console.log("  end iroad loop cmds: iroadNearest=",iroadNearest);
   }
 
   // check success
@@ -596,8 +605,12 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   obj.u=(success) ? dropInfoNearest[1] : -1;
   obj.lane=(success) ? 0 : -1; // do not use v from mouse pointer/touch
                                // unless obstacle (see below)
-  var du=0.5*obj.len;  // focus should be on object center,
-                               // not front => move obstacles forward
+
+  // obstacles: focus should be on object center, 
+  // not front => move obstacles forward
+  
+  var du=(obj.type==='obstacle') ? 0.5*obj.len : 0;  
+  
   if(success && obj.type==='obstacle'){
     obj.u+=du;
     obj.lane=Math.round(
@@ -607,7 +620,8 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // update pixel coordinates to "snapped" objects for later picking
 
   if(success){
-    console.log("obj.u-du=",obj.u-du," obj.lane=",obj.lane," scale=",scale);
+    console.log("  success! roadID=",obj.road.roadID,
+		" obj.u=",obj.u," obj.lane=",obj.lane);
     obj.xPix=road.get_xPix(obj.u-du, obj.lane, scale);
     obj.yPix=road.get_yPix(obj.u-du, obj.lane, scale);
   }
@@ -621,12 +635,12 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 
 
   if(true){
-    console.log("end TrafficObjects.dropObject: success=",success,
+    console.log("  end TrafficObjects.dropObject: success=",success,
 		" nearest roadID=",road.roadID,
-	        " road.roadLen=",road.roadLen,
+	        " road.roadLen=",formd(road.roadLen),
 	        " obj.id=",obj.id,
-	        " obj.u=",obj.u,
-	        " obj.xPix=",obj.xPix,
+	        " obj.u=",formd(obj.u),
+	        " obj.xPix=",formd0(obj.xPix),
 		"");
   }
 
@@ -641,6 +655,11 @@ used:
  - directly to pop up choicebox in canvas_gui.js
  - as helper function in changeTrafficLightByUser(..)
 
+ - Difference to selectByUser: 
+   
+   - selectSignOrTL: select obj by center of one of two signs/traffic lights
+   - selectByUser: generically select obj by its center
+ - 
 @return: success flag and relevant trafficObject */
 //#############################################################
 
@@ -658,10 +677,10 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
   for(var i=0; (!success)&&(i<this.trafficObj.length); i++){
     var obj=this.trafficObj[i];
     if((obj.type==='trafficLight')||(obj.type==='speedLimit')){
-      var dxPix1=xPixUser-TL.xPixSign1;
-      var dyPix1=yPixUser-TL.yPixSign1;
-      var dxPix2=xPixUser-TL.xPixSign2;
-      var dyPix2=yPixUser-TL.yPixSign2;
+      var dxPix1=xPixUser-obj.xPixSign1;
+      var dyPix1=yPixUser-obj.yPixSign1;
+      var dxPix2=xPixUser-obj.xPixSign2;
+      var dyPix2=yPixUser-obj.yPixSign2;
       var distPix1=Math.sqrt(dxPix1*dxPix1+dyPix1*dyPix1);
       var distPix2=Math.sqrt(dxPix2*dxPix2+dyPix2*dyPix2);
       if(Math.min(distPix1,distPix2)<=distPixCrit){
@@ -669,7 +688,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 	objFound=obj;
       }
       if(false){
-        console.log("selectSignOrTL: obj i=",i,
+        console.log("selectSignOrobj: obj i=",i,
 		  " xPixSign1=",obj.xPixSign1,
 		  " distPix1=",distPix1,
 		  " distPix2=",distPix2,
@@ -687,8 +706,10 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 @return: success flag and changed state, if success */
 //#############################################################
 
+
 TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
 
+  console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
   var results=this.selectSignOrTL(xPixUser,yPixUser);
   var success=false; // successfully picked AND is traffic light
   if(results[0]){
@@ -700,17 +721,20 @@ TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
       obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
 
       if(true){
-       console.log("road.changeTrafficLightByUser: changed traffic light",
-		  " to ",obj.value,
-		  " at u=",obj.u," on road ID ",obj.road.roadID);
+	console.log("end TrafficObjects.changeTrafficLightByUser: ",
+		    " changed traffic light",
+		    " to ",obj.value,
+		    " at u=",obj.u," on road ID ",obj.road.roadID);
 	obj.road.writeTrafficLights();
       }
 
     }
   }
 
-  if((!success)&&true){
-    console.log("road.changeTrafficLightByUser: no success");
+  if(true){
+    if(!success){
+      console.log("end TrafficObjects.changeTrafficLightByUser: no success");
+    }
   }
 
 }

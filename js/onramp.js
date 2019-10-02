@@ -430,7 +430,7 @@ function updateSim(){
 
     // debug output
 
-  if(true){
+  if(false){
 
     //if((itime>=125)&&(itime<=128)){
     if(false){
@@ -471,7 +471,7 @@ function drawSim() {
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
-    var hasChanged=false;
+    //var hasChanged=false; //xxxnew !!!
 
   //updatePhysicalDimensions(); //!!!
 
@@ -508,24 +508,33 @@ function drawSim() {
     // (2) reset transform matrix and draw background
     // (only needed if no explicit road drawn)
 
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(hasChanged||(itime<=2) || (itime===20) || userCanvasManip 
-	   || movingObserver || (!drawRoad)){
-        ctx.drawImage(background,0,0,canvas.width,canvas.height);
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=2) || (itime%2000==0) || userCanvasManip
+       || movingObserver || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
+
+      if(false){
+	console.log("itime=",itime,
+		      " hasChanged=",hasChanged,
+		      " userCanvasManip=",userCanvasManip,
+		      " movingObserver=",movingObserver,
+		      " before drawing background");
       }
     }
+  }
+  
 
     // (3) draw mainroad and ramp
-    // (always drawn; changedGeometry only triggers building a new lookup table)
+    // (always drawn; changedGeometry only triggers making a new lookup table)
 
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
-    ramp.draw(rampImg,rampImg,scale,changedGeometry,
-		movingObserver,0, 
-		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+  var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
+  ramp.draw(rampImg,rampImg,scale,changedGeometry,
+	    movingObserver,0,
+	    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+	    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
 
 
@@ -586,9 +595,11 @@ function drawSim() {
                    0.1*refSizePix, 0.2*refSizePix,
 		   vmin_col,vmax_col,0,100/3.6);
   }
+  
+  // xxxnew may be set to true if changed canvas or old sign should be wiped away 
+   hasChanged=false; 
 
-    // revert to neutral transformation at the end!
-
+  // revert to neutral transformation at the end!
   ctx.setTransform(1,0,0,1,0,0);
 }
 
