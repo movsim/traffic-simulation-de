@@ -31,15 +31,15 @@ var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 var touchdown=false; //true if touchstart event fired, but not yet touchend
 
-var depotObjPicked=false; //true if a depot obj < distmin @ last mousedown
-var funnelObjPicked=false; //same for a SpeedFunnel object
+//var depotObjPicked=false; //true if a depot obj < distmin @ last mousedown
+//var funnelObjPicked=false; //same for a SpeedFunnel object
 var roadPicked=false; // true if none of the above and distRoad<crit   " "
 var trafficObjPicked=false; // xxxNew
 
 //var depotVehZoomBack=false; // =true after unsuccessful drop
 
-var depotObject;       // element depot.obstTL[i] of global var depot
-var funnelObject;      // element speedl[i] of global var speedfunne
+//var depotObject;       // element depot.obstTL[i] of global var depot
+//var funnelObject;      // element speedl[i] of global var speedfunne
 var trafficObject;     // xxxNew one traffic light, speed limit, or obstacle
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
 var distDragCrit=10;   // drag function if dragged more [m]; otherwise click
@@ -389,14 +389,9 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 		    " distDragCrit=",distDragCrit);
 	}
 
-	if(distDrag>distDragCrit){ // do no dragging actions if only click
-	    if(depotObjPicked){
-	        dragDepotObject(xPixUser,yPixUser);
-	    }
-	    if(funnelObjPicked){
-	        dragFunnelObject(xPixUser,yPixUser);
-	    }
-	    if(trafficObjPicked){//xxxNew
+	if(distDrag>distDragCrit){ // !!! do no dragging actions if only click
+	    if(trafficObjPicked){//xxxNew !!! change isPicked, isDragged, deactivate if isActive
+	      trafficObject.isDragged=true;
 	      trafficObject.xPix=xPixUser;
 	      trafficObject.yPix=yPixUser;
 	    }

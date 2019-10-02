@@ -162,11 +162,16 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 
     //#################################################################
     // xxx central object this.trafficObj[i]
-    // obstacle/TL on road: isActive=true, u>=0,inDepot=isPicked=false 
-    // object picked/dragged: isPicked=true, isActive=false=inDepot=false
+    // object on road: isActive=true, u>=0,inDepot=isDragged=false 
+    // object picked: isPicked=true, inDepot=false, isDragged and isActive
+    //         can have both values 
+    //         (isActive=true only if (!isDragged)&&(isActive in past)) 
+    // object dragged: isDragged=true, isPicked=inDepot=isActive=false
     // object dropped on road => becomes active
-    // object  dropped outside of road and not yet completely zoomed back =>
-    // isPicked=isActive=inDepot=false
+    // object dropped on road: isActive=true, 
+    //          isDragged=isPicked=inDepot=false
+    // object dropped outside of road and not yet completely zoomed back =>
+    //          isPicked=isDragged=isActive=inDepot=false
     //#################################################################
 
     this.trafficObj[i]={
@@ -175,10 +180,12 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
       image: (isTL) ? this.imgTLred : (isSpeedl)
 	? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst],
       value: (isTL) ? "red" : (isObst) ? "null" : 10*initSpeedInd[iSpeed],
-      isActive: false,
+      isActive: false, 
       inDepot:  true,
-      isPicked: false,
-      isDragged: false,
+      isPicked: false,   // !! controlled by pickRoadOrObject (canvas_gui)
+                         // ->this.pickObject
+      isDragged: false,  // !! controlled by doDragging (canvas_gui)
+                         // -> direct setting in canvas_gui
       road: 'void',      // only defined if isActive=true
       u: -1,             // physical long position [m] (<0 if !isActive)
                          // for graph focus, advanced by du=this.lenPhys/2 
