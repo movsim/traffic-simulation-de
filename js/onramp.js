@@ -16,7 +16,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=true; //!!! test
+var userCanDistortRoads=false; //!! test
 var userCanDropObjects=true;
 
 
@@ -24,7 +24,6 @@ var userCanDropObjects=true;
 
 density=0.02; 
 
-//var nLanes_main=1; //!!debug
 var nLanes_main=3;
 var nLanes_rmp=1;
 
@@ -247,13 +246,11 @@ var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0
 
 ramp.veh.unshift(virtualStandingVeh);
 
-// !! introduce stationary detectors (aug17)
-
 var nDet=3;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
+mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
+mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
+mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
 
 
 //#########################################################
@@ -422,13 +419,12 @@ function updateSim(){
     }
 
 
-    //!!!  without this zoomback cmd, everything works but depot vehicles
+    //!!  without this zoomback cmd, everything works but depot vehicles
     // just stay where they have been dropped outside of a road
 
 
   //console.log("before zoomback: trafficObjPicked=",trafficObjPicked);
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
-    //depot.zoomBack();
     trafficObjs.zoomBack();
  }
 
@@ -476,9 +472,9 @@ function drawSim() {
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
-    //var hasChanged=false; //xxxnew !!!
+    //var hasChanged=false; //xxxnew
 
-  //updatePhysicalDimensions(); //!!!
+  //updatePhysicalDimensions(); //xxxnew obsolete
 
     if ((canvas.width!=simDivWindow.clientWidth)
 	||(canvas.height != simDivWindow.clientHeight)){
@@ -487,7 +483,7 @@ function drawSim() {
         canvas.height  = simDivWindow.clientHeight;
 	aspectRatio=canvas.width/canvas.height;
 	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-      updatePhysicalDimensions(); //!!! why DOS???
+      updatePhysicalDimensions(); 
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
@@ -557,7 +553,7 @@ function drawSim() {
 			  vmin_col,vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
-    // (5) !!! draw traffic objects
+  // (5) draw traffic objects
 
   if(userCanDropObjects&&(!isSmartphone)){
 	//depot.draw(obstacleImgs,scale,canvas);//xxxnew
@@ -599,7 +595,7 @@ function drawSim() {
   }
 
       // (7) draw the speed colormap
-      //!!! Now always false; drawn statically by html file!
+      //!! Now always false; drawn statically by html file!
 
   if(drawColormap){
       displayColormap(0.22*refSizePix,

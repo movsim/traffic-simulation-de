@@ -250,7 +250,7 @@ function pickRoadOrObject(xUser,yUser){
   }
 
   //==============================================================
-  // (2) test for a road section nearby //!!! modify for ref to network
+  // (2) test for a road section nearby
   // road.testCRG returns [success,distmin_m,dx_m, dy_m]
   // success only given if distmin_m < some road-internally defined distCrit_m
   //==============================================================
@@ -287,11 +287,6 @@ function pickRoadOrObject(xUser,yUser){
   else{
     console.log("  pickRoadOrObject (2): user cannot distort roads, so n.a.");
   }
-
- // (3) pick normal road vehicle to slowing it down: onclick callback: 
- // handled onclick (=onmouseup) by 
- // this.influenceClickedVehOrTL(xUser,yUser)
- // but only if distDrag<distDragCrit at this time ??!!!
 
 
   console.log("  end pickRoadOrObject: found no suitable action!",
@@ -346,7 +341,7 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 
 	if(distDrag>distDragCrit){ // !! do no dragging actions if only click
 	    if(trafficObjPicked){// dragged an object 
-	      if(trafficObject.isActive){// xxxNew !!! 
+	      if(trafficObject.isActive){
 		trafficObjs.deactivate(trafficObject); // detach obj from road
 	      }
 
@@ -371,7 +366,7 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 
 //#####################################################
 // touchend event callback
-// !!! since no "touch click" also onclick callbacks!
+// !! since no "touch click" also onclick callbacks!
 //#####################################################
 
 
@@ -381,7 +376,7 @@ function handleTouchEnd(evt) {
 
   getTouchCoordinates(evt); // xUser, yUser
 
-  // do the action (=> see mouse section) !!! also add actions to mouse sect
+  // do the action (=> see mouse section) !! also add actions to mouse sect
 
   finishDistortOrDropObject(xUser, yUser); 
   influenceClickedVehOrTL(xUser,yUser);
@@ -442,14 +437,14 @@ function finishDistortOrDropObject(xUser, yUser){
     roadPicked=false;
     //console.log(" before draggedRoad.finishCRG()");
     draggedRoad.finishCRG();
-    handleDependencies();
+    handleDependencies(); // !! needed if road length changed by road distort
     console.log("  end finishDistortOrDropObject: distorted road");
   }
 
 
-  if(trafficObjPicked){//xxxNew
+  if(trafficObjPicked){
 
-    var distCrit_m=20;  // optimize!!!
+    var distCrit_m=20;  // optimize!!
     var distCritPix=distCrit_m*scale;
     trafficObjs.dropObject(trafficObject, network, 
 			   xPixUser, yPixUser, distCritPix, scale);
@@ -722,8 +717,10 @@ function cancelActivities(event){
 // the dragging changes road lengths and ramp merging positions
 // => the "network" scenarios "OnRamp", "OffRamp", and "Deviation"
 // need corresponding network corrections
+// !!! attention: only non-generic function not using network array
+// is not worth the effort to change
 
-function handleDependencies(){ //!!!??
+function handleDependencies(){
     //console.log("handleDependencies: scenarioString=",scenarioString);
 
     if(scenarioString==="OnRamp"){

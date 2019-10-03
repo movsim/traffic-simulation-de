@@ -34,7 +34,7 @@ of the traffic objects (traffObj=trafficObj[i])
 * The TL and speed limit objects also have values:
   
   - traffObj.value="red" or "green" (if traffObj.type==='trafficLight')
-  - traffObj.value=limit_kmh !!! (if traffObj.type==='speedLimit')
+  - traffObj.value=limit_kmh (if traffObj.type==='speedLimit')
   - traffObj.value="null" (if traffObj.type==='obstacle')
 
 
@@ -539,10 +539,6 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
     obj.isPicked=true;
     obj.inDepot=false;
     obj.isDragged=false;
-   //!!! this.deactivate(obj) now only if isDragged=true
-    //if(obj.isActive){
-    //  this.deactivate(obj);
-    //}
   }
   return [success,obj];
 }
@@ -639,7 +635,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // implement traffic effects on road if successful drop
 
   if(success){
-    this.activate(obj, road); // !!! uses updated u,lane info
+    this.activate(obj, road);
   }
 
 
