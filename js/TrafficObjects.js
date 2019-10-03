@@ -763,6 +763,8 @@ TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
     }
   }
 
+  return success;
+
 }
 
 /*####################################################################

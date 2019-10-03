@@ -16,7 +16,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false;
+var userCanDistortRoads=true; //!!! test
 var userCanDropObjects=true;
 
 
@@ -215,7 +215,7 @@ function trajRamp_y(u){ // physical coordinates
 
 
 //##################################################################
-// Specification of logical road 
+// Specification of logical roads
 //##################################################################
 
 var isRing=false;  // 0: false; 1: true
@@ -236,6 +236,9 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
+//xxxnew 
+network[0]=mainroad;  // var network=[];  declared in canvas_gui.js
+network[1]=ramp;
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)

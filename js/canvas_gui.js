@@ -45,15 +45,9 @@ var distDragCrit=10;   // drag function if dragged more [m]; otherwise click
 var distDrag=0;        // physical distance[m] of the dragging
 var idPerturbed=10;    // id=10 is that of first perturbed veh; then incr
 
-// secondaryRoad='undefined' in ring,roadworks,uphill scenarios,
-// =oramp/offramp/deviation in the three "network" scenarios
-
-var isNetworkScenario; // scenarios with two or more roads
 var draggedRoad;       // defined in onmousedown callback
-var secondaryRoad;     // defined in onmouseenter callback
-                       // (mainroad always exists in main js under this name)
 
-
+var network=[];  // to be defined in the toplevel files, e.g. [mainroad,ramp]
 
 //#####################################################
 // register touch listeners (does not seem to work directly in html
@@ -88,7 +82,6 @@ function handleTouchStart(evt) {
 
     // do the actual action (=> mouse section)
  
-    defineSzenarioBasedVariables(scenarioString);
     pickRoadOrObject(xUser, yUser); 
 
     // test
@@ -169,24 +162,9 @@ function handleTouchMove(evt) {
 //#####################################################
 
 function handleMouseEnter(event){
-    defineSzenarioBasedVariables(scenarioString);
+  console.log("itime=",itime," in handleMouseEnter: scenarioString=",
+	      scenarioString," nothing to do");
 }
-
-
-// define some global scenario-related network variables
-
-function defineSzenarioBasedVariables(scenarioString){
-    isNetworkScenario=true;
-    if((scenarioString==="OnRamp")||(scenarioString==="OffRamp")
-       || (scenarioString==="Deviation")){
-	   secondaryRoad=ramp;
-    }
-    else {
-	isNetworkScenario=false;
-	secondaryRoad='undefined';
-    }
-}
-
 
 
 //#####################################################
@@ -227,8 +205,7 @@ function getMouseCoordinates(event){
 
 // #########################################################
 // do the action 1: pick
-// var mainroad=new road(...), ramp=new road(...),
-// var trafficObject=new TrafficObject(..) defined in the main sim files
+// network defined in the main sim files
 // #########################################################
 
 function pickRoadOrObject(xUser,yUser){
@@ -249,7 +226,7 @@ function pickRoadOrObject(xUser,yUser){
 
 
 
- //==============================================================
+  //==============================================================
   // (1) pick/select an active or passive trafficObject
   // trafficObjs.pickObject returns [successFlag, thePickedObj]
   //==============================================================
@@ -272,45 +249,50 @@ function pickRoadOrObject(xUser,yUser){
     else console.log("  pickRoadOrObject (1): no trafficObject found");
   }
 
+  //==============================================================
   // (2) test for a road section nearby //!!! modify for ref to network
-// road.testCRG returns [success,distmin_m,dx_m, dy_m]
+  // road.testCRG returns [success,distmin_m,dx_m, dy_m]
+  // success only given if distmin_m < some road-internally defined distCrit_m
+  //==============================================================
 
   if(userCanDistortRoads){
-    var pickResults1=mainroad.testCRG(xUser, yUser); // distCrit def by road
-    var pickResults2=[false,1e6,1e6,1e6];
-    if(isNetworkScenario){
-	pickResults2=secondaryRoad.testCRG(xUser, yUser);
-    }
-    var success=(pickResults1[0] || pickResults2[0]);
-    if(success){
-      console.log("  pickRoadOrObject (2): success!",
-		  " picked a road section for dragging",
-		" as soon as distDrag>distDragCrit");
+    var distmin_m=1e6;
+    var success=false;
+    var iRoadNearest=-1;
+    draggedRoad="null";
 
-      draggedRoad=(pickResults1[1]<pickResults2[1])
-	      ? mainroad : secondaryRoad;
-      depotObjPicked=false;
-      funnelObjPicked=false;
+    for(var i=0; i<network.length; i++){
+      var pickResults=network[i].testCRG(xUser, yUser);
+      if(pickResults[0]){
+	success=true;
+	if(pickResults[1]<distmin_m){
+	  iRoadNearest=i;
+	  distmin_m=pickResults[1];
+	}
+      }
+    }
+
+    if(success){
+      draggedRoad=network[iRoadNearest];
+      console.log("  pickRoadOrObject (2): success!",
+		  " picked road with roadID=",draggedRoad.roadID,
+		  "  for dragging as soon as distDrag>distDragCrit");
+      trafficObjPicked=false;
       roadPicked=true;
     }
     else{
-      console.log("  pickRoadOrObject (2): no nearby road found",
-		" pickResults1[2]=",pickResults1[2]);
+      console.log("  pickRoadOrObject (2): no nearby road found");
     }
   }
   else{
     console.log("  pickRoadOrObject (2): user cannot distort roads, so n.a.");
   }
 
- // (4) pick normal road vehicle to slowing it down: onclick callback: 
+ // (3) pick normal road vehicle to slowing it down: onclick callback: 
  // handled onclick (=onmouseup) by 
  // this.influenceClickedVehOrTL(xUser,yUser)
- // but only if distDrag<distDragCrit at this time
+ // but only if distDrag<distDragCrit at this time ??!!!
 
- // (5) pick a road section to change road geometry (CRG) by dragging it
- // road.testCRG returns [success,Deltax,Deltay]
- // handled in onmousemove+onmousedown and onmouseup events only if 
- // distDrag>distDragCrit at this time
 
   console.log("  end pickRoadOrObject: found no suitable action!",
 	      " [notice: clicking callback is separate from this]");
@@ -467,11 +449,6 @@ function finishDistortOrDropObject(xUser, yUser){
 
   if(trafficObjPicked){//xxxNew
 
-    var network=[];
-    network[0]=mainroad;
-    if(isNetworkScenario){
-      network[1]=secondaryRoad; //xxxNew !!! define top-level at beg of file
-    }
     var distCrit_m=20;  // optimize!!!
     var distCritPix=distCrit_m*scale;
     trafficObjs.dropObject(trafficObject, network, 
@@ -491,19 +468,33 @@ function finishDistortOrDropObject(xUser, yUser){
 
 function handleClick(event){
   getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
-  if(false){
-    console.log("in handleClick(event): xPixUser=",xPixUser,
-		" yPixUser=",yPixUser, " xUser=",xUser," yUser=",yUser);
+  if(true){
+    console.log("\n\nitime=",itime," in handleClick(event): xPixUser=",
+		formd0(xPixUser)," yPixUser=",formd0(yPixUser),
+		" xUser=",formd(xUser),
+		" yUser=",formd(yUser)," distDrag=",formd(distDrag));
   }
-  influenceClickedVehOrTL(xUser,yUser);
+  var isDragged=(distDrag>distDragCrit);
+  var didSpeedlManip=false; // only one action; change speedl, TL or slow veh
+  if(!isDragged){ // only deal with speedlimit changes if click w/o drag
+    if(speedlBoxActive){
+      didSpeedlManip=true;
+      changeSpeedl(xPixUser,yPixUser); // unify xUser->xPixUser etc !!!
+    }
+    else{
+      console.log("before activateSpeedlBox");
+      didSpeedlManip=activateSpeedlBox(xPixUser,yPixUser);
+    }
+  }
 
-  if(speedlBoxActive){
-    changeSpeedl(xPixUser,yPixUser); // unify xUser->xPixUser etc !!!
+// do only one action; change speedl, TL or slowdown veh
+// veh only slowed down if no TL manipulation
+
+  if(!didSpeedlManip){ 
+    influenceClickedVehOrTL(xUser,yUser);
   }
-  else{
-    console.log("before activateSpeedlBox");
-    activateSpeedlBox(xPixUser,yPixUser);
-  }
+
+
 
 }
 
@@ -530,7 +521,6 @@ function influenceClickedVehOrTL(xUser,yUser){
     if(!success){
       slowdownVehNearestTo(xUser,yUser,distDragCrit);
 
-      
       console.log("  end influenceClickedVehOrTL: called",
 		  " slowdownVehNearestTo");
 
@@ -625,7 +615,7 @@ function activateSpeedlBox(xPixUser,yPixUser){
     }
   }
   console.log("  end activateSpeedlBox: speedlBoxActive=",speedlBoxActive);
-
+  return results[0];
 }
 
 
@@ -668,7 +658,7 @@ function changeSpeedl(xPixUser,yPixUser){
 
 function drawSpeedlBox(){
   if(speedlBoxActive){
-    console.log("itime=",itime," in drawSpeedlBox (canvas)");
+    //console.log("itime=",itime," in drawSpeedlBox (canvas)");
     //console.log("yUser=",yUser," yPixUser=",yPixUser);
 
     var sizePix=speedlBoxAttr.sizePix;
@@ -683,7 +673,6 @@ function drawSpeedlBox(){
     ctx.setTransform(1,0,0,1,0,0); 
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(xPixLeft,yPixTop,wPix,hPix);
-    console.log("  drawSpeedlBox: xPixLeft=",xPixLeft," yPixTop=",yPixTop," wPix=",wPix," hPix=",hPix);
 
    // (2) draw the speedlimit options
 
@@ -734,7 +723,7 @@ function cancelActivities(event){
 // => the "network" scenarios "OnRamp", "OffRamp", and "Deviation"
 // need corresponding network corrections
 
-function handleDependencies(){
+function handleDependencies(){ //!!!??
     //console.log("handleDependencies: scenarioString=",scenarioString);
 
     if(scenarioString==="OnRamp"){
@@ -791,7 +780,7 @@ function handleDependencies(){
 	}
     }
 
-}
+} // handleDependencies 
 
 
 
@@ -807,126 +796,18 @@ function dragDepotObject(xPixUser,yPixUser){
   depotObject.yPix=yPixUser;
 }
 
-function dragFunnelObject(xPixUser,yPixUser){
-  //console.log("in dragFunnelObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
-  funnelObject.xPix=xPixUser;
-  funnelObject.yPix=yPixUser;
-}
 
 function dragRoad(xUser,yUser){
-    //console.log("in canvas_gui: dragRoad, scenarioString=",scenarioString);
 
-    userCanvasManip=true; // if true, new backgr, new road drawn
+    //console.log("in canvas_gui: dragRoad");
 
-    // "one-road" scenarios
-
-    if(!isNetworkScenario){ 
-	draggedRoad.doCRG(xUser,yUser);
-    }
-      
-    // "network scenarios
-
-    else if(scenarioString==="OnRamp"){
-
-	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
-
-        // uBeginRamp always fixed since mergeLen fixed 
-        // and merge always at the end of the ramp
- 
-	var uBeginRamp=ramp.roadLen-mergeLen; 
-	var uBeginMain=ramp.getNearestUof(mainroad,uBeginRamp); 
-	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
-	if(false){
-	    console.log(
-	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad===mainroad) ? "mainroad" : "ramp"),
-	    "\n  uBeginRamp=",uBeginRamp," rampLen=",ramp.roadLen,
-	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
-	    "\n   uBegin=",uBegin);
-	}
-
-	draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,mergeLen);
-    }
-
-    else if(scenarioString==="OffRamp"){ // divergeLen constant
-
-	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
-
-	var uBeginRamp=0; // begin diverge=>ramp.u=0
-	var uBeginMain=ramp.getNearestUof(mainroad,divergeLen)-divergeLen; 
-	var uBegin=(draggedRoad===mainroad) ? uBeginMain : uBeginRamp;
-	if(false){
-	    console.log(
-	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad===mainroad) ? "mainroad" : "offramp"),
-	    "\n   uBeginRamp=",uBeginRamp," rampLen=",ramp.roadLen,
-	    "\n   uBeginMain=",uBeginMain," mainLen=",mainroad.roadLen,
-	    "\n   uBegin=",uBegin);
-	}
-
-        // draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,commonLen)
-
-	draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,divergeLen);
+  userCanvasManip=true; // if true, new backgr, new road drawn
 
 
-    }
+  // do not care of mergings although junk results happen if 
+  // dragged near them 
 
-    else if(scenarioString==="Deviation"){
-
-	var otherRoad=(draggedRoad===mainroad) ? ramp : mainroad;
-
-	var uBeginDivergeRamp=0; // begin diverge=>ramp.u=0
-	var uBeginDivergeMain
-	    =ramp.getNearestUof(mainroad,lrampDev)-lrampDev;
-	var uBeginDiverge=(draggedRoad===mainroad)
-	    ? uBeginDivergeMain : uBeginDivergeRamp;
-
-	var uBeginMergeRamp=ramp.roadLen-lrampDev;
-	var uBeginMergeMain
-	    =ramp.getNearestUof(mainroad,ramp.roadLen-lrampDev);
-	var uBeginMerge=(draggedRoad===mainroad)
-	    ? uBeginMergeMain : uBeginMergeRamp;
-
-	var iPivot=draggedRoad.iPivot;
-	var uDragged=draggedRoad.roadLen*iPivot/draggedRoad.nSegm;
-	var uOther=draggedRoad.getNearestUof(otherRoad,uDragged);
-	var isNearDiverge=(uDragged<0.5*draggedRoad.roadLen);
-
-	if(false){
-	console.log(
-	    "canvas.dragRoad: draggedRoad=",
-	    ((draggedRoad===mainroad) ? "mainroad" : "deviation"),
-	    "\n   uBeginDivergeRamp=",uBeginDivergeRamp,
-	    " rampLen=",ramp.roadLen,
-	    "\n   uBeginDivergeMain=",uBeginDivergeMain,
-	    " mainLen=",mainroad.roadLen,
-	    "\n   uBeginDiverge=",uBeginDiverge,
-	    "\n   uBeginMergeRamp=",uBeginMergeRamp,
-	    " rampLen=",ramp.roadLen,
-	    "\n   uBeginMergeMain=",uBeginMergeMain,
-	    " mainLen=",mainroad.roadLen,
-	    "\n   uBeginMerge=",uBeginMerge,
-	    "\n   iPivot=",iPivot," isNearDiverge=",isNearDiverge,
-	    "\n   uDragged=",uDragged," uOther=",uOther
-	);
-	}
-
-        // do the actual action
-
-
-	var iPivot=draggedRoad.iPivot;
-	var isNearDiverge=(iPivot<0.5*draggedRoad.nSegm);
-
-       // draggedRoad.doCRG(xUser,yUser,otherRoad,uBegin,commonLen)
-
-	if(isNearDiverge){
-	    draggedRoad.doCRG(xUser,yUser,otherRoad,uBeginDiverge,lrampDev);
-	}
-	else{
-	    draggedRoad.doCRG(xUser,yUser,otherRoad,uBeginMerge,lrampDev);
-	}
-
-    }
+  draggedRoad.doCRG(xUser,yUser); 
 
 }
 
@@ -936,62 +817,44 @@ function dragRoad(xUser,yUser){
 // helper function for onclick and touched(?) events
 //#####################################################
 
-function slowdownVehNearestTo(xUser,yUser,distCrit){
+function slowdownVehNearestTo(xUser,yUser,distCrit_m){
 
-    var speedReduceFactor=0.5;
+  var speedReduceFactor=0.5;
+  var vehPerturbed;
 
-    // all scenarios have a mainroad (road.find(...) called w/o filter fun)
+  var distMin_m=1e6;
+  var iRoad=-1;
+  for (var i=0; i<network.length; i++){
 
-    var findResults1=mainroad.findNearestVehTo(xUser,yUser);
+    // [success,vehReturn,distMin_m, ivehReturn];
+    var findResults=network[i].findNearestVehTo(xUser,yUser);
 
-    var success1=findResults1[0];
-
-    // default for road2 (not defined)
-
-    var findResults2;
-    var success2=false;
-
-    if(isNetworkScenario){ 
-	findResults2=secondaryRoad.findNearestVehTo(xUser,yUser);
-	success2=findResults2[0];
+    if(findResults[0]){
+      if(findResults[2]<distMin_m){
+	iRoad=i;
+	distMin_m=findResults[2];
+	vehPerturbed=findResults[1];
+      }
     }
 
-    if((!success1)&&(!success2)){
-	//console.log("influenceVehNearestTo: no suitable vehicle found!");
-	return;
+    if(false){
+      console.log("in slowdownVehNearestTo: i=",i," findResults[2]=",
+		  findResults[2]," success=",findResults[0]);
     }
 
-    // findResults=[successFlag, pickedVeh, minDist]
+  }
 
-    var vehPerturbed=findResults1[1];
-    var targetRoad=mainroad;
-    var distMin=findResults1[2];
-    if(isNetworkScenario&&success2){
-	if(findResults2[2]<distMin){
-	    vehPerturbed=findResults2[1];
-	    targetRoad=secondaryRoad;
-	    distMin=findResults2[2];
-	}
-    }
+  if((iRoad==-1)||(distMin_m>distCrit_m)){ // no success
+    console.log("influenceVehNearestTo: no suitable vehicle found!");
+    return;
+  }
+       
 
-    if(distMin<=distCrit){
-
-        //console.log("canvas slowdownVehNearestTo: vehPerturbed=",
-	//	    vehPerturbed);
-
-        // only slow down+change its id if target object is 
-        // neither a traffic light nor a depot vehicle nor an obstacle
-        // NOTICE: change state of TL by other function since
-        //(i) a red TL is crowded by waiting veh,
-        // (ii) and a green TL has no virtual vehicles to be selected
-
-        if(vehPerturbed.isRegularVeh()){
-	    vehPerturbed.id=idPerturbed;  // to distinguish it by color
-	    //vehPerturbed.speed=Math.max(0.,vehPerturbed.speed-speedReduce);
-	    vehPerturbed.speed *= speedReduceFactor;
-	    idPerturbed++; if(idPerturbed===50){idPerturbed=10;}
-	}
-    }
+  if(vehPerturbed.isRegularVeh()){  // neither TL nor obstacle
+    vehPerturbed.id=idPerturbed;  // to distinguish it by color
+    vehPerturbed.speed *= speedReduceFactor;
+    idPerturbed++; if(idPerturbed===50){idPerturbed=10;}
+  }
 }
 
 
