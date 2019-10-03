@@ -119,14 +119,17 @@ var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
+network[0]=mainroad;  // network declared in canvas_gui.js
 
 
 
 // !! introduce stationary detectors (aug17)
 
-var nDet=1;
 var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+for(var idet=0; idet<4; idet++){
+  mainDetectors[idet]=new stationaryDetector(mainroad,
+					  (0.125+idet*0.25)*mainroadLen,10);
+}
 
 
 
@@ -234,8 +237,8 @@ roadImg2=roadImgs2[nLanes_main-1];
 // traffic objects
 //############################################
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
-var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
 
 
 //############################################
@@ -281,26 +284,16 @@ function updateSim(){
     //if(itime<2){mainroad.writeVehicleLongModels();}
     //if(itime<2){mainroad.writeVehicleLCModels();}
 
-    for(var iDet=0; iDet<nDet; iDet++){
+    for(var iDet=0; iDet<mainDetectors.length; iDet++){
 	mainDetectors[iDet].update(time,dt);
     }
 
   //xxxNew
   
-  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
   }
 
-  //xxxNew remove!
-/*
-     if(userCanDropObjects&&(!isSmartphone)){
-	if(trafficObjZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    trafficObjZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
-*/
 
 }  // updateSim
 
@@ -326,8 +319,7 @@ function drawSim() {
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
-    console.log("isSmartphone=",isSmartphone);
-    var hasChanged=false;
+    //console.log("isSmartphone=",isSmartphone);
 
     if(false){console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
@@ -348,7 +340,7 @@ function drawSim() {
 
       updatePhysicalDimensions();
       //xxxNew
-      depot.calcDepotPositions(canvas); 
+      trafficObjs.calcDepotPositions(canvas); 
 
     }
 
@@ -385,17 +377,22 @@ function drawSim() {
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
-    // (5) draw depot vehicles
+  // (5a) draw traffic objects 
 
-    if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
 
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
+ 
 
     // (6) draw simulated time and detector displays
 
     displayTime(time,textsize);
-    for(var iDet=0; iDet<nDet; iDet++){
+    for(var iDet=0; iDet<mainDetectors.length; iDet++){
 	mainDetectors[iDet].display(textsize);
     }
 
@@ -410,10 +407,15 @@ function drawSim() {
 		    vmin_col,vmax_col,0,100/3.6);
     }
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
 
-}
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+  hasChanged=false; 
+
+    // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
+
+} //drawSim
  
 
 

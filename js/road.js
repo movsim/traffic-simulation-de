@@ -3830,11 +3830,11 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
 
 
 
-road.prototype.dropObjectNew=function(trafficObj){
+road.prototype.dropObject=function(trafficObj){
   var u=trafficObj.u;
   var lane=trafficObj.lane;
   console.log("itime=",itime,
-	      " in road.dropObjectNew: trafficObj.u=",u,
+	      " in road.dropObject: trafficObj.u=",u,
 	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
 
   var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
@@ -3863,7 +3863,7 @@ road.prototype.dropObjectNew=function(trafficObj){
     this.veh.push(roadVehicle);
     this.sortVehicles();
     this.updateEnvironment(); // possibly crucial !!
-    console.log("  end road.dropObjectNew: dropped obstacle at uDrop=",u,
+    console.log("  end road.dropObject: dropped obstacle at uDrop=",u,
 		" lane=",lane," id=",roadVehicle.id,
 		" imgNumber=",roadVehicle.imgNumber);
   }
@@ -3874,14 +3874,14 @@ road.prototype.dropObjectNew=function(trafficObj){
 
   else if(trafficObj.type==='trafficLight'){
     this.addTrafficLight(trafficObj);
-    console.log("  end road.dropObjectNew: added traffic light");
+    console.log("  end road.dropObject: added traffic light");
   }
 
   else {
     ; // speedlimit signs are taken care of automatically in update step
     // setting isActive=true in TrafficObjects.activate is enough
   }
-}// dropObjectNew
+}// dropObject
 
 
 

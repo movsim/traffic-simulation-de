@@ -1,5 +1,5 @@
 
-var userCanDropObjects=false;
+var userCanDropObjects=true;
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -342,6 +342,12 @@ arm[5]=new road(5,lArm,laneWidth,nLanes_arm,traj5_x,traj5_y,0,0,0,false);
 arm[6]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
 arm[7]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
 
+network[0]=mainroad;  // network declared in canvas_gui.js
+for (var i=0; i<arm.length; i++){
+  network[i+1]=arm[i];
+}
+
+
 for (var i=0; i<arm.length; i++){
     arm[i].padding=padding;
     arm[i].paddingLTC=paddingLTC;
@@ -484,8 +490,8 @@ armImg2=roadImgs2[nLanes_arm-1];
 // traffic objects
 //############################################
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
-var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,4,0,0.80,0.25,2,2);
 
 
 
@@ -681,8 +687,8 @@ function updateSim(){
 	}
     } 
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
   }
 
 
@@ -742,8 +748,7 @@ function drawSim() {
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(window.innerWidth,window.innerHeight);
-   // console.log("isSmartphone-",isSmartphone," textsize=",textsize);
-    var hasChanged=false;
+
 
     if(false){
         console.log(" new total inner window dimension: ",
@@ -879,12 +884,17 @@ function drawSim() {
 	}
     }
     
-    // (5) 
-    
-    if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  // (5a) draw traffic objects 
 
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
+
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
+ 
     // (6) draw simulated time
 
     displayTime(time,textsize);
@@ -899,9 +909,13 @@ function drawSim() {
 			vmin_col,vmax_col,0,100/3.6);
     }
 
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+  hasChanged=false;
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
+
 }// drawSim
  
 

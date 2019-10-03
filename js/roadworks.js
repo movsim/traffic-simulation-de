@@ -173,6 +173,8 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,
 		      userCanDistortRoads);
+network[0]=mainroad;  // network declared in canvas_gui.js
+
 
 mainroad.uminLC=0; // allow lane changing right at the beginning
 mainroad.setTrucksAlwaysRight=false;
@@ -313,9 +315,16 @@ var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 // traffic objects
 //############################################
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
-var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,0,3,0.60,0.50,3,2);
 
+// initialize one speedlimit on road
+// the selected trafficObj needs to be of type speedlimit! not checked!
+var speedl=trafficObjs.trafficObj[1]; 
+speedl.u=30;
+speedl.lane=0;
+trafficObjs.activate(speedl,mainroad);
+trafficObjs.active_drawTopSign=false;
 
 //############################################
 // run-time specification and functions
@@ -379,8 +388,8 @@ function updateSim(){
     }
 
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
   }
 
 
@@ -399,8 +408,6 @@ function drawSim() {
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
-
-    var hasChanged=false;
 
     if(false){
         console.log(" new total inner window dimension: ",
@@ -421,7 +428,7 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       updatePhysicalDimensions();
-      depot.calcDepotPositions(canvas); 
+      trafficObjs.calcDepotPositions(canvas); 
 
 	if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -490,11 +497,17 @@ function drawSim() {
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 
-    // (5) !!! draw depot vehicles
+  // (5a) draw traffic objects 
 
-    if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
+
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
+
 
 
     // (6) show simulation time and detector displays
@@ -515,8 +528,12 @@ function drawSim() {
     }
 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+  hasChanged=false;
+
+  // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
  
 } // drawSim
  

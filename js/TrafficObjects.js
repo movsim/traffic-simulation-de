@@ -104,7 +104,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
   // fixed size variables
 
   this.gapRel=0.01;          // relative spacing (sizeCanvas)
-  this.sizeRel=0.10;         // relative size of passive graphical objects
+  this.sizeRel=0.08;         // relative size of passive graphical objects
   this.active_scaleFact=1.0; // pixel size factor active/passive objects
                              // other than obstacles (phys length relevant)
   this.lenPhys=25;       // physical length[m] of active obstacles
@@ -115,9 +115,14 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
   // variable size variables (updated in this.calcDepotPositions)
   
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
-  this.wPix=this.sizeRel*this.sizeCanvas; // pixel size in depot 
-  this.hPix=this.wPix;
 
+  // general graph variables
+
+  this.active_drawTopSign=true; // if true, a TL/sign above road is drawn
+                             // if active (in any case, only one obstacle 
+                             // on the dropped lane)
+  this.active_drawBotSign=true; // if true, a TL/sign below road is drawn
+                             // if active
 
   // create image repositories
 
@@ -220,7 +225,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 
   if(true){
     console.log("TrafficObjects Cstr: this.nTL=",this.nTL);
-    for(var i=0; i<this.n; i++){
+    for(var i=0; i<this.trafficObj.length; i++){
       console.log("TrafficObjects cstr: i=",i,
 		  " value=",this.trafficObj[i].value,
 		  " type=",this.trafficObj[i].type,
@@ -241,7 +246,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 TrafficObjects.prototype.calcDepotPositions=function(canvas){
 
   this.sizeCanvas=Math.min(canvas.width, canvas.height);
-  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of trafficObj signs
+  this.wPix=this.sizeRel*this.sizeCanvas; // diameter [pix] of traffObj signs
   this.hPix=this.wPix;
 
   var gapPix=this.gapRel*this.sizeCanvas; // spacing in pixels
@@ -278,21 +283,19 @@ TrafficObjects.prototype.calcDepotPositions=function(canvas){
 
 TrafficObjects.prototype.draw=function(){
 
-  var active_drawTwoSigns=true; // if false, only one TL/sign above road drawn
-                             // (in any case, only one obstacle 
-                             // on the dropped lane)
 
   var crossingLineWidth=1;   // width[m] of white line at sign/TL
 
-  var wPixPassive=this.wPix;
-  var hPixPassive=this.hPix;
-  var wPixActive=this.active_scaleFact*wPixPassive;
-  var hPixActive=this.active_scaleFact*hPixPassive;
 
   for (var i=0; i<this.trafficObj.length; i++){
  
 
     var obj=this.trafficObj[i];
+    //  such that speedlimit signs are round on chrome 
+    var wPixPassive=this.wPix*((obj.type==='speedLimit') ? 0.9:1);
+    var hPixPassive=this.hPix*((obj.type==='speedLimit') ? 1.2:1);
+    var wPixActive=this.active_scaleFact*wPixPassive;
+    var hPixActive=this.active_scaleFact*hPixPassive;
 
     // (1) draw active traffic lights or speed limits
     // (active obstacles drawn by road) 
@@ -328,18 +331,18 @@ TrafficObjects.prototype.draw=function(){
       
       var distCenter=0.5*crossingLineLength+0.6*road.laneWidth;
       var v=(cphi>0) ? -distCenter : distCenter; // [m]
-      xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
-      yPix=yCenterPix+scale*v*cphi;  // -*-=+
-      ctx.setTransform(1,0,0,1,xPix,yPix);
 
-      // obj.image defined/set at cstr or onclick callback
-      ctx.drawImage(obj.image,-0.5*wPixActive,
+      if(this.active_drawTopSign){ // draw active sign above the road
+        xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
+        yPix=yCenterPix+scale*v*cphi;  // -*-=+
+        ctx.setTransform(1,0,0,1,xPix,yPix);
+        ctx.drawImage(obj.image,-0.5*wPixActive,
 		    -hPixActive,wPixActive, hPixActive);
-      obj.xPixSign1=xPix;                // save pixel positions 
-      obj.yPixSign1=yPix-0.8*hPixActive; // of light centers for later picking
-                                     
+        obj.xPixSign1=xPix;                // save pixel positions of 
+        obj.yPixSign1=yPix-0.8*hPixActive; // light centers for later picking
+      }     
 
-      if(active_drawTwoSigns){ // draw signs on both sides
+      if(this.active_drawBotSign){ // draw active sign below the road
 	v*=-1;
         xPix=xCenterPix+scale*v*sphi;  // + left if cphi>0
         yPix=yCenterPix+scale*v*cphi;  // -*-=+
@@ -405,6 +408,9 @@ TrafficObjects.prototype.draw=function(){
 */
 
 TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
+
+  //console.log("\n\nitime=",itime," in TrafficObjects.selectByUser:");
+
   var dist2_min=1e9;
   var dist2_crit=distCritPix*distCritPix;
   var i_opt=-1;
@@ -420,10 +426,9 @@ TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
   var success=(dist2_min<dist2_crit);
   var trafficObjreturn=(success) ? this.trafficObj[i_opt] : 'null';
 
-  if(true){
+  if(false){
     if(success){
-      console.log("itime=",itime," in TrafficObjects.selectByUser:",
-		  " success! type=", trafficObjreturn.type,
+      console.log("  success! type=", trafficObjreturn.type,
 		  " isActive=",trafficObjreturn.isActive,
 		  " xPixUser=",formd0(xPixUser),
 		  " yPixUser=",formd0(yPixUser),
@@ -432,8 +437,7 @@ TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
 		  "end");
     }
     else{
-      console.log("itime=",itime," in TrafficObjects.selectByUser:",
-		  " no success",
+      console.log("  no success",
 		  " nearest object has type", this.trafficObj[i_opt].type,
 		  " xPixUser=",formd0(xPixUser),
 		  " yPixUser=",formd0(yPixUser),
@@ -482,12 +486,12 @@ to the road;s list of speed limits
 @param road: target road for activation
 @return: changed road data to reflect activation
 
-Notice: obj.inDepot,isDragged,isPicked,u,v defined by this.dropObject(.)
+Notice: obj.inDepot,isDragged,isPicked,u,lane defined by this.dropObject(.)
 */
 
 
 TrafficObjects.prototype.activate=function(obj, road){
-  road.dropObjectNew(obj);
+  road.dropObject(obj);
   obj.road=road;
   obj.isActive=true; // for safety last cmd
   hasChanged=true;
@@ -725,9 +729,9 @@ should also be called if clicked but not dragged
 
 TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
 
-  //console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
+  console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
   var results=this.selectSignOrTL(xPixUser,yPixUser);
-  //console.log("  results=",results);
+  console.log("  selectSignOrTL results=",results);
   var success=false; // successfully picked AND is traffic light
   if(results[0]){
     var obj=results[1];

@@ -349,6 +349,9 @@ var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,trajRamp_x,trajRamp_y,
 		       0.1*density,speedInit,fracTruck,isRing);
 
+network[0]=mainroad;
+network[1]=ramp;
+
 var offrampIDs=[2];
 var offrampLastExits=[umainDiverge+lrampDev];
 var offrampToRight=[true];
@@ -486,8 +489,9 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // traffic objects
 //############################################
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
-var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,2,2,0.60,0.50,0,0); // 0,0)=>nix
+
 
 
 
@@ -619,8 +623,8 @@ function updateSim(){
  	console.log("\n");
     }
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
   }
 
 }//updateSim
@@ -641,7 +645,6 @@ function drawSim() {
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
-    var hasChanged=false;
 
     if(false){
         console.log(" new total inner window dimension: ",
@@ -662,7 +665,7 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       updatePhysicalDimensions();
-      depot.calcDepotPositions(canvas); 
+      trafficObjs.calcDepotPositions(canvas); 
 
         mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
         ramp.gridTrajectories(trajRamp_x,trajRamp_y);
@@ -710,11 +713,16 @@ function drawSim() {
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			   vmin_col,vmax_col,lDev-lrampDev, lDev);
 
-    // (5) !!! draw depot vehicles
+   // (5a) draw traffic objects 
 
-   if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
+
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
 
 
     // (6) draw simulated time
