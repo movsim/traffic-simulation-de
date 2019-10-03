@@ -1,5 +1,5 @@
 
-var userCanDropObstaclesAndTL=false;
+var userCanDropObjects=false;
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -681,7 +681,7 @@ function updateSim(){
 	}
     } 
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
   }
 
@@ -881,7 +881,7 @@ function drawSim() {
     
     // (5) 
     
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+    if(userCanDropObjects&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 

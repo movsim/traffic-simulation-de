@@ -3879,7 +3879,7 @@ road.prototype.dropObjectNew=function(trafficObj){
 
   else {
     ; // speedlimit signs are taken care of automatically in update step
-    // setting isActive=true in TrafficObjects.activateObject is enough
+    // setting isActive=true in TrafficObjects.activate is enough
   }
 }// dropObjectNew
 

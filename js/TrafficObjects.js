@@ -425,20 +425,20 @@ TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
       console.log("itime=",itime," in TrafficObjects.selectByUser:",
 		  " success! type=", trafficObjreturn.type,
 		  " isActive=",trafficObjreturn.isActive,
-		  //" xPixUser=",formd0(xPixUser),
-		  //" yPixUser=",formd0(yPixUser),
-		  //" xPix=",formd0(this.trafficObj[i_opt].xPix),
-		  //" yPix=",formd0(this.trafficObj[i_opt].yPix),
+		  " xPixUser=",formd0(xPixUser),
+		  " yPixUser=",formd0(yPixUser),
+		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
+		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
 		  "end");
     }
     else{
       console.log("itime=",itime," in TrafficObjects.selectByUser:",
 		  " no success",
 		  " nearest object has type", this.trafficObj[i_opt].type,
-		 // " xPixUser=",formd0(xPixUser),
-		 // " yPixUser=",formd0(yPixUser),
-		 // " xPix=",formd0(this.trafficObj[i_opt].xPix),
-		 // " yPix=",formd0(this.trafficObj[i_opt].yPix),
+		  " xPixUser=",formd0(xPixUser),
+		  " yPixUser=",formd0(yPixUser),
+		  " xPix=",formd0(this.trafficObj[i_opt].xPix),
+		  " yPix=",formd0(this.trafficObj[i_opt].yPix),
 		  "end");
     }
   }
@@ -486,9 +486,9 @@ Notice: obj.inDepot,isDragged,isPicked,u,v defined by this.dropObject(.)
 */
 
 
-TrafficObjects.prototype.activateObject=function(obj, road){
-  obj.road=road;
+TrafficObjects.prototype.activate=function(obj, road){
   road.dropObjectNew(obj);
+  obj.road=road;
   obj.isActive=true; // for safety last cmd
   hasChanged=true;
 }
@@ -498,12 +498,13 @@ TrafficObjects.prototype.activateObject=function(obj, road){
 // deactivate an object and its road effects
 //######################################################################
 
-TrafficObjects.prototype.deactivateObject=function(obj){
+TrafficObjects.prototype.deactivate=function(obj){
   var road=obj.road;
   if(obj.isActive){
     if(obj.type==='trafficLight'){road.removeTrafficLight(obj.id);}
     if(obj.type==='obstacle'){road.removeObstacle(obj.id);}
     // no action needed for speedLimit
+    obj.road="null";
     obj.isActive=false; // for safety last cmd
   }
 }
@@ -538,9 +539,10 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
     obj.isPicked=true;
     obj.inDepot=false;
     obj.isDragged=false;
-    if(obj.isActive){
-      this.deactivateObject(obj); //=> obj.isActive=false
-    }
+   //!!! this.deactivate(obj) now only if isDragged=true
+    //if(obj.isActive){
+    //  this.deactivate(obj);
+    //}
   }
   return [success,obj];
 }
@@ -604,7 +606,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // update trafficObject state depending on success
 
   obj.road=road;
-  // obj.isActive set later by this.activateObject()
+  // obj.isActive set later by this.activate()
   obj.inDepot=false;
   obj.isPicked=false;
   obj.isDragged=false;
@@ -637,7 +639,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // implement traffic effects on road if successful drop
 
   if(success){
-    this.activateObject(obj, road); // uses updated u,lane info
+    this.activate(obj, road); // !!! uses updated u,lane info
   }
 
 
@@ -657,13 +659,15 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 
 
 //#############################################################
-/** select single signs or traffic by click on canvas
-used:
- - directly to pop up choicebox in canvas_gui.js
- - as helper function in changeTrafficLightByUser(..)
+/** select single active/passive signs or traffic lights by click on canvas
+intended usage:
+ - interactively change limits (pop up choicebox) in canvas_gui.js
+ - apply changeTrafficLightByUser(..)
 
+ - disambiguation from drag (no change): only change light if isDragged=false
  - Difference to selectByUser: 
    
+   - only active signs (since no disambiguation whether mouseup from 
    - selectSignOrTL: select obj by center of one of two signs/traffic lights
    - selectByUser: generically select obj by its center
  - 
@@ -683,24 +687,32 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
   var objFound='void';
   for(var i=0; (!success)&&(i<this.trafficObj.length); i++){
     var obj=this.trafficObj[i];
-    if((obj.type==='trafficLight')||(obj.type==='speedLimit')){
+    if((!obj.isDragged) 
+       &&((obj.type==='trafficLight')||(obj.type==='speedLimit'))){
+      var dxPix=xPixUser-obj.xPix;
+      var dyPix=yPixUser-obj.yPix;
       var dxPix1=xPixUser-obj.xPixSign1;
       var dyPix1=yPixUser-obj.yPixSign1;
       var dxPix2=xPixUser-obj.xPixSign2;
       var dyPix2=yPixUser-obj.yPixSign2;
+      var distPix=Math.sqrt(dxPix*dxPix+dyPix*dyPix);
       var distPix1=Math.sqrt(dxPix1*dxPix1+dyPix1*dyPix1);
       var distPix2=Math.sqrt(dxPix2*dxPix2+dyPix2*dyPix2);
-      if(Math.min(distPix1,distPix2)<=distPixCrit){
+      if(Math.min(distPix,distPix1,distPix2)<=distPixCrit){
         success=true;
 	objFound=obj;
       }
       if(false){
-        console.log("selectSignOrobj: obj i=",i,
-		  " xPixSign1=",obj.xPixSign1,
-		  " distPix1=",distPix1,
-		  " distPix2=",distPix2,
-		  " distPixCrit=",distPixCrit,
-		  " success=",success);
+        console.log("selectSignOrobj: obj.id=",obj.id,
+		    " obj.xPix=",formd0(obj.xPix),
+		    " obj.yPix=",formd0(obj.yPix),
+		    " obj.xPixSign1=",formd0(obj.xPixSign1),
+		    " obj.xPixSign2=",formd0(obj.xPixSign2),
+		    " distPix=",formd0(distPix),
+		    " distPix1=",formd0(distPix1),
+		    " distPix2=",formd0(distPix2),
+		    " distPixCrit=",formd0(distPixCrit),
+		    " success=",success);
       }
     }
   }
@@ -710,29 +722,36 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 
 //#############################################################
 /** user-driven change of the state of traffic light by click on canvas
+should also be called if clicked but not dragged
 @return: success flag and changed state, if success */
 //#############################################################
 
 
 TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
 
-  console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
+  //console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
   var results=this.selectSignOrTL(xPixUser,yPixUser);
+  //console.log("  results=",results);
   var success=false; // successfully picked AND is traffic light
   if(results[0]){
     var obj=results[1];
     if(obj.type==='trafficLight'){
       success=true;
       obj.value=(obj.value==='red') ? 'green' : 'red'; // toggle
-      obj.road.changeTrafficLight(obj.id, obj.value); // transfer to road obj
+      if(obj.isActive){
+        obj.road.changeTrafficLight(obj.id, obj.value); // => to road obj
+      }
       obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
 
-      if(true){
+      if(false){
 	console.log("end TrafficObjects.changeTrafficLightByUser: ",
 		    " changed traffic light",
 		    " to ",obj.value,
-		    " at u=",obj.u," on road ID ",obj.road.roadID);
-	obj.road.writeTrafficLights();
+		    " at u=",obj.u);
+	if(obj.isActive){
+	  console.log("  on road ID ",obj.road.roadID);
+	  obj.road.writeTrafficLights();
+	}
       }
 
     }
@@ -773,7 +792,7 @@ TrafficObjects.prototype.zoomBack=function(){
 	obj.xPix += pixelsPerCall*dx/dist;
 	obj.yPix += pixelsPerCall*dy/dist;
       }
-      if(false){
+      if(true){
         console.log("TrafficObjects.zoomBack: i=",i,
 		    " obj.xPix=",obj.xPix,
 		    " obj.xPix=",obj.xPix,

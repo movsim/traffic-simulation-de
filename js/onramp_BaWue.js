@@ -20,7 +20,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 //function formd(x){return parseFloat(x).toFixed(2);}
 
 var userCanDistortRoads=false;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 nLanesMin=1;
 nLanesMax=4; 
@@ -644,7 +644,7 @@ function updateSim(){
   // (the actual drawing of the speedfunnel and depot objects is, of course,
   // after the possible background drawing, see (5)
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
   }
 
@@ -770,7 +770,7 @@ function drawSim() {
 
   // (5) draw depot vehicles and speed funnel objects
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+  if(userCanDropObjects&&(!isSmartphone)){
     depot.draw();
   }
   speedfunnel.draw();

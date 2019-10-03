@@ -608,9 +608,9 @@ function updateSim(){
     }
 
      /*
-    if(depotVehZoomBack){
+    if(trafficObjZoomBack){
 	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
+	trafficObjZoomBack=res;
 	userCanvasManip=true;
     }
   */

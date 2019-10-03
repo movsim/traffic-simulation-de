@@ -17,7 +17,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 
 var userCanDistortRoads=false;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 
 // override standard dettings control_gui.js
@@ -340,7 +340,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // traffic objects
 //############################################
 
-//(canvas,nRow,nCol,xRelDepot,yRelDepot,nTL,obstacleImgNames
+//xxxnew
 //var depot=  new ObstacleTLDepot(canvas,3,2,0.40,0.50,2,obstacleImgNames);
 
 // canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
@@ -422,7 +422,9 @@ function updateSim(){
     //!!!  without this zoomback cmd, everything works but depot vehicles
     // just stay where they have been dropped outside of a road
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+
+  //console.log("before zoomback: trafficObjPicked=",trafficObjPicked);
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
     //depot.zoomBack();
     trafficObjs.zoomBack();
  }
@@ -552,12 +554,19 @@ function drawSim() {
 			  vmin_col,vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
-    // (5) !!! draw depot vehicles
+    // (5) !!! draw traffic objects
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	//depot.draw(obstacleImgs,scale,canvas);
+  if(userCanDropObjects&&(!isSmartphone)){
+	//depot.draw(obstacleImgs,scale,canvas);//xxxnew
     trafficObjs.draw(scale);
   }
+
+  // (5a) xxxnew draw speedlimit-change select box
+
+  //console.log("itime=",itime," speedlBoxActive=",speedlBoxActive);
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
 
 
   // (6) show simulation time and detector displays

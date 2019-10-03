@@ -1,6 +1,6 @@
 
 var userCanDistortRoads=true;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -379,7 +379,7 @@ function updateSim(){
     }
 
 
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
   }
 
@@ -492,7 +492,7 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+    if(userCanDropObjects&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 

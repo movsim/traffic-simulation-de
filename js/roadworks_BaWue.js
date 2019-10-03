@@ -1,6 +1,6 @@
 
 var userCanDistortRoads=false;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 nLanesMin=2;
 nLanesMax=4; 
@@ -411,7 +411,7 @@ function updateSim(){
 
   // => see onramp.js for the workings if depotVehicles involved
 
-  //if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+  //if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
   //  depot.zoomBack();
  // }
 
@@ -511,7 +511,7 @@ function drawSim() {
 
   // (5) draw depot vehicles and speed funnel objects
 
-  //if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+  //if(userCanDropObjects&&(!isSmartphone)){
   //  depot.draw(canvas,mainroad,scale);
   //}
   speedfunnel.draw();

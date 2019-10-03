@@ -4,7 +4,7 @@
 density=0.02; 
 
 var userCanDistortRoads=false;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 
 /*######################################################
@@ -394,9 +394,9 @@ function updateSim(){
     //!!!  without this zoomback cmd, everything works but depot vehicles
     // just stay where they have been dropped outside of a road
 
-    if(depotVehZoomBack){
+    if(trafficObjZoomBack){
 	var res=depot.zoomBackVehicle();
-	depotVehZoomBack=res;
+	trafficObjZoomBack=res;
 	userCanvasManip=true;
     }
 
@@ -505,7 +505,7 @@ function drawSim() {
 
     // (5) !!! draw depot vehicles
 
-   if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+   if(userCanDropObjects&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 

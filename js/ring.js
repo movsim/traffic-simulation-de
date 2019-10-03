@@ -1,6 +1,6 @@
 
 var userCanDistortRoads=false;
-var userCanDropObstaclesAndTL=true;
+var userCanDropObjects=true;
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -287,16 +287,16 @@ function updateSim(){
 
   //xxxNew
   
-  if(userCanDropObstaclesAndTL&&(!isSmartphone)&&(!depotObjPicked)){
+  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
     depot.zoomBack();
   }
 
   //xxxNew remove!
 /*
-     if(userCanDropObstaclesAndTL&&(!isSmartphone)){
-	if(depotVehZoomBack){
+     if(userCanDropObjects&&(!isSmartphone)){
+	if(trafficObjZoomBack){
 	    var res=depot.zoomBackVehicle();
-	    depotVehZoomBack=res;
+	    trafficObjZoomBack=res;
 	    userCanvasManip=true;
 	}
     }
@@ -387,7 +387,7 @@ function drawSim() {
 
     // (5) draw depot vehicles
 
-    if(userCanDropObstaclesAndTL&&(!isSmartphone)){
+    if(userCanDropObjects&&(!isSmartphone)){
 	depot.draw(obstacleImgs,scale,canvas);
     }
 
