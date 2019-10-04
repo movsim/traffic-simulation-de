@@ -1,5 +1,5 @@
 
-
+//!!! make/check v and lane consistent: v=laneWidth*(v-0.5*(nLanes-1))
 // !! debugging: making simulations reproducible (see docu at onramp.js)
 
 //Math.seedrandom(42); 
@@ -3304,8 +3304,8 @@ road.prototype.get_curv=function(u){
 // get x pixel coordinate of logical long coord u and transv v (pos if right)
 //######################################################################
 /**
-@param u=logical longitudinal coordinate (zero at beginning)
-@param v=logical transversal coordinate (zero at road center, towards right)
+@param u=logical longitudinal coordinate [m] (zero at beginning)
+@param v=logical transversal coordinate [m] (zero at road center, towards right)
 @param scale translates physical road coordinbates into pixel:[scale]=pixels/m
 @return x pixel coordinate
 
@@ -3760,7 +3760,8 @@ road.prototype.revertVehMarkings=function(){
 
 
 /** #####################################################
- MT 2019-09: implement speed funnel:
+ MT 2019-09: implement effect of user-draggable speed limits 
+from thye traffic objects:
 
  distribute speed limits to the regular vehicle's longmodels
  (free sign=>value=200./3.6=>effectively no influence)
@@ -3771,14 +3772,14 @@ road.prototype.revertVehMarkings=function(){
 
 //#####################################################*/
 
-road.prototype.updateSpeedFunnel=function(speedfunnel){
+road.prototype.updateSpeedlimits=function(trafficObjects){
 
   //console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
 
-  // sort by decreasing u values (mixing of different roads
+  // sort trafficObj array by decreasing u values (mixing of different roads
   // and object types OK since filtered in loop)
 
-  speedfunnel.speedl.sort(function(a,b){
+  trafficObjects.trafficObj.sort(function(a,b){
 	    return a.u < b.u;
   })
 
@@ -3787,26 +3788,27 @@ road.prototype.updateSpeedFunnel=function(speedfunnel){
   var duAntic=100; // anticipation distance for  obeying the speed limit
   var success=false;
   var iveh=0;
-  for(var i=0; i<speedfunnel.speedl.length; i++){
-    var speedlimit=speedfunnel.speedl[i];
-    if((speedlimit.isActive) && (speedlimit.road.roadID==this.roadID)){
+  for(var i=0; i<trafficObjects.trafficObj.length; i++){
+    var obj=trafficObjects.trafficObj[i];
+    if((obj.type==='speedLimit')&&(obj.isActive) 
+       && (obj.road.roadID==this.roadID)){
       success=true;
- 
-      if(false){
-	console.log("road.updateSpeedFunnel: speed limit ",
-		    formd(3.6*speedlimit.value)," starting at ",
-		    formd(speedlimit.u));
+      var speedL=obj.value/3.6;  // in m/s
+      if(true){
+	console.log("road.updateSpeedlimits: speed limit ",
+		    formd(speedL)," starting at ",
+		    formd(obj.u));
       }
 
-      while((iveh<this.veh.length)&&(this.veh[iveh].u>speedlimit.u-duAntic)){
+      while((iveh<this.veh.length)&&(this.veh[iveh].u>obj.u-duAntic)){
 	var targetVeh=this.veh[iveh];
 	if(targetVeh.isRegularVeh()){
 	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
-	    ? Math.min(speedlimit.value,speedL_truck) : speedlimit.value;
+	    ? Math.min(speedL,speedL_truck) : speedL;
 	}
 	if(false){
 	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
-		      " speedlimit.u=",formd(speedlimit.u),
+		      " obj.u=",formd(obj.u),
 		      " isRegVeh=",targetVeh.isRegularVeh(),
 		      " speedlimit_kmh=",
 		      formd0(3.6*targetVeh.longModel.speedlimit));

@@ -1,5 +1,5 @@
 
-var userCanDistortRoads=true;
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 //#############################################################
@@ -320,11 +320,11 @@ var trafficObjs=new TrafficObjects(canvas,0,3,0.60,0.50,3,2);
 
 // initialize one speedlimit on road
 // the selected trafficObj needs to be of type speedlimit! not checked!
+
 var speedl=trafficObjs.trafficObj[1]; 
-speedl.u=30;
-speedl.lane=0;
-trafficObjs.activate(speedl,mainroad);
-trafficObjs.active_drawTopSign=false;
+//activate(trafficObject,road,u) or activate(trafficObject,road)
+trafficObjs.activate(speedl,mainroad,30);
+trafficObjs.active_drawTopSign=false; // only bottom sign drawn
 
 //############################################
 // run-time specification and functions
@@ -342,13 +342,13 @@ function updateSim(){
 //#################################################################
 
 
-    // update times
+    // (1) update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
     isSmartphone=mqSmartphone();
 
-    // transfer effects from slider interaction and mandatory regions
+    // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
     mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
@@ -356,7 +356,14 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    // externally impose mandatory LC behaviour
+  // (2a) update moveable speed limits
+
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
+
+
+    // (2b) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
     // starting at 0 up to the position uBeginRoadworks
 
@@ -390,6 +397,25 @@ function updateSim(){
 
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
+  }
+
+    // debug output
+
+  if(false){
+
+    //if((itime>=125)&&(itime<=128)){
+    if(false){
+	console.log("updateSim: Simulation time=",time,
+		    " itime=",itime);
+	console.log("\nmainroad vehicles:");
+	mainroad.writeVehiclesSimple();
+	//console.log("\nonramp vehicles:");
+	ramp.writeVehiclesSimple();
+    }
+
+    if(true){
+      trafficObjs.writeObjects();
+    }
   }
 
 
@@ -483,7 +509,7 @@ function drawSim() {
 
 	speedL_srcFileIndexOld=speedL_srcFileIndex;
 	speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
-	console.log("speedlimitImg.src=",speedlimitImg.src);
+	//console.log("speedlimitImg.src=",speedlimitImg.src);
 
 	var sizeSignPix=0.12*refSizePix;
 	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
@@ -493,7 +519,7 @@ function drawSim() {
 	xPix -= 0.5*sizeSignPix; // center of sign
 	yPix -= 0.5*sizeSignPix;
 	ctx.setTransform(1,0,0,1,0,0); 
-	console.log("roadworks.draw: before drawing speedlimitImg");
+	//console.log("roadworks.draw: before drawing speedlimitImg");
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
 

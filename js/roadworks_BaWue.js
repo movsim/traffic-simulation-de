@@ -192,9 +192,12 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,
 		      userCanDistortRoads);
+network[0]=mainroad;  // network declared in canvas_gui.js
 
 mainroad.uminLC=0; // allow lane changing right at the beginning
 mainroad.setTrucksAlwaysRight=false;
+
+
 
 //#########################################################
 // add standing virtual vehicles at position of road works 
@@ -313,18 +316,26 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 
+//############################################
+// traffic objects
+//############################################
+
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,0,4,0.60,0.65,1,5);
+
+// initialize the 80 sign at the beginning to start with a working
+// speed funnel (1 sign)
+var speedl=trafficObjs.trafficObj[1]; 
+trafficObjs.activate(speedl,mainroad,30);
+
 
 //####################################################################
 // external draggable objects
 //####################################################################
 
 
-var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
-//var depot=  new ObstacleTLDepot(canvas,1,9,0.50,0.22,0,obstacleImgNames);
-
-// initialize active speed limit for good performance of the speed funnel
-
-speedfunnel.activateLimit(1, mainroad, 30); // index, road, u
+//var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
+//speedfunnel.activateLimit(1, mainroad, 30); // index, road, u
 
 
 //############################################
@@ -343,13 +354,13 @@ function updateSim(){
 //#################################################################
 
 
-    // (1) update times
+  // (1) update times
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
  
-    // (2) transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models
+  // (2) transfer effects from slider interaction and mandatory regions
+  // to the vehicles and models
 
   mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -357,22 +368,22 @@ function updateSim(){
 				       LCModelMandatory);
 
 
-    // (2a) update speed limits of speedfunnel
+  // (2a) update moveable speed limits
 
-  mainroad.updateSpeedFunnel(speedfunnel); 
-  //mainroad.writeSpeedlimits();
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
 
-// (2b) 
-  //!!! mainroad.update(depot) etc
 
-    // (3) externally impose mandatory LC behaviour
+
+    // (2b) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
     // starting at 0 up to the position uBeginRoadworks
 
     mainroad.setLCMandatory(uStartLCMandatory, uBeginRoadworks, true);
 
 
-    // (4) do central simulation update of vehicles
+    // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -392,37 +403,25 @@ function updateSim(){
 	}
     }
 
-    // (5) update detector readings
+    // (4) update detector readings
 
     for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].update(time,dt);
     }
 
 
-  // (6) initiate zooming back and activating/deactivating effects 
-  // of depotVehicle and SpeedFunnel objects
-  // do zooming back action 
-  // independent of user input if mouse not pressed
-  // sets userCanvasManip=true if zoombacks active, therefore before 
-  // deciding whether background needs to be redrawn 
-  // (the actual drawing of the speedfunnel and depot objects is, of course,
-  // after the possible background drawing, see (5)
+  //!!  (5) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
+
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
+    trafficObjs.zoomBack();
+ }
 
 
-  // => see onramp.js for the workings if depotVehicles involved
 
-  //if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-  //  depot.zoomBack();
- // }
+// (6) debug output
 
-  if(funnelObjPicked==false){
-    speedfunnel.zoomBack();
-  }
-
-
-// (7) some debugging writeout
-
-  //speedfunnel.write();
+  //trafficObjs.writeObjects();
   
 }//updateSim
 
@@ -508,16 +507,16 @@ function drawSim() {
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin_col, vmax_col);
     
+  // (5a) draw traffic objects 
 
-  // (5) draw depot vehicles and speed funnel objects
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
 
-  //if(userCanDropObjects&&(!isSmartphone)){
-  //  depot.draw(canvas,mainroad,scale);
-  //}
-  speedfunnel.draw();
+  // (5b) draw speedlimit-change select box
 
-  //console.log("speedfunnel.speedl[1]=",speedfunnel.speedl[1]);
-  //console.log("speedfunnel.speedl[0]=",speedfunnel.speedl[0]);
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
 
 
     // (6) show simulation time and detector displays
@@ -538,8 +537,13 @@ function drawSim() {
 			vmin_col,vmax_col,0,100/3.6);
   }
 
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+
+  hasChanged=false;
 
   // revert to neutral transformation at the end!
+
   ctx.setTransform(1,0,0,1,0,0); 
  
 } // drawSim

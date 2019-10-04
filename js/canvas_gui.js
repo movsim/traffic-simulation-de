@@ -223,8 +223,11 @@ function pickRoadOrObject(xUser,yUser){
 
   */
 
-
-
+  if(true){
+    console.log("itime=",itime," in pickRoadOrObject: xUser=",
+		formd0(xUser),
+		" yUser=",formd0(yUser));
+  }
 
   //==============================================================
   // (1) pick/select an active or passive trafficObject
@@ -235,7 +238,8 @@ function pickRoadOrObject(xUser,yUser){
     var distCrit_m=20; //[m] !! make it rather larger  
     var pickResults=trafficObjs.pickObject(xPixUser, yPixUser, 
 				      distCrit_m*scale);
-    if(pickResults[0]){
+    console.log("  pickRoadOrObject (1): test for object to be picked: pickResults=",pickResults);
+   if(pickResults[0]){
       trafficObject=pickResults[1];
       trafficObjPicked=true;
       roadPicked=false;

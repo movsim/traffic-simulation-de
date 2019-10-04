@@ -413,11 +413,13 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck,isRing,userCanDistortRoads);
+network[0]=mainroad;  // network declared in canvas_gui.js
+network[1]=ramp;
 
 updateRampGeometry(); //!! needed since ramp geometry depends on mainroad
 
@@ -520,19 +522,18 @@ rampImg = new Image();
 rampImg=roadImgs1[nLanes_rmp-1];
 
 
-//####################################################################
-// external draggable objects
-//####################################################################
 
+//############################################
+// traffic objects
+//############################################
 
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,1,5);
 
-var speedfunnel=new SpeedFunnel(canvas,1,4,0.60,0.70);
+var trafficLight=trafficObjs.trafficObj[0]; 
+//activate(trafficObject,road,u) or activate(trafficObject,road)
+trafficObjs.activate(trafficLight,ramp,rampLen-mergeLen-20);
 
-//(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles){
-var depot=  new ObstacleTLDepot(canvas,1,4,0.30,0.70,2,obstacleImgNames);
-
-//depot.activateTrafficLight(0,ramp,100); // !!! change from index to id
-depot.activateTrafficLight(1,ramp,rampLen-mergeLen-20);
 
 //############################################
 // run-time specification and functions
@@ -568,17 +569,14 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  // (2a) timestep-triggered actions for speedfunnel 
 
-  // (timestep triggered since vehicles move in new speedlimit zones)
-  // NOTICE: also removing speedlimits works since in every timestep 
-  // speedlimits are reset by above road.prototype.updateModelsOfAllVehicles
-  // NOTICE 2: (6) for event-triggered actions for speedfunnel 
-  // and obstacleTL objects
+  // (2a) update moveable speed limits
 
-  mainroad.updateSpeedFunnel(speedfunnel);
-  ramp.updateSpeedFunnel(speedfunnel);
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
 
+ 
   // (2b) timestep-triggered actions for trafficLight depot objects 
   // need to activateTrafficLight(0,...) or (1,...) first
 
@@ -593,13 +591,13 @@ function updateSim(){
 
 
 
-  // (3) externally impose mandatory LC behaviour
+  // (2b) externally impose mandatory LC behaviour
   // all ramp vehicles must change lanes to the left (last arg=false)
 
   ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
-    // (4) do central simulation update of vehicles
+    // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -627,54 +625,38 @@ function updateSim(){
     ramp.mergeDiverge(mainroad,mainRampOffset,
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
-    // (5) update detector readings
+    // (4) update detector readings
 
 
     for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].update(time,dt);
     }
 
+  //  (5) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
 
-  // (6) initiate zooming back and activating/deactivating effects 
-  // of depotVehicle and SpeedFunnel objects
-  // do zooming back action 
-  // independent of user input if mouse not pressed
-  // sets userCanvasManip=true if zoombacks active, therefore before 
-  // deciding whether background needs to be redrawn 
-  // (the actual drawing of the speedfunnel and depot objects is, of course,
-  // after the possible background drawing, see (5)
-
-  if(userCanDropObjects&&(!isSmartphone)&&(!depotObjPicked)){
-    depot.zoomBack();
-  }
-
-  if(funnelObjPicked==false){
-    speedfunnel.zoomBack();
-  }
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
+    trafficObjs.zoomBack();
+ }
 
 
-
-// (7) write vehicle positions of mainroad and onramp 
-// to console for external use
+// (6) debug output
 
     //if((itime>=125)&&(itime<=128)){
   if(false){
-	console.log("updateSim: Simulation time=",time,
+    console.log("updateSim: Simulation time=",time,
 		    " itime=",itime);
-	console.log("\nmainroad vehicles:");
-	mainroad.writeVehiclesSimple();
-	//console.log("\nonramp vehicles:");
-	ramp.writeVehiclesSimple();
+    console.log("\nmainroad vehicles:");
+    mainroad.writeVehiclesSimple();
+    ramp.writeVehiclesSimple();
   }
 
   if(false){
     onlyTL=true;
     console.log("time=",time);
-    //mainroad.writeDepotVehObjects(); // the road's vehicle-type obstacles
-    //ramp.writeDepotVehObjects(); 
     mainroad.writeTrafficLights(); // the road's operational TL objects
     ramp.writeTrafficLights(); 
-    depot.writeObjects(onlyTL);    //the depots general TL objects
+    trafficObjs.writeObjects(onlyTL);    //the trafficObjss general TL objects
   }
 
 }//updateSim
@@ -700,8 +682,6 @@ function drawSim() {
   var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
-  var hasChanged=false;
-
 
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
@@ -714,8 +694,7 @@ function drawSim() {
     scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
     updatePhysicalDimensions();
-    speedfunnel.calcDepotPositions(canvas);
-    depot.calcDepotPositions(canvas);
+    trafficObjs.calcDepotPositions(canvas);
 
     if(true){
 	    console.log("haschanged=true: new canvas dimension: ",
@@ -768,12 +747,16 @@ function drawSim() {
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
 
-  // (5) draw depot vehicles and speed funnel objects
+   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    depot.draw();
+    trafficObjs.draw(scale);
   }
-  speedfunnel.draw();
+
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
 
 
 
@@ -794,8 +777,13 @@ function drawSim() {
 			vmin_col,vmax_col,0,100/3.6);
   }
 
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+
+  hasChanged=false;
 
   // revert to neutral transformation at the end!
+
   ctx.setTransform(1,0,0,1,0,0); 
  }
  

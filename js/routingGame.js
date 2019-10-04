@@ -504,7 +504,7 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // update times
+    // update times and general settings
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
@@ -524,7 +524,7 @@ function updateSim(){
     }
 
 
-    // transfer effects from slider interaction and mandatory regions
+    // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models: 
 
     //console.log("\n(0)");
@@ -537,9 +537,14 @@ function updateSim(){
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+  // (2a) update moveable speed limits
+
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
 
 
-    // implement strong urge to change lanes before roadworks
+    // (2b) implement strong urge to change lanes before roadworks
     // (umin,umax,toRight) !for all vehs in contrast to route based offramp
  
 

@@ -185,6 +185,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
       image: (isTL) ? this.imgTLred : (isSpeedl)
 	? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst],
       value: (isTL) ? "red" : (isObst) ? "null" : 10*initSpeedInd[iSpeed],
+                                                 // speedlimit in km/h!!
       isActive: false, 
       inDepot:  true,
       isPicked: false,   // !! controlled by pickRoadOrObject (canvas_gui)
@@ -484,16 +485,30 @@ to the road;s list of speed limits
 
 @param obj: the trafficObject to be activated
 @param road: target road for activation
+@param u: optional long coordinate if not set previously
 @return: changed road data to reflect activation
 
-Notice: obj.inDepot,isDragged,isPicked,u,lane defined by this.dropObject(.)
+Notice: obj.u, lane, inDepot,isDragged,isPicked defined by this.dropObject(.)
+(not road.dropObject) if called inside TrafficObjects. 
+If called at top-level for initialisation,
+the optional arg u may be given; then also other attributes are updated to
+active state (otherwise, this.dropObject does this)
 */
 
 
-TrafficObjects.prototype.activate=function(obj, road){
+TrafficObjects.prototype.activate=function(obj, road, u){
   road.dropObject(obj);
   obj.road=road;
-  obj.isActive=true; // for safety last cmd
+  obj.isActive=true; 
+  if(!(typeof u === 'undefined')){ // external setting; must take care of all
+    obj.u=u;
+    obj.lane=0.5*road.nLanes; // center, v=0
+    obj.xPix=road.get_xPix(u,0,scale);
+    obj.yPix=road.get_yPix(u,0,scale);
+    obj.inDepot=false;
+    obj.isPicked=false;
+    obj.isDragged=false;
+  }
   hasChanged=true;
 }
 
@@ -830,17 +845,18 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
     if((!justTL) || (this.trafficObj[i].type==='trafficLight')){
       var obj=this.trafficObj[i];
       console.log("  id=",obj.id,
+		  " type=", obj.type,
 		  " roadID=",obj.road.roadID,
 		  " u=", formd(obj.u),
 		  " lane=", formd(obj.lane),
-		  " type=", obj.type,
 		  " value=",obj.value,
 		  " xPix=",formd0(obj.xPix),
-		  " image=",obj.image,
-		 // " yPix=",formd0(obj.yPix),
-		 // " isActive=",obj.isActive,
-		 // " inDepot=",obj.inDepot,
-		 // " isPicked=",obj.isPicked
+		 // " image=",obj.image,
+		  " yPix=",formd0(obj.yPix),
+		  " isActive=",obj.isActive,
+		  " inDepot=",obj.inDepot,
+		  " isPicked=",obj.isPicked,
+		  " isDragged=",obj.isDragged,
 		  "");
 		 
     }

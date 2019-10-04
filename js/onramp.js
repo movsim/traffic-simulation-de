@@ -362,30 +362,42 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // update times
+    // (1) update times and global settings
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    isSmartphone=mqSmartphone();
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+  isSmartphone=mqSmartphone();
 
-    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  // (2) transfer effects from slider interaction and mandatory regions
+  // to the vehicles and models
+
+  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
+  //xxxnew
+  // (2a) update moveable speed limits
 
-    // externally impose mandatory LC behaviour
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
+
+  mainroad.updateSpeedlimits(trafficObjs); 
+
+
+    // (2b) externally impose mandatory LC behaviour
     // all ramp vehicles must change lanes to the left (last arg=false)
 
-    ramp.setLCMandatory(0, ramp.roadLen, false);
+  ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
-    // do central simulation update of vehicles
+    // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -414,16 +426,16 @@ function updateSim(){
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
+    // (4) update detector readings
+
     for(var iDet=0; iDet<nDet; iDet++){
 	mainDetectors[iDet].update(time,dt);
     }
 
 
-    //!!  without this zoomback cmd, everything works but depot vehicles
-    // just stay where they have been dropped outside of a road
+  //  (5) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
 
-
-  //console.log("before zoomback: trafficObjPicked=",trafficObjPicked);
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
     trafficObjs.zoomBack();
  }
@@ -464,7 +476,7 @@ function drawSim() {
     var movingObserver=false;
     var uObs=0*time;
 
-    // (0) redefine graphical aspects of road (arc radius etc) using
+    // (1) redefine graphical aspects of road (arc radius etc) using
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
@@ -476,34 +488,25 @@ function drawSim() {
 
   //updatePhysicalDimensions(); //xxxnew obsolete
 
-    if ((canvas.width!=simDivWindow.clientWidth)
-	||(canvas.height != simDivWindow.clientHeight)){
-	hasChanged=true;
-	canvas.width  = simDivWindow.clientWidth;
-        canvas.height  = simDivWindow.clientHeight;
-	aspectRatio=canvas.width/canvas.height;
-      refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-      updatePhysicalDimensions(); 
+  if ((canvas.width!=simDivWindow.clientWidth)
+      ||(canvas.height != simDivWindow.clientHeight)){
+    hasChanged=true;
+    canvas.width  = simDivWindow.clientWidth;
+    canvas.height  = simDivWindow.clientHeight;
+    aspectRatio=canvas.width/canvas.height;
+    refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+    scale=refSizePix/refSizePhys;// refSizePhys=constant unless mobile
+    updatePhysicalDimensions(); 
 
-	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       //depot.calcDepotPositions(canvas); //xxxNew
-      trafficObjs.calcDepotPositions(canvas);
-	if(true){
-	    console.log("haschanged=true: new canvas dimension: ",
-		        canvas.width," X ",canvas.height);
-	}
-
-
+    trafficObjs.calcDepotPositions(canvas);
+    if(true){
+      console.log("haschanged=true: new canvas dimension: ",
+		  canvas.width," X ",canvas.height);
     }
-
+  }
  
-
-
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
-
-    
 
 
     // (2) reset transform matrix and draw background
@@ -606,10 +609,13 @@ function drawSim() {
   // xxxnew 
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 
+
   hasChanged=false;
 
   // revert to neutral transformation at the end!
+
   ctx.setTransform(1,0,0,1,0,0);
+
 
 } // drawSim
 

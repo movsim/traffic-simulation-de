@@ -47,6 +47,7 @@ README_formalChanges
 bash/generateSpiffyTrafficSim2.README
 bash/generateSpiffyTrafficSim2.sh.old
 old
+tmp*
 css_old
 info_old
 trafficSimulationLocalVersion

@@ -329,13 +329,13 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // update times
+    // (1) update times
 
     time +=dt; // dt depends on timewarp slider (fps=const)
     itime++;
     isSmartphone=mqSmartphone();
 
-    // transfer effects from slider interaction and mandatory regions
+    // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
 
@@ -347,6 +347,13 @@ function updateSim(){
     ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+
+  // (2a) update moveable speed limits
+
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
+
 
 
     // do central simulation update of vehicles
