@@ -659,19 +659,19 @@ road.prototype.writeDepotVehObjects= function(umin,umax){
 //######################################################################
 
 road.prototype.writeTrafficLights= function(umin,umax) {
-  console.log("\nitime=",itime," in road.writeTrafficLights:",
+  console.log("itime=",itime," in road.writeTrafficLights:",
 	      " writing the road's operational TL objects",
 	      " roaroadID=",this.roadID,
 	      " nTL=",this.trafficLights.length);
 
-  var uminLoc=(typeof umin!=='undefined') ? umin : 0;
+  var uminLoc=(typeof umin!=='undefined') ? umin : -1000;
   var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
 
   for(var i=0; i<this.trafficLights.length; i++){
     var u=this.trafficLights[i].u;
     if((u>uminLoc) && (u<umaxLoc) ){
 
-      console.log("  trafficLights[",i,"]:",
+      console.log("  i=",i,
 		      "  id="+this.trafficLights[i].id,
 		      "  u="+formd(this.trafficLights[i].u),
 		      "  value="+this.trafficLights[i].value,
@@ -3936,7 +3936,7 @@ road.prototype.changeTrafficLight=function(id,value){
 
   // change state of one of the road's trafficLights objects selected by id
 
-  //console.log("in road.changeTrafficLight: id=",id," value=",value);
+  console.log("in road.changeTrafficLight: id=",id," value=",value);
 
   var success=false;
   var pickedTL;
@@ -4003,19 +4003,19 @@ road.prototype.changeTrafficLight=function(id,value){
 road.prototype.removeTrafficLight= function(id) {
     // change value of trafficLight object
 
-    console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
-    var success=false;
-    var iDel=-1;
-    for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
-	console.log("i=",i," trafficLight=",this.trafficLights[i]);
-	if(this.trafficLights[i].id===id){
-	    success=true;
-	    iDel=i;
-	    this.changeTrafficLight(id,"green"); // to remove virt vehicles
-	}
+  console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
+  var success=false;
+  var iDel=-1;
+  for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
+    if(this.trafficLights[i].id===id){
+      success=true;
+      console.log("  succes! i=",i," trafficLight=",this.trafficLights[i]);
+      iDel=i;
+      this.changeTrafficLight(id,"green"); // to remove virt vehicles
     }
-    if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
-    else this.trafficLights.splice(iDel,1);
+  }
+  if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
+  else this.trafficLights.splice(iDel,1);
 }
 
 /**

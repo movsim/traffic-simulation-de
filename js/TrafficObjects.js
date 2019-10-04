@@ -497,12 +497,12 @@ active state (otherwise, this.dropObject does this)
 
 
 TrafficObjects.prototype.activate=function(obj, road, u){
-  road.dropObject(obj);
   obj.road=road;
   obj.isActive=true; 
   if(!(typeof u === 'undefined')){ // external setting; must take care of all
     obj.u=u;
-    obj.lane=0.5*road.nLanes; // center, v=0
+    //obj.lane=0.5*road.nLanes; // center, v=0
+    obj.lane=0; // !!! 
     obj.xPix=road.get_xPix(u,0,scale);
     obj.yPix=road.get_yPix(u,0,scale);
     obj.inDepot=false;
@@ -510,6 +510,9 @@ TrafficObjects.prototype.activate=function(obj, road, u){
     obj.isDragged=false;
   }
   hasChanged=true;
+  road.dropObject(obj); // !! AFTER external setting; otherwise heineous bug
+                        // since then local road.trafficLights[i].u undefined
+
 }
 
 
@@ -520,7 +523,7 @@ TrafficObjects.prototype.activate=function(obj, road, u){
 TrafficObjects.prototype.deactivate=function(obj){
   var road=obj.road;
   if(obj.isActive){
-    if(obj.type==='trafficLight'){road.removeTrafficLight(obj.id);}
+    if(obj.type==='trafficLight'){console.log("TrafficObjects.deactivate");road.removeTrafficLight(obj.id);}
     if(obj.type==='obstacle'){road.removeObstacle(obj.id);}
     // no action needed for speedLimit
     obj.road="null";
@@ -755,7 +758,7 @@ TrafficObjects.prototype.setTrafficLight=function(obj, value){
   obj.value=value;
   obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
   if(obj.isActive){ // then, obj has a road reference
-    obj.road.changeTrafficLight(obj.id, obj.value);
+    //obj.road.changeTrafficLight(obj.id, obj.value); //(3) das macht den Fuck
   }
 
   if(true){
@@ -876,7 +879,8 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
     justTL=onlyTL;
   }
 
-  console.log("in TrafficObjects.writeObjects, justTL=",justTL,":");
+  console.log("itime=",itime," in TrafficObjects.writeObjects:",
+	      " justTL=",justTL,":");
   for(var i=0; i<this.trafficObj.length; i++){
     if((!justTL) || (this.trafficObj[i].type==='trafficLight')){
       var obj=this.trafficObj[i];
@@ -886,13 +890,13 @@ TrafficObjects.prototype.writeObjects=function(onlyTL){
 		  " u=", formd(obj.u),
 		  " lane=", formd(obj.lane),
 		  " value=",obj.value,
-		  " xPix=",formd0(obj.xPix),
+		  //" xPix=",formd0(obj.xPix),
+		 // " yPix=",formd0(obj.yPix),
 		 // " image=",obj.image,
-		  " yPix=",formd0(obj.yPix),
 		  " isActive=",obj.isActive,
-		  " inDepot=",obj.inDepot,
-		  " isPicked=",obj.isPicked,
-		  " isDragged=",obj.isDragged,
+		 // " inDepot=",obj.inDepot,
+		 // " isPicked=",obj.isPicked,
+		 // " isDragged=",obj.isDragged,
 		  "");
 		 
     }

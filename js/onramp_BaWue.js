@@ -108,7 +108,7 @@ function externalOnrampDemand(time){
 
 function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
 
-  if(!((TL.type==='trafficLight')&&(TL.isActive))){ 
+  if(!(TL.type==='trafficLight')){ 
     console.log("switchingSchemeTL: error:",
 		" can only switch active traffic light objects");
     return;
@@ -125,7 +125,7 @@ function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
   // do the action
 
   var newState=(isGreen) ? "green" : "red";
-  trafficObjs.setTrafficLight(TL, newState); // also sets road action
+  trafficObjs.setTrafficLight(TL, newState); // !!! (2) das macht den Fuck also sets road action
 
   /*
   if(isGreen!=isGreenOld2){ //quick hack!!
@@ -501,7 +501,7 @@ var trafficObjs=new TrafficObjects(canvas,2,3,0.50,0.72,1,6);
 
 var rampMeterLight=trafficObjs.trafficObj[0]; 
 //activate(trafficObject,road,u) or activate(trafficObject,road)
-trafficObjs.activate(rampMeterLight,ramp,rampLen-mergeLen-20);
+trafficObjs.activate(rampMeterLight,ramp,rampLen-mergeLen-80);
 
 
 //############################################
@@ -553,8 +553,9 @@ function updateSim(){
 
   // (2c) programmatic control downstream ramp meter TL 
 
-  //switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed)
-  switchingSchemeTL(rampMeterLight,qOn,time,8,3,true); 
+  //template switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed)
+  switchingSchemeTL(rampMeterLight,qOn,time,8,3,true); //!!! (1) das macht Fuck!! for debug off 
+  // debug output end of updateSim
 
 
   // (2d) externally impose mandatory LC behaviour
@@ -609,20 +610,26 @@ function updateSim(){
 // (6) debug output
 
     //if((itime>=125)&&(itime<=128)){
-  if(false){
+  if(true){
+    console.log("\n\nitime=",itime,": end of updateSim loop");
     console.log("updateSim: Simulation time=",time,
 		    " itime=",itime);
-    console.log("\nmainroad vehicles:");
-    mainroad.writeVehiclesSimple();
-    ramp.writeVehiclesSimple();
-  }
 
-  if(false){
-    onlyTL=true;
-    console.log("time=",time);
-    mainroad.writeTrafficLights(); // the road's operational TL objects
-    ramp.writeTrafficLights(); 
-    trafficObjs.writeObjects(onlyTL);    //the trafficObjss general TL objects
+    if(false){
+      console.log("\nmainroad vehicles:");
+      mainroad.writeVehiclesSimple();
+      ramp.writeVehiclesSimple();
+    }
+
+    if(true){
+      onlyTL=true;
+      trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
+      onlyTL=true;
+      mainroad.writeTrafficLights(); // the road's operational TL objects
+      ramp.writeTrafficLights(); 
+      mainroad.writeDepotVehObjects();
+      ramp.writeDepotVehObjects();
+    }
   }
 
 }//updateSim
