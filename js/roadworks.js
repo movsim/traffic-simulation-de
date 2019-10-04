@@ -201,13 +201,13 @@ mainroad.sortVehicles();
 mainroad.updateEnvironment();
 
 
-// !! introduce stationary detectors (aug17)
+//  introduce stationary detectors 
 
 var nDet=3;
-var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+var detectors=[];
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
+detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
 
 
 //#########################################################
@@ -391,7 +391,7 @@ function updateSim(){
 
 
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].update(time,dt);
+	detectors[iDet].update(time,dt);
     }
 
 
@@ -540,7 +540,7 @@ function drawSim() {
 
     displayTime(time,textsize);
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].display(textsize);
+	detectors[iDet].display(textsize);
     }
 
 

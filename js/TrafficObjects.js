@@ -736,13 +736,49 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 }
 
 //#############################################################
-/** user-driven change of the state of traffic light by click on canvas
-should also be called if clicked but not dragged
-@return: success flag and changed state, if success */
+// programmatic setting of a traffic light
 //#############################################################
 
+/** 
+@param obj:    a TrafficObjects object of type "trafficLight"
+@param value:  the new value, "red" or "green"
+@return:       changed state, if active, also changed road influence
+*/
 
-TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
+TrafficObjects.prototype.setTrafficLight=function(obj, value){
+
+  if(!(obj.type==='trafficLight')){
+    console.log("TrafficObjects.setTrafficLight: error:",
+		" object not of type trafficLight");
+    return;
+  }
+  obj.value=value;
+  obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
+  if(obj.isActive){ // then, obj has a road reference
+    obj.road.changeTrafficLight(obj.id, obj.value);
+  }
+
+  if(true){
+    if(obj.isActive){
+      console.log("setTrafficLight:  id=",obj.id," road ID=",obj.road.roadID);
+      obj.road.writeTrafficLights();
+    }
+  }
+
+  
+}
+  
+
+//#############################################################
+// user-driven change of the state of traffic light
+//#############################################################
+
+/** user-driven change of the state of traffic light by click on canvas
+should also be called if clicked but not dragged
+@return: success flag and changed state, if success 
+*/
+
+  TrafficObjects.prototype.changeTrafficLightByUser=function(xPixUser,yPixUser){
 
   console.log("itime=",itime," in TrafficObjects.changeTrafficLightByUser");
   var results=this.selectSignOrTL(xPixUser,yPixUser);

@@ -248,10 +248,10 @@ var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0
 ramp.veh.unshift(virtualStandingVeh);
 
 var nDet=3;
-var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-mainDetectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
+var detectors=[];
+detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
+detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
 
 
 //#########################################################
@@ -429,7 +429,7 @@ function updateSim(){
     // (4) update detector readings
 
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].update(time,dt);
+	detectors[iDet].update(time,dt);
     }
 
 
@@ -574,7 +574,7 @@ function drawSim() {
 
   displayTime(time,textsize);
   for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].display(textsize);
+	detectors[iDet].display(textsize);
   }
 
   // (6a) show scale info

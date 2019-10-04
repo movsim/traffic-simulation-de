@@ -49,29 +49,28 @@ function myRestartFunction(){
   time=0;
   var i=0;
 
-  // remove all regular vehicles (leave obstacles and other special objects)
-  // filter gives new array of filtered objects & leaves old unchanged
-  // NOTICE: works with objects by reference, although locally created ("var")
+  for(var i=0; i<network.length; i++){
 
-  var newVehicles = mainroad.veh.filter(selectNotRegularVeh);
+    var road=network[i];
+    // remove all regular vehicles (leave obstacles and other special objects)
+    // filter gives new array of filtered objects & leaves old unchanged
+    // NOTICE: works with objects by reference, although locally created ("var")
 
-  // add regular vehicles according to the given init density per lane
+    var newVehicles = road.veh.filter(selectNotRegularVeh);
 
-  mainroad.veh=newVehicles;
-  mainroad.initRegularVehicles(density,fracTruck);
+    // add regular vehicles according to the given init density per lane
 
-
-  for(var iDet=0; iDet<nDet; iDet++){
-    mainDetectors[iDet].reset();
+    road.veh=newVehicles;
+    road.initRegularVehicles(density,fracTruck);
   }
 
-  // do the same for the ramp, if it exists (no detectors)
+  // reset all detectors (each detector knows which road it is at)
 
-  if(typeof ramp!=="undefined"){
-    ramp.veh = ramp.veh.filter(selectNotRegularVeh);
-    ramp.initRegularVehicles(0,fracTruck);
+  for(var iDet=0; iDet<detectors.length; iDet++){
+    detectors[iDet].reset();
   }
 
+   // activate thread if stopped
 
   if(isStopped){
     isStopped=false;
@@ -80,6 +79,7 @@ function myRestartFunction(){
   }
 
 }
+
 
 // helper function for the filter (passed as func pointer)
 

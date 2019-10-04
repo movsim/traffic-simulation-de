@@ -3794,7 +3794,7 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
        && (obj.road.roadID==this.roadID)){
       success=true;
       var speedL=obj.value/3.6;  // in m/s
-      if(true){
+      if(false){
 	console.log("road.updateSpeedlimits: speed limit ",
 		    formd(speedL)," starting at ",
 		    formd(obj.u));

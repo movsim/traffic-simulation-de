@@ -93,37 +93,46 @@ function externalOnrampDemand(time){
 // programmatic traffic light control
 //#############################################################
 
-// switches the active traffic-light object TL (element of depot.obstTL[])
-// as a function of time.
+/** switches the active traffic-light object TL (element of depot.obstTL[])
+ as a function of time.
 
-// (1) upstream switching. Should represent the cycle time of the secondary
-// network from which this ramp is fed. qOn is the average ramp demand
+@param TL:        TrafficObjects traffic object of type trafficLight
+                  which must be active (on a road)
+@param qRoad:     traffic flow on this link. 
+                  if !isFixed, the green phase duration depends on it
+@param time:      simulation time [s]
+@param cycleTime: fixed time for a complete TL cycle
+@param greenTime: (optional) green phase; used if isFixed=true
+@param isFixed:   (optional) if true, the green phase=greenTime is fixed
+*/
 
-var isGreenOld1=false; //quick hack for propagating to vehs !!!
+function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
 
-
-function switchingSchemeTLup(TL,qOn,time){
-  //if(!((TL.type==='trafficLight')&&(TL.isActive))){ //!!! quick hack comm out
-  //  console.log("error: can only switch active traffic light objects");
-  //  return;
-  //}
+  if(!((TL.type==='trafficLight')&&(TL.isActive))){ 
+    console.log("switchingSchemeTL: error:",
+		" can only switch active traffic light objects");
+    return;
+  }
+  
   var qmax=IDM_v0/(IDM_v0*IDM_T+car_length);  // upper limit, only cars 
 
-  var cycleTime=120;      // small ramp meter cycle time
-
-  var fracGreen=Math.min(qOn/qmax, 1.); // single-lane onramp
+  var fracGreen=Math.min(qRoad/qmax, 1.);
+  if(!(typeof isFixed === 'undefined')){fracGreen=greenTime/cycleTime;}
   var nCycle=Math.floor(time/cycleTime);
   var fracCycle=time/cycleTime-nCycle;
   var isGreen=(fracCycle<fracGreen);
 
   // do the action
 
-  TL.value=(isGreen) ? "green" : "red";
+  var newState=(isGreen) ? "green" : "red";
+  trafficObjs.setTrafficLight(TL, newState); // also sets road action
+
+  /*
   if(isGreen!=isGreenOld2){ //quick hack!!
     if(TL.isActive){TL.road.changeTrafficLight(TL.id,TL.value);}
     isGreenOld1=isGreen;
   }
-
+*/
   // debug output
 
   if(false){
@@ -131,47 +140,7 @@ function switchingSchemeTLup(TL,qOn,time){
 		" fracGreen=",fracGreen," nCycle=",nCycle,
 		" fracCycle=",fracCycle," isGreen=",isGreen);
   }
-
 }
-
-// (2) ramp metering (nearly identical to above but that may change)
-
-var isGreenOld2=false; //quick hack for propagating to vehs !!!
-
-function switchingSchemeTLmeter(TL,qOn,time){
-
-  //if(!((TL.type==='trafficLight')&&(TL.isActive))){
-  //  console.log("error: can only switch active traffic light objects");
-  //  return;
-  //}
-
-  var qmax=IDM_v0/(IDM_v0*IDM_T+car_length);  // upper limit, only cars 
-
-  var cycleTime=8;      // small ramp meter cycle time
-
-  //var fracGreen=Math.min(qOn/qmax, 1.); // single-lane onramp
-  var fracGreen=0.5; //!!!
-  var nCycle=Math.floor(time/cycleTime);
-  var fracCycle=time/cycleTime-nCycle;
-  var isGreen=(fracCycle<fracGreen);
-
-  // do the action
-
-  TL.value=(isGreen) ? "green" : "red";
-  if(isGreen!=isGreenOld2){ //quick hack!!
-    if(TL.isActive){TL.road.changeTrafficLight(TL.id,TL.value);}
-    isGreenOld2=isGreen;
-  }
-
-  // debug output
-
-  if(false){
-    console.log("switchingSchemeTLmeter: time=",time,
-		" fracGreen=",fracGreen," nCycle=",nCycle,
-		" fracCycle=",fracCycle," isGreen=",isGreen);
-  }
-}
-
 
 
 /*######################################################
@@ -430,13 +399,13 @@ var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0
 
 ramp.veh.unshift(virtualStandingVeh);
 
-// !! introduce stationary detectors (aug17)
+// introduce stationary detectors
 
 var nDet=3;
-var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,10);
-mainDetectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-mainDetectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,10);
+var detectors=[];
+detectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,10);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
+detectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,10);
 
 
 //#########################################################
@@ -528,11 +497,11 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,1,5);
+var trafficObjs=new TrafficObjects(canvas,2,3,0.50,0.72,1,6);
 
-var trafficLight=trafficObjs.trafficObj[0]; 
+var rampMeterLight=trafficObjs.trafficObj[0]; 
 //activate(trafficObject,road,u) or activate(trafficObject,road)
-trafficObjs.activate(trafficLight,ramp,rampLen-mergeLen-20);
+trafficObjs.activate(rampMeterLight,ramp,rampLen-mergeLen-20);
 
 
 //############################################
@@ -576,22 +545,19 @@ function updateSim(){
     network[i].updateSpeedlimits(trafficObjs);
   }
 
- 
-  // (2b) timestep-triggered actions for trafficLight depot objects 
-  // need to activateTrafficLight(0,...) or (1,...) first
+  // (2b) programmatic control upstream secondary network  
 
-  //switchingSchemeTLup(depot.obstTL[0],qOn,time);  // secondary network
-  switchingSchemeTLmeter(depot.obstTL[1],qOn,time); // ramp meter
-
-  qOn=externalOnrampDemand(time);
-
-  // obstacleTL have no timestep-triggered action here  
-  // -> canvas_gui.js -> (6) mainroad.dropDepotObject, ramp.dropDepotObject 
+  //switchingSchemeTLup(depot.obstTL[0],qOn,time); // with explicit TL 
+  qOn=externalOnrampDemand(time);                  // implicit flow control
 
 
+  // (2c) programmatic control downstream ramp meter TL 
+
+  //switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed)
+  switchingSchemeTL(rampMeterLight,qOn,time,8,3,true); 
 
 
-  // (2b) externally impose mandatory LC behaviour
+  // (2d) externally impose mandatory LC behaviour
   // all ramp vehicles must change lanes to the left (last arg=false)
 
   ramp.setLCMandatory(0, ramp.roadLen, false);
@@ -629,7 +595,7 @@ function updateSim(){
 
 
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].update(time,dt);
+	detectors[iDet].update(time,dt);
     }
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
@@ -764,7 +730,7 @@ function drawSim() {
 
   displayTime(time,textsize);
   for(var iDet=0; iDet<nDet; iDet++){
-    mainDetectors[iDet].display(textsize);
+    detectors[iDet].display(textsize);
   }
 
   // (7) draw the speed colormap 

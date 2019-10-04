@@ -188,7 +188,7 @@ which always gives correct size!!
 
 
 
-/* (2b) landscape: position of the info button: right top of simCanvas */
+/* (2a) landscape: position of the info button: right top of simCanvas */
 
 #infoDiv{
   position: absolute;
@@ -199,9 +199,11 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) landscape: position of the start/stop sign: just to the left of info button */
 
-#startStopDiv{
+/* (2b) landscape: position of the restart button: 
+at the former trafficSimulationDe info button */
+
+#restartDiv{
   position: absolute;
   top: 1vmin;
   height: 8vmin;
@@ -210,16 +212,18 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c1) landscape: position of therestart button: at the info button */
 
-#restartDiv{
+/* (2c) landscape: position of the start/stop sign: just to the left of info button */
+
+#startStopDiv{
   position: absolute;
   top: 1vmin;
   height: 8vmin;
-  left: 101vmin;
+  left: 84vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+
 
 /* (2d) landscape: add/subtract one lane: just to the left of start/stop button */
 
@@ -227,7 +231,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 84vmin;
+  left: 75vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -236,7 +240,7 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 75vmin;
+  left: 66vmin;
   width: 7vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -257,11 +261,11 @@ which always gives correct size!!
   z-index: 2;
 }
 
-#gameDiv{ /* button text inside button environment */
+#gameDiv{ /* "Play Routing Game" label */
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 42vmin;
+  left: 35vmin;
   width: 28vmin;
   font-size: 2.2vmin; 
   z-index: 2; /* the higher the integer, the more on top */
@@ -276,12 +280,12 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) position of the enforce truck overtaking ban in uphill scen*/
+/* (2e) "Enforce Truck Overtaking Ban" label */
 
 #buttonsInsideSimulations{
   position: absolute;
   top: 1vmin;
-  left: 32vmin;
+  left: 28vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 

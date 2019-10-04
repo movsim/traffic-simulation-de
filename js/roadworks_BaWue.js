@@ -221,13 +221,13 @@ mainroad.sortVehicles();
 mainroad.updateEnvironment();
 
 
-// !! introduce stationary detectors (aug17)
+//  introduce stationary detectors
 
 var nDet=3;
-var mainDetectors=[];
-mainDetectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,10);
-mainDetectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,10);
-mainDetectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,10);
+var detectors=[];
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,10);
+detectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,10);
+detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,10);
 
 
 //#########################################################
@@ -406,16 +406,18 @@ function updateSim(){
     // (4) update detector readings
 
     for(var iDet=0; iDet<nDet; iDet++){
-	mainDetectors[iDet].update(time,dt);
+	detectors[iDet].update(time,dt);
     }
 
 
   //!!  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
+  //console.log("itime=",itime," userCanDropObjects=",userCanDropObjects," isSmartphone=",isSmartphone," trafficObjPicked=",trafficObjPicked);
+
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
- }
+  }
 
 
 
@@ -438,8 +440,6 @@ function drawSim() {
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
-
-    var hasChanged=false;
 
     if(false){
         console.log(" new total inner window dimension: ",
@@ -523,7 +523,7 @@ function drawSim() {
 
   displayTime(time,textsize);
   for(var iDet=0; iDet<nDet; iDet++){
-    mainDetectors[iDet].display(textsize);
+    detectors[iDet].display(textsize);
   }
 
 

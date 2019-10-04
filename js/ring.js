@@ -123,11 +123,11 @@ network[0]=mainroad;  // network declared in canvas_gui.js
 
 
 
-// !! introduce stationary detectors (aug17)
+//  introduce stationary detectors
 
-var mainDetectors=[];
+var detectors=[];
 for(var idet=0; idet<4; idet++){
-  mainDetectors[idet]=new stationaryDetector(mainroad,
+  detectors[idet]=new stationaryDetector(mainroad,
 					  (0.125+idet*0.25)*mainroadLen,10);
 }
 
@@ -287,8 +287,8 @@ function updateSim(){
     //if(itime<2){mainroad.writeVehicleLongModels();}
     //if(itime<2){mainroad.writeVehicleLCModels();}
 
-    for(var iDet=0; iDet<mainDetectors.length; iDet++){
-	mainDetectors[iDet].update(time,dt);
+    for(var iDet=0; iDet<detectors.length; iDet++){
+	detectors[iDet].update(time,dt);
     }
 
   //xxxNew
@@ -395,8 +395,8 @@ function drawSim() {
     // (6) draw simulated time and detector displays
 
     displayTime(time,textsize);
-    for(var iDet=0; iDet<mainDetectors.length; iDet++){
-	mainDetectors[iDet].display(textsize);
+    for(var iDet=0; iDet<detectors.length; iDet++){
+	detectors[iDet].display(textsize);
     }
 
 
