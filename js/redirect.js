@@ -39,4 +39,12 @@ function myRedirectTrafficlight(){
     window.location.href = "./trafficlight.html";
 }
 
+function myRedirectOnrampBaWue(){
+    window.location.href = "./onramp_BaWue_ger.html"; // only German
+}
+
+function myRedirectRoadworksBaWue(){
+    window.location.href = "./roadworks_BaWue_ger.html"; // only German
+}
+
 

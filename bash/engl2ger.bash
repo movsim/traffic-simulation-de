@@ -35,9 +35,12 @@ cd $startDir
 
 
 # copy+change strings for German version of control js files
+# (undo changes for BaWue files which are only in German, i.e., 
+# *_ger already in engl redirect)
 
 cp js/redirect.js js/redirect_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/redirect_ger.js
+perl -i -p -e "s/_ger_ger/_ger/g" js/redirect_ger.js
 
 cp js/control_gui.js js/control_gui_ger.js
 perl -i -p -e "s/\.html/_ger.html/g" js/control_gui_ger.js
@@ -65,6 +68,7 @@ for proj in $projects; do
   # therefore here, not at the change block
   perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
 
+  # do not need BaWue files here, since they are originally in German
 
   cp js/${proj}.js js/${proj}_ger.js
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
