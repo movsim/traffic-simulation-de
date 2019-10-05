@@ -70,7 +70,7 @@ slider_timewarp.value=timewarp;
 ######################################################*
 */
 
-var scenarioString="RoadWorks";
+var scenarioString="RoadWorks_BaWue";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 var simDivWindow=document.getElementById("contents");

@@ -441,24 +441,30 @@ function updateSim(){
  }
 
 
-    // debug output
-
-  if(false){
+// (6) debug output
 
     //if((itime>=125)&&(itime<=128)){
+  if(false){
+    console.log("\n\nitime=",itime,": end of updateSim loop");
+
     if(false){
-	console.log("updateSim: Simulation time=",time,
-		    " itime=",itime);
-	console.log("\nmainroad vehicles:");
-	mainroad.writeVehiclesSimple();
-	//console.log("\nonramp vehicles:");
-	ramp.writeVehiclesSimple();
+      console.log("\nmainroad vehicles:");
+      mainroad.writeVehiclesSimple();
+      ramp.writeVehiclesSimple();
     }
 
     if(true){
-      trafficObjs.writeObjects();
+      onlyTL=true;
+      trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
+      onlyTL=true;
+      mainroad.writeTrafficLights(); // the road's operational TL objects
+      ramp.writeTrafficLights(); 
+      mainroad.writeDepotVehObjects();
+      ramp.writeDepotVehObjects();
     }
+    //if(time>1.2){clearInterval(myRun);}
   }
+
 
 
 

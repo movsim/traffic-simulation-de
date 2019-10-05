@@ -1,0 +1,73 @@
+http://cssmediaqueries.com/overview.html
+
+Laptop Ubuntu12, externer und interner Monitor, immer, egal wie Viewport-size:
+================================================================
+
+1	YES	@media all
+2	YES	@media screen
+3	NO	@media handheld
+25	YES	@media all and (device-aspect-ratio: 8/5) wirkl immer!
+32	YES	@media screen and (resolution: 96dpi)
+30	YES	@media all and (-webkit-device-pixel-ratio: 1)
+33	NO	@media all and (-webkit-device-pixel-ratio: 1.3)
+35	NO	@media all and (-webkit-device-pixel-ratio: 1.5)
+39	NO	@media all and (-webkit-min-device-pixel-ratio: 2)
+40	NO	@media screen and (min-resolution: 192dpi)
+
+Laptop Ubuntu12, externer Monitor, abhaengig vom Viewport:
+================================================================
+
+12	NO	@media all and (orientation:landscape) OK, gef etw zu frueh
+13	YES	@media all and (orientation:portrait)
+14	YES	@media screen and (min-width : 320px) OK, tut was es soll
+15	YES	@media screen and (min-width : 480px)
+16	NO	@media screen and (min-width : 1224px) OK, etwa 2/3 Breite
+
+Laptop Ubuntu12, eigener Monitor, abhaengig vom Viewport:
+================================================================
+
+das gleiche (min-width : 1224px) ist fast ganze Breite OK
+
+
+Samsung Smartphone, portrait gehalten
+================================================================
+
+1	YES	@media all
+2	YES	@media screen
+3	NO	@media handheld  !! wirklich => nicht verwenden!
+12	NO	@media all    and (orientation:landscape)  OK
+13	YES	@media all    and (orientation:portrait)   OK
+14	YES	@media screen and (min-width : 320px)
+15	NO	@media screen and (min-width : 480px)  OK, gutes Merkmal!
+27	YES	@media all    and (device-aspect-ratio: 9/16) !! zu viele Var
+32	NO	@media screen and (resolution: 96dpi) OK
+30	NO	@media all    and (-webkit-device-pixel-ratio: 1)
+33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3)!!
+35	NO	@media all    and (-webkit-device-pixel-ratio: 1.5)
+39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2) OK, gut!
+40	YES	@media screen and (min-resolution: 192dpi) OK, gut!
+
+
+Samsung Smartphone, landscape gehalten
+================================================================
+
+1	YES	@media all
+2	YES	@media screen
+3	NO	@media handheld  !! wirklich no, nicht verwenden!
+12	YES	@media all    and (orientation:landscape) OK, diff!
+13	NO	@media all    and (orientation:portrait) OK, diff!
+14	YES	@media screen and (min-width : 320px)
+15	YES	@media screen and (min-width : 480px) OK, diff!
+27	NO	@media all    and (device-aspect-ratio: 9/16) 
+                                             !!changes, although "device"
+32	NO	@media screen and (resolution: 96dpi)
+30	NO	@media all    and (-webkit-device-pixel-ratio: 1)
+33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3)!!
+35	NO	@media all    and (-webkit-device-pixel-ratio: 1.5)
+39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2)!!
+40	YES	@media screen and (min-resolution: 192dpi)
+
+
+
+
+

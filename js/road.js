@@ -633,7 +633,8 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeDepotVehObjects= function(umin,umax){
-  console.log("\nin road.writeDepotVehObjects: roadID=",this.roadID,
+  console.log("itime=",itime,
+	      "in road.writeDepotVehObjects: roadID=",this.roadID,
 	      " nveh=",this.veh.length);
 
   var uminLoc=(typeof umin!=='undefined') ? umin : 0;
@@ -644,7 +645,7 @@ road.prototype.writeDepotVehObjects= function(umin,umax){
       var u=this.veh[i].u;
       if((u>uminLoc) && (u<umaxLoc) ){
 
-        console.log(" veh["+i+"].type="+this.veh[i].type
+        console.log("  veh["+i+"].type="+this.veh[i].type
 		    +"  id="+this.veh[i].id
 		    +"  u="+formd(this.veh[i].u)
 		    +"  v="+formd(this.veh[i].v)
@@ -3936,8 +3937,6 @@ road.prototype.changeTrafficLight=function(id,value){
 
   // change state of one of the road's trafficLights objects selected by id
 
-  console.log("in road.changeTrafficLight: id=",id," value=",value);
-
   var success=false;
   var pickedTL;
   for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
@@ -3964,22 +3963,33 @@ road.prototype.changeTrafficLight=function(id,value){
     // (1) new TL value green
 
   if(pickedTL.value==="green"){
-    for(var i=0; i<this.veh.length; i++){
+    for(var i=0; i<this.veh.length; i++){ //!!! is this.veh.length updated?
       if(this.veh[i].id===id){
 	this.veh.splice(i, this.nLanes); // nLanes red TL removed
       }
     }
   }
 
-    // (2) new TL value red
+  // (2) new TL value red
+
+  //!! heineous bug: only generate new virt vehicles if none of this id
+  // there. Otherwise unbounded growth of virt veh if several 
+  // commands changeTrafficLight(id,"red") without (id,"green") given!
 
   else{
-    for(var il=0; il<this.nLanes; il++){
-      var virtVeh=new vehicle(1,this.laneWidth,
-			      pickedTL.u, il, 0, "obstacle");
-      virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
-      virtVeh.id=id;
-      this.veh.push(virtVeh);
+    var virtVehAlreadyExist=false; // one or more
+    for(var i=0; i<this.veh.length; i++){
+      if(this.veh[i].id===id){virtVehAlreadyExist=true;}
+    }
+
+    if(!virtVehAlreadyExist){
+      for(var il=0; il<this.nLanes; il++){
+        var virtVeh=new vehicle(1,this.laneWidth,
+			        pickedTL.u, il, 0, "obstacle");
+        virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
+        virtVeh.id=id;
+        this.veh.push(virtVeh);
+      }
     }
   }
   this.sortVehicles();

@@ -80,12 +80,14 @@ if(!(typeof uOffset === 'undefined')){
 }
 
 function externalOnrampDemand(time){
-  qOnMax=1800./3600.;
+  qOnMax=1400./3600.;
   cycleTime=120;
   if(!(typeof uOffset === 'undefined')){
     slider_qOn.value=3600*qOn;
     slider_qOnVal.innerHTML=formd0(3600*qOn)+" Fz/h";
   }
+  var returnVal=qOnMax*Math.pow(Math.sin(1*Math.PI*time/cycleTime), 4);
+  //console.log("externalOnrampDemand: time=",time," demand=",returnVal);
   return qOnMax*Math.pow(Math.sin(1*Math.PI*time/cycleTime), 4);
 }
 
@@ -125,15 +127,7 @@ function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
   // do the action
 
   var newState=(isGreen) ? "green" : "red";
-  trafficObjs.setTrafficLight(TL, newState); // !!! (2) das macht den Fuck also sets road action
-
-  /*
-  if(isGreen!=isGreenOld2){ //quick hack!!
-    if(TL.isActive){TL.road.changeTrafficLight(TL.id,TL.value);}
-    isGreenOld1=isGreen;
-  }
-*/
-  // debug output
+  trafficObjs.setTrafficLight(TL, newState); 
 
   if(false){
     console.log("switchingSchemeTLup: time=",time,
@@ -174,7 +168,7 @@ function switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed){
 */
 
 
-var scenarioString="OnRamp";
+var scenarioString="OnRamp_BaWue";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
@@ -386,7 +380,7 @@ var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
-		  0*density, speedInit, fracTruck,isRing,userCanDistortRoads);
+		  density, speedInit, fracTruck,isRing,userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 
@@ -554,7 +548,7 @@ function updateSim(){
   // (2c) programmatic control downstream ramp meter TL 
 
   //template switchingSchemeTL(TL,qRoad,time,cycleTime,greenTime,isFixed)
-  switchingSchemeTL(rampMeterLight,qOn,time,8,3,true); //!!! (1) das macht Fuck!! for debug off 
+  switchingSchemeTL(rampMeterLight,qOn,time,7,3,true); //!!! (1) das macht Fuck!! for debug off 
   // debug output end of updateSim
 
 
@@ -610,10 +604,8 @@ function updateSim(){
 // (6) debug output
 
     //if((itime>=125)&&(itime<=128)){
-  if(true){
+  if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
-    console.log("updateSim: Simulation time=",time,
-		    " itime=",itime);
 
     if(false){
       console.log("\nmainroad vehicles:");
@@ -630,7 +622,9 @@ function updateSim(){
       mainroad.writeDepotVehObjects();
       ramp.writeDepotVehObjects();
     }
+    //if(time>1.2){clearInterval(myRun);}
   }
+
 
 }//updateSim
 

@@ -272,8 +272,11 @@ var infoLevel=0;
 var nLevels=5;
 function showInfo(){ 
     var scenarioFile="info/info_"+scenarioString+".html";
-    console.log("scenarioFile=",scenarioFile);
-    //console.log("infoLevel=",infoLevel);
+    console.log("showInfo (control_gui): scenarioFile=",scenarioFile);
+
+
+   // scenarioFile is dynamically determined 
+   // e.g., "info/info_"+scenarioString+".html"
 
     if(infoLevel===0){$("#infotext").load("info/info_gui.html");}
     else if(infoLevel===1){$("#infotext").load(scenarioFile);}

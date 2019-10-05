@@ -3,10 +3,12 @@
 
 media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
-INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3; 
+
+background : full HD =1080p (1920×1080 px), aspect ratio 5/3; 
+
+reality check what works: http://cssmediaqueries.com/overview.html
+=> ~/versionedProjects/traffic-simulation-de/README_mediaqueries
 */
-
-
 
 
 
@@ -182,6 +184,19 @@ which always gives correct size!!
   z-index: 1;
 }
 
+
+/* (2a) landscape: position of the info button: right top of simCanvas */
+
+#infoDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  right: 20vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
 /* (2b) landscape: position of the restart button: 
 at the former trafficSimulationDe info button */
 
@@ -328,6 +343,17 @@ at the former trafficSimulationDe info button */
   z-index: 1;
 }
 
+
+/* (2a) portrait: position of the info button: right top of simCanvas */
+
+#infoDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 88vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
 
 

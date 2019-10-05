@@ -758,10 +758,10 @@ TrafficObjects.prototype.setTrafficLight=function(obj, value){
   obj.value=value;
   obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
   if(obj.isActive){ // then, obj has a road reference
-    //obj.road.changeTrafficLight(obj.id, obj.value); //(3) das macht den Fuck
+    obj.road.changeTrafficLight(obj.id, obj.value); //(3) das macht den Fuck
   }
 
-  if(true){
+  if(false){
     if(obj.isActive){
       console.log("setTrafficLight:  id=",obj.id," road ID=",obj.road.roadID);
       obj.road.writeTrafficLights();
