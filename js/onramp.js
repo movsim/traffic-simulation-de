@@ -16,7 +16,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=true; //!! test
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 

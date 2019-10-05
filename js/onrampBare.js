@@ -3,7 +3,7 @@
 
 density=0.02; 
 
-var userCanDistortRoads=true;
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 

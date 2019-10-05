@@ -19,7 +19,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 //function formd0(x){return parseFloat(x).toFixed(0);}
 //function formd(x){return parseFloat(x).toFixed(2);}
 
-var userCanDistortRoads=true;
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 nLanesMin=1;
