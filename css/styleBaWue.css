@@ -259,7 +259,7 @@ at the former trafficSimulationDe info button */
   position: absolute;
   top:     1vmin;
   left: 62vmin;
-  width: 20vmin; /* no height; otherwise obstacle objects can "get stuck"*/
+  width: 30vmin; /* no height; otherwise obstacle objects can "get stuck"*/
   z-index: 2;  /*top-always focussed! */
 }
 

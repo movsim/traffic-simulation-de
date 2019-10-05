@@ -17,7 +17,7 @@
 ## Figure files (no longer)
 #*.fig
 
-## generated files (not info/info_*.html !)
+## generated files (not info/info_*.html, not *BaWue_ger.html !)
 index_ger.html
 offramp_ger.html
 onramp_ger.html
