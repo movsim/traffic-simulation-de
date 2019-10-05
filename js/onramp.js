@@ -16,7 +16,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false; //!! test
+var userCanDistortRoads=true; //!! test
 var userCanDropObjects=true;
 
 
@@ -381,6 +381,8 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
+  console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
+
   //xxxnew
   // (2a) update moveable speed limits
 
@@ -447,13 +449,27 @@ function updateSim(){
   if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
+
+    if(true){
+      console.log("mainroadLen=",formd(mainroadLen),
+		" mainroad.roadLen=",formd(mainroad.roadLen),
+		" ramp.roadLen=",formd(ramp.roadLen),
+		" mainRampOffset=",formd(mainRampOffset));
+      console.log("mergeDiverge(mainroad",
+		",",formd(mainRampOffset),
+		",",formd(ramp.roadLen-mergeLen),
+		",",formd(ramp.roadLen),
+		")");
+    }
+
+
     if(false){
       console.log("\nmainroad vehicles:");
       mainroad.writeVehiclesSimple();
       ramp.writeVehiclesSimple();
     }
 
-    if(true){
+    if(false){
       onlyTL=true;
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
       onlyTL=true;

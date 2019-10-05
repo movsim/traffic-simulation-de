@@ -120,6 +120,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
     mainRampOffset=mainroadLen-straightLen;
     taperLen=0.2*offLen;
     offRadius=3*arcRadius;
+  console.log(" mainroadLen=",mainroadLen);
 }
 
 
@@ -198,7 +199,7 @@ var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp_x,trajRamp_y,
-		     0.1*density,speedInit,fracTruck,isRing,false);
+		     0.1*density,speedInit,fracTruck,isRing,userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 
@@ -210,8 +211,6 @@ mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
 mainroad.duTactical=duTactical;
 
 
-//console.log("mainroad.offrampLastExits[0]=",mainroad.offrampLastExits[0]);
-//console.log("fracOff="+fracOff);
 var route1=[1];  // stays on mainroad
 var route2=[1,2]; // takes ramp
 for (var i=0; i<mainroad.veh.length; i++){
@@ -348,6 +347,7 @@ function updateSim(){
 				      LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
+
   // (2a) update moveable speed limits
 
   for(var i=0; i<network.length; i++){
@@ -386,6 +386,24 @@ function updateSim(){
   }
 
 
+  // debug output
+
+  if(false){
+    console.log("mainroadLen=",formd(mainroadLen),
+		" mainroad.roadLen=",formd(mainroad.roadLen),
+		" mainroad.offrampLastExits=",
+		formd(mainroad.offrampLastExits),
+		" ramp.roadLen=",formd(ramp.roadLen),
+		" mainRampOffset=",formd(mainRampOffset));
+    console.log("mergeDiverge(ramp",
+		",",formd(-mainRampOffset),
+		",",formd(mainRampOffset+taperLen),
+		",",formd(mainRampOffset+divergeLen-u_antic),
+		")");
+  }
+
+
+
 }//updateSim
 
 
@@ -402,12 +420,14 @@ function drawSim() {
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
+  if(false){
     console.log(" new total inner window dimension: ",
 		window.innerWidth," X ",window.innerHeight,
 		" (full hd 16:9 e.g., 1120:630)",
 		" canvas: ",canvas.width," X ",canvas.height);
+  }
 
-
+  //updatePhysicalDimensions();
     if ((canvas.width!=simDivWindow.clientWidth)
 	||(canvas.height != simDivWindow.clientHeight)){
 	hasChanged=true;

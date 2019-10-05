@@ -1,5 +1,5 @@
 
-var userCanDistortRoads=false;
+var userCanDistortRoads=true;
 var userCanDropObjects=true;
 
 /*######################################################
