@@ -48,26 +48,70 @@ Samsung Smartphone, portrait gehalten
 40	YES	@media screen and (min-resolution: 192dpi) OK, gut!
 
 
-Samsung Smartphone, landscape gehalten
+Samsung Smartphone, landscape gehalten, Unterschiede zu Portrait
+================================================================
+
+12	YES	@media all    and (orientation:landscape) OK, diff!
+13	NO	@media all    and (orientation:portrait) OK, diff!
+15	YES	@media screen and (min-width : 480px) OK, diff!
+27	NO	@media all    and (device-aspect-ratio: 9/16) 
+                                             !!changes, although "device"
+
+
+Samsung Smartphone, landscape gehalten, Unterschiede zu Notebook Landscape
+================================================================
+
+32	NO	@media screen and (resolution: 96dpi) OK
+30	NO	@media all    and (-webkit-device-pixel-ratio: 1)
+33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3)!!
+39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2) OK, gut!
+40	YES	@media screen and (min-resolution: 192dpi) OK, gut!
+
+
+(ausser device-aspect-ratio, da nichtsnutz!)
+
+
+mein IPad, portrait gehalten
 ================================================================
 
 1	YES	@media all
 2	YES	@media screen
-3	NO	@media handheld  !! wirklich no, nicht verwenden!
-12	YES	@media all    and (orientation:landscape) OK, diff!
-13	NO	@media all    and (orientation:portrait) OK, diff!
+3	NO	@media handheld  !! wirklich => nicht verwenden!
+12	NO	@media all    and (orientation:landscape)  OK
+13	YES	@media all    and (orientation:portrait)   OK
 14	YES	@media screen and (min-width : 320px)
-15	YES	@media screen and (min-width : 480px) OK, diff!
-27	NO	@media all    and (device-aspect-ratio: 9/16) 
-                                             !!changes, although "device"
-32	NO	@media screen and (resolution: 96dpi)
+15	YES	@media screen and (min-width : 480px)  OK, gutes Merkmal!
+22	YES	@media all    and (device-aspect-ratio: 3/4) !! zu viele Var
+27	NO	@media all    and (device-aspect-ratio: 9/16) !! zu viele Var
+32	NO	@media screen and (resolution: 96dpi) OK
 30	NO	@media all    and (-webkit-device-pixel-ratio: 1)
-33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3)!!
+33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3) auch hier
 35	NO	@media all    and (-webkit-device-pixel-ratio: 1.5)
-39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2)!!
-40	YES	@media screen and (min-resolution: 192dpi)
+39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2) OK, gut!
+40	NO	@media screen and (min-resolution: 192dpi) OK, nur Smartphone!
+
+mein IPad, landscape gehalten, Unterscchiede
+================================================================
+
+12	NO	@media all    and (orientation:landscape)  OK
+13	YES	@media all    and (orientation:portrait)   OK
+22      YES   !!! bleibt im Ggs zu Smartphone gleich!!
 
 
+=> forget aspect-ratio! nutze grundsaetzlich orientation und
+landscape, kann damit leide rnicht feiner tunen, aber icherheit geht
+vor!
+
+mein IPad, orientierungs- und groessenunabhaengige Unterschiede zu Notebook
+================================================================
+
+32	NO	@media screen and (resolution: 96dpi) OK
+33	YES	@media screen and (-webkit-device-pixel-ratio: 1.3) auch hier
+39	YES	@media all    and (-webkit-min-device-pixel-ratio: 2) OK, gut!
+
+mein IPad, orientierungs- und groesseunabhaengige Unterschiede zu Smartphone
+================================================================
 
 
-
+15	YES	@media screen and (min-width : 480px)  OK, gutes Merkmal!
+40	NO	@media screen and (min-resolution: 192dpi) OK, nur Smartphone!
