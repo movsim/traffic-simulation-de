@@ -53,9 +53,9 @@ done
 html_files="${html_files} index.html index_ger.html favicon.jpg" 
 
 # add the BaWue files and the coffeemeter files
-html_files="${html_files} onramp_BaWue.html roadworks_BaWue.html coffeemeterGame.html" 
+html_files="${html_files} onramp_BaWue_ger.html roadworks_BaWue_ger.html coffeemeterGame.html" 
 
-js_files="redirect.js redirect_ger.js redirect_BaWue.js seedrandom.min.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
+js_files="redirect.js redirect_ger.js seedrandom.min.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
