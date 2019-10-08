@@ -536,7 +536,7 @@ function drawSim() {
 
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
-    if(hasChanged||(itime<=2) || (itime%2000==0) || userCanvasManip
+    if(hasChanged||(itime<=2) || (itime==10) || (itime==20) || userCanvasManip
        || movingObserver || (!drawRoad)){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
 
