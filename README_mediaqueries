@@ -7,6 +7,7 @@ Laptop Ubuntu12, externer und interner Monitor, immer, egal wie Viewport-size:
 2	YES	@media screen
 3	NO	@media handheld
 25	YES	@media all and (device-aspect-ratio: 8/5) wirkl immer!
+                  aspect-ratio ohne device- funzt besser!
 32	YES	@media screen and (resolution: 96dpi)
 30	YES	@media all and (-webkit-device-pixel-ratio: 1)
 33	NO	@media all and (-webkit-device-pixel-ratio: 1.3)

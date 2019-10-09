@@ -8,8 +8,10 @@ possibly also detectable with  window.devicePixelRatio>1
 
 //!! make following var defs consistent with ../css/styleTrafficSimulationDe.css
 
-var aspectRatioCrit=6./5.; 
-var windowSizeCrit=600;
+var aspectRatioCrit=4./3.; // 1./1. or 6./5. or 4./3./
+var windowSizeCrit=420; // my smartphone: min-width : 320px true
+                        // min-width : 480px false
+                        // my ipad: min-width : 480px true
 
 function mqLandscape(){
     //return window.matchMedia( "(min-aspect-ratio: 6/5)").matches; // unreliable

@@ -772,9 +772,15 @@ function drawSim() {
 	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
+        //updatePhysicalDimensions(); // not defined for roundabout
 
-	
-
+      trafficObjs.calcDepotPositions(canvas);
+      if(true){
+        console.log("haschanged=true: new canvas dimension: ",
+		    canvas.width," X ",canvas.height);
+      }
+ 
+/*
 	mainroad.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj0_x,traj0_y);
         arm[1].gridTrajectories(traj1_x,traj1_y);
@@ -784,6 +790,7 @@ function drawSim() {
         arm[5].gridTrajectories(traj5_x,traj5_y);
         arm[6].gridTrajectories(traj6_x,traj6_y);
         arm[7].gridTrajectories(traj7_x,traj7_y);
+*/
     }
 
 

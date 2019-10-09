@@ -144,9 +144,11 @@ table.infoTable td {
 
 /*#############################################################*/
 /* basic settings for landscape formats !! check with ../js/media.js */
+/* at the first cascade, do not restrict anything to avoid errors
+   by reverting to the default (huge images etc) */
 /*#############################################################*/
 
-@media all and  (min-aspect-ratio: 6/5){
+@media all /* and  (min-aspect-ratio: 4/3) */ {
 
 
 /* (1) landscape: the title (not used actually) */
@@ -312,7 +314,7 @@ at the former trafficSimulationDe info button */
 /* basic settings for square/portrait formats !! check with ../js/media.js */
 /*#############################################################*/
 
-@media all and  (max-aspect-ratio: 6/5){
+@media all and  (max-aspect-ratio: 4/3){
 
 /* (1) portrait:  the title  (not used actually) */
 
