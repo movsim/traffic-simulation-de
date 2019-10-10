@@ -310,7 +310,7 @@ function addOneLane(){
 
         // only ramp adapts to nLanes
 	if(typeof ramp!=="undefined"){// ramp!==undefined => DOS!
-	  //updatePhysicalDimensions();
+	  //updateDimensions();
 	  updateRampGeometry();
 	  ramp.gridTrajectories(trajRamp_x,trajRamp_y);//!!!?
 	}
@@ -341,7 +341,7 @@ function subtractOneLane(){
 
         // only ramp adapts to nLanes
 	if(typeof ramp!=="undefined"){   // ramp!==undefined => DOS!
-	  //updatePhysicalDimensions();
+	  //updateDimensions();
 	  updateRampGeometry();
 	  ramp.gridTrajectories(trajRamp_x,trajRamp_y);//??!!!
 	}

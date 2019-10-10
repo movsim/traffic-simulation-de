@@ -132,7 +132,7 @@ var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updatePhysicalDimensions();
+// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 // the following remains constant 
@@ -772,7 +772,7 @@ function drawSim() {
 	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
-        //updatePhysicalDimensions(); // not defined for roundabout
+        //updateDimensions(); // not defined for roundabout
 
       trafficObjs.calcDepotPositions(canvas);
       if(true){

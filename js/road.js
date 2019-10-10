@@ -3367,7 +3367,11 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     var xRef=(movingObserver) ? xObs : this.traj_x(0);
     var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
-    //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
+  //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
+  if(false){
+  //if(this.roadID==1){
+    console.log("road.draw: this.traj_x(400)=",this.traj_x(400));
+  }
 
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*this.laneWidth;

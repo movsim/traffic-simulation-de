@@ -77,7 +77,6 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d"); // graphics context
 canvas.width  = simDivWindow.clientWidth; 
 canvas.height  = simDivWindow.clientHeight;
-var aspectRatio=canvas.width/canvas.height;
 
 
 console.log("before addTouchListeners()");
@@ -90,10 +89,6 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape 
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
 var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
@@ -107,7 +102,7 @@ var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updatePhysicalDimensions();
+// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
@@ -134,20 +129,53 @@ var rampRadius=4*arcRadius;
 
 
 
-function updatePhysicalDimensions(){ // only if sizePhys changed
-    center_xPhys=center_xRel*refSizePhys; //[m]
-    center_yPhys=center_yRel*refSizePhys;
+function updateDimensions(){ // if viewport or sizePhys changed
+  isSmartphone=mqSmartphone();
 
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=arcLen+2*straightLen;
-    rampLen=rampLenRel*refSizePhys; 
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
-  console.log("updatePhysicalDimensions: mainroadLen=",mainroadLen);
+  refSizePhys=(isSmartphone) ? 150 : 250;
+  refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
+  scale=refSizePix/refSizePhys;
+  
+  center_xPhys=center_xRel*refSizePhys; //[m]
+  center_yPhys=center_yRel*refSizePhys;
+
+  // redefine traj*_x, traj*_y or traj_x[], traj_y[]
+  
+  arcRadius=arcRadiusRel*refSizePhys;
+  arcLen=arcRadius*Math.PI;
+  straightLen=refSizePhys*critAspectRatio-center_xPhys;
+  mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
+  rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
+  mergeLen=0.5*rampLen;
+  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+  taperLen=0.2*rampLen;
+  rampRadius=4*arcRadius;
+
+  // xxxnew bring traj to roads (not needed if doGridding is false)
+  
+  if(userCanDistortRoads){
+    for(var i=0; i<network.length; i++){
+      network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
+    }
+    //mainroad.gridTrajectories(traj_x, traj_y);
+    //ramp.gridTrajectories(trajRamp_x, trajRamp_y);
+  }
+
+  // selects only the ramps regular vehicles
+  // (selectRegularVeh is funcPointer to selectRegularVeh(veh))
+
+  //ramp.veh=ramp.veh.filter(selectRegularVeh);
+  //virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
+  //ramp.veh.unshift(virtualStandingVeh);
+
+  //or simply move the virtual obstacle directly (via the ref virtualStandingVeh)
+  virtualStandingVeh.u=ramp.roadLen-0.9*taperLen; //!!!
+
+  
+  if(false){
+    console.log("updateDimensions: mainroadLen=",mainroadLen,
+		" isSmartphone=",isSmartphone);
+  }
 }
 
 
@@ -211,6 +239,11 @@ function trajRamp_y(u){ // physical coordinates
 	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
 }
 
+// helper function for the filter (passed as func pointer)
+
+function selectRegularVeh(veh){
+  return veh.isRegularVeh();
+}
 
 
 //##################################################################
@@ -227,6 +260,7 @@ var speedInit=20; // IC for speed
 
 // last arg = doGridding (true: user can change road geometry)
 
+  //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
@@ -235,10 +269,17 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
-// road network xxxnew 
+// road network 
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
+
+trajNet_x=[]; // xxxnew 
+trajNet_y=[];
+trajNet_x[0]=traj_x;
+trajNet_x[1]=trajRamp_x;
+trajNet_y[0]=traj_y;
+trajNet_y[1]=trajRamp_y;
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
@@ -336,9 +377,6 @@ rampImg = new Image();
 rampImg=roadImgs1[nLanes_rmp-1];
 
 
-
-//xxxnew
-
 //############################################
 // traffic objects
 //############################################
@@ -381,10 +419,9 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
+  //console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
 
-  //xxxnew
-  // (2a) update moveable speed limits
+   // (2a) update moveable speed limits
 
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
@@ -438,7 +475,7 @@ function updateSim(){
   //  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){//xxxnew
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
  }
 
@@ -502,26 +539,17 @@ function drawSim() {
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
-    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; 
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
-    //var hasChanged=false; //xxxnew
-
-  //updatePhysicalDimensions(); //xxxnew obsolete
-
-  if ((canvas.width!=simDivWindow.clientWidth)
+   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true;
     canvas.width  = simDivWindow.clientWidth;
     canvas.height  = simDivWindow.clientHeight;
-    aspectRatio=canvas.width/canvas.height;
-    refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-    scale=refSizePix/refSizePhys;// refSizePhys=constant unless mobile
-    updatePhysicalDimensions(); 
-
-
-      //depot.calcDepotPositions(canvas); //xxxNew
+    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+ 
     trafficObjs.calcDepotPositions(canvas);
     if(true){
       console.log("haschanged=true: new canvas dimension: ",
@@ -578,8 +606,6 @@ function drawSim() {
 			  vmin_col,vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
-  // xxxnew replace past (5) by following (5a), (5b)
-
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
@@ -628,7 +654,6 @@ function drawSim() {
 		   vmin_col,vmax_col,0,100/3.6);
   }
   
-  // xxxnew 
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 
 

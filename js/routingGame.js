@@ -87,10 +87,6 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape //xxx
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
 var isSmartphone=mqSmartphone();
 
 var refSizePhys=320;  // constants => all objects scale with refSizePix
@@ -103,7 +99,7 @@ var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updatePhysicalDimensions();
+// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
@@ -173,7 +169,7 @@ var uEndRoadworks=uBeginRoadworks+0.2*arcLen;
 
 
 
-function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
+function updateDimensions(){ // if viewport or sizePhys changed (mobile)
     center_xPhys=center_xRel*refSizePhys;
     center_yPhys=center_yRel*refSizePhys;
 
@@ -196,7 +192,7 @@ function updatePhysicalDimensions(){ // only if sizePhys changed (mobile)
     +lParallel+ 2*(straightLen-umainDiverge);
     umainMerge=umainDiverge+dumainDivergeMerge;
 
-    // only if sizePhys changed, init sttings above in var def
+    // if viewport or sizePhys changed, init sttings above in var def
     udevBottlBeg=lDev-lrampDev-rDev*(2*alpha+0.5*Math.PI)-lParallel;
     udevBottlEnd=lDev-lrampDev;
     uBeginRoadworks=straightLen+0.9*arcLen;
@@ -654,7 +650,7 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-      updatePhysicalDimensions();
+      updateDimensions();
       //trafficObjs.calcDepotPositions(canvas);
         mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
         ramp.gridTrajectories(trajRamp_x,trajRamp_y);

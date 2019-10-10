@@ -41,10 +41,6 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-const mqSmartphoneLandscape
-      = window.matchMedia( "(min-aspect-ratio: 6/5) and (max-height: 500px)" );//xxx
-const mqSmartphonePortrait
-      = window.matchMedia( "(max-aspect-ratio: 6/5) and (max-width: 500px)" );
 var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 200 : 300;  // constant
@@ -58,7 +54,7 @@ var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updatePhysicalDimensions();
+// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
@@ -76,7 +72,7 @@ var center_yPhys=center_yRel*refSizePhys;
 var roadRadius=roadRadiusRel*refSizePhys;
 var mainroadLen=roadRadius*2*Math.PI;
 
-function updatePhysicalDimensions(){ // only if sizePhys changed
+function updateDimensions(){ // if viewport or sizePhys changed
     center_xPhys=center_xRel*refSizePhys; //[m]
     center_yPhys=center_yRel*refSizePhys;
     roadRadius=roadRadiusRel*refSizePhys;
@@ -341,7 +337,7 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-      updatePhysicalDimensions();
+      updateDimensions();
       //xxxNew
       trafficObjs.calcDepotPositions(canvas); 
 

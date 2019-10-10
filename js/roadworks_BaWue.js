@@ -98,7 +98,7 @@ var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updatePhysicalDimensions();
+// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 var mainroadLen=1000; //!!
@@ -121,7 +121,7 @@ var center_xPhys, center_yPhys;
 var arcRadius, arcLen, straightLen;
 var uBeginRoadworks, uEndRoadworks, uStartLCMandatory;
  
-updatePhysicalDimensions();
+updateDimensions();
 
 // the following remains constant 
 // => road becomes more compact for smaller screens
@@ -139,7 +139,7 @@ var lenRoadworkElement=7;
 var wRoadworkElement=7;
 
 
-function updatePhysicalDimensions(){ // only at init and if sizePhys changed
+function updateDimensions(){ // only at init and if sizePhys changed
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
@@ -459,7 +459,7 @@ function drawSim() {
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
-	updatePhysicalDimensions();
+	updateDimensions();
       speedfunnel.calcDepotPositions(canvas);
       //depot.calcDepotPositions(canvas);
 
