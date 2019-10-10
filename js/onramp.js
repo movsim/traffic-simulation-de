@@ -85,7 +85,7 @@ console.log("after addTouchListeners()");
 
 
 //##################################################################
-// overall scaling (critAspectRatio should be consistent with 
+// init overall scaling (critAspectRatio should be consistent with 
 // width/height in css.#contents)
 //##################################################################
 
@@ -98,11 +98,18 @@ var critAspectRatio=120./95.; // from css file width/height of #contents
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
 
+//xxxnew [position]
+var hasChanged=true; // window or physical dimensions have changed
+var hasChangedPhys=true; // physical road dimensions have changed 
+                          // in last updateDimensions
+                          // (only true when switching from/to mobile version)
 
 
+//xxxnew
+//<NETWORK>
 //##################################################################
-// Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updateDimensions();
+// init Specification of physical road network geometry
+// If viewport or refSizePhys changes => updateDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
@@ -112,9 +119,14 @@ var center_yRel=-0.54;
 var arcRadiusRel=0.35;
 var rampLenRel=0.95;
 
+
+// xxxnew
+// !!slight double-coding with updateDimensions unavoidable since
+// updateDimensions needs roads (mainroad.roadLen ...) 
+// which are not yet defined here
+
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
-
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
@@ -124,14 +136,10 @@ var rampLen=rampLenRel*refSizePhys;
 var mergeLen=0.5*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 var taperLen=0.2*rampLen;
-//var taperLen=0.5*rampLen;
 var rampRadius=4*arcRadius;
 
-
-
 function updateDimensions(){ // if viewport or sizePhys changed
-  isSmartphone=mqSmartphone();
-
+  console.log("in updateDimensions");
   refSizePhys=(isSmartphone) ? 150 : 250;
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
@@ -139,61 +147,51 @@ function updateDimensions(){ // if viewport or sizePhys changed
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
-  // redefine traj*_x, traj*_y or traj_x[], traj_y[]
-  
-  arcRadius=arcRadiusRel*refSizePhys;
-  arcLen=arcRadius*Math.PI;
-  straightLen=refSizePhys*critAspectRatio-center_xPhys;
-  mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
-  rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
-  mergeLen=0.5*rampLen;
-  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-  taperLen=0.2*rampLen;
-  rampRadius=4*arcRadius;
+  //xxxnew
+  // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
+  // if hasChangedPhys=true
 
-  // xxxnew bring traj to roads (not needed if doGridding is false)
+  if(hasChangedPhys){
+    arcRadius=arcRadiusRel*refSizePhys;
+    arcLen=arcRadius*Math.PI;
+    straightLen=refSizePhys*critAspectRatio-center_xPhys;
+    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
+    rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
+    mergeLen=0.5*rampLen;
+    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+    taperLen=0.2*rampLen;
+    rampRadius=4*arcRadius;
+
+    // xxxnew bring traj to roads 
+    // not needed if doGridding is false since then external traj reference
   
-  if(userCanDistortRoads){
-    for(var i=0; i<network.length; i++){
-      network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
+    if(userCanDistortRoads){
+      for(var i=0; i<network.length; i++){
+	network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
+      }
     }
-    //mainroad.gridTrajectories(traj_x, traj_y);
-    //ramp.gridTrajectories(trajRamp_x, trajRamp_y);
-  }
-
-  // selects only the ramps regular vehicles
-  // (selectRegularVeh is funcPointer to selectRegularVeh(veh))
-
-  //ramp.veh=ramp.veh.filter(selectRegularVeh);
-  //virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
-  //ramp.veh.unshift(virtualStandingVeh);
-
-  //or simply move the virtual obstacle directly (via the ref virtualStandingVeh)
-  virtualStandingVeh.u=ramp.roadLen-0.9*taperLen; //!!!
-
   
-  if(false){
+    // update positions of fixed obstacles to new road lengths/geometry
+    // (e.g. onramp: ramp via the ref virtualStandingVeh)
+    // see "Specification of logical road network" below
+
+    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen; //xxxnew
+
+  }
+  
+  if(true){
     console.log("updateDimensions: mainroadLen=",mainroadLen,
-		" isSmartphone=",isSmartphone);
+		" isSmartphone=",isSmartphone, 
+		" hasChangedPhys=",hasChangedPhys);
   }
 }
 
-
-// the following remains constant 
-// => road becomes more compact for smaller screens
-
-var laneWidth=7; // remains constant => road becomes more compact for smaller
-// var laneWidthRamp=5; // main lanewidth used
-
-
-var car_length=7; // car length in m
-var car_width=5; // car width in m
-var truck_length=15; // trucks
-var truck_width=7; 
-
-
-// on constructing road, road elements are gridded and internal
-// road.traj_xy(u) are generated. Then, traj_xy*(u) obsolete
+// def trajectories
+// if(doGridding=true on constructing road, 
+// road elements are gridded and internal
+// road.traj_xy(u) are generated. Then, outer traj_xy*(u) obsolete
+// and network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]) called
+// after a physical change
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -239,15 +237,35 @@ function trajRamp_y(u){ // physical coordinates
 	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
 }
 
-// helper function for the filter (passed as func pointer)
+var trajNet_x=[]; // xxxnew 
+var trajNet_y=[];
+trajNet_x[0]=traj_x;
+trajNet_x[1]=trajRamp_x;
+trajNet_y[0]=traj_y;
+trajNet_y[1]=trajRamp_y;
 
-function selectRegularVeh(veh){
-  return veh.isRegularVeh();
-}
+
+//xxxnew [comment, separated veh from road properties]
+//###################################################
+// specification of road width and vehicle sizes
+// remains constant => road becomes more compact for smaller screens
+//###################################################
+
+
+var laneWidth=7; // remains constant => road becomes more compact for smaller
+// var laneWidthRamp=5; // main lanewidth used
+
+
+var car_length=7; // car length in m
+var car_width=5; // car width in m
+var truck_length=15; // trucks
+var truck_width=7; 
+
+
 
 
 //##################################################################
-// Specification of logical roads
+// Specification of logical road network
 //##################################################################
 
 var isRing=false;  // 0: false; 1: true
@@ -274,12 +292,6 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 
-trajNet_x=[]; // xxxnew 
-trajNet_y=[];
-trajNet_x[0]=traj_x;
-trajNet_x[1]=trajRamp_x;
-trajNet_y[0]=traj_y;
-trajNet_y[1]=trajRamp_y;
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
@@ -294,6 +306,8 @@ detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
 detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
 detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
 
+//</NETWORK>
+
 
 //#########################################################
 // model initialization (models and methods defined in control_gui.js)
@@ -306,7 +320,6 @@ updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 // Global graphics specification
 //####################################################################
 
-var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
@@ -400,11 +413,35 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // (1) update times and global settings
+  //xxxnew
+  // (1) update times and, if canvas change, 
+  // scale and, if smartphone<->no-smartphone change, physical geometry
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  isSmartphone=mqSmartphone();
+
+  if ((canvas.width!=simDivWindow.clientWidth)
+      ||(canvas.height != simDivWindow.clientHeight)){
+    hasChanged=true;
+    canvas.width  = simDivWindow.clientWidth;
+    canvas.height  = simDivWindow.clientHeight;
+
+    if(isSmartphone!=mqSmartphone()){
+      isSmartphone=mqSmartphone();
+      hasChangedPhys=true;
+    }
+
+    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+ 
+    trafficObjs.calcDepotPositions(canvas);
+    if(true){
+      console.log("updateSim: haschanged=true: new canvas dimension: ",
+		  canvas.width," X ",canvas.height);
+      console.log("window.innerWidth=",window.innerWidth,
+		  " window.innerHeight=",window.innerHeight);
+    }
+  }
+ 
 
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
@@ -532,31 +569,15 @@ function drawSim() {
 
     //!! test relative motion isMoving
 
-    var movingObserver=false;
-    var uObs=0*time;
+  var movingObserver=false;
+  var uObs=0*time;
 
-    // (1) redefine graphical aspects of road (arc radius etc) using
-    // responsive design if canvas has been resized 
-    // isSmartphone defined in updateSim
+  //xxxnew [vieles nach updateSim]
+  // (1) adapt text size
  
-    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; 
-    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
+  var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
+  var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
-
-   if ((canvas.width!=simDivWindow.clientWidth)
-      ||(canvas.height != simDivWindow.clientHeight)){
-    hasChanged=true;
-    canvas.width  = simDivWindow.clientWidth;
-    canvas.height  = simDivWindow.clientHeight;
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
- 
-    trafficObjs.calcDepotPositions(canvas);
-    if(true){
-      console.log("haschanged=true: new canvas dimension: ",
-		  canvas.width," X ",canvas.height);
-    }
-  }
- 
 
 
     // (2) reset transform matrix and draw background
@@ -655,9 +676,10 @@ function drawSim() {
   }
   
   // may be set to true in next step if changed canvas 
-  // or old sign should be wiped away 
+  // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
+  hasChangedPhys=false; //xxxnew
 
   // revert to neutral transformation at the end!
 
