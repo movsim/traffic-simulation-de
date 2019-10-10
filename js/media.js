@@ -4,6 +4,8 @@ handles the media queries which should be the same as in the css file
 one can do is to read the navigator.userAgent to determine if it is a mobile device
 possibly also detectable with  window.devicePixelRatio>1
 
+window=reserved word
+
 */
 
 //!! make following var defs consistent with ../css/styleTrafficSimulationDe.css
