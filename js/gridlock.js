@@ -119,7 +119,7 @@ var center_yRel=-0.54;
 var arcRadiusRel=0.28;
 var rampRadiusRel=0.12;
 var mergeLenMainRel=0.45;
-var mergeLenSecRel=0.15;
+var mergeLenSecRel=0.25;
 
 
 // xxxnew
@@ -269,30 +269,24 @@ function trajOnramp_y(u){ // physical coordinates
   return res;
 }
 
-
-/*
-function trajOnramp_y(u){ // physical coordinates
-
-    var yMergeBegin=traj_y(mainOnOffset+rampLen-mergeLenMain)
-	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
-
-    var yMergeEnd=yMergeBegin+laneWidth;
-    return (u<rampLen-mergeLenMain)
-	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLenMain-u,2)/rampRadius
-	: (u<rampLen-taperLen) ? yMergeBegin
-	: (u<rampLen-0.5*taperLen) 
-        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
-	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
+function trajOfframp_x(u){
+  return trajOnramp_x(rampLen-u); // symmetrical to center_yPhys=const axis
 }
-*/
+
+function trajOfframp_y(u){ 
+  return 2*center_yPhys-trajOnramp_y(rampLen-u);
+}
+
 
 
 var trajNet_x=[]; // xxxnew 
 var trajNet_y=[];
 trajNet_x[0]=traj_x;
 trajNet_x[1]=trajOnramp_x;
+trajNet_x[2]=trajOfframp_x;
 trajNet_y[0]=traj_y;
 trajNet_y[1]=trajOnramp_y;
+trajNet_y[2]=trajOfframp_y;
 
 
 //xxxnew [comment, separated veh from road properties]
@@ -320,7 +314,8 @@ var truck_width=7;
 
 var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
-var roadIDramp=2;
+var roadIDonramp=2;
+var roadIDofframp=3;
 
 var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
@@ -331,16 +326,24 @@ var speedInit=20; // IC for speed
   //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing,
+		      userCanDistortRoads);
 
-var onramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
+var onramp=new road(roadIDonramp,rampLen,laneWidth,nLanes_rmp,
 		    trajOnramp_x,trajOnramp_y,
-		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
+		    0*density, speedInit, fracTruck, isRing,
+		    userCanDistortRoads);
+
+var offramp=new road(roadIDofframp,rampLen,laneWidth,nLanes_rmp,
+		    trajOfframp_x,trajOfframp_y,
+		    0*density, speedInit, fracTruck, isRing,
+		    userCanDistortRoads);
 
 // road network 
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=onramp;
+network[2]=offramp;
 
 
 // add standing virtual vehicle at the end of onramp (1 lane)
@@ -569,8 +572,8 @@ function updateSim(){
 
 // (6) debug output
 
-  //if(itime<2){
-  if(false){
+  if(itime<2){
+  //if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
 
@@ -587,19 +590,17 @@ function updateSim(){
     }
 
 
-    if(false){
-      var u1Onramp=mergeLenSec;
-      var u2Onramp=mergeLenSec+(1.5*Math.PI+1)*rampRadius;
-      console.log("u1Onramp=mergeLenSec=",formd(u1Onramp));
-      console.log("u2Onramp=",formd(u2Onramp));
-      for(var i=0; i<=200; i++){
-	var u=onramp.roadLen*i/200.;
+    if(true){
+      for(var i=0; i<=40; i++){
+	var u=offramp.roadLen*i/40.;
 
 	console.log(
 	  "  u=",formd(u),
-	  " u2Onramp=",formd(u2Onramp),
 	  " onramp.traj_x=",formd(onramp.traj_x(u)),
-	  " onramp.traj_y=",formd(onramp.traj_y(u)),
+	 // " onramp.traj_y=",formd(onramp.traj_y(u)),
+	  " offramp.traj_x=",formd(offramp.traj_x(u)),
+	  " trajOnramp_x(u-rampLen)=",formd(trajOnramp_x(u-rampLen)),
+	 // " offramp.traj_y=",formd(offramp.traj_y(u)),
 	  "");
       }
     }
@@ -674,6 +675,8 @@ function drawSim() {
 
   onramp.draw(rampImg,rampImg,scale,changedGeometry,
 	      onramp.roadLen-taperLen,onramp.roadLen); 
+  offramp.draw(rampImg,rampImg,scale,changedGeometry,
+	       0,taperLen); 
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen);
@@ -688,6 +691,8 @@ function drawSim() {
   onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 		      vmin_col,vmax_col,
 		      0.5*onramp.roadLen,onramp.roadLen);
+  offramp.draw(rampImg,rampImg,scale,changedGeometry,
+	       0,0.5*offramp.roadLen); 
 
   onramp.draw(rampImg,rampImg,scale,changedGeometry,
 	      0,0.5*onramp.roadLen); 
@@ -695,6 +700,9 @@ function drawSim() {
   onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 		      vmin_col,vmax_col,
 		      0,0.5*onramp.roadLen);
+
+  offramp.draw(rampImg,rampImg,scale,changedGeometry,
+	       0.5*offramp.roadLen,offramp.roadLen); 
 
 
 
