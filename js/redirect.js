@@ -35,8 +35,8 @@ function myRedirectGame(){
     window.location.href = "./routingGame.html";
 }
 
-function myRedirectTrafficlight(){
-    window.location.href = "./trafficlight.html";
+function myRedirectGridlock(){
+    window.location.href = "./gridlock.html";
 }
 
 function myRedirectOnrampBaWue(){

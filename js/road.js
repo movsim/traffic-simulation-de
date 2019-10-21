@@ -3344,9 +3344,11 @@ road.prototype.get_yPix=function(u,v,scale){
 //######################################################################
 
 /**
+@param roadImg1:  image of a (small, straight) road element w/o middle lines
+@param roadImg2:  image of a (small, straight) road element with middle lines
 @param scale:     physical road coordinbates => pixels, [scale]=pixels/m
-@param roadImg1:   image of a (small, straight) road element
 @param changed geometry: true if a resize event took place in parent
+@param umin,umax: (optional) only part is drawn (useful for bridges etc)
 @param movingObs: (optional) whether observer is moving, default=false 
 @param uObs:      (optional) location uObs,vObs=0 is drawn at the physical
 @param xObs,yObs: position (xObs,yObs)=>xPix=scale*xObs, yPix=-scale*yObs,
@@ -3359,19 +3361,16 @@ road.prototype.get_yPix=function(u,v,scale){
 */
 
 road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
+			     umin,umax,
 			     movingObs,uObs,xObs,yObs){
-
-    var movingObserver=(typeof movingObs === 'undefined')
-	? false : movingObs;
-    var uRef=(movingObserver) ? uObs : 0;
+  //console.log("road.draw: umin=",umin);
+  var noRestriction=(typeof umin === 'undefined');
+  var movingObserver=(typeof movingObs === 'undefined')
+    ? false : movingObs;
+  var uRef=(movingObserver) ? uObs : 0;
     var xRef=(movingObserver) ? xObs : this.traj_x(0);
     var yRef=(movingObserver) ? yObs : this.traj_y(0);
 
-  //console.log("road.draw: uRef=",uRef, " xRef=",xRef, " yRef=",yRef);
-  if(false){
-  //if(this.roadID==1){
-    console.log("road.draw: this.traj_x(400)=",this.traj_x(400));
-  }
 
     var smallVal=0.0000001;
     var boundaryStripWidth=0.3*this.laneWidth;
@@ -3405,11 +3404,19 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 
     // actual drawing routine
 
-    var duLine=15; // distance between two middle-lane lines
-    var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
-    nSegmLine=Math.max(2, nSegmLine);
-    //console.log("road.draw: ID=",this.roadID," nSegm=",this.nSegm);
-    for (var iSegm=0; iSegm<this.nSegm; iSegm++){
+  var duLine=15; // distance between two middle-lane lines
+  var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
+  nSegmLine=Math.max(2, nSegmLine);
+
+  //console.log("road.draw: ID=",this.roadID," nSegm=",this.nSegm,
+//	      " noRestriction=",noRestriction);
+
+
+  for (var iSegm=0; iSegm<this.nSegm; iSegm++){
+    var u=this.roadLen*(iSegm+0.5)/this.nSegm;
+    var filterPassed=noRestriction // default: noRestriction=true
+      || ((u>=umin)&&(u<=umax));
+    if(filterPassed){
       var cosphi=this.draw_cosphi[iSegm];
       var sinphi=this.draw_sinphi[iSegm];
       var lSegmPix=scale*factor*lSegm;
@@ -3435,17 +3442,10 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 	);
       }
     }
-
-  if(false){
-  //if(this.roadID==2){
-    console.log("road.draw: u=this.roadLen-50=",formd(u),
-		" this.traj_y(u)=",formd(this.traj_y(this.roadLen-50)));
   }
 
 
 // draw traffic lights separately by its own command .draw(imgRed,imgGreen)
-
-
 
 }// draw road
 

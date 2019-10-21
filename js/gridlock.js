@@ -68,7 +68,7 @@ slider_timewarpVal.innerHTML=timewarp +" times";
 */
 
 
-var scenarioString="OnRamp"; // needed in handleDependencies in canvas_gui
+var scenarioString="Gridlock"; // needed in handleDependencies in canvas_gui
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
@@ -91,7 +91,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in updateDimensions
+var refSizePhys=(isSmartphone) ? 200 : 350; // also adapt in updateDimensions
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -116,8 +116,10 @@ var hasChangedPhys=true; // physical road dimensions have changed
 
 var center_xRel=0.43;
 var center_yRel=-0.54;
-var arcRadiusRel=0.35;
-var rampLenRel=0.95;
+var arcRadiusRel=0.28;
+var rampRadiusRel=0.12;
+var mergeLenMainRel=0.45;
+var mergeLenSecRel=0.15;
 
 
 // xxxnew
@@ -132,18 +134,22 @@ var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
-var rampLen=rampLenRel*refSizePhys; 
-var mergeLen=0.5*rampLen;
-var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-var taperLen=0.2*rampLen;
-var rampRadius=4*arcRadius;
+
+var rampRadius=rampRadiusRel*refSizePhys;
+var mergeLenMain=mergeLenMainRel*refSizePhys; 
+var mergeLenSec=mergeLenSecRel*refSizePhys; 
+var rampLen=mergeLenMain+mergeLenSec+(1.5*Math.PI+1)*rampRadius;
+
+var mainOnOffset=mainroadLen-straightLen+mergeLenMain-rampLen;
+var taperLen=0.15*refSizePhys;
+
 
 // !! slightdouble-coding necessary unless big changes, 
 // I have checked this...
 
 function updateDimensions(){ // if viewport or sizePhys changed
   console.log("in updateDimensions");
-  refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in definition above
+  refSizePhys=(isSmartphone) ? 200 : 350; // also adapt in definition above
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
@@ -154,16 +160,20 @@ function updateDimensions(){ // if viewport or sizePhys changed
   // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
   // if hasChangedPhys=true
 
+
   if(hasChangedPhys){
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+    mainroadLen=arcLen+2*straightLen;
+
+    rampRadius=rampRadiusRel*refSizePhys;
+    mergeLenMain=mergeLenMainRel*refSizePhys; 
+    mergeLenSec=mergeLenSecRel*refSizePhys; 
+    rampLen=mergeLenMain+mergeLenSec+(1.5*Math.PI+1)*rampRadius;
+
+    mainOnOffset=mainroadLen-straightLen+mergeLenMain-rampLen;
     taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
 
     // xxxnew bring traj to roads 
     // not needed if doGridding is false since then external traj reference
@@ -179,7 +189,6 @@ function updateDimensions(){ // if viewport or sizePhys changed
     // see "Specification of logical road network" below
 
     virtualStandingVeh.u=ramp.roadLen-0.9*taperLen; //xxxnew
-
   }
   
   if(true){
@@ -212,40 +221,78 @@ function traj_y(u){ // physical coordinates
 	return center_yPhys+dyPhysFromCenter;
 }
 
-
-function trajRamp_x(u){ // physical coordinates
-	//var xMergeBegin=traj_x(mainroadLen-straightLen);
-	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
-	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
-	return (u<rampLen-taperLen) 
-	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
-}
-
-
 // !! in defining dependent geometry,
 // do not refer to mainroad or onramp!! may not be defined: 
 // mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1
 
-function trajRamp_y(u){ // physical coordinates
 
-    var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
+var u1Onramp=mergeLenSec;
+var u2Onramp=mergeLenSec+1.5*Math.PI*rampRadius;
+
+// gives (positive) lateral offset in mainroad direction
+// at the beginning of the ramp
+// relative to the diverging point (point of last diverge)
+// in [0,laneWidth]
+
+function taperDiverge(u,taperLen,laneWidth){
+  var res=
+    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
+    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
+  return res;
+}
+
+function taperMerge(u,taperLen,laneWidth,rampLen){
+  return taperDiverge(rampLen-u,taperLen,laneWidth);
+}
+
+function trajOnramp_x(u){ // physical coordinates
+  var xMergeBegin=traj_x(mainroadLen-straightLen);
+  var xcArc=xMergeBegin-rampRadius;
+  var res=
+    (u<taperLen) ? xMergeBegin + taperDiverge(u,taperLen,laneWidth) :
+    (u<u1Onramp) ? xMergeBegin :
+    (u<u2Onramp) ? xcArc + rampRadius*Math.cos((u-u1Onramp)/rampRadius) 
+    : xMergeBegin-rampRadius+(u-u2Onramp);
+  return res;
+}
+
+function trajOnramp_y(u){ // physical coordinates
+  var yMergeBegin=traj_y(mainroadLen-straightLen)
+    -0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
+  var yMergeEnd=yMergeBegin+laneWidth;
+  var ycArc=yMergeBegin-rampRadius;
+  var res=
+    (u<u1Onramp) ? ycArc+u1Onramp-u : 
+    (u<u2Onramp) ? ycArc - rampRadius*Math.sin((u-u1Onramp)/rampRadius) :
+    (u<rampLen-taperLen) ? yMergeBegin
+    : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
+  return res;
+}
+
+
+/*
+function trajOnramp_y(u){ // physical coordinates
+
+    var yMergeBegin=traj_y(mainOnOffset+rampLen-mergeLenMain)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
     var yMergeEnd=yMergeBegin+laneWidth;
-    return (u<rampLen-mergeLen)
-	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
+    return (u<rampLen-mergeLenMain)
+	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLenMain-u,2)/rampRadius
 	: (u<rampLen-taperLen) ? yMergeBegin
 	: (u<rampLen-0.5*taperLen) 
         ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
 	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
 }
+*/
+
 
 var trajNet_x=[]; // xxxnew 
 var trajNet_y=[];
 trajNet_x[0]=traj_x;
-trajNet_x[1]=trajRamp_x;
+trajNet_x[1]=trajOnramp_x;
 trajNet_y[0]=traj_y;
-trajNet_y[1]=trajRamp_y;
+trajNet_y[1]=trajOnramp_y;
 
 
 //xxxnew [comment, separated veh from road properties]
@@ -286,22 +333,22 @@ var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
-var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+var onramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
+		    trajOnramp_x,trajOnramp_y,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 // road network 
 
 network[0]=mainroad;  // network declared in canvas_gui.js
-network[1]=ramp;
+network[1]=onramp;
 
 
-// add standing virtual vehicle at the end of ramp (1 lane)
+// add standing virtual vehicle at the end of onramp (1 lane)
 // prepending=unshift (strange name)
 
-var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
+var virtualStandingVeh=new vehicle(2, laneWidth, onramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
 
-ramp.veh.unshift(virtualStandingVeh);
+onramp.veh.unshift(virtualStandingVeh);
 
 var nDet=3;
 var detectors=[];
@@ -398,7 +445,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var trafficObjs=new TrafficObjects(canvas,2,3,0.60,0.50,1,5);
 
 
 
@@ -454,8 +501,8 @@ function updateSim(){
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  onramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
@@ -473,7 +520,7 @@ function updateSim(){
     // (2b) externally impose mandatory LC behaviour
     // all ramp vehicles must change lanes to the left (last arg=false)
 
-  ramp.setLCMandatory(0, ramp.roadLen, false);
+  onramp.setLCMandatory(0, onramp.roadLen, false);
 
 
     // (3) do central simulation update of vehicles
@@ -494,15 +541,15 @@ function updateSim(){
     }
 
 
-    ramp.calcAccelerations();  
-    ramp.updateSpeedPositions();
-    //ramp.updateBCdown();
-    ramp.updateBCup(qOn,dt); // argument=total inflow
+    onramp.calcAccelerations();  
+    onramp.updateSpeedPositions();
+    //onramp.updateBCdown();
+    onramp.updateBCup(qOn,dt); // argument=total inflow
 
     //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    ramp.mergeDiverge(mainroad,mainRampOffset,
-			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
+    onramp.mergeDiverge(mainroad,mainOnOffset,
+			onramp.roadLen-mergeLenMain,onramp.roadLen,true,false);
 
 
     // (4) update detector readings
@@ -522,28 +569,45 @@ function updateSim(){
 
 // (6) debug output
 
-    //if((itime>=125)&&(itime<=128)){
+  //if(itime<2){
   if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
 
-    if(true){
+    if(false){
       console.log("mainroadLen=",formd(mainroadLen),
 		" mainroad.roadLen=",formd(mainroad.roadLen),
-		" ramp.roadLen=",formd(ramp.roadLen),
-		" mainRampOffset=",formd(mainRampOffset));
+		" onramp.roadLen=",formd(onramp.roadLen),
+		" mainOnOffset=",formd(mainOnOffset));
       console.log("mergeDiverge(mainroad",
-		",",formd(mainRampOffset),
-		",",formd(ramp.roadLen-mergeLen),
-		",",formd(ramp.roadLen),
+		",",formd(mainOnOffset),
+		",",formd(onramp.roadLen-mergeLenMain),
+		",",formd(onramp.roadLen),
 		")");
     }
 
 
     if(false){
+      var u1Onramp=mergeLenSec;
+      var u2Onramp=mergeLenSec+(1.5*Math.PI+1)*rampRadius;
+      console.log("u1Onramp=mergeLenSec=",formd(u1Onramp));
+      console.log("u2Onramp=",formd(u2Onramp));
+      for(var i=0; i<=200; i++){
+	var u=onramp.roadLen*i/200.;
+
+	console.log(
+	  "  u=",formd(u),
+	  " u2Onramp=",formd(u2Onramp),
+	  " onramp.traj_x=",formd(onramp.traj_x(u)),
+	  " onramp.traj_y=",formd(onramp.traj_y(u)),
+	  "");
+      }
+    }
+
+    if(false){
       console.log("\nmainroad vehicles:");
       mainroad.writeVehiclesSimple();
-      ramp.writeVehiclesSimple();
+      onramp.writeVehiclesSimple();
     }
 
     if(false){
@@ -551,9 +615,9 @@ function updateSim(){
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
       onlyTL=true;
       mainroad.writeTrafficLights(); // the road's operational TL objects
-      ramp.writeTrafficLights(); 
+      onramp.writeTrafficLights(); 
       mainroad.writeDepotVehObjects();
-      ramp.writeDepotVehObjects();
+      onramp.writeDepotVehObjects();
     }
     //if(time>1.2){clearInterval(myRun);}
   }
@@ -603,41 +667,36 @@ function drawSim() {
   }
   
 
-  // (3) draw mainroad and ramp
+  // (3)(4) draw network and vehicles in growing z order
   // (always drawn; changedGeometry only triggers making a new lookup table)
-
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-  // here only example for complete args (only in coffeemeterGame relevant
 
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
-  ramp.draw(rampImg,rampImg,scale,changedGeometry,
-	    0,ramp.roadLen,
-	    movingObserver,0,
-	    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-	    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+  onramp.draw(rampImg,rampImg,scale,changedGeometry,
+	      onramp.roadLen-taperLen,onramp.roadLen); 
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
-		0,mainroad.roadLen,
-		movingObserver,uObs,center_xPhys,center_yPhys);
-
-
- 
-  // (4) draw vehicles
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-
-  ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
-		    vmin_col,vmax_col,
-		    0,ramp.roadLen,
-		    movingObserver,0,
-		    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
-
+		0,mainroad.roadLen);
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin_col,vmax_col,
-			0,mainroad.roadLen,
-			movingObserver,uObs,center_xPhys,center_yPhys);
+			0,mainroad.roadLen);
+
+  onramp.draw(rampImg,rampImg,scale,changedGeometry,
+	      0.5*onramp.roadLen,onramp.roadLen-taperLen); 
+
+  onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+		      vmin_col,vmax_col,
+		      0.5*onramp.roadLen,onramp.roadLen);
+
+  onramp.draw(rampImg,rampImg,scale,changedGeometry,
+	      0,0.5*onramp.roadLen); 
+
+  onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+		      vmin_col,vmax_col,
+		      0,0.5*onramp.roadLen);
+
+
 
   // (5a) draw traffic objects 
 

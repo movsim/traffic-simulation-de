@@ -14,7 +14,7 @@
     </script>
 
     
-    <title>Microsimulation of Traffic Flow: Onramp</title> 
+    <title>Microsimulation of Traffic Flow: Gridlock</title> 
 </head>
 
 
@@ -88,6 +88,8 @@
                  onclick="myRedirectRoundabout()"/>
 <img width="20%" src="figs/iconRampmeterFig_small.jpg" 
                  onclick="myRedirectOnrampBaWue()"/>
+<img width="20%" src="figs/iconGrid.jpg" 
+                 onclick="myRedirectGridlock()"/>
 </center>
 
 </div> 
@@ -153,6 +155,14 @@
   <td> <div id="slider_qOnVal"></div> </td>
 </tr>
 
+<tr>
+  <td class="important">Offramp Use</td>
+  <td> <input id="slider_fracOff" type="range" 
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_fracOffVal"></div> </td>
+</tr>
+
+<tr>
   <td>Truck Perc</td>
   <td> <input id="slider_fracTruck" type="range" 
               min="0" max="50" step="1"></td>
@@ -320,7 +330,7 @@
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/onramp.js"></script> 
+<!-- PROJ--> <script src="js/gridlock.js"></script> 
 
 </body>
 </html>

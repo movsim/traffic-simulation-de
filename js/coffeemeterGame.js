@@ -704,7 +704,8 @@ function draw() {
     // change also drawMovingBackground accordingly
 
     var xObsRel=xBegin+traj_x(uObs)-traj_x(0);
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,relObserver,
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+		  0,lenMainroad,relObserver,
 		  uObs,xObsRel,yBegin); //
 
         mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,

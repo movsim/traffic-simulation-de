@@ -366,15 +366,12 @@ function drawSim() {
 
     // (3) draw road and possibly traffic lights afterwards (before vehs)
  
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-
-    //xxxNew remove
-    //mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
+  var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
+  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
   // (5a) draw traffic objects 
 
