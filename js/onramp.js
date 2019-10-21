@@ -212,6 +212,22 @@ function traj_y(u){ // physical coordinates
 	return center_yPhys+dyPhysFromCenter;
 }
 
+function taperDiverge(u,taperLen,laneWidth){
+  var res=
+    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
+    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
+  return res;
+}
+
+function taperMerge(u,taperLen,laneWidth,rampLen){
+  return taperDiverge(rampLen-u,taperLen,laneWidth);
+}
+
+
+
+// !! in defining dependent geometry,
+// do not refer to mainroad or onramp!! may not be defined: 
+// mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1
 
 function trajRamp_x(u){ // physical coordinates
 	//var xMergeBegin=traj_x(mainroadLen-straightLen);
@@ -222,22 +238,16 @@ function trajRamp_x(u){ // physical coordinates
 }
 
 
-// !! in defining dependent geometry,
-// do not refer to mainroad or onramp!! may not be defined: 
-// mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1
-
 function trajRamp_y(u){ // physical coordinates
 
-    var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
+  var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
-    var yMergeEnd=yMergeBegin+laneWidth;
-    return (u<rampLen-mergeLen)
-	? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
-	: (u<rampLen-taperLen) ? yMergeBegin
-	: (u<rampLen-0.5*taperLen) 
-        ? yMergeBegin+2*laneWidth*Math.pow((u-rampLen+taperLen)/taperLen,2)
-	: yMergeEnd - 2*laneWidth*Math.pow((u-rampLen)/taperLen,2);
+  var yMergeEnd=yMergeBegin+laneWidth;
+  return (u<rampLen-mergeLen)
+    ? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
+    : (u<rampLen-taperLen) ? yMergeBegin
+    : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
 }
 
 var trajNet_x=[]; // xxxnew 
