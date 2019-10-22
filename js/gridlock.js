@@ -20,10 +20,10 @@ var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 
-// override standard dettings control_gui.js
+// override standard dettings control_gui.js or introduce non-slider vars
 
 density=0.02; 
-
+qSecondary=0.2; // qIn and qOn controlled by control_gui.js (!!could use qOn)
 var nLanes_main=3;
 var nLanes_rmp=1;
 
@@ -115,7 +115,7 @@ var hasChangedPhys=true; // physical road dimensions have changed
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43;
-var center_yRel=-0.54;
+var center_yRel=-0.64;
 var arcRadiusRel=0.28;
 var rampRadiusRel=0.12;
 var mergeLenMainRel=0.45;
@@ -139,6 +139,7 @@ var rampRadius=rampRadiusRel*refSizePhys;
 var mergeLenMain=mergeLenMainRel*refSizePhys; 
 var mergeLenSec=mergeLenSecRel*refSizePhys; 
 var rampLen=mergeLenMain+mergeLenSec+(1.5*Math.PI+1)*rampRadius;
+var secondaryLen=2.5*arcRadius+4*rampRadius; //!!! reuse
 
 var mainOnOffset=mainroadLen-straightLen+mergeLenMain-rampLen;
 var taperLen=0.15*refSizePhys;
@@ -198,6 +199,32 @@ function updateDimensions(){ // if viewport or sizePhys changed
   }
 }
 
+
+/**
+ general helper functions for tapering (i.e., first/last) 
+ section of offramps/onramps.
+ Gives (positive) lateral offset in direction of the road from/to which 
+ this ramp diverges/merges 
+ relative to the decisionpoint of last diverge/merge
+@param u: arclength of the ramp
+@param taperLen: length of the tapering section
+@param laneWidth: width of the ramp (only single-lane assumed)
+@param rampLen: total length of ramp (needed for onramps ony)
+@return: lateral offset in [0,laneWidth]
+*/
+
+function taperDiverge(u,taperLen,laneWidth){
+  var res=
+    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
+    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
+  return res;
+}
+
+function taperMerge(u,taperLen,laneWidth,rampLen){
+  return taperDiverge(rampLen-u,taperLen,laneWidth);
+}
+
+
 // def trajectories
 // if(doGridding=true on constructing road, 
 // road elements are gridded and internal
@@ -229,21 +256,7 @@ function traj_y(u){ // physical coordinates
 var u1Onramp=mergeLenSec;
 var u2Onramp=mergeLenSec+1.5*Math.PI*rampRadius;
 
-// gives (positive) lateral offset in mainroad direction
-// at the beginning of the ramp
-// relative to the diverging point (point of last diverge)
-// in [0,laneWidth]
 
-function taperDiverge(u,taperLen,laneWidth){
-  var res=
-    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
-    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
-  return res;
-}
-
-function taperMerge(u,taperLen,laneWidth,rampLen){
-  return taperDiverge(rampLen-u,taperLen,laneWidth);
-}
 
 function trajOnramp_x(u){ // physical coordinates
   var xMergeBegin=traj_x(mainroadLen-straightLen);
@@ -277,16 +290,30 @@ function trajOfframp_y(u){
   return 2*center_yPhys-trajOnramp_y(rampLen-u);
 }
 
+function trajSecondary_x(u){
+  return traj_x(straightLen-laneWidth);
+}
+
+function trajSecondary_y(u){
+  return center_yPhys+0.5*secondaryLen-u;
+}
+
+
 
 
 var trajNet_x=[]; // xxxnew 
 var trajNet_y=[];
 trajNet_x[0]=traj_x;
-trajNet_x[1]=trajOnramp_x;
-trajNet_x[2]=trajOfframp_x;
 trajNet_y[0]=traj_y;
+
+trajNet_x[1]=trajOnramp_x;
 trajNet_y[1]=trajOnramp_y;
+
+trajNet_x[2]=trajOfframp_x;
 trajNet_y[2]=trajOfframp_y;
+
+trajNet_x[3]=trajSecondary_x;
+trajNet_y[3]=trajSecondary_y;
 
 
 //xxxnew [comment, separated veh from road properties]
@@ -316,6 +343,7 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDonramp=2;
 var roadIDofframp=3;
+var roadIDsecondary=4;
 
 var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
@@ -339,11 +367,53 @@ var offramp=new road(roadIDofframp,rampLen,laneWidth,nLanes_rmp,
 		    0*density, speedInit, fracTruck, isRing,
 		    userCanDistortRoads);
 
+var secondaryroad=new road(roadIDsecondary,secondaryLen,laneWidth,nLanes_rmp,
+		    trajSecondary_x,trajSecondary_y,
+		    0*density, speedInit, fracTruck, isRing,
+		    userCanDistortRoads);
+
 // road network 
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=onramp;
 network[2]=offramp;
+network[3]=secondaryroad;
+
+//############################################################
+// define routes (fracOff default defined in control_gui.js)
+// only needed for diverges, no options at merge
+//############################################################
+
+var route1=[1];  // stays on mainroad
+var route2=[1,3]; // goes via offramp 3 from mainroad 1 to secondary road 4
+var route3=[4,2]; // goes via onramp 2 from secondary road 4 to mainroad 1
+// !!!check if routes [1,3,4] and [4,2,1] work as well
+// !!! define preparations for diverging for secondaryroad
+// and give routes to inflow, then it should work completely!!!
+//!! WHOW! traffic lights work perfectly on all links!
+
+for (var i=0; i<mainroad.veh.length; i++){
+    mainroad.veh[i].route=(Math.random()<fracOff) ? route2 : route1;
+    //console.log("mainroad.veh["+i+"].route="+mainroad.veh[i].route);
+}
+
+//!!! define routes 3
+
+//############################################
+// define preparations for diverging 
+// (!! physical connections via sourceRoad.mergeDiverge 
+// and other operations during updateSim)
+//############################################
+
+// (1) diverge mainroad 1 -> offramp 3 controlled by mainroad
+// !!! check if transition to smartphone dimensions
+
+var duTactical=200; // anticipation distance for applying mandatory LC rules
+var offrampIDs=[offramp.roadID];
+var offrampLastExits=[straightLen];
+var offrampToRight=[true];
+mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
+mainroad.duTactical=duTactical;
 
 
 // add standing virtual vehicle at the end of onramp (1 lane)
@@ -499,15 +569,12 @@ function updateSim(){
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
 
-  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  for(var i=0; i<network.length; i++){
+    network[i].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+    network[i].updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
-
-  onramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  onramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck,
-				       LCModelMandatory);
+  }
 
   //console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
 
@@ -517,49 +584,66 @@ function updateSim(){
     network[i].updateSpeedlimits(trafficObjs);
   }
 
-  mainroad.updateSpeedlimits(trafficObjs); 
 
-
-    // (2b) externally impose mandatory LC behaviour
+    // (2b) externally impose mandatory LC behaviour for merging links:
     // all ramp vehicles must change lanes to the left (last arg=false)
 
-  onramp.setLCMandatory(0, onramp.roadLen, false);
+  onramp.setLCMandatory(onramp.roadLen-mergeLenMain, onramp.roadLen, false);
+  offramp.setLCMandatory(offramp.roadLen-mergeLenSec, offramp.roadLen, false);
 
 
-    // (3) do central simulation update of vehicles
+  // (3) do central simulation update of vehicles
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
-    mainroad.updateSpeedPositions();
-    mainroad.updateBCdown();
-    mainroad.updateBCup(qIn,dt); // argument=total inflow
+  for(var i=0; i<network.length; i++){ // still no link-link interaction
+    network[i].updateLastLCtimes(dt);
+    network[i].calcAccelerations(); 
+  }
 
-    for (var i=0; i<mainroad.nveh; i++){
-	if(mainroad.veh[i].speed<0){
-	    console.log(" speed "+mainroad.veh[i].speed
-			    +" of mainroad vehicle "
-			    +i+" is negative!");
-	}
-    }
+  for(var i=0; i<network.length; i++){ 
+    network[i].updateSpeedPositions();
+    network[i].updateBCdown(); // just removes veh (!=ringroad) if u>roadLen 
+  }
+
+  mainroad.changeLanes();  // only needed for multi-lane links,
+
+  mainroad.updateBCup(qIn,dt); // only two links have sources (arg=qTot)
+  secondaryroad.updateBCup(qSecondary,dt);
 
 
-    onramp.calcAccelerations();  
-    onramp.updateSpeedPositions();
-    //onramp.updateBCdown();
-    onramp.updateBCup(qOn,dt); // argument=total inflow
+// template: sourceRoad.mergeDiverge(targetRoad,
+//    offsetTarget-Source,
+//    source_uBegin, source_uEnd, 
+//    isMerge, toRight,
+//    ignoreRoute[opt], prioOther[opt], prioOwn[opt])
 
-    //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+  mainroad.mergeDiverge(offramp,
+			-straightLen+mergeLenMain,
+			straightLen-mergeLenMain+0.5*taperLen, straightLen,
+			false,true);
 
-    onramp.mergeDiverge(mainroad,mainOnOffset,
-			onramp.roadLen-mergeLenMain,onramp.roadLen,true,false);
+  // !!! consolidate ad-hoc "30" at offsetTarget-Source
+  offramp.mergeDiverge(secondaryroad,
+		       0.5*secondaryLen-arcRadius+30-offramp.roadLen,
+		       offramp.roadLen-mergeLenSec,offramp.roadLen,
+		       true,false);
+
+  secondaryroad.mergeDiverge(onramp,
+			     -0.5*secondaryLen-arcRadius,
+			     0.5*secondaryLen+arcRadius,
+			     0.5*secondaryLen+arcRadius+mergeLenSec,
+			     false,true);
+
+  onramp.mergeDiverge(mainroad,mainOnOffset,
+		      onramp.roadLen-mergeLenMain,onramp.roadLen,
+		      true,false);
+
 
 
     // (4) update detector readings
 
-    for(var iDet=0; iDet<nDet; iDet++){
-	detectors[iDet].update(time,dt);
-    }
+  for(var iDet=0; iDet<nDet; iDet++){
+    detectors[iDet].update(time,dt);
+  }
 
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
@@ -680,30 +764,38 @@ function drawSim() {
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen);
+  onramp.draw(rampImg,rampImg,scale,changedGeometry,
+	      0.5*onramp.roadLen,onramp.roadLen-taperLen); 
+  offramp.draw(rampImg,rampImg,scale,changedGeometry,
+	       taperLen,0.5*offramp.roadLen); 
+
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin_col,vmax_col,
 			0,mainroad.roadLen);
-
-  onramp.draw(rampImg,rampImg,scale,changedGeometry,
-	      0.5*onramp.roadLen,onramp.roadLen-taperLen); 
-
   onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 		      vmin_col,vmax_col,
 		      0.5*onramp.roadLen,onramp.roadLen);
-  offramp.draw(rampImg,rampImg,scale,changedGeometry,
-	       0,0.5*offramp.roadLen); 
+  offramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+		      vmin_col,vmax_col,
+		      0,0.5*onramp.roadLen);
+
 
   onramp.draw(rampImg,rampImg,scale,changedGeometry,
 	      0,0.5*onramp.roadLen); 
+  offramp.draw(rampImg,rampImg,scale,changedGeometry,
+	       0.5*offramp.roadLen,offramp.roadLen); 
+  secondaryroad.draw(rampImg,rampImg,scale,changedGeometry);
+
 
   onramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 		      vmin_col,vmax_col,
 		      0,0.5*onramp.roadLen);
-
-  offramp.draw(rampImg,rampImg,scale,changedGeometry,
-	       0.5*offramp.roadLen,offramp.roadLen); 
-
+  offramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+		       vmin_col,vmax_col,
+		       0.5*onramp.roadLen,offramp.roadLen);
+  secondaryroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			     vmin_col,vmax_col);
 
 
   // (5a) draw traffic objects 

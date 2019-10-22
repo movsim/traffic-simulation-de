@@ -189,6 +189,33 @@ function updateDimensions(){ // if viewport or sizePhys changed
   }
 }
 
+
+
+/**
+ general helper functions for tapering (i.e., first/last) 
+ section of offramps/onramps.
+ Gives (positive) lateral offset in direction of the road from/to which 
+ this ramp diverges/merges 
+ relative to the decisionpoint of last diverge/merge
+@param u: arclength of the ramp
+@param taperLen: length of the tapering section
+@param laneWidth: width of the ramp (only single-lane assumed)
+@param rampLen: total length of ramp (needed for onramps ony)
+@return: lateral offset in [0,laneWidth]
+*/
+
+function taperDiverge(u,taperLen,laneWidth){
+  var res=
+    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
+    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
+  return res;
+}
+
+function taperMerge(u,taperLen,laneWidth,rampLen){
+  return taperDiverge(rampLen-u,taperLen,laneWidth);
+}
+
+
 // def trajectories
 // if(doGridding=true on constructing road, 
 // road elements are gridded and internal
@@ -210,17 +237,6 @@ function traj_y(u){ // physical coordinates
 	  : (u>straightLen+arcLen) ? -arcRadius
 	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
 	return center_yPhys+dyPhysFromCenter;
-}
-
-function taperDiverge(u,taperLen,laneWidth){
-  var res=
-    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
-    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
-  return res;
-}
-
-function taperMerge(u,taperLen,laneWidth,rampLen){
-  return taperDiverge(rampLen-u,taperLen,laneWidth);
 }
 
 
@@ -476,8 +492,6 @@ function updateSim(){
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
   }
-
-  mainroad.updateSpeedlimits(trafficObjs); 
 
 
     // (2b) externally impose mandatory LC behaviour
