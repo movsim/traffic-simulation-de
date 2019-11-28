@@ -690,13 +690,12 @@ function drawSim() {
   // Otherwise, road drawn at old position
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
-    ramp.draw(rampImg,rampImg,scale,changedGeometry,
-		movingObserver,0, 
-		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+  ramp.draw(rampImg,rampImg,scale,changedGeometry);
+	//	movingObserver,0, 
+	//	center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
+	//	center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
-		  movingObserver,uObs,center_xPhys,center_yPhys); 
+    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry); 
 
 
  

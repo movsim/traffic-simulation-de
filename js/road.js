@@ -727,7 +727,9 @@ road.prototype.writeVehicleLCModels= function() {
 		    +" u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		    +" v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		    +" speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
-                    +" LCmodel=",this.veh[i].LCModel);
+		    +" LCmodel.bBiasRight="
+		    +parseFloat(this.veh[i].LCModel.bBiasRight).toFixed(1));
+                   // +" LCmodel=",this.veh[i].LCModel); //DOS console
     }
 }
 
@@ -2331,12 +2333,14 @@ for(var i=0; i<this.veh.length; i++)
 	 changeSuccessful=(this.veh[i].isRegularVeh())
 	      &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 
-    //!!! MT 2019-09: prevent trucks to change to the left by force
+        //!!! MT 2019-09: prevent trucks to change to the left by force
 
-	if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
-	  //console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
-	  changeSuccessful=false;
-	  //a=giesskanne;
+	if((scenarioString=="OnRamp_BaWue")
+	   ||(scenarioString=="roadworks_BaWue")){
+	  if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
+	    console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
+	    changeSuccessful=false;
+	  }
 	}
 
 

@@ -20,6 +20,19 @@ var userCanDropObjects=true;
 ######################################################*
 */
 
+// override standard dettings control_gui.js
+
+density=0.03;  // default 0.03
+slider_density.value=1000*density;
+slider_densityVal.innerHTML=1000*density+"/km";
+
+fracTruck=0.1; // default 0.1 
+slider_fracTruck.value=100*fracTruck;
+slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+
+
+// Global overall scenario settings and graphics objects
+
 
 var scenarioString="Ring";
 console.log("\n\nstart main: scenarioString=",scenarioString);
@@ -294,6 +307,14 @@ function updateSim(){
   }
 
 
+  // (6) debug output
+  
+  if(false){
+    mainroad.writeTrucksLC();
+    //mainroad.writeVehicleLCModels();
+
+  }
+
 }  // updateSim
 
 
@@ -345,26 +366,24 @@ function drawSim() {
 
  
 
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
+  // (1) update heading of all vehicles rel. to road axis
+  // (for some reason, strange rotations at beginning)
 
     
 
  
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-    // sloppy at first drawing. 
-    // Remind running engine at increasing time spans...
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(hasChanged||(itime<=1) || (itime===20) || userCanvasManip 
-	   || (!drawRoad)){
-            ctx.drawImage(background,0,0,canvas.width,canvas.height);
-	}
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
+      || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
+  }
 
-    // (3) draw road and possibly traffic lights afterwards (before vehs)
+  // (3) draw road and possibly traffic lights afterwards (before vehs)
  
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);

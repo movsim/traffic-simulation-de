@@ -1,0 +1,11 @@
+Bugs normal roadworks.js:
+
+* rectangular speedlimit as remnant of old version visibler after
+  first click
+
+* DOS with both the sliders for speedlimit or changing speedlimit val
+  for v>80
+
+* too low inflow for effects
+
+=> correct using roadworks_BaWue.js

@@ -677,25 +677,24 @@ function drawSim() {
     }
 
  
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
+  // (1) update heading of all vehicles rel. to road axis
+  // (for some reason, strange rotations at beginning)
 
-    
 
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-    // "%20-or condition"
-    //  because some older firefoxes do not start up properly?
+  
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(userCanvasManip ||hasChanged
-	   ||(itime<=1) || (itime===20) || false || (!drawRoad)){
-	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
-      }
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
+      || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
+  }
 
 
+ 
     // (3) draw mainroad and ramps (deviation "bridge" => draw last)
     // and vehicles (directly after frawing resp road or separately, depends)
     // (always drawn; changedGeometry only triggers building a new lookup table)

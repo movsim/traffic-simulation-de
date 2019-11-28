@@ -793,21 +793,18 @@ function drawSim() {
 */
     }
 
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-
-    // "%20-or condition"
-    //  because some older firefoxes do not start up properly?
-
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(userCanvasManip ||hasChanged
-	   ||(itime<=10) || (itime%2===20) || false || (!drawRoad)){
-	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
-      }
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
+      || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
+  }
 
+ 
 
     // (3) draw mainroad and arms 
 

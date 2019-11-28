@@ -607,13 +607,13 @@ function drawSim() {
 
 
 
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
-    if(hasChanged||(itime<=2) || (itime==10) || (itime==20) || userCanvasManip
-       || movingObserver || (!drawRoad)){
+    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
+      || (!drawRoad)){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
 
       if(false){
@@ -632,7 +632,8 @@ function drawSim() {
 
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
   // here only example for complete args (only in coffeemeterGame relevant
-
+  // !!! DOS in road.draw, OK in road.drawVehicles
+  
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
   ramp.draw(rampImg,rampImg,scale,changedGeometry,
@@ -645,10 +646,18 @@ function drawSim() {
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
-
+  if(false){
+    console.log("road.draw w/ full parameter set:",
+		" mainroad.roadLen=",mainroad.roadLen,
+		" movingObserver=",movingObserver,
+		" uObs=",uObs,
+		" center_xPhys=",center_xPhys,
+ 		" center_yPhys=",center_yPhys);
+  }
  
   // (4) draw vehicles
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
+  // here only example for complete args (only in coffeemeterGame relevant
 
   ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 		    vmin_col,vmax_col,

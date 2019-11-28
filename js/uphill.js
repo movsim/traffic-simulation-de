@@ -10,7 +10,7 @@ var userCanDropObjects=true;
 density=0.;
     
 
-fracTruck=0.40; //  0.25
+fracTruck=0.25; //  0.25
 slider_fracTruck.value=100*fracTruck;
 slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
@@ -18,7 +18,7 @@ timewarp=5; //  default 6 in control_gui.js
 slider_timewarp.value=timewarp;
 slider_timewarpVal.innerHTML = timewarp +" times";
 
-qIn=2500./3600; 
+qIn=2500./3600; //2500./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
 
@@ -32,12 +32,12 @@ IDM_v0Up=30/3.6
 slider_IDM_v0Up.value=3.6*IDM_v0Up;
 slider_IDM_v0UpVal.innerHTML=Math.round(3.6*IDM_v0Up)+" veh/h";
 
-MOBIL_bBiasRight_car=-0.1;
+MOBIL_bBiasRight_car=-0.1; //-0.1
 slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
 slider_MOBIL_bBiasRight_carVal.innerHTML=MOBIL_bBiasRight_car
     +" m/s<sup>2</sup>";
 
-MOBIL_bBiasRight_truck=0.1;
+MOBIL_bBiasRight_truck=0.1; //0.1
 slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
 slider_MOBIL_bBiasRight_truckVal.innerHTML=MOBIL_bBiasRight_truck
     +" m/s<sup>2</sup>";
@@ -137,8 +137,8 @@ function updateDimensions(){ // if viewport or sizePhys changed
     mainroadLen=arcLen+2*straightLen;
 
     uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
-    uBeginUp=straightLen+0.8*arcLen;
-    uEndUp=straightLen+1.1*arcLen;
+    uBeginUp=straightLen+0.3*arcLen;
+    uEndUp=straightLen+1.3*arcLen;
 }
 
 
@@ -361,19 +361,33 @@ function updateSim(){
 //#################################################################
 
 
-    // (1) update times
+  // (1) update times
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    isSmartphone=mqSmartphone();
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+  isSmartphone=mqSmartphone();
 
-    // (2) transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models
+  // (2) transfer effects from slider interaction and mandatory regions
+  // to the vehicles and models
 
-    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+
+  // transfer slider actions to Uphill LC models if no ban
+  // (fixed models if ban)
+  // actual transfer to the vehicles in mainroad.setLCModelsInRange 
+  
+  updateModelsUphill();
+  
+  if(false){
+  //if(itime%20==0){
+    console.log("\nLCModelCarUphill.bBiasRight=",LCModelCarUphill.bBiasRight,
+		" LCModelCar.bBiasRight=",LCModelCar.bBiasRight);
+    console.log("LCModelTruckUphill.bBiasRight=",LCModelTruckUphill.bBiasRight,
+		" LCModelTruck.bBiasRight=",LCModelTruck.bBiasRight);
+  }
     mainroad.setCFModelsInRange(uBeginUp,uEndUp,
 				 longModelCarUphill,longModelTruckUphill);
     mainroad.setLCModelsInRange(uBeginBan,uEndUp,
@@ -410,6 +424,15 @@ function updateSim(){
     trafficObjs.zoomBack();
   }
 
+  // (6) debug output
+  
+  if(false){
+  //if(itime%20==0){
+    //mainroad.writeTrucksLC();
+    mainroad.writeVehicleLCModels();
+  }
+
+  
 }//updateSim
 
 
@@ -455,20 +478,17 @@ function drawSim() {
     // (for some reason, strange rotations at beginning)
 
     
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
-
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-    // "%20-or condition"
-    //  because some older firefoxes do not start up properly?
-
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(userCanvasManip||hasChanged||banButtonClicked
-	   ||(itime<=15) || (itime===30) || false || (!drawRoad)){
-          ctx.drawImage(background,0,0,canvas.width,canvas.height);
-      }
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
+      || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
+  }
+
 
 
     // (3) draw mainroad

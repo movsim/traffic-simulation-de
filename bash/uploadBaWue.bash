@@ -39,13 +39,13 @@ mkdir $targetDir/js
 html_files="impressum.html"  #just start
 
 for proj in $projects; do
-  html_files="${html_files} ${proj}.html"
+  html_files="${html_files} ${proj}_ger.html"
 done
 
 # add the index html (just one of the projects)
 #html_files="${html_files} index.html index_ger.html" 
 
-js_files="redirect_BaWue.js seedrandom.min.js control_gui_ger.js timeView_ger.js media.js canvas_gui.js ObstacleTLDepot.js SpeedFunnel.js colormanip.js models.js paths.js road.js vehicle.js stationaryDetector_ger.js"
+js_files="redirect_ger.js seedrandom.min.js control_gui_ger.js timeView_ger.js media.js canvas_gui.js TrafficObjects.js colormanip.js models.js paths.js road.js vehicle.js stationaryDetector_ger.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js";
@@ -86,14 +86,15 @@ perl -i -p -e "s/^.*figs\/(.+)\.svg.+$/\1\.svg/g" js/imgfileList
 
 # extract from imgfileList the following by hand:
 
-img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png road*Crop*png Tempo*svg iconOnrampFig_small.jpg iconRoadworksFig_small.jpg infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif"
+img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png road*Crop*png Tempo*svg iconOnrampFig_small.jpg iconRoadworksFig_small.jpg iconRampmeterFig_small.jpg
+infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif"
 
 mkdir $targetDir/figs
 mkdir $targetDir/css
 
 cd $startDir/figs
 cp $img_files $targetDir/figs
-
+cp ../favicon.jpg  $targetDir
 cd $startDir/css
 cp styleBaWue.css styleSliders.css $targetDir/css
 cd $startDir
@@ -110,7 +111,7 @@ cd $startDir
 
 echo "Testing uploaded package:"
 #echo "notice: zip download of sources only works in upload target"
-firefox $targetDir/roadworks_BaWue.html
+firefox $targetDir/roadworks_BaWue_ger.html
 
 
 #############################################
