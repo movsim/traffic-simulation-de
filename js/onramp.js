@@ -29,7 +29,7 @@ qIn=4500./3600;
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-density=0.02; 
+density=0.01; 
 
 var nLanes_main=3;
 var nLanes_rmp=1;
