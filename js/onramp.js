@@ -20,7 +20,14 @@ var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 
-// override standard dettings control_gui.js
+
+//#############################################################
+// adapt/override standard param settings from control_gui.js
+//#############################################################
+
+qIn=4500./3600; 
+slider_qIn.value=3600*qIn;
+slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 density=0.02; 
 
