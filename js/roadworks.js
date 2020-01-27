@@ -3,7 +3,7 @@ var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 //#############################################################
-// adapt standard param settings from control_gui.js
+// adapt/override standard param settings from control_gui.js
 //#############################################################
 
 MOBIL_mandat_bSafe=18;
@@ -15,15 +15,17 @@ MOBIL_bSafeMax=17;
 
 density=0;
 
-qIn=1550./3600; 
+qIn=1900./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
-speedL=80./3.6
-slider_speedL.value=3.6*speedL;
-slider_speedLVal.innerHTML=3.6*speedL+" veh/h";
+IDM_a=2.0;
+slider_IDM_a.value=IDM_a;
+slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
 
-fracTruck=0.30;
+//speedlimit now in trafficObjects
+
+fracTruck=0.25;
 slider_fracTruck.value=100*fracTruck;
 slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
@@ -316,11 +318,12 @@ var trafficObjs=new TrafficObjects(canvas,0,3,0.60,0.50,3,2);
 
 // initialize one speedlimit on road
 // the selected trafficObj needs to be of type speedlimit! not checked!
+// default/init values 60,80,100; select the second object trafficObj[1]
 
 var speedl=trafficObjs.trafficObj[1]; 
 //activate(trafficObject,road,u) or activate(trafficObject,road)
 trafficObjs.activate(speedl,mainroad,30);
-trafficObjs.active_drawTopSign=false; // only bottom sign drawn
+trafficObjs.active_drawTopSign=false; // false=>only bottom sign drawn
 
 //############################################
 // run-time specification and functions
@@ -497,6 +500,7 @@ function drawSim() {
     
     // (4a) implement varying speed-limit signs! -> uphill as template
 
+  /*
     var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
     var speedL_srcFileIndex=Math.min(speedlimit_kmh/10,13);
     if( (speedL_srcFileIndex !=speedL_srcFileIndexOld)||hasChanged
@@ -517,7 +521,8 @@ function drawSim() {
 	//console.log("roadworks.draw: before drawing speedlimitImg");
 	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
     }
-
+  */
+  
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){

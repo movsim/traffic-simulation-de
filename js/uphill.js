@@ -52,7 +52,9 @@ MOBIL_mandat_bSafeMax=20;
 
 /*######################################################
  Global overall scenario settings and graphics objects
- see onramp.js for more details
+ => see onramp.js for more details
+ => actual drawing dynamic variables (such as drawBackground) 
+    see Global graphics specification section
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
@@ -220,8 +222,9 @@ updateModelsUphill(); // defines [long|LC]Model[Car|Truck]uphill
 var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
+var backgroundJustDrawn=false; //MT 2020-01 controls redrawing of signs etc
 var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; // true only if used-driven geometry changes finished
+var userCanvasManip; // true only if user-driven geometry changes finished
 
 var drawColormap=false; // now drawn as png from html 
 var vmin_col=0; // min speed for speed colormap (drawn in red)
@@ -479,16 +482,23 @@ function drawSim() {
 
     
   // (2) reset transform matrix and draw background
-  // (only needed if changes, plus "reminders" for lazy browsers)
+  // (only needed if changes, or something needs to be wiped off
+  // (overtaking ban) plus "reminders" for lazy browsers
 
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
     if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+      || (!drawRoad) || banButtonClicked){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
+      backgroundJustDrawn=true; // MT 2020-01
+      
     }
   }
 
+  // MT 2020 need to reset here because drawBackground condition needs
+  // banButtonClicked state from previous step to wipe out lifted ban
+
+  banButtonClicked=false;
 
 
     // (3) draw mainroad
@@ -497,48 +507,46 @@ function drawSim() {
     // Otherwise, road drawn at old position
 
     
-     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+  var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
+  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
 
  
-    // (4) draw vehicles (obstacleImg here empty, only needed for interface)
+  // (4) draw vehicles (obstacleImg here empty, only needed for interface)
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col, vmax_col);
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
-    // (4a) draw traffic signs
-	//console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
+  // (4a) draw traffic signs (banButtonClicked => control_gui.js) MT 2020-01
+  console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
-    if(userCanvasManip||hasChanged||banButtonClicked
-       ||(itime<=30) ){ // (itime<=30)because of repeatedly draw bg initially
+  if(backgroundJustDrawn||banButtonClicked){ // MT 2020-01
+ 
+    var sizeSignPix=0.1*refSizePix;
+    var vOffset=1.4*nLanes_main*laneWidth; // in v direction, pos if right
 
-	banButtonClicked=false;
-	var sizeSignPix=0.1*refSizePix;
-	var vOffset=1.4*nLanes_main*laneWidth; // in v direction, pos if right
-
-	var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,scale);
-	var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,scale);
-	var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,scale);
-	var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,scale);
-	var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
-	var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
+    var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,scale);
+    var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,scale);
+    var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,scale);
+    var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,scale);
+    var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
+    var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
 
         // center sign (the drawing coords denote the left upper corner)
 
-	xPixUp -= 0.5*sizeSignPix;
-	yPixUp -= 0.5*sizeSignPix;
-	xPixEnd -= 0.5*sizeSignPix;
-	yPixEnd -= 0.5*sizeSignPix;
+    xPixUp -= 0.5*sizeSignPix;
+    yPixUp -= 0.5*sizeSignPix;
+    xPixEnd -= 0.5*sizeSignPix;
+    yPixEnd -= 0.5*sizeSignPix;
 
-	ctx.setTransform(1,0,0,1,0,0); 
-	ctx.drawImage(signUphillImg,xPixUp,yPixUp,sizeSignPix,sizeSignPix);
-	ctx.drawImage(signFreeImg,xPixEnd,yPixEnd,sizeSignPix,sizeSignPix);
-	if(banIsActive){// defined/changed in control_gui.js
+    ctx.setTransform(1,0,0,1,0,0); 
+    ctx.drawImage(signUphillImg,xPixUp,yPixUp,sizeSignPix,sizeSignPix);
+    ctx.drawImage(signFreeImg,xPixEnd,yPixEnd,sizeSignPix,sizeSignPix);
+    if(banIsActive){// defined/changed in control_gui.js
 	  ctx.drawImage(signTruckOvertakingBan,xPixBan,yPixBan,
 			sizeSignPix,sizeSignPix);
-	}
-
     }
+
+  }
 
   // (5a) draw traffic objects 
 
@@ -555,25 +563,29 @@ function drawSim() {
 
     // (6) draw simulated time
 
-    displayTime(time,textsize);
+  displayTime(time,textsize);
 
 
-    // (7) draw the speed colormap
+    // (7) draw the speed colormap (as of 2020-01 drawColormap=false)
 
-    if(drawColormap){
+  if(drawColormap){
       displayColormap(0.22*refSizePix,
                  0.43*refSizePix,
                  0.1*refSizePix, 0.2*refSizePix,
 		 vmin_col,vmax_col,0,100/3.6);
-    }
+  }
 
 
-  // may be set to true in next step if changed canvas 
-  // or old sign should be wiped away 
-  hasChanged=false; 
+  // reset even-oriented graphic switches (MT 2020-01)
+  
+  hasChanged=false; // window dimension has changed (responsive design)
+  backgroundJustDrawn=false; // MT 2020-01 only redraw signs etc if necessary
+  
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // revert to neutral transformation at the end!
+  
+  ctx.setTransform(1,0,0,1,0,0);
+  
 } // drawSim
  
 
@@ -583,9 +595,10 @@ function drawSim() {
 //##################################################
 
 function main_loop() {
-    updateSim();
-    drawSim();
-    userCanvasManip=false;
+  updateSim();
+  drawSim();
+  userCanvasManip=false; // may be set=true by some method
+                        // during updateSim/drawSim
 }
  
 
