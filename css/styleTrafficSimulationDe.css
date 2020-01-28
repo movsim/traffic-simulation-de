@@ -3,11 +3,7 @@
 
 media queries: 
 https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
-
-background : full HD =1080p (1920×1080 px), aspect ratio 5/3; 
-
-reality check what works: http://cssmediaqueries.com/overview.html
-=> ~/versionedProjects/traffic-simulation-de/README_mediaqueries
+INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3; 
 */
 
 
@@ -26,7 +22,7 @@ body{
   font-family: 'helvetica', sans-serif;
                  /*font-size: 14px;*/
   font-size: 2vmin;
-  text-align: center;
+  /*text-align: center;*/
   color: #404050;   /* text color */
   background-color: #FFFFFF;
 }
@@ -57,7 +53,7 @@ td.important{
 
  h1{
      font-family: helvetica, sans-serif;
-     font-size: 2.6vmin;
+     font-size: 3.4vmin;
      font-weight: bold;
      color: #446;
      padding-top:0px;
@@ -65,7 +61,7 @@ td.important{
 
  h2{
      font-family: helvetica, sans-serif;
-     font-size: 2.4vmin;
+     font-size: 2.8vmin;
      font-weight: bold;
      color: #446;
      padding-top:0px;
@@ -146,10 +142,9 @@ table.infoTable td {
 
 /*#############################################################*/
 /* basic settings for landscape formats !! check with ../js/media.js */
-/* to have default formatting, not any restriction here (cascading...)
 /*#############################################################*/
 
-@media all /* and  (min-aspect-ratio: 4/3) */ {  /* 1/1 or 6/5 oder 4/3*/
+@media all and  (min-aspect-ratio: 6/5){
 
 
 /* (1) landscape: the title */
@@ -168,59 +163,34 @@ table.infoTable td {
 
 
 
-/* (2) landscape: the main simCanvas */
+/* (2) landscape: the simulation canvas */
 
 #contents{
   position: absolute;
   left:   0vw;
   top:   0vmin;
   width:  112vmin; 
-  height: 99vmin;
+  height: 100vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
 
 
-/* (3a) landscape: position of the top elements inside simCanvas */
+/* DOS canvas size specification; none works:
+(i) as here
+(ii) removing outer div spec
+(iii) both combinations with "width=100%" etc in html canvas
+=> NEED document.getElementById("contents").clientWidth
+which always gives correct size!!
+ 
+*/
 
-#laneMinusDiv{ /* landscape: add/subtract one lane */
-  position: absolute;
-  top: 1vmin;
-  height: 7vmin;
-  left: 66vmin;
-  width: 7vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
 
-#lanePlusDiv{
-  position: absolute;
-  top: 1vmin;
-  height: 7vmin;
-  left: 75vmin;
-  width: 7vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
 
-#startStopDiv{ /* landscape */
-  position: absolute;
-  top: 1vmin;
-  height: 8vmin;
-  left: 84vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
+/* (2b) landscape: position of the info button: right top of simCanvas */
 
-#restartDiv{
-  position: absolute;
-  top: 1vmin;
-  height: 8vmin;
-  left: 93vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-#infoDiv{ /* landscape */
+#infoDiv{
   position: absolute;
   top: 1vmin;
   height: 8vmin;
@@ -229,9 +199,38 @@ table.infoTable td {
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2c) landscape: position of the start/stop sign: just to the left of info button */
 
+#startStopDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 93vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
-/* (3b) landscape: special buttons/elements for only some simulations */
+/* (2d) landscape: add/subtract one lane: just to the left of start/stop button */
+
+#lanePlusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 7vmin;
+  left: 84vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#laneMinusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 7vmin;
+  left: 75vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2e) landscape: special buttons/elements for only some simulations */
 
 #priorityDiv{  /* roundabout */
   position: absolute;
@@ -247,14 +246,14 @@ table.infoTable td {
   z-index: 2;
 }
 
-#gameDiv{ /* landscape: "Play Routing Game" label */
+#gameDiv{ /* button text inside button environment */
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 35vmin;
+  left: 42vmin;
   width: 28vmin;
   font-size: 2.2vmin; 
-  z-index: 2;
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
 #debugDiv{
@@ -263,46 +262,52 @@ table.infoTable td {
   height: 15vmin;
   left: 92vmin;
   width: 15vmin;
-  z-index: 2;
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
-#truckBan{ /* landscape: "Enforce Truck Overtaking Ban" label */
+/* (2e) position of the enforce truck overtaking ban in uphill scen*/
+
+#buttonsInsideSimulations{
   position: absolute;
-  top: 4vmin;
-  left: 28vmin;
-  z-index: 2;
+  top: 1vmin;
+  left: 32vmin;
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2f) landscape: position of the general link list  (table.infoTable top-level)*/
 
-/* (3c) landscape: position of the bottom elements inside simCanvas*/
-        
-#impressum{ 
+#linkDiv{
   position: absolute;
-  top: 95.5vmin;
-  height: 2vmin;
-  left: 0.5vw;
-  width: 10vw;
-  background-color: rgba(255,255,255,0.7);
-  font-size: 1.5vmin;
-  z-index: 2; /* the higher the integer, the more on top landscape */
-}
-
-#linkDiv{   /*=table.infoTable top-level  */
-  position: absolute;
-  top:   94.5vmin; /* bottom attribute error in Safari */
+  top:   96.5vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  80vmin; /* no height */
   z-index: 2;
 } 
 
-#infoFlags{ /*landscape*/
+/* (2g) landscape: position of the copyright left bottom of simCanvas*/
+/* Safari bug with using bottom => use always top */
+
+#impressum{ 
   position: absolute;
-  top:   93vmin;
+  top: 98vmin;
+  height: 2vmin;
+  left: 0.5vw;
+  width: 10vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top landscape */
+}
+
+
+/* (3) landscape: position of the flags for language selection: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   95vmin;
   left:   95vmin;
   width:  16vmin; /* no height */
   z-index: 2;
 }
-
 
 
 /* (4) landscape: the field for selecting the scenarios */
@@ -315,6 +320,8 @@ table.infoTable td {
   width: 40vmin;
   z-index: 2;  /*top-always focussed! */
 }
+
+
 
 
 /* (5) landscape: sliders: top-div for all three slider fields */
@@ -352,10 +359,11 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
     padding-right: 0px;
 }
 
-#infotext{  /*landscape*/
+#infotext{
   border:0px solid black; /* 1px with frame */
   width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 31vmin; /* no positional info! */
+  height: 31vmin;
+  left: 4vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -396,7 +404,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 /* basic settings for square/portrait formats !! check with ../js/media.js */
 /*#############################################################*/
 
-@media all and  (max-aspect-ratio: 4/3){
+@media all and  (max-aspect-ratio: 6/5){
 
 /* (1) portrait:  the title */
 
@@ -414,93 +422,100 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
-/* (2) portrait: the main simCanvas */
+/* (2) portrait: the simulation canvas */
 
 #contents{
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  99vmin;  /* same ratio as above for landscape */
-  height: 87vmin;
+  width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
+  height: 78vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
 
 
-/* (3a) portrait: position of the top elements inside simCanvas */
+/* (2a) portrait: position of the copyright: left bottom of simCanvas*/
 
-#laneMinusDiv{ /* portrait: add/subtract one lane */
+#impressum{ 
+  position: absolute;
+  top: 75.5vmin;
+  height: 2vmin;
+  left: 1vw;
+  width: 12vmin;
+  background-color: rgba(255,255,255,0.5);
+  font-size: 1.5vmin;
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+
+/* (2b) portrait: position of the info button: right top of simCanvas*/
+
+#infoDiv{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
-  left: 54vmin;
-  width: 7vmin;
+  left: 90vmin;
+  width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+
+/* (2c) portrait: position of the start/stop sign: just to the left of info button*/
+
+#startStopDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 82vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2d) portrait: add/subtract one lane: just to the left of start/stop button */
 
 #lanePlusDiv{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
-  left: 63vmin;
-  width: 7vmin;
+  left: 74vmin;
+  width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#startStopDiv{ /* portrait */
+#laneMinusDiv{
   position: absolute;
   top: 1vmin;
-  height: 7vmin;
-  left: 72vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-#restartDiv{
-  position: absolute;
-  top: 1vmin;
-  height: 7vmin;
-  left: 81vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-#infoDiv{ /* portrait */
-  position: absolute;
-  top: 1vmin;
-  height: 7vmin;
-  left: 90vmin;
-  width: 8vmin;
+  height: 6min;
+  left: 66vmin;
+  width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
 
-
-/* (3b) portrait: special buttons/elements for only some simulations */
+/* (2e) portrait: special buttons/elements for only some simulations */
 
 #priorityDiv{  /* roundabout */
-  position: absolute;
+  position: absolute; /* again needed!*/
   top: 12vmin;
   left: 60vmin;
-  z-index: 2;  /* again needed!*/
+  z-index: 2;         /* again needed!*/
 }
 
-#ODDiv{  /* roundabout */
-  position: absolute;
-  top: 17.5vmin;
+#ODDiv{  
+  position: absolute; /* again needed!*/
+  top: 18vmin;
   left: 60vmin;
-  z-index: 2;  /* again needed!*/
+  z-index: 2;
 }
 
-#gameDiv{ /* portrait: "Play Routing Game" label */
+#gameDiv{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
   left: 40vmin;
   width: 24vmin;
-  font-size: 2.2vmin; 
-  z-index: 2;
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
 #debugDiv{
@@ -512,42 +527,32 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#truckBan{ /* portrait: "Enforce Truck Overtaking Ban" label */
+/* (2e) portrait: position of the enforce truck overtaking ban in uphill scen*/
+
+#buttonsInsideSimulations{
   position: absolute;
-  top: 4vmin;
-  left: 19vmin;
-  z-index: 2;
+  top: 1vmin;
+  left: 30vmin;
+  z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2f) portrait: position of the general link list square/portrait */
 
-/* (3c) portrait: position of the bottom elements inside simCanvas*/
- 
-#impressum{ /*copyright*/
+#linkDiv{
   position: absolute;
-  top: 84.5vmin;
-  height: 2vmin;
-  left: 0.5vw;
-  width: 12vw;
-  background-color: rgba(255,255,255,0.7);
-  font-size: 1.5vmin;
-  z-index: 2; /* the higher the integer, the more on top portrait */
-}
-
-#linkDiv{ /*=table.infoTable top-level  */
-  position: absolute;
-  top:   83.0vmin; /* bottom attribute error in Safari */
-  left:   30vmin;
-  width:  80vmin; /* no height */
+  top:   79vmin;
+  left:   51vmin;
+  width:  47.5vmin; /* no height */
   z-index: 2;
 } 
 
+/* (3) portrait: position of the flags for language selection: right top of simCanvas */
 
-#infoFlags{ /*portrait*/
+#infoFlags{
   position: absolute;
-  position: absolute;
-  top:   78vmin;
-  left:   84vmin;
-  width:  14vmin; /* no height */
+  top:   73.5vmin;
+  left:   83vmin;
+  width:  15vmin; /* no height */
   z-index: 2;
 }
 
@@ -556,9 +561,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #scenarios{
   position: absolute;
-  top:     86vmin;
+  top:     76vmin;
   height:  50vmin;
-  left: 58vmin;
+  left: 1vmin;
   width: 40vmin;
   z-index: 2;
 }
@@ -572,7 +577,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #sliders{ 
   position: absolute;
-  top: 88vmin;
+  top: 95vmin;
   left: 0vmin;
   width: 54vmin;
   background-color: rgba(0,40,255,0);
@@ -639,8 +644,8 @@ td.important{
   position: absolute;   /* w/respect to outer div */
   left: 51vmin;
   width: 43vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 18vmin; /* relative to simCanvas bottom */
-  height: 36vmin;
+  top: 1vmin;
+  height: 27vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -698,9 +703,9 @@ NOTE: parantheses cannot be used for clustering: C and (A, B) does not work
 #########################################################*/
 
 
-@media screen and (max-height: 420px),
-screen and (max-width: 420px),
-screen and (min-resolution: 144dpi){/* my screen TUD has 96 dpi */
+@media screen and (max-height: 600px),
+screen and (max-width: 600px),
+screen and (min-resolution: 97dpi){/* my screen TUD has 96 dpi */
 
 
 body{
@@ -761,13 +766,13 @@ input[type=range]::-moz-range-thumb {
 /* addtl smartphone landscape settings  !! check with ../js/media.js
 /*#########################################################*/
 
-@media screen and (max-height: 420px) and (min-aspect-ratio: 4/3),
-screen and (max-width: 420px) and (min-aspect-ratio: 4/3),
-screen and (min-resolution: 144dpi) and (min-aspect-ratio: 4/3){
+@media screen and (max-height: 600px) and (min-aspect-ratio: 6/5),
+screen and (max-width: 600px) and (min-aspect-ratio: 6/5),
+screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 
 
 
-/* (3b) smartphone landscape: special buttons/elements for some simulations */
+/* (2e) smartphone landscape: special buttons/elements for only some simulations */
 
 #priorityDiv{/* roundabout */
   position: absolute;
@@ -783,18 +788,15 @@ screen and (min-resolution: 144dpi) and (min-aspect-ratio: 4/3){
   z-index: 2;
 }
 
-/* (3c) smartphone landscape: bottom elements inside simCanvas*/
+/* (2f) smartphone landscape: hide link list */
 
-
-
-#linkDiv{ /* hide link list */
+#linkDiv{
   position: absolute;
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  50vmin; /* no height */
   z-index: 0;
 } 
-
 
 /* (4) smartphone landscape: the field for selecting the scenarios */
 #scenarios{
@@ -836,19 +838,18 @@ screen and (min-resolution: 144dpi) and (min-aspect-ratio: 4/3){
 }
 } /* Smartphone landscape
 
-
-
 /*#########################################################*/
 /* addtl smartphone portrait settings  !! check with ../js/media.js
 /*#########################################################*/
 
 
-@media screen and (max-height: 420px) and (max-aspect-ratio: 4/3),
-screen and (max-width: 420px) and (max-aspect-ratio: 4/3),
-screen and (min-resolution: 144dpi) and (max-aspect-ratio: 4/3){
+@media screen and (max-height: 600px) and (max-aspect-ratio: 6/5),
+screen and (max-width: 600px) and (max-aspect-ratio: 6/5),
+screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 
 
-/* (3b) smartphone portrait: special buttons/elements for some simulations */
+
+/* (2e) smartphone portrait: special buttons/elements for only some simulations */
 
 #priorityDiv{/* roundabout */
   position: absolute;
@@ -864,9 +865,9 @@ screen and (min-resolution: 144dpi) and (max-aspect-ratio: 4/3){
   z-index: 2;
 }
 
-/* (3c) smartphone portrait: bottom elements inside simCanvas*/
+/* (2f) smartphone portrait: hide link list */
 
-#linkDiv{  /*hide link list */
+#linkDiv{
   position: absolute;
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;
@@ -875,10 +876,9 @@ screen and (min-resolution: 144dpi) and (max-aspect-ratio: 4/3){
 } 
 
 /* (4) smartphone portrait: the field for selecting the scenarios */
-
 #scenarios{
   position: absolute;
-  top:     86vmin;
+  top:     76vmin;
   height:  50vmin;
   left: 53vmin;
   width: 45vmin;
@@ -891,7 +891,7 @@ screen and (min-resolution: 144dpi) and (max-aspect-ratio: 4/3){
 
 #sliders{ 
   position: absolute;
-  top: 86vmin;
+  top: 76vmin;
   left: 0vmin;
   width: 60vmin;
   background-color: rgba(0,40,255,0);
