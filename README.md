@@ -48,6 +48,61 @@ each vehicle has _(i)_ properties such as length, width, type, _(ii)_ dynamic va
 
 a collection of pseudo-classes for the longitudinal models (presently, the IDM), and lane-changing decision models (presently, MOBIL).
 
+
+### TrafficObjects.js
+
+a set of traffic-related objects that can be dragged by the user 
+from a "depot" to a network link (road) and back. 
+The main data element of this class is an array `trafficObj` 
+of the traffic objects. At present, any array element
+`traffObj=trafficObj[i]` can 
+represent one of three types of traffic objects:
+
+* obstacles:        `traffObj.type=='obstacle'`
+* traffic lights   `traffObj.type=='trafficLight'`
+* speed limits     `traffObj.type=='speedLimit'`
+
+
+Any object has one of two states at any time specified by the object's
+data element `isActive`:
+
+* `traffObj.isActive=true`: The object is on the road:
+ 
+   - in case of obstacles or traffic lights, real or 
+     virtual vehicle objects are added to the road at dropping time 
+   - in case of speed limits, no new objects are generated but the vehicle's
+     models are changed.
+   - in all cases, the visual appearance changes at dropping time
+
+* `traffObj.isActive=false`: the object is either in the "depot", or
+  dragged, or zooming back to the depot
+
+
+The traffic light and speed limit objects also have values:
+  
+  - `traffObj.value="red"` or `"green"` (if `traffObj.type==='trafficLight'`)
+  - `traffObj.value=limit_kmh` (if `traffObj.type==='speedLimit'`)
+  - `traffObj.value="null"` (if `traffObj.type==='obstacle'`)
+
+
+The main unique component of the objects is its `traffObj.id`. 
+  In case of active traffic light or obstacle objects, 
+  the id of the generated vehicle objects on the road are the same
+  as that of the `traffObj` and in the range 50-199 (all special
+  vehicles have ids < 200). The complete list of traffObj and vehicle
+  id ranges is 
+  as follows: 
+
+- `veh.id`=1:            ego vehicle
+- `veh.id`=10..49:       vehicles that are disturbed by clicks
+- `traffObj.id`=`veh.id=50..99:    objects and generated vehicles 
+   of type obstacle
+- `traffObj.id`=`veh.id=100..149   objects of type trafficLight and
+   generated vehicles (one per lane) of type obstacle 
+- `traffObj.id`=150..199     speed limits ( no generated virtual
+  vehicles)
+- `veh.id` >=200:             normal vehicles and fixed (non-depot) obstacles
+
 ### colormanip.js
 
 Helper-class providing some speed and type-dependent color maps to draw the vehicles.
