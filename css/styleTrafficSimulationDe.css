@@ -474,7 +474,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) portrait: position of the restart button*/
+/* (2b) portrait: position of the restart button*/
 
 #restartDiv{
   position: absolute;
@@ -484,7 +484,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
-/* (2d) portrait: position of the start-stop button*/
+
+
+/* (2c) portrait: position of the start-stop button*/
 
 #startStopDiv{
   position: absolute;
@@ -495,7 +497,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) portrait: add/subtract one lane: just to the left of start/stop button */
+/* (2d) portrait: add/subtract one lane */
 
 #lanePlusDiv{
   position: absolute;
