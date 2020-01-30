@@ -188,6 +188,7 @@ which always gives correct size!!
 
 
 
+
 /* (2b) landscape: position of the info button: right top of simCanvas */
 
 #infoDiv{
@@ -199,9 +200,10 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) landscape: position of the start/stop sign: just to the left of info button */
 
-#startStopDiv{
+/* (2c) landscape: position of the info button: right top of simCanvas */
+
+#restartDiv{
   position: absolute;
   top: 1vmin;
   height: 8vmin;
@@ -210,18 +212,20 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2d) landscape: add/subtract one lane: just to the left of start/stop button */
+/* (2d) landscape: position of the start/stop sign: just to the left of info button */
 
-#lanePlusDiv{
+#startStopDiv{
   position: absolute;
   top: 1vmin;
-  height: 7vmin;
+  height: 8vmin;
   left: 84vmin;
-  width: 7vmin;
+  width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#laneMinusDiv{
+/* (2e) landscape: add/subtract one lane: just to the left of start/stop button */
+
+#lanePlusDiv{
   position: absolute;
   top: 1vmin;
   height: 7vmin;
@@ -230,7 +234,16 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) landscape: special buttons/elements for only some simulations */
+#laneMinusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 7vmin;
+  left: 66vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2f) landscape: special buttons/elements for only some simulations */
 
 #priorityDiv{  /* roundabout */
   position: absolute;
@@ -436,7 +449,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* (2a) portrait: position of the copyright: left bottom of simCanvas*/
+/* portrait: position of the copyright: left bottom of simCanvas*/
 
 #impressum{ 
   position: absolute;
@@ -450,7 +463,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* (2b) portrait: position of the info button: right top of simCanvas*/
+/* (2a) portrait: position of the info button: right top of simCanvas*/
 
 #infoDiv{
   position: absolute;
@@ -461,9 +474,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2c) portrait: position of the start/stop sign: just to the left of info button*/
+/* (2c) portrait: position of the restart button*/
 
-#startStopDiv{
+#restartDiv{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
@@ -471,10 +484,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
+/* (2d) portrait: position of the start-stop button*/
 
-/* (2d) portrait: add/subtract one lane: just to the left of start/stop button */
-
-#lanePlusDiv{
+#startStopDiv{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
@@ -483,11 +495,22 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2e) portrait: add/subtract one lane: just to the left of start/stop button */
+
+#lanePlusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 66vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
 #laneMinusDiv{
   position: absolute;
   top: 1vmin;
   height: 6min;
-  left: 66vmin;
+  left: 58vmin;
   width: 6vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -498,7 +521,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 #priorityDiv{  /* roundabout */
   position: absolute; /* again needed!*/
   top: 12vmin;
-  left: 60vmin;
+  left: 52vmin;
   z-index: 2;         /* again needed!*/
 }
 
