@@ -280,10 +280,10 @@ which always gives correct size!!
 
 /* (2e) position of the enforce truck overtaking ban in uphill scen*/
 
-#buttonsInsideSimulations{
+#truckBan{
   position: absolute;
   top: 1vmin;
-  left: 32vmin;
+  left: 24vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
@@ -552,9 +552,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) portrait: position of the enforce truck overtaking ban in uphill scen*/
+/* (2e) portrait: position enforce truck overtaking ban in uphill scen*/
 
-#buttonsInsideSimulations{
+#truckBan{
   position: absolute;
   top: 1vmin;
   left: 30vmin;
