@@ -8,14 +8,14 @@ var userCanDropObjects=true;
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
- scale = refSizePix/refSizePhys 
+ scale = refSizePix/refSizePhys
        => roads have full canvas regardless of refSizePhys, refSizePix
 
- (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
+ (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run
 
  (2) refSizePhys smaller  => all phys roadlengths smaller
-  => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
+  => vehicles and road widths appear bigger for a given screen size
+  => chose smaller for mobile,
 
 ######################################################*
 */
@@ -26,7 +26,7 @@ density=0.03;  // default 0.03
 slider_density.value=1000*density;
 slider_densityVal.innerHTML=1000*density+"/km";
 
-fracTruck=0.1; // default 0.1 
+fracTruck=0.1; // default 0.1
 slider_fracTruck.value=100*fracTruck;
 slider_fracTruckVal.innerHTML=100*fracTruck+"%";
 
@@ -38,10 +38,10 @@ var scenarioString="Ring";
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 var simDivWindow=document.getElementById("contents");
-   // following cmd defines also mouse listeners from html 
-var canvas = document.getElementById("canvas"); 
+   // following cmd defines also mouse listeners from html
+var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d"); // graphics context
-canvas.width  = simDivWindow.clientWidth; 
+canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
 
@@ -50,7 +50,7 @@ addTouchListeners();
 console.log("after addTouchListeners()");
 
 //##################################################################
-// overall scaling (critAspectRatio should be consistent with 
+// overall scaling (critAspectRatio should be consistent with
 // width/height in css.#contents)
 //##################################################################
 
@@ -93,7 +93,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
 }
 
 
-// the following remains constant 
+// the following remains constant
 // => road becomes more compact for smaller screens
 
 var laneWidth=8; // remains constant => road becomes more compact for smaller
@@ -102,7 +102,7 @@ var nLanes_main=3;
 var car_length=7; // car length in m
 var car_width=6; // car width in m
 var truck_length=15; // trucks
-var truck_width=7; 
+var truck_width=7;
 
 
 // on constructing road, road elements are gridded and interna
@@ -118,7 +118,7 @@ function traj_y(u){
 
 
 //##################################################################
-// Specification of logical road 
+// Specification of logical road
 //##################################################################
 
 var isRing=true;  // 0: false; 1: true
@@ -145,7 +145,7 @@ for(var idet=0; idet<4; idet++){
 //#########################################################
 // model initialization (models and methods defined in control_gui.js)
 //#########################################################
-	
+
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 
@@ -176,8 +176,8 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // init background image
 
 var background = new Image();
-background.src ='figs/backgroundGrass.jpg'; 
- 
+background.src ='figs/backgroundGrass.jpg';
+
 
 // init vehicle image(s)
 
@@ -196,7 +196,7 @@ traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
 
-// xxxNew 
+// xxxNew
 // define obstacle images
 
 obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
@@ -283,14 +283,14 @@ function updateSim(){
 
   // (2a) update moveable speed limits
 
-  mainroad.updateSpeedlimits(trafficObjs); 
+  mainroad.updateSpeedlimits(trafficObjs);
 
 
     // do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
+    mainroad.calcAccelerations();
+    mainroad.changeLanes();
     mainroad.updateSpeedPositions();
 
     //if(itime<2){mainroad.writeVehicleLongModels();}
@@ -301,14 +301,14 @@ function updateSim(){
     }
 
   //xxxNew
-  
+
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
   }
 
 
   // (6) debug output
-  
+
   if(false){
     mainroad.writeTrucksLC();
     //mainroad.writeVehicleLCModels();
@@ -334,9 +334,9 @@ function drawSim() {
     // (0) reposition physical x center coordinate as response
     // to viewport size (changes)
     // isSmartphone defined in updateSim
- 
 
- 
+
+
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
     //console.log("isSmartphone=",isSmartphone);
@@ -360,18 +360,18 @@ function drawSim() {
 
       updateDimensions();
       //xxxNew
-      trafficObjs.calcDepotPositions(canvas); 
+      trafficObjs.calcDepotPositions(canvas);
 
     }
 
- 
+
 
   // (1) update heading of all vehicles rel. to road axis
   // (for some reason, strange rotations at beginning)
 
-    
 
- 
+
+
   // (2) reset transform matrix and draw background
   // (only needed if changes, plus "reminders" for lazy browsers)
 
@@ -384,7 +384,7 @@ function drawSim() {
   }
 
   // (3) draw road and possibly traffic lights afterwards (before vehs)
- 
+
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
@@ -392,7 +392,7 @@ function drawSim() {
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
-  // (5a) draw traffic objects 
+  // (5a) draw traffic objects
 
   if(userCanDropObjects&&(!isSmartphone)){
     trafficObjs.draw(scale);
@@ -400,9 +400,9 @@ function drawSim() {
 
   // (5b) draw speedlimit-change select box
 
-  ctx.setTransform(1,0,0,1,0,0); 
+  ctx.setTransform(1,0,0,1,0,0);
   drawSpeedlBox();
- 
+
 
     // (6) draw simulated time and detector displays
 
@@ -416,22 +416,22 @@ function drawSim() {
     // (7) draw the speed colormap (text size propto widthPix
 
     if(drawColormap){
-        displayColormap(scale*(center_xPhys-0.03*roadRadius), 
-                    -scale*(center_yPhys+0.50*roadRadius), 
+        displayColormap(scale*(center_xPhys-0.03*roadRadius),
+                    -scale*(center_yPhys+0.50*roadRadius),
 		    scale*35, scale*45,
 		    vmin_col,vmax_col,0,100/3.6);
     }
 
 
-  // may be set to true in next step if changed canvas 
-  // or old sign should be wiped away 
-  hasChanged=false; 
+  // may be set to true in next step if changed canvas
+  // or old sign should be wiped away
+  hasChanged=false;
 
     // revert to neutral transformation at the end!
-  ctx.setTransform(1,0,0,1,0,0); 
+  ctx.setTransform(1,0,0,1,0,0);
 
 } //drawSim
- 
+
 
 
 
@@ -450,15 +450,14 @@ function main_loop() {
 
  //############################################
 // start the simulation thread
-// THIS function does all the things; everything else 
+// THIS function does all the things; everything else
 // only functions/definitions
 // triggers:
-// (i) automatically when loading the simulation 
+// (i) automatically when loading the simulation
 // (ii) when pressing the start button defined in onramp_gui.js
 //  ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
 console.log("first main execution");
 showInfo();
-var myRun=setInterval(main_loop, 1000/fps); 
-
+var myRun=setInterval(main_loop, 1000/fps);

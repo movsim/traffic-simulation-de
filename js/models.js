@@ -9,7 +9,7 @@ longModel-IDM constructor
 INFO: javascript does not know overloading!! cannot define
 default, explicit, and copy constructors simultaneously
 need methods for that such as IDM.copy(longModel).
-pseudo-default cstr works by passing no args 
+pseudo-default cstr works by passing no args
 (these are then, of course, undefined at init):
 
 explicit cstr: longModel=new IDM(30,1.3,2,1,2);  //v0,T,s0,a,b);
@@ -27,9 +27,9 @@ deep copy: longModel2=new IDM(); longModel2.copy(longModel)
 @return:      IDM instance (constructor)
 */
 
- 
-function IDM(v0,T,s0,a,b){
-    this.v0=v0; 
+
+function IDM(v0,T,s0,a,b){ // Intelligent Driver Model
+    this.v0=v0;
     this.T=T;
     this.s0=s0;
     this.a=a;
@@ -38,15 +38,15 @@ function IDM(v0,T,s0,a,b){
 
     // possible restrictions (value 1000 => initially no restriction)
 
-    this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+    this.speedlimit=1000; // if effective speed limits, speedlimit<v0
     this.speedmax=1000; // if engine restricts speed, speedmax<speedlimit, v0
     this.bmax=16;
 }
 
 /**
 longModel IDM deep-copy-function (no cstr possible, see INFO above)
-used to define models individually rather than by reference. 
-Only then, speed limits etc can be implemented "on the fly" w/o 
+used to define models individually rather than by reference.
+Only then, speed limits etc can be implemented "on the fly" w/o
 reference-side effects
 
 @param already defined longModel (at the moment, IDM or ACC)
@@ -55,7 +55,7 @@ reference-side effects
 */
 
 IDM.prototype.copy=function(longModel){
-  this.v0=longModel.v0; 
+  this.v0=longModel.v0;
   this.T=longModel.T;
   this.s0=longModel.s0;
   this.a=longModel.a;
@@ -65,7 +65,7 @@ IDM.prototype.copy=function(longModel){
 
     // possible restrictions (value 1000 => initially no restriction)
 
-  this.speedlimit=longModel.speedlimit; 
+  this.speedlimit=longModel.speedlimit;
   this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
   this.bmax=longModel.bmax;
 }
@@ -84,7 +84,7 @@ IDM acceleration function
 */
 
 
-IDM.prototype.calcAcc=function(s,v,vl,al){ 
+IDM.prototype.calcAcc=function(s,v,vl,al){
 
         //MT 2016: noise to avoid some artifacts
 
@@ -107,7 +107,7 @@ IDM.prototype.calcAcc=function(s,v,vl,al){
 
         // return original IDM
 
-    return (v0eff<0.00001) ? 0 
+    return (v0eff<0.00001) ? 0
 	: Math.max(-this.bmax, accFree + accInt + accRnd);
 
         // return IDM+
@@ -120,8 +120,8 @@ IDM.prototype.calcAcc=function(s,v,vl,al){
 
 
 /**
-IDM "give way" function for passive merges (the merging vehicle has priority) 
-It returns the "longitudinal-transversal coupling" 
+IDM "give way" function for passive merges (the merging vehicle has priority)
+It returns the "longitudinal-transversal coupling"
 acceleration as though the priority vehicle has already merged/changed
 if this does not include an emergency braking (decel<2*b)
 
@@ -138,7 +138,7 @@ IDM.prototype.calcAccGiveWay=function(sNew, v, vPrio){
 
 
 /**
-MT 2016: longitudinal model ACC: Has same parameters as IDM 
+MT 2016: longitudinal model ACC: Has same parameters as IDM
 but exactly triangular steady state and "cooler" reactions if gap too small
 
 INFO on (no) overloading: see longModel-IDM constructor
@@ -162,7 +162,7 @@ function myTanh(x){
 
 
 function ACC(v0,T,s0,a,b){
-  this.v0=v0; 
+  this.v0=v0;
   this.T=T;
   this.s0=s0;
   this.a=a;
@@ -171,7 +171,7 @@ function ACC(v0,T,s0,a,b){
   this.cool=0.99;
   this.alpha_v0=1; // multiplicator for temporary reduction
 
-  this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
+  this.speedlimit=1000; // if effective speed limits, speedlimit<v0
   this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
   this.bmax=18;
 
@@ -180,8 +180,8 @@ function ACC(v0,T,s0,a,b){
 
 /**
 ACC deep-copy-function (no cstr possible, see INFO above)
-used to define models individually rather than by reference. 
-Only then, speed limits etc can be implemented "on the fly" w/o 
+used to define models individually rather than by reference.
+Only then, speed limits etc can be implemented "on the fly" w/o
 reference-side effects
 
 @param already defined longModel (at the moment, IDM or ACC)
@@ -190,7 +190,7 @@ reference-side effects
 */
 
 ACC.prototype.copy=function(longModel){
-  this.v0=longModel.v0; 
+  this.v0=longModel.v0;
   this.T=longModel.T;
   this.s0=longModel.s0;
   this.a=longModel.a;
@@ -200,7 +200,7 @@ ACC.prototype.copy=function(longModel){
   this.alpha_v0=1; // multiplicator for temporary reduction
 
     // possible restrictions (value 1000 => initially no restriction)
-  this.speedlimit=longModel.speedlimit; 
+  this.speedlimit=longModel.speedlimit;
   this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
   this.bmax=longModel.bmax;
 }
@@ -227,7 +227,7 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
     // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
 
-  var noiseAcc=(s<this.s0) ? 0 : 0.3;    // ? 0 : 0.3; 
+  var noiseAcc=(s<this.s0) ? 0 : 0.3;    // ? 0 : 0.3;
   var accRnd= noiseAcc*(Math.random()-0.5);
 
         // determine valid local v0
@@ -239,7 +239,7 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
   // !!! no strong response for v>v0
   //var accFree=(v<v0eff) ? this.a*(1-Math.pow(v/v0eff,4))
-  //  : this.a*(1-v/v0eff); 
+  //  : this.a*(1-v/v0eff);
 
   // !!! strong response wanted for baWue application (dec19)
   var accFree=this.a*(1-Math.pow(v/v0eff,4));
@@ -289,24 +289,24 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 
 /**
-ACC "give way" function for passive merges (the merging vehicle has priority) 
-It returns the "longitudinal-transversal coupling" 
+ACC "give way" function for passive merges (the merging vehicle has priority)
+It returns the "longitudinal-transversal coupling"
 acceleration as though the priority vehicle has already merged/changed
 if this does not include an emergency braking (decel<2*b)
 
-Notice 1: The caller must ensure that this function 
-is only called for the first vehicle behind a merging vehicle 
-having priority. 
+Notice 1: The caller must ensure that this function
+is only called for the first vehicle behind a merging vehicle
+having priority.
 
 Notice 2: No actual lane change is involved. The lane change of the merging vehicle
 is just favoured in the next steps by this longitudinal-transversal coupling
 
-Notice 3: For active merges to priority roads 
-(the mainroad vehicles have priority) 
+Notice 3: For active merges to priority roads
+(the mainroad vehicles have priority)
 use MOBIL.respectPriority to determine if the merge is OK
 
 
-@param sYield: distance [m] to yield point 
+@param sYield: distance [m] to yield point
                (stop if merging veh present)
 @param sPrio:  gap vehicle of other road to merge begin
 @param v:      speed of subject vehicle [m/s]
@@ -343,12 +343,12 @@ ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
 
 /**
 generalized lane-changing model MOBIL:
-at present no politeness but speed dependent safe deceleration 
+at present no politeness but speed dependent safe deceleration
 
 @param bSafe:          safe deceleration [m/s^2] at maximum speed v=v0
 @param bSafeMax:       safe deceleration [m/s^2]  at speed zero (gen. higher)
 @param p:              politeness factor (0=egoistic driving)
-@param bThr:           lane-changing threshold [m/s^2] 
+@param bThr:           lane-changing threshold [m/s^2]
 @param bBiasRight:     bias [m/s^2] to the right
 @param targetLanePrio: vehicles on target lane have priority
 @return:               MOBIL instance (constructor)
@@ -357,7 +357,7 @@ at present no politeness but speed dependent safe deceleration
 function MOBIL(bSafe, bSafeMax, p, bThr, bBiasRight){
 
     this.bSafe=bSafe;
-    this.bSafeMax=bSafeMax; 
+    this.bSafeMax=bSafeMax;
     this.p=p;
     this.bThr=bThr;
     this.bBiasRight=bBiasRight;
@@ -388,11 +388,11 @@ MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
     //if(accLagNew<-bSafeActual){return false;} //!! <jun19
     //if((accLagNew<-bSafeActual)&&(signRight*this.bBiasRight<41)){return false;}//!!! override safety criterion to really enforce overtaking ban OPTIMIZE
     if(signRight*this.bBiasRight>40){
-      //console.log("forced LC!"); 
+      //console.log("forced LC!");
       return true;
     }
     if(accLagNew<Math.min(-bSafeActual,-Math.abs(this.bBiasRight))){return false;}//!!!
-    
+
 
     // incentive criterion
 
@@ -400,7 +400,7 @@ MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
 	+ this.bBiasRight*signRight - this.bThr;
 
     // hard-prohibit LC against bias if |bias|>9 m/s^2
-    
+
     if(this.bBiasRight*signRight<-9){dacc=-1;}
 
     // debug before return
@@ -427,7 +427,7 @@ MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
 
 /**
 check first for priority if merging to a priority lane.
-In contrast to the safety criterion (critical deceleration), 
+In contrast to the safety criterion (critical deceleration),
 the criterion here is a rather small critical acceleration *change*
 
 @param accLag:    actual acceleration of the target lag vehicle

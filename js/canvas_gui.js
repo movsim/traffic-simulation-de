@@ -6,7 +6,7 @@
           onmouseenter="handleMouseEnter(event)"
           onmousedown="handleMouseDown(event)"
           onmousemove="handleMouseMove(event)"
-          onmouseup="handleMouseUp(event)" 
+          onmouseup="handleMouseUp(event)"
           onclick="handleClick(event)" <!-- only for slowing down vehs-->
           onmouseout="cancelActivities(event)"
 */
@@ -17,7 +17,7 @@
 // id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
-// id=10,11, ..49       disturbed vehicles 
+// id=10,11, ..49       disturbed vehicles
 // id=50..99            depot vehicles/obstacles
 // id=100..199          traffic lights
 // id>=200:             normal vehicles and obstacles
@@ -26,7 +26,7 @@
 
 console.log("reading canvas_gui.js");
 
-var xUser, yUser;       // physical coordinates 
+var xUser, yUser;       // physical coordinates
 var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 var touchdown=false; //true if touchstart event fired, but not yet touchend
@@ -81,8 +81,8 @@ function handleTouchStart(evt) {
     yUserDown=yUser;
 
     // do the actual action (=> mouse section)
- 
-    pickRoadOrObject(xUser, yUser); 
+
+    pickRoadOrObject(xUser, yUser);
 
     // test
 
@@ -104,10 +104,10 @@ function getTouchCoordinates(event){
     var touch = event.changedTouches[0]; // multitouch: several components
 
     var rect = canvas.getBoundingClientRect();
-    var xPixLeft=rect.left; // left-upper corner of the canvas 
+    var xPixLeft=rect.left; // left-upper corner of the canvas
     var yPixTop=rect.top;   // in browser reference system
     xPixUser= touch.clientX-xPixLeft; //pixel coords in canvas reference
-    yPixUser= touch.clientY-yPixTop; 
+    yPixUser= touch.clientY-yPixTop;
     xUser=xPixUser/scale;   //scale from main js onramp.js etc
     yUser=-yPixUser/scale;   //scale from main js onramp.js etc
 
@@ -190,10 +190,10 @@ function getMouseCoordinates(event){
     // always use canvas-related pixel and physical coordinates
 
     var rect = canvas.getBoundingClientRect();
-    var xPixLeft=rect.left; // left-upper corner of the canvas 
+    var xPixLeft=rect.left; // left-upper corner of the canvas
     var yPixTop=rect.top;   // in browser reference system
     xPixUser= event.clientX-xPixLeft; //pixel coords in canvas reference
-    yPixUser= event.clientY-yPixTop; 
+    yPixUser= event.clientY-yPixTop;
     xUser=xPixUser/scale;   //scale from main js onramp.js etc
     yUser=-yPixUser/scale;   //scale from main js onramp.js etc (! factor -1)
 
@@ -211,10 +211,10 @@ function getMouseCoordinates(event){
 function pickRoadOrObject(xUser,yUser){
 
   //console.log("itime=",itime," in pickRoadOrObject(canvas_gui):");
-  
+
   /* priorities (at most one action initiated at a given time):
 
-    (1) pick/drag trafficObject on a road or in the depot. 
+    (1) pick/drag trafficObject on a road or in the depot.
     (2) test for a road section nearby
 
     later stages not here but at onmousemove or onmouseup (onclick) callbacks
@@ -235,8 +235,8 @@ function pickRoadOrObject(xUser,yUser){
   //==============================================================
 
   if(!(typeof trafficObjs === 'undefined')){
-    var distCrit_m=20; //[m] !! make it rather larger  
-    var pickResults=trafficObjs.pickObject(xPixUser, yPixUser, 
+    var distCrit_m=20; //[m] !! make it rather larger
+    var pickResults=trafficObjs.pickObject(xPixUser, yPixUser,
 				      distCrit_m*scale);
     console.log("  pickRoadOrObject (1): test for object to be picked: pickResults=",pickResults);
    if(pickResults[0]){
@@ -314,7 +314,7 @@ function handleMouseMove(event){
   getMouseCoordinates(event); //=> xUser,yUser;
   doDragging(xUser,yUser,xUserDown,yUserDown);
 
-  // !! draw moved objects also outside of sim thread 
+  // !! draw moved objects also outside of sim thread
   // to be able to move objects before starting/during stopped simulation
 
   drawSim();
@@ -324,13 +324,13 @@ function handleMouseMove(event){
 
 
 // do drag actions if onmousemove&&mousedown or if touchdown=true
-//which action(s) (booleans depotObjPicked, funnelObjPicked,roadPicked) 
+//which action(s) (booleans depotObjPicked, funnelObjPicked,roadPicked)
 //is determined by onmousedown/touchStart  callback
 
 
 function doDragging(xUser,yUser,xUserDown,yUserDown){
 
-    if(mousedown||touchdown){ 
+    if(mousedown||touchdown){
         userCanvasManip=true; // if true, new backgr, new road drawn
 
 	distDrag=Math.sqrt(Math.pow(xUser-xUserDown,2)
@@ -346,7 +346,7 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 	}
 
 	if(distDrag>distDragCrit){ // !! do no dragging actions if only click
-	    if(trafficObjPicked){// dragged an object 
+	    if(trafficObjPicked){// dragged an object
 	      if(trafficObject.isActive){
 		trafficObjs.deactivate(trafficObject); // detach obj from road
 	      }
@@ -365,7 +365,7 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 
     // reset dragged distance to zero if mouse is up
 
-    else{distDrag=0;} 
+    else{distDrag=0;}
 }
 
 
@@ -384,14 +384,14 @@ function handleTouchEnd(evt) {
 
   // do the action (=> see mouse section) !! also add actions to mouse sect
 
-  finishDistortOrDropObject(xUser, yUser); 
+  finishDistortOrDropObject(xUser, yUser);
   influenceClickedVehOrTL(xUser,yUser);
   //!! do not allow change of speedlimits if touch device
 
   drawSim();
 
 }
- 
+
 
 //#####################################################
 // canvas onmouseup callback
@@ -404,7 +404,7 @@ function handleMouseUp(evt) {
 			" speedlBoxActive=",speedlBoxActive);}
 
   getMouseCoordinates(evt); // => xUser, yUser
-  finishDistortOrDropObject(xUser, yUser); 
+  finishDistortOrDropObject(xUser, yUser);
 
   drawSim();
   if(false){console.log("  end handleMouseUp(evt):",
@@ -414,8 +414,8 @@ function handleMouseUp(evt) {
 
 
 // #########################################################
-// do the action 2: drop=finalize dragging action 
-// Notice: klicking action influenceClickedVehOrTL(..) is separately below 
+// do the action 2: drop=finalize dragging action
+// Notice: klicking action influenceClickedVehOrTL(..) is separately below
 // while both called in handleTouchEnd(evt)
 // #########################################################
 
@@ -429,7 +429,7 @@ function finishDistortOrDropObject(xUser, yUser){
 
   mousedown=false;
   touchdown=false;
-  
+
   if(distDrag<distDragCrit){
     //console.log("  end finishDistortOrDropObject: dragging crit",
 //		" distDrag =",distDrag,"< distDragCrit=",distDragCrit,
@@ -452,13 +452,13 @@ function finishDistortOrDropObject(xUser, yUser){
 
     var distCrit_m=20;  // optimize!!
     var distCritPix=distCrit_m*scale;
-    trafficObjs.dropObject(trafficObject, network, 
+    trafficObjs.dropObject(trafficObject, network,
 			   xPixUser, yPixUser, distCritPix, scale);
     trafficObjPicked=false;
     console.log("  end finishDistortOrDropObject: dropped object");
   }
 
-  
+
 } // handleMouseUp -> finishDistortOrDropObject
 
 
@@ -496,7 +496,7 @@ function handleClick(event){
 // veh only slowed down if no TL manipulation
   console.log("  handleClick: before influenceClickedVehOrTL: didSpeedlManip=",didSpeedlManip);
 
-  if(!didSpeedlManip){ 
+  if(!didSpeedlManip){
     influenceClickedVehOrTL(xUser,yUser);
   }
 
@@ -515,12 +515,12 @@ function influenceClickedVehOrTL(xUser,yUser){
   //console.log("yUser=",yUser," yPixUser=",yPixUser);
   if(distDrag<distDragCrit){ // only do actions if click, no drag
 
- 
+
     var success=trafficObjs.changeTrafficLightByUser(xPixUser,yPixUser);
 
-    // only slowdown clicked vehicles if 
-    // (i) TL switch no success, (ii) only insignificant drag ;  
-    // (iii) nearest selected vehicle is nearer than distDragCrit 
+    // only slowdown clicked vehicles if
+    // (i) TL switch no success, (ii) only insignificant drag ;
+    // (iii) nearest selected vehicle is nearer than distDragCrit
     // distDragCrit controls both (ii) and (iii)
     // Note: dragging actions with converse filter by onmousedown,-move,-up ops
 
@@ -555,7 +555,7 @@ function influenceClickedVehOrTL(xUser,yUser){
     (if successful), and deactivates box afterwards (in any case)
     (3) drawSpeedlBox: draw it in the canvas if activated
 
-  global vars: speedlBoxActive, speedlBoxAttr 
+  global vars: speedlBoxActive, speedlBoxAttr
                (trafficObject is inside speedlBoxAttr)
 
 */
@@ -635,14 +635,14 @@ function changeSpeedl(xPixUser,yPixUser){
   console.log("\n\nitime=",itime," in changeSpeedl (canvas_gui):",
 	      " speedlBoxActive=",speedlBoxActive);
   if(speedlBoxActive){
- 
+
     if( (xPixUser>speedlBoxAttr.xPixLeft)
 	&& (xPixUser<speedlBoxAttr.xPixLeft+speedlBoxAttr.wPix)
 	&& (yPixUser>speedlBoxAttr.yPixTop)
 	&& (yPixUser<speedlBoxAttr.yPixTop+speedlBoxAttr.hPix)){
-     
+
       console.log("  speedlBoxActive and clicked inside box!");
- 
+
       var obj=speedlBoxAttr.obj;
       var nLimit=speedlBoxAttr.limits.length;
 
@@ -681,7 +681,7 @@ function drawSpeedlBox(){
 
     // (1) draw the white rectangular background box
 
-    ctx.setTransform(1,0,0,1,0,0); 
+    ctx.setTransform(1,0,0,1,0,0);
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(xPixLeft,yPixTop,wPix,hPix);
 
@@ -775,8 +775,8 @@ function handleDependencies(){
 		   );
 	}
 
-       // update (i)  the two offsets, (ii) offrampinfo (see routing.js), 
-       // (iii) end-deviation obstacle at onramp 
+       // update (i)  the two offsets, (ii) offrampinfo (see routing.js),
+       // (iii) end-deviation obstacle at onramp
        // described by umainDiverge,umainMerge
 
 	umainDiverge=ramp.getNearestUof(mainroad,lrampDev)-lrampDev;
@@ -795,7 +795,7 @@ function handleDependencies(){
 	}
   }
 
-}// handleDependencies 
+}// handleDependencies
 
 
 
@@ -805,7 +805,7 @@ function handleDependencies(){
 //##############################################################
 
 
-function dragDepotObject(xPixUser,yPixUser){ 
+function dragDepotObject(xPixUser,yPixUser){
   //console.log("in dragDepotObject: xPixUser=",xPixUser," yPixUser=",yPixUser);
   depotObject.xPix=xPixUser;
   depotObject.yPix=yPixUser;
@@ -819,10 +819,10 @@ function dragRoad(xUser,yUser){
   userCanvasManip=true; // if true, new backgr, new road drawn
 
 
-  // do not care of mergings although junk results happen if 
-  // dragged near them 
+  // do not care of mergings although junk results happen if
+  // dragged near them
 
-  draggedRoad.doCRG(xUser,yUser); 
+  draggedRoad.doCRG(xUser,yUser);
 
 }
 
@@ -863,7 +863,7 @@ function slowdownVehNearestTo(xUser,yUser,distCrit_m){
     console.log("influenceVehNearestTo: no suitable vehicle found!");
     return;
   }
-       
+
 
   if(vehPerturbed.isRegularVeh()){  // neither TL nor obstacle
     vehPerturbed.id=idPerturbed;  // to distinguish it by color
@@ -878,6 +878,3 @@ function showPhysicalCoords(xUser,yUser){
     //console.log("in showPhysicalCoords: xUser=",xUser," yUser=",yUser);
     //console.log("in showPhysicalCoords");
 }
-
-
-

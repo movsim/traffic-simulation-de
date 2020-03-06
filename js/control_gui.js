@@ -5,7 +5,7 @@
 // common canvas-related callbacks (mouse, touch) in canvas_gui.js
 //#############################################
 
-// general helper function 
+// general helper function
 // (control_gui.js is one of the first js to be called)
 
 function formd(x){return parseFloat(x).toFixed(2);}
@@ -23,7 +23,7 @@ function formd0(x){return parseFloat(x).toFixed(0);}
 
 var isStopped=false; // only initialization
 
-function myStartStopFunction(){ 
+function myStartStopFunction(){
 
     clearInterval(myRun);
     console.log("in myStartStopFunction: isStopped=",isStopped);
@@ -45,7 +45,7 @@ function myStartStopFunction(){
 // all settings and GUI-moved objects unchanged
 //#################################################################
 
-function myRestartFunction(){ 
+function myRestartFunction(){
   time=0;
   var i=0;
 
@@ -124,7 +124,7 @@ function handleChangedOD(index){
 
 
 /*#########################################################
- game callbacks 
+ game callbacks
 #########################################################
 
 at present only routing game for routing.js
@@ -145,8 +145,8 @@ function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
 }
 
 function updateRoutingGame(time){
-    qIn=(time<50) ? 3000/3600 : 
-	(time<90) ? 600/3600 : 
+    qIn=(time<50) ? 3000/3600 :
+	(time<90) ? 600/3600 :
 	(time<120) ? 3300/3600 :
 	(time<125) ? 900/3600 : 0;
     slider_qIn.value=3600*qIn;
@@ -183,8 +183,8 @@ function updateHighscores(nickName,newScore,storageName){
 	return;
     }
 
-    // test if there are already data in this localStorage 
-    // and get them, if applicable 
+    // test if there are already data in this localStorage
+    // and get them, if applicable
 
     var scores =[];
     if(localStorage.storageName){
@@ -211,10 +211,10 @@ function updateHighscores(nickName,newScore,storageName){
 
     scores.sort(function(a,b){return a.score > b.score});
 
-    // save the updated highscore list and return string for html display 
+    // save the updated highscore list and return string for html display
 
     localStorage.storageName = JSON.stringify(scores);
- 
+
 
     var str_highScores="<h1> Game Finished!</h1> Your time is "
 	+newScore+" Seconds"
@@ -270,12 +270,12 @@ but document.getElementById("infotext").load("info_ring.html"); does not work
 
 var infoLevel=0;
 var nLevels=5;
-function showInfo(){ 
+function showInfo(){
     var scenarioFile="info/info_"+scenarioString+".html";
     console.log("showInfo (control_gui): scenarioFile=",scenarioFile);
 
 
-   // scenarioFile is dynamically determined 
+   // scenarioFile is dynamically determined
    // e.g., "info/info_"+scenarioString+".html"
 
     if(infoLevel===0){$("#infotext").load("info/info_gui.html");}
@@ -298,9 +298,9 @@ function showHTMLfile(htmlfile){
 #########################################################*/
 
 var nLanesMin=1; // can be overridden in main sim files
-var nLanesMax=4; 
+var nLanesMax=4;
 
-function addOneLane(){ 
+function addOneLane(){
     if(mainroad.nLanes<nLanesMax){
 	userCanvasManip=true; // causes drawing background, resampling road
 	mainroad.addOneLane();     // changes mainroad.nLanes
@@ -328,10 +328,10 @@ function addOneLane(){
         document.getElementById("laneMinusDiv").style.visibility="visible";
     }
 }
- 
 
 
-function subtractOneLane(){ 
+
+function subtractOneLane(){
     if(mainroad.nLanes>nLanesMin){
 	userCanvasManip=true;  // causes drawing background, resampling road
 	mainroad.subtractOneLane(); // changes mainroad.nLanes
@@ -387,14 +387,14 @@ function toggleTruckOvertakingBan(){
     updateModelsUphill();
     console.log("control_gui.toggleTruckOvertakingBan: LCModelTruckUphill=",
 		LCModelTruckUphill);
- 
+
 }
 
 
 
 //#############################################
 // sliders
-// names "slider_timewarp" etc defined in html file 
+// names "slider_timewarp" etc defined in html file
 // and formatted in sliders.css
 //#############################################
 
@@ -422,7 +422,7 @@ else{
 
 var scale=2.3;  // pixel/m
 var slider_scale,slider_scaleVal;
-if(document.getElementById("slider_scale")===null) 
+if(document.getElementById("slider_scale")===null)
     console.log("no scale slider");
 else{
     slider_scale= document.getElementById("slider_scale");
@@ -437,11 +437,11 @@ else{
 }
 
 
-// inflow slider 
+// inflow slider
 
 var qIn=4.4/3.6;    //total inflow, overridden in roadworks.js, routing.js
 var slider_qIn,slider_qInVal;
-if(document.getElementById("slider_qIn")===null) 
+if(document.getElementById("slider_qIn")===null)
     console.log("no qIn slider");
 else{
     slider_qIn= document.getElementById("slider_qIn");
@@ -460,7 +460,7 @@ else{
 
 var qOn=900/3600.; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
-if(document.getElementById("slider_qOn")===null) 
+if(document.getElementById("slider_qOn")===null)
     console.log("no qOn slider");
 else{
     slider_qOn= document.getElementById("slider_qOn");
@@ -481,7 +481,7 @@ else{
 var fracTruck=0.10; // 0.10
 var slider_fracTruck;
 var slider_fracTruckVal;
-if(document.getElementById("slider_fracTruck")===null) 
+if(document.getElementById("slider_fracTruck")===null)
     console.log("no fracTruck slider");
 else{
     slider_fracTruck = document.getElementById("slider_fracTruck");
@@ -501,7 +501,7 @@ else{
 var density=0.03; // 0.10
 var slider_density;
 var slider_densityVal;
-if(document.getElementById("slider_density")===null) 
+if(document.getElementById("slider_density")===null)
     console.log("no density slider");
 else{
     slider_density = document.getElementById("slider_density");
@@ -519,10 +519,10 @@ else{
 
 // offramp use fraction  slider
 
-var fracOff=0.25; 
+var fracOff=0.25;
 var slider_fracOff;
 var slider_fracOffVal;
-if(document.getElementById("slider_fracOff")===null) 
+if(document.getElementById("slider_fracOff")===null)
     console.log("no fracOff slider");
 else{
     slider_fracOff = document.getElementById("slider_fracOff");
@@ -538,9 +538,9 @@ else{
 
 // main percentage slider (only 4-arm roundabout): 0.5=symm, 1=only 2 oppos. inflows
 
-var mainFrac=0.75; 
+var mainFrac=0.75;
 var slider_mainFrac, slider_mainFracVal;
-if(document.getElementById("slider_mainFrac")===null) 
+if(document.getElementById("slider_mainFrac")===null)
     console.log("no mainFrac slider");
 else{
     slider_mainFrac = document.getElementById("slider_mainFrac");
@@ -559,7 +559,7 @@ else{
 
 var leftTurnBias=leftTurnBias=0.10; // 0.10
 var slider_leftTurnBias, slider_leftTurnBiasVal;
-if(document.getElementById("slider_leftTurnBias")===null) 
+if(document.getElementById("slider_leftTurnBias")===null)
     console.log("no leftTurnBias slider");
 else{
     slider_leftTurnBias = document.getElementById("slider_leftTurnBias");
@@ -578,7 +578,7 @@ else{
 
 var focusFrac=focusFrac=0.50;
 var slider_focusFrac, slider_focusFracVal;
-if(document.getElementById("slider_focusFrac")===null) 
+if(document.getElementById("slider_focusFrac")===null)
     console.log("no focusFrac slider");
 else{
     slider_focusFrac = document.getElementById("slider_focusFrac");
@@ -599,15 +599,15 @@ else{
 // Slider for long Model parameters
 //############################################################
 
-// var defs such as var IDM_v0=30: initial default; slider values are 
-// distributed in updateModels() and (as deep copies) 
+// var defs such as var IDM_v0=30: initial default; slider values are
+// distributed in updateModels() and (as deep copies)
 // in road.updateModelsOfAllVehicles
 
 // IDM_v0 slider
 
-var IDM_v0=30; 
+var IDM_v0=30;
 var slider_IDM_v0,slider_IDM_v0Val;
-if(document.getElementById("slider_IDM_v0")===null) 
+if(document.getElementById("slider_IDM_v0")===null)
     console.log("no IDM_v0 slider");
 else{
    slider_IDM_v0 = document.getElementById("slider_IDM_v0");
@@ -624,9 +624,9 @@ else{
 
 // IDM_T slider
 
-var IDM_T=1.4; 
+var IDM_T=1.4;
 var slider_IDM_T,slider_IDM_TVal;
-if(document.getElementById("slider_IDM_T")===null) 
+if(document.getElementById("slider_IDM_T")===null)
     console.log("no IDM_T slider");
 else{
    slider_IDM_T = document.getElementById("slider_IDM_T");
@@ -644,9 +644,9 @@ else{
 
 // IDM_s0 slider
 
-var IDM_s0=2; 
+var IDM_s0=2;
 var slider_IDM_s0,slider_IDM_s0Val;
-if(document.getElementById("slider_IDM_s0")===null) 
+if(document.getElementById("slider_IDM_s0")===null)
     console.log("no IDM_s0 slider");
 else{
    slider_IDM_s0 = document.getElementById("slider_IDM_s0");
@@ -664,9 +664,9 @@ else{
 
 // IDM_a slider
 
-var IDM_a=0.3; 
+var IDM_a=0.3;
 var slider_IDM_a,slider_IDM_aVal;
-if(document.getElementById("slider_IDM_a")===null) 
+if(document.getElementById("slider_IDM_a")===null)
     console.log("no  IDM_a slider");
 else{
     slider_IDM_a = document.getElementById("slider_IDM_a");
@@ -683,9 +683,9 @@ else{
 
 // IDM_b slider
 
-var IDM_b=3; 
+var IDM_b=3;
 var slider_IDM_b,slider_IDM_bVal;
-if(document.getElementById("slider_IDM_b")===null) 
+if(document.getElementById("slider_IDM_b")===null)
     console.log("no  IDM_b slider");
 else{
     slider_IDM_b = document.getElementById("slider_IDM_b");
@@ -704,11 +704,11 @@ else{
 // speedlimit slider
 // per default no speed limit (speedL used in updateModels())
 
-var speedL=1000/3.6; 
+var speedL=1000/3.6;
 var speedL_truck=80/3.6; // default truck speedlimit (no slider)
 
 var slider_speedL, slider_speedLVal;
-if(document.getElementById("slider_speedL")===null) 
+if(document.getElementById("slider_speedL")===null)
     console.log("no  speedL slider");
 else{
     slider_speedL = document.getElementById("slider_speedL");
@@ -727,9 +727,9 @@ else{
 
 // truck uphill steady-state maxSpeed slider
 
-var IDM_v0Up=100/3.6; 
+var IDM_v0Up=100/3.6;
 var slider_IDM_v0Up, slider_IDM_v0UpVal;
-if(document.getElementById("slider_IDM_v0Up")===null) 
+if(document.getElementById("slider_IDM_v0Up")===null)
     console.log("no  IDM_v0Up slider");
 else{
     slider_IDM_v0Up = document.getElementById("slider_IDM_v0Up");
@@ -754,9 +754,9 @@ else{
 
 // MOBIL_bThr slider
 
-var MOBIL_bThr=0.4; 
+var MOBIL_bThr=0.4;
 var slider_MOBIL_bThr,slider_MOBIL_bThrVal;
-if(document.getElementById("slider_MOBIL_bThr")===null) 
+if(document.getElementById("slider_MOBIL_bThr")===null)
     console.log("no  MOBIL_bThr slider");
 else{
     slider_MOBIL_bThr = document.getElementById("slider_MOBIL_bThr");
@@ -773,14 +773,14 @@ else{
 
 // MOBIL_bBiasRight_car slider
 
-var MOBIL_bBiasRight_car=0.05; 
+var MOBIL_bBiasRight_car=0.05;
 var slider_MOBIL_bBiasRight_car,slider_MOBIL_bBiasRight_carVal;
-if(document.getElementById("slider_MOBIL_bBiasRight_car")===null) 
+if(document.getElementById("slider_MOBIL_bBiasRight_car")===null)
     console.log("no  MOBIL_bBiasRight_car slider");
 else{
-    slider_MOBIL_bBiasRight_car 
+    slider_MOBIL_bBiasRight_car
 	= document.getElementById("slider_MOBIL_bBiasRight_car");
-    slider_MOBIL_bBiasRight_carVal 
+    slider_MOBIL_bBiasRight_carVal
 	= document.getElementById("slider_MOBIL_bBiasRight_carVal");
     slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
     slider_MOBIL_bBiasRight_carVal.innerHTML
@@ -795,12 +795,12 @@ else{
 
 // MOBIL_bBiasRight_truck slider
 
-var MOBIL_bBiasRight_truck=0.2; 
+var MOBIL_bBiasRight_truck=0.2;
 var slider_MOBIL_bBiasRight_truck,slider_MOBIL_bBiasRight_truckVal;
-if(document.getElementById("slider_MOBIL_bBiasRight_truck")===null) 
+if(document.getElementById("slider_MOBIL_bBiasRight_truck")===null)
     console.log("no  MOBIL_bBiasRight_truck slider");
 else{
-    slider_MOBIL_bBiasRight_truck 
+    slider_MOBIL_bBiasRight_truck
 	=document.getElementById("slider_MOBIL_bBiasRight_truck");
     slider_MOBIL_bBiasRight_truckVal
 	=document.getElementById("slider_MOBIL_bBiasRight_truckVal");
@@ -818,12 +818,12 @@ else{
 
 // MOBIL_p slider politeness factor
 
-var MOBIL_p=0.1; 
+var MOBIL_p=0.1;
 var slider_MOBIL_p,slider_MOBIL_pVal;
-if(document.getElementById("slider_MOBIL_p")===null) 
+if(document.getElementById("slider_MOBIL_p")===null)
     console.log("no  MOBIL_p slider");
 else{
-    slider_MOBIL_p 
+    slider_MOBIL_p
 	=document.getElementById("slider_MOBIL_p");
     slider_MOBIL_pVal
 	=document.getElementById("slider_MOBIL_pVal");
@@ -867,7 +867,7 @@ var MOBIL_mandat_bias=42;
 
 // define truck longModel as f(car longModel)v0 limited by speed limit
 
-var factor_v0_truck=1; 
+var factor_v0_truck=1;
 var factor_a_truck=1.0;
 var factor_T_truck=1.1;
 
@@ -887,10 +887,10 @@ function updateModels(){
     longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
     LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
                         MOBIL_bThr, MOBIL_bBiasRight_car);
- 
+
     LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
-    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe,
 			       MOBIL_mandat_p,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
@@ -919,7 +919,7 @@ function updateModelsUphill(){
 
 // example for changing sliders from standard init setting in gui
 /*
-IDM_T=0.5; 
+IDM_T=0.5;
 slider_IDM_T.value=IDM_T;
 slider_IDM_TVal.innerHTML=IDM_T+" s";
 */
