@@ -1,5 +1,5 @@
 # traffic-simulation.de
-Source code for the interactive Javascript simulation at  [www.traffic-simulation.de](http://www.traffic-simulation.de)
+Source code for the interactive Javascript simulation at  [traffic-simulation.de](https://traffic-simulation.de)
 
 ## Running the Simulation
 
