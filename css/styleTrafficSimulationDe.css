@@ -820,7 +820,7 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  50vmin; /* no height */
-  z-index: 0;
+  z-index: 2;
 } 
 
 /* (4) smartphone landscape: the field for selecting the scenarios */
