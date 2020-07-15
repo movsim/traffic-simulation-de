@@ -26,8 +26,10 @@ viewport size by additional controls in _canvasresize.js_ implementing a respons
 ## Offline Usage
 
 Just download all the html files and the js/, figs/, css/, and info/
-directories and load, e.g., index.html in your favourite browser. For
-convenience, you can also download offlineVersion.zip containing all
+directories and load, e.g., _index.html_ in your favourite browser. For
+convenience and also to have access to the German version not
+contained in the repository, you can
+also download the zip file _offlineVersion.zip_ containing all
 the ressources
 
 
