@@ -19,6 +19,7 @@ INFO: full HD =1080p (1920×1080 px), aspect ratio 5/3;
 body{
   margin: 0;
   padding: 0;
+  /*overflow-x: hidden;*/ /* remove horizontal scrollbar */
   font-family: 'helvetica', sans-serif;
                  /*font-size: 14px;*/
   font-size: 2vmin;
@@ -287,36 +288,36 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2f) landscape: position of the general link list  (table.infoTable top-level)*/
 
-#linkDiv{
-  position: absolute;
-  top:   96.5vmin; /* bottom attribute error in Safari */
-  left:   20vmin;
-  width:  80vmin; /* no height */
-  z-index: 2;
-} 
-
-/* (2g) landscape: position of the copyright left bottom of simCanvas*/
+/* (2f) landscape: position of the copyright left bottom of simCanvas*/
 /* Safari bug with using bottom => use always top */
 
 #impressum{ 
   position: absolute;
-  top: 98vmin;
-  height: 2vmin;
+  top: 96%;  /* % takes care of scrollbars, vmin/vh not*/
   left: 0.5vw;
-  width: 10vw;
-  background-color: rgba(255,255,255,0.7);
+  /*background-color: rgba(255,255,255,0.7);*/
   font-size: 1.5vmin;
   z-index: 1; /* the higher the integer, the more on top landscape */
 }
 
+/* (2g) landscape: position of the general link list  (table.infoTable top-level)*/
+
+/* %units viewpot taking into account space by scrollbars, vw/vh/vmin not*/
+
+#linkDiv{
+  position: absolute;
+  top:   96%; /* bottom attribute error in Safari */ 
+  left:   40vmin;
+  /*width:  40vmin;*/
+  z-index: 2;
+} 
 
 /* (3) landscape: position of the flags for language selection: right top of simCanvas */
 
 #infoFlags{
   position: absolute;
-  top:   95vmin;
+  top:   94.5%;
   left:   95vmin;
   width:  16vmin; /* no height */
   z-index: 2;
@@ -353,12 +354,6 @@ which always gives correct size!!
 
 
 
-/* (5a-c) nested div's single slider-areas. In landscape, just let them flow
-(no spec), in portrait,  unfortunately DOS  => position by brute force  */
-
-#slidersGen,#slidersIDM,#slidersLC{
-
-}
 
 
 /* (6) landscape: infotext div-box landscape (sub-div! no pos info, just below the sliders*/
@@ -419,6 +414,10 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 @media all and  (max-aspect-ratio: 6/5){
 
+body{
+  overflow-x: hidden;   /* remove useless horiz scrollbars */
+}
+
 /* (1) portrait:  the title */
 
 #header{
@@ -435,35 +434,22 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
-/* (2) portrait: the simulation canvas */
+/* (2) square/portrait: the simulation canvas */
 
 #contents{
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
-  height: 78vmin;
+  width:  100.5%;  /* proportional to above .#contents 120/95 approx 5/4*/
+  height: 80vmin;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
 
 
-/* portrait: position of the copyright: left bottom of simCanvas*/
 
-#impressum{ 
-  position: absolute;
-  top: 75.5vmin;
-  height: 2vmin;
-  left: 1vw;
-  width: 12vmin;
-  background-color: rgba(255,255,255,0.5);
-  font-size: 1.5vmin;
-  z-index: 1; /* the higher the integer, the more on top */
-}
-
-
-/* (2a) portrait: position of the info button: right top of simCanvas*/
+/* (2a) square/portrait: position of the info button */
 
 #infoDiv{
   position: absolute;
@@ -474,7 +460,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2b) portrait: position of the restart button*/
+/* (2b) square/portrait: position of the restart button */
 
 #restartDiv{
   position: absolute;
@@ -518,7 +504,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* (2e) portrait: special buttons/elements for only some simulations */
+/* (2e) square/portrait: special buttons/elements for only some simulations */
 
 #priorityDiv{  /* roundabout */
   position: absolute; /* again needed!*/
@@ -561,32 +547,42 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2f) portrait: position of the general link list square/portrait */
+/* square/portrait: position of the copyright */
+
+#impressum{ 
+  position: absolute;
+  top: 81vmin;
+  left: 1vw;
+  /*background-color: rgba(255,255,255,0.5);*/
+}
+
+
+/* (2f) square/portrait: position of the general link list */
 
 #linkDiv{
   position: absolute;
-  top:   79vmin;
-  left:   51vmin;
-  width:  47.5vmin; /* no height */
+  top:   81vmin;
+  left:   68vmin;
+  width:  32vmin;
   z-index: 2;
 } 
 
-/* (3) portrait: position of the flags for language selection: right top of simCanvas */
+/* (3) square/portrait: position of the flags for language selection */
 
 #infoFlags{
   position: absolute;
-  top:   73.5vmin;
+  top:   75.5vmin;
   left:   83vmin;
   width:  15vmin; /* no height */
   z-index: 2;
 }
 
 
-/* (4) portrait: the field for selecting the scenarios; */
+/* (4) square/portrait: the field for selecting the scenarios; */
 
 #scenarios{
   position: absolute;
-  top:     76vmin;
+  top:     83vmin;
   height:  50vmin;
   left: 1vmin;
   width: 40vmin;
@@ -602,7 +598,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 #sliders{ 
   position: absolute;
-  top: 95vmin;
+  top: 99vmin;
   left: 0vmin;
   width: 54vmin;
   background-color: rgba(0,40,255,0);
@@ -631,45 +627,20 @@ td.important{
 }
 
 
-/* (5a-c) portrait: nested div's single slider-areas. In landscape, just let them flow
-(no spec), in portrait,  unfortunately DOS  => position by brute force  */
-
-#slidersGen{ 
-  position: absolute;   /* w/respect to outer div */
-  left: 0;
-  width: 50vmin;
-  top: 0;
-  background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-#slidersIDM{ 
-  position: absolute;   /* w/respect to outer div */
-  left: 49vmin;
-  width: 50vmin;
-  top: 0;
-  background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-#slidersLC{ 
-  position: absolute;   /* w/respect to outer div */
-  left: 0;
-  width: 46vmin;
-  top: 18vmin;
-  background-color: rgba(0,40,255,0);
-  z-index: 2; /* the higher the integer, the more on top */
-}
 
 
-/* (6) portrait: infotext div-box portrait (sub-div!, in contrast to landscape pos info*/
+/* (6) square/portrait: infotext div-box portrait 
+   (sub-div of sliders!, in contrast to landscape pos info
+   position: absolute w/respect to outer div
+*/
+
 
 #infotext{
   border:1px solid black;
-  position: absolute;   /* w/respect to outer div */
+  position: absolute;  
   left: 51vmin;
-  width: 43vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 1vmin;
+  width: 42vmin; 
+  top: -8vmin;
   height: 27vmin;
   text-align: left;
   padding-top: 0vmin;
@@ -813,14 +784,21 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
   z-index: 2;
 }
 
-/* (2f) smartphone landscape: hide link list */
+
+/* (2f) smartphone landscape */
+
+#impressum{ 
+  top: 95.2%;  /* % takes care of scrollbars, vmin/vh not*/
+}
+
+/* (2g) smartphone landscape: hide link list by setting z-index: 0*/
 
 #linkDiv{
   position: absolute;
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;
   width:  50vmin; /* no height */
-  z-index: 2;
+  z-index: 0;
 } 
 
 /* (4) smartphone landscape: the field for selecting the scenarios */
@@ -890,7 +868,16 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
   z-index: 2;
 }
 
-/* (2f) smartphone portrait: hide link list */
+/* (2f) smartphone portrait */
+
+#impressum{ 
+  top: 76vmin; 
+  left: 30vmin; 
+  z-index: 2;
+
+}
+
+/* (2g) smartphone portrait: hide link list by z-index: 0 */
 
 #linkDiv{
   position: absolute;
@@ -903,7 +890,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 /* (4) smartphone portrait: the field for selecting the scenarios */
 #scenarios{
   position: absolute;
-  top:     76vmin;
+  top:     79vmin;
   height:  50vmin;
   left: 53vmin;
   width: 45vmin;
@@ -916,7 +903,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 
 #sliders{ 
   position: absolute;
-  top: 76vmin;
+  top: 79vmin;
   left: 0vmin;
   width: 60vmin;
   background-color: rgba(0,40,255,0);
