@@ -1,7 +1,7 @@
 # user-defined ignores (avoid committing large files)
 
 *.swp
-*.zip
+# *.zip
 
 ## Core latex/pdflatex auxiliary files:
 *.aux
