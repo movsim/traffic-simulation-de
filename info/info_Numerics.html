@@ -1,0 +1,76 @@
+<!-- edit in development directory; copied to public html -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+<h1>Numerics</h1>
+
+Models such as the <a href="https://traffic-simulation.de/info/info_IDM.html">IDM</a> naturally lead to a
+system  of ordinary differential equations (ODE) which some
+discontinuous elements introduced by
+the <a href="https://traffic-simulation.de/info/info_MOBIL.html">lane changing model</a>
+<ul>
+<li> There are explicit and implicit schemes for a numerical solution
+  requiring the old state and both the old and new states,
+  respectively. Because of the many actions in our simulator, only
+  explicit schemes are relevant
+<li> Explicit schemes can be distinguished according to
+  their <i>consistency order</i>. The precision of a method of
+  consistency order <i>k</i> for integrating a fixed time period
+  increases with the update time step &Delta; t according to
+  (&Delta; t)<sup>-k</sup> in the limit of &Delta; t to zero and
+  sufficiently smooth right-hand sides. 
+</ul>
+While the IDM is (with a few marginal exceptions is perfectly smooth
+(arbitrarily many times differentiable), the jumps introduced by the
+lanechanging model are discontinuous, so higher-order schemes as the
+standard 4<sup>th</sup> order Runge Kutta scheme are not efficient. 
+
+As investigated in our publication 
+[Martin Treiber and Venkatesan Kanagaraj (2015),
+Comparing Numerical Integration Schemes for Time-Continuous
+Car-Following Models 
+Physica A: Statistical Mechanics and its Applications 419C, 183-195
+DOI 10.1016/j.physa.2014.09.061
+<a href="https://arxiv.org/abs/1403.4881">arxiv e-print
+  1403.4881</a>], the best scheme for situations including disruptive
+  elements such as lane changes, traffic lights is the <i> ballistic
+  scheme</i>
+where the location <i>x<sub>i</sub></i> and speeds <i>v<sub>i</sub></i> of
+  vehicle <i>i</i> are updated as follows: <br>
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFDDAA" cellpadding="10"><tr><td>
+<font color="#0000AA"><i>
+<tr><td>
+  <font color="#0000AA"><i>
+  v<sub>i</sub>(t+&Delta; t) = v<sub>i</sub>(t)+f_i(t) &Delta; t
+</i></font>
+</td></tr>
+<tr><td>
+  <font color="#0000AA"><i>
+  x<sub>i</sub>(t+&Delta; t) = x<sub>i</sub>(t)+v_i(t) &Delta; t
+  + 1/2 &nbsp; f_i(t) (&Delta; t)<sup>2</sup>
+</i></font>
+</td></tr>
+</i></font>
+</table>
+</center>
+<br>
+<!-- ######################################## -->
+
+In this scheme, the speed update is first-order ("Euler-update") while
+the positional update is second-order. It is called ballistic because
+a single update step is enough for numerically updating cannon balls
+if air drag is neglected. You can also write the
+positional update as incrementing with the average of the old and new
+speed times &Delta; t
+ 
+
+    <hr>
+
+
+  </body>
+</html>

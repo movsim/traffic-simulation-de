@@ -269,7 +269,7 @@ but document.getElementById("infotext").load("info_ring.html"); does not work
 */
 
 var infoLevel=0;
-var nLevels=5;
+var nLevels=6;
 function showInfo(){ 
     var scenarioFile="info/info_"+scenarioString+".html";
     console.log("showInfo (control_gui): scenarioFile=",scenarioFile);
@@ -283,6 +283,7 @@ function showInfo(){
     else if(infoLevel===2){$("#infotext").load("info/info_IDM.html");}
     else if(infoLevel===3){$("#infotext").load("info/info_MOBIL.html");}
     else if(infoLevel===4){$("#infotext").load("info/info_BC.html");}
+    else if(infoLevel===5){$("#infotext").load("info/info_Numerics.html");}
     infoLevel++; infoLevel=(infoLevel%nLevels);
 }
 
