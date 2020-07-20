@@ -110,8 +110,23 @@ panel and numbers on TL vanish
     
   - if distPixRel(trafficLightEditor.finishButton.xyPix<0.03)
     => trafficLightEditor.isActive=false, all editor panels and
-    numbers vanish; TLs are controlled acording to the status in
-    TrafficObjects obj.isControlled=true or false
-    if(obj.isControlled=true) => controlled according to info
+    numbers vanish
+
+* Implement effects on the simulator
+
+  - TLs are controlled acording to the status set by the TrafficLightEditor
+    => TrafficObjects obj.isControlled=true or false
+
+  - if(obj.isControlled=true) => controlled according to info
     transferred to trafficObjects.obj.relGreenStarts from
     left.relValue and trafficObjects.obj.relGreenEnds from right.relValue 
+
+   
+* Implement reverse effects of actions in TrafficObjects
+
+  - all TLs dragged from the road are set to obj.isControlled=false
+
+  - all new TLs dragged to a road segment are initialized with
+    obj.isControlled=false => appear in editor panel as grayed out
+    double-slider that can be activated (left circle)
+
