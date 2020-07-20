@@ -130,3 +130,83 @@ panel and numbers on TL vanish
     obj.isControlled=false => appear in editor panel as grayed out
     double-slider that can be activated (left circle)
 
+
+
+======================================================
+
+Dear Fernandez,
+
+I will add a quite flexible control of traffic lights in the next version. Then, all traffic lights dragged onto a road segment can be individually included to a fixed-time control with a common user-controlled cycle time and individual green periods with user-controllable durations and phases relative to this cycle time
+Best,
+
+ ----------------------------------------------------------
+Dr. Martin Treiber
+Institute for Transport & Economics, TU Dresden
+Chair of Traffic Modelling, Econometrics, and Statistics
+Falkenbrunnen, Room 123 (two floors up from the entrance!)
+Würzburger Str. 35, D-01062 Dresden
+martin@mtreiber.de
+www.mtreiber.de
+phone/fax: +49 (351) 463 36794 / 36809
+---------------------------------------------------------
+
+
+Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es> hat am 18. Juli 2020 um 09:52 geschrieben: 
+
+Hello,
+         I comment shortly interleaved . 
+Best,
+
+Guillermo Ibáñez 
+Depto de Automática 
+Area de Ingeniería Telemática 
+Despacho E-341 
+91-8856927 
+
+
+De: Martin Treiber <mail@martin-treiber.de>
+Enviado: viernes, 17 de julio de 2020 22:30
+Para: Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es>
+Asunto: RE: Roundabout simulation Javascript
+
+Dear Fernandez,
+of course the blue "lane+" signs do not appear in the roundabout scenario since, as I said, this is not implemented. Anyway, I would always forbid that the left-turners go to the right exit lane (as the dashed blue trajectory in your sketch).
+ ** Guillermo: I agree 
+This is hard for the drivers (the exiting car must simultaneously cross two lanes and a car driving from East to West on the right lane would be unecessarily obstructed), and also hard to simulate. 
+  
+Generally, your design looks like a conventional two-lane roundabout. Critical situations can only be avoided if either the right lanes are exclusively for the right turners (in this case, you would have, de-facto, a single-lane roundabout for the people going straight ahead or left, and additional non-interacting lanes for the right turners), 
+** Guillermo: Good argument. 
+or the geometry of your sketch if the inner ring has priority over the outer ring, or there are additional control elements which I do not see in your sketch. Anything with prescribed lane usage can be implemented quite simply, all other configurations not.
+** guillermo: The sketch is not mine, and the dotted blue lines are not possible in our proposal. My mistake.
+** What is needed to implement are the continuous blue and orange paths, not the dotted blue paths. 
+I wonder what you mean with controlability of signal cycles since they are not implemented at all (all lights are switched by hand) with the exception of the ramp-metering scenario. Implementing signal cycles, i.e., essentially defining a common cycle time and, for each light, green phases with respect to this cycle is easy as long as you have a fixed-time (fixed cycles) control. 
+** guillermo: A common cycle time and lights (two per access: one far and one closer to the roundabout, with separate controls) would be enough.
+
+Best,
+
+
+
+Martin
+
+ ----------------------------------------------------------
+Dr. Martin Treiber
+Institute for Transport & Economics, TU Dresden
+Chair of Traffic Modelling, Econometrics, and Statistics
+Falkenbrunnen, Room 123 (two floors up from the entrance!)
+Würzburger Str. 35, D-01062 Dresden
+martin@mtreiber.de
+www.mtreiber.de
+phone/fax: +49 (351) 463 36794 / 36809
+---------------------------------------------------------
+
+
+Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es> hat am 17. Juli 2020 um 14:21 geschrieben: 
+
+Hello Dr. Treiber,
+      Many thanks for the detailed response.
+The blue German Autoban lane+ and lane- buttons are visible in the onramp and the offramp but not in the roundabout page  https://www.traffic-simulation.de/roundabout.html 
+We are interested on your simulator to evaluate a new approach to roundabouts that uses signalling. In one implementation of this approach the U turn is not allowed  and there would not be conflict for exiting to the left if the cars are correctly positioned when entering the roundabout. 
+It is not clear for me if it is complex or not to have a roundabout in your simulator with  two-lane ring and two-lane accesses with the above assumptions. The interactivity and controllability of the existing ones are very good. 
+Controllability of signal cycles would also be helpful. I think that in two weeks time I will be able to provide full details of our approach (currently subject to non discosure agreements). 
+ Regards 
+
