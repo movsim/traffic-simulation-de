@@ -1,0 +1,117 @@
+2020-07-20
+
+Idea:
+
+* small button 
+  <div id="div_editTL">
+  <button id="button_editTL" onclick="controlTrafficLights()">
+  Control traffic lights</button> 
+  </div>
+
+* when pressed (controlTrafficLights()), 
+  - an editor panel appears in the simulation with gray
+    borders showing all active traffic lights 
+
+  - simultaneously the info panel is updated (div element #infotext)
+
+  - simultaneously, the traffic lights are conspicuously numbered
+
+   [possibly document.getElementById("img1").style.zIndex = "1"; but
+   more flexible directly draing into canvas]
+
+* if no active lights,  message "No active
+  traffic lights. First drag some traffic lights on road segments"
+  appears both in the editor panel and in #infotext
+
+* if active editor panel:
+
+Common cycle time  o     o     o     O     o     o     o  
+                  30 s  40 s  50 s  60 s  80 s 100 s 120 s
+
+o Traffic Light 1  <double slider red - knob - green - knob - red>
+[for all active lights]
+
+button "done" in both cases -> finish_controlTrafficLights() -> editor
+panel and numbers on TL vanish 
+
+* if active #infotext: "Chose a common cycle time and use the double
+  sliders to control the relative green phase. Extend the green phase
+  to the max for traffic lights that should remain in manual
+  control. Press "done" when finished"
+
+* implement editor panel drawing
+
+    function TrafficLightEditor(canvas,trafficObjects,xRelEditor,yRelEditor)
+
+  - draw if trafficLightEditor.isActive=true; set by controlTrafficLights() 
+    trafficLightEditor.isActive=false set by finish_controlTrafficLights()
+
+  - trafficLightEditor.cycleTime=60 by default (cstr)
+
+  - read active TL including number from trafficObjects
+
+  - draw 7 circles (1 thereof filled) and text 40 s, ...
+
+  - draw as many circles/bullets (for activating/deactivating) and double
+    sliders as there  are active TL (info from  trafficObjects). 
+
+  - gray out (semi-transparent) all double sliders for TLs with deactivated
+    control 
+  
+  - draw "done" button
+
+
+// asumes global var xPixUser, yPixUser, canvas.width,canvas.height
+* function distPixRel(xyPixElem){
+    return Math.sqrt(Math.pow(xPixUser-xyPixElem.xPix,2)
+    + Math.pow(yPixUser-xyPixElem.yPix,2))
+    / Math.min(canvas.width,canvas.height); 
+
+
+
+* implement editor panel interaction
+
+  - Basis: canvas_gui.handleClick(event), handleMouseUp(evt),
+    handleMouseDown(evt), handleMouseMove(evt).
+    All update
+    xPixUser, yPixUser, (xUser, yUser) by calling getMouseCoordinates(event);
+
+  - disable all other mouse events from all handle* if
+    trafficLightEditor.isActive=true, 
+
+  - Change cycle time: onclick -> distPixRel(cyclebutton[i].xyPix)<0.03
+    for one i => change TrafficLightEditor.cycleTime
+
+  - Activate/deactivate TL control: 
+    distPixRel(doubleSlider[j].activeSymbol.xyPix)<0.03
+    => set TL.isControlled=true/false for corresp element of TrafficObjects
+
+  - double-sliders: doubleSlider[j].left starts to be influenced if in
+    handleMouseDown(evt):
+    distPixRel(doubleSlider[j].left.xyPix)<0.02 
+    => doubleSlider[j].left.isActive=true
+
+    doubleSlider[j].left.relValue changes in handleMouseMove(evt) if
+    doubleSlider[j].left.isActive=true: then this value
+    = (xPixUser-doubleSlider[j].left.xyPix.xPix)/doubleSlider[j].wPix
+    with the restrictions min=0, max=1. 
+
+    Additionally, doubleSlider[j].right.xPix "pushed" to the right if
+    left value>right value and value
+    doubleSlider[j].right.relValue "pushed" to
+    doubleSlider[j].left.relValue in this case
+
+  - doubleSlider[j].left ends to be influenced if in handleMouseUp the
+    .isActive component=true => set to false
+
+  - the right slider in analogy
+
+  - if mousedown outside of rel=0.02, all .isActive elements set=false
+    
+  - if distPixRel(trafficLightEditor.finishButton.xyPix<0.03)
+    => trafficLightEditor.isActive=false, all editor panels and
+    numbers vanish; TLs are controlled acording to the status in
+    TrafficObjects obj.isControlled=true or false
+    if(obj.isControlled=true) => controlled according to info
+    transferred to trafficObjects.obj.relGreenStarts from
+    left.relValue and trafficObjects.obj.relGreenEnds from right.relValue 
