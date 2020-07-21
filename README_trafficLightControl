@@ -34,19 +34,18 @@ o Traffic Light 1  <double slider red - knob - green - knob - red>
 button "done" in both cases -> finish_controlTrafficLights() -> editor
 panel and numbers on TL vanish 
 
-* if active #infotext: "Chose a common cycle time and use the double
-  sliders to control the relative green phase. Extend the green phase
-  to the max for traffic lights that should remain in manual
-  control. Press "done" when finished"
+* if active #infotext: "Chose a common cycle time and the lights to be
+  included into the control. Use the double
+  sliders to control the relative green phase. Press "done" when finished"
 
 * implement editor panel drawing
 
-    function TrafficLightEditor(canvas,trafficObjects,xRelEditor,yRelEditor)
+    function TrafficLightControlEditor(canvas,trafficObjects,xRelEditor,yRelEditor)
 
-  - draw if trafficLightEditor.isActive=true; set by controlTrafficLights() 
-    trafficLightEditor.isActive=false set by finish_controlTrafficLights()
+  - draw if tl_control.isActive=true; set by controlTrafficLights() 
+    tl_control.isActive=false set by finish_controlTrafficLights()
 
-  - trafficLightEditor.cycleTime=60 by default (cstr)
+  - tl_control.cycleTime=60 by default (cstr)
 
   - read active TL including number from trafficObjects
 
