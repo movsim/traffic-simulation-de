@@ -172,8 +172,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     //         can have both values 
     //         (isActive=true only if (!isDragged)&&(isActive in past)) 
     // object dragged: isDragged=true, isPicked=inDepot=isActive=false
-    // object dropped on road => becomes active
-    // object dropped on road: isActive=true, 
+    // object dropped on road => isActive=true, 
     //          isDragged=isPicked=inDepot=false
     // object dropped outside of road and not yet completely zoomed back =>
     //          isPicked=isDragged=isActive=inDepot=false
