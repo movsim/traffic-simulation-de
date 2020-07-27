@@ -196,9 +196,6 @@ traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
 
-// xxxNew 
-// define obstacle images
-
 obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
@@ -209,16 +206,6 @@ for (var i=0; i<10; i++){
   obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
-// xxxNew remove old def obstacle images
-/*
-obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-    : "figs/constructionVeh"+(i+0)+".png"; //!!!
-}
-*/
 
 // init road images
 
@@ -239,8 +226,6 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 
-//xxxNew
-
 
 //############################################
 // traffic objects
@@ -248,6 +233,9 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
+
+// xxxNew
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
 
 
 //############################################
@@ -300,7 +288,6 @@ function updateSim(){
 	detectors[iDet].update(time,dt);
     }
 
-  //xxxNew
   
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
@@ -359,7 +346,6 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       updateDimensions();
-      //xxxNew
       trafficObjs.calcDepotPositions(canvas); 
 
     }
@@ -406,22 +392,27 @@ function drawSim() {
 
     // (6) draw simulated time and detector displays
 
-    displayTime(time,textsize);
-    for(var iDet=0; iDet<detectors.length; iDet++){
+  displayTime(time,textsize);
+  for(var iDet=0; iDet<detectors.length; iDet++){
 	detectors[iDet].display(textsize);
-    }
+  }
 
 
 
-    // (7) draw the speed colormap (text size propto widthPix
+  // (7) draw the speed colormap (text size propto widthPix
 
-    if(drawColormap){
-        displayColormap(scale*(center_xPhys-0.03*roadRadius), 
+  if(drawColormap){
+    displayColormap(scale*(center_xPhys-0.03*roadRadius),
                     -scale*(center_yPhys+0.50*roadRadius), 
 		    scale*35, scale*45,
 		    vmin_col,vmax_col,0,100/3.6);
-    }
+  }
 
+  // (8) xxxNew draw TL editor panel
+
+  if(trafficLightControl.isActive){
+    trafficLightControl.showEditPanel();
+  }
 
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 

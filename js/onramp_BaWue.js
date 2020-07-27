@@ -492,6 +492,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,3,0.50,0.72,1,6);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 var rampMeterLight=trafficObjs.trafficObj[0]; 
 //activate(trafficObject,road,u) or activate(trafficObject,road)

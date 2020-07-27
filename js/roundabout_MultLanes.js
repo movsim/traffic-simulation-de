@@ -492,6 +492,7 @@ armImg2=roadImgs2[nLanes_arm-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,4,0,0.80,0.25,2,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 

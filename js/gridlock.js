@@ -519,6 +519,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,3,0.60,0.50,1,5);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 

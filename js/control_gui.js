@@ -41,7 +41,8 @@ function myStartStopFunction(){
 }
 
 //################################################################
-// Restart/reset the same simulation (triggered by "onclick" callback in html file)
+// Restart/reset the same simulation 
+// (triggered by "onclick" callback in html file)
 // all settings and GUI-moved objects unchanged
 //#################################################################
 
@@ -81,12 +82,34 @@ function myRestartFunction(){
 }
 
 
-// helper function for the filter (passed as func pointer)
+// helper function for the filter in myRestartFunction
+// (passed as func pointer) 
 
 function selectNotRegularVeh(veh){
   return !veh.isRegularVeh();
 }
-  //  while(i<mainroad.veh.length){
+
+
+//################################################################
+// xxxNEW Show/close the traffic light editor panel
+//#################################################################
+
+function showHideTLeditPanel(){
+  if(trafficLightControl.isActive){ // close panel
+    trafficLightControl.isActive=false; //don't redraw editor panel
+    if(drawBackground){                 // wipe out existing editor panel
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
+    }
+    document.getElementById("editTLbutton").innerHTML
+      ="Open traffic-light control panel";
+  }
+  else{ // open panel
+    trafficLightControl.isActive=true;
+    document.getElementById("editTLbutton").innerHTML
+      ="Close traffic-light control panel";
+  }
+}
+
 
 
 //#########################################################

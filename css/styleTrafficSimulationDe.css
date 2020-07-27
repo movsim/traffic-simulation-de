@@ -190,30 +190,9 @@ which always gives correct size!!
 
 
 
-/* (2b) landscape: position of the info button: right top of simCanvas */
-
-#infoDiv{
-  position: absolute;
-  top: 1vmin;
-  height: 8vmin;
-  left: 102vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
 
 
-/* (2c) landscape: position of the info button: right top of simCanvas */
-
-#restartDiv{
-  position: absolute;
-  top: 1vmin;
-  height: 8vmin;
-  left: 93vmin;
-  width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-/* (2d) landscape: position of the start/stop sign: just to the left of info button */
+/* (2a) landscape: position of the start/stop sign: just to the left of info button */
 
 #startStopDiv{
   position: absolute;
@@ -224,7 +203,41 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2e) landscape: add/subtract one lane: just to the left of start/stop button */
+/* (2a) landscape: position of the restart button: right top of simCanvas */
+
+#restartDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 93vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2a) landscape: position of the info button */
+
+#infoDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 102vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2a) landscape: position of the TL edit button */
+
+#editTLdiv{
+  position: absolute;
+  top: 6vmin;
+  height: 16vmin;
+  left: 2vmin;
+  width: 20vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (2a) landscape: add/subtract one lane */
 
 #lanePlusDiv{
   position: absolute;

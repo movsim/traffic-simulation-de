@@ -330,6 +330,7 @@ var signTruckOvertakingBan = new Image();
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,0,2,0.60,0.50,1,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 

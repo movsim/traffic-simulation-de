@@ -315,6 +315,7 @@ var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,0,3,0.60,0.50,3,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 // initialize one speedlimit on road
 // the selected trafficObj needs to be of type speedlimit! not checked!

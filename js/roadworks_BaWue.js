@@ -322,6 +322,7 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,0,4,0.60,0.65,1,5);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 // initialize the 80 sign at the beginning to start with a working
 // speed funnel (1 sign)
