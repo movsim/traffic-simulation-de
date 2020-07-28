@@ -477,10 +477,25 @@ function handleClick(event){
 		formd0(xPixUser)," yPixUser=",formd0(yPixUser),
 		" xUser=",formd(xUser),
 		" yUser=",formd(yUser)," distDrag=",formd(distDrag));
-    console.log("  handleClick: didSpeedlManip=",didSpeedlManip,
+    console.log("  userCanDistortRoads=",userCanDistortRoads);
+    console.log("  didSpeedlManip=",didSpeedlManip,
 		" isDragged=",isDragged,
 		" speedlBoxActive=",speedlBoxActive);
   }
+
+
+//################################################
+  // MT 2020-07
+//################################################
+
+  if((trafficLightControl.isActive)
+     && trafficLightControl.mouseIsInside(xPixUser, yPixUser)){
+    console.log("handleClick: in trafficLightControl part");
+    trafficLightControl.selectCycleTime([xPixUser, yPixUser]);
+
+    return; // editor panel overrides all other click actions
+  }
+
 
   if(!isDragged){ // only deal with speedlimit changes if click w/o drag
     if(speedlBoxActive){

@@ -1,4 +1,5 @@
 
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 //#############################################################

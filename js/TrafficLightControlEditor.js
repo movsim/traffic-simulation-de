@@ -39,8 +39,7 @@ function TrafficLightControlEditor(trafficObjects,
 				   xRelEditor,yRelEditor){
 
 
-  this.active=false;
-
+  this.isActive=false; // set true/false as callback in control_gui.js
 
   // create image repositories
 
@@ -52,6 +51,7 @@ function TrafficLightControlEditor(trafficObjects,
   this.cycleTimes=[30,40,50,60,80,100,120];
   this.cycleTimeIndex=3;
   this.cycleTime=this.cycleTimes[this.cycleTimeIndex];
+  this.cycleTimesPix=[];
 
 
   this.doubleSliders=[]; // as many elements as active or passive TLs
@@ -62,15 +62,16 @@ function TrafficLightControlEditor(trafficObjects,
     if(trafficObj.type==="trafficLight"){
       this.doubleSliders[iTL]={
 	id: trafficObj.id, // same as corresponding trafficObject
-        isDisplayed: false, // true only if trafficObject is TL on road
+        //isDisplayed: false, // true only if trafficObject is TL on road
         isActive: ((iTL<2) ? true : false), // true if added to control !!!
-        left:  {isActive: false, relValue: 0.2+iTL*0.3, xyPix: [0,0]},//!!!
-        right: {isActive: false, relValue: 0.6-iTL*0.3, xyPix: [0,0]}//!!!
+        isActive_xyPix: [0,0],
+        toRed:  {isActive: false, relValue: 0.2+iTL*0.3, xyPix: [0,0]},//!!!
+        toGreen: {isActive: false, relValue: 0.6-iTL*0.3, xyPix: [0,0]}//!!!
       };
       console.log("TrafficLightControlEditor Cstr: iTL=",iTL,
 		  " this.doubleSliders[iTL]=",this.doubleSliders[iTL]);
-      this.doubleSliders[iTL].left.relValue=Math.max(0, Math.min(1,this.doubleSliders[iTL].left.relValue)); //!!!
-      this.doubleSliders[iTL].right.relValue=Math.max(0, Math.min(1,this.doubleSliders[iTL].right.relValue));//!!!
+      this.doubleSliders[iTL].toRed.relValue=Math.max(0, Math.min(1,this.doubleSliders[iTL].toRed.relValue)); //!!!
+      this.doubleSliders[iTL].toGreen.relValue=Math.max(0, Math.min(1,this.doubleSliders[iTL].toGreen.relValue));//!!!
 
       iTL++;//!!!
     }
@@ -129,17 +130,17 @@ TrafficLightControlEditor.prototype.update=function(trafficObjects){
     if(trafficObj.type==="trafficLight"){
       var slider=this.getSlider(trafficObj.id);
       if(trafficObj.isActive){
-	slider.isDisplayed=true;  // slider.isActive, left.value ... by GUI
-	slider.left.xyPix=this.get_xyPix(iDisplay,slider.left.relValue);
-	slider.right.xyPix=this.get_xyPix(iDisplay,slider.right.relValue);
+	//slider.isDisplayed=true;  // slider.isActive, toRed.value ... by GUI
+	slider.toRed.xyPix=this.get_xyPix(iDisplay,slider.toRed.relValue);
+	slider.toGreen.xyPix=this.get_xyPix(iDisplay,slider.toGreen.relValue);
 	iDisplay++;
       }
       else{ // reset slider if dragged from road
-	slider.isDisplayed=false;
-	slider.left.isActive=false;
-	slider.left.relValue=0;
-	slider.right.isActive=false;
-	slider.right.relValue=1;
+	//slider.isDisplayed=false;
+	slider.toRed.isActive=false;
+	slider.toRed.relValue=0;
+	slider.toGreen.isActive=false;
+	slider.toGreen.relValue=1;
       }
     }
   }
@@ -186,6 +187,52 @@ TrafficLightControlEditor.prototype.get_xyPixSlider=function(iDisplay, valRel){
 }
 
 
+//##########################################################
+//TrafficLightControlEditor: check if mouse inside panel
+//##########################################################
+
+TrafficLightControlEditor.prototype.mouseIsInside
+  =function(xPixUser,yPixUser){
+  var inside_x=(xPixUser>this.get_xPix(0)) && (xPixUser<this.get_xPix(1));
+  var inside_y=(yPixUser>this.get_yPix(1)) && (yPixUser<this.get_yPix(0));
+  return inside_x && inside_y;
+}
+
+
+//##########################################################
+//TrafficLightControlEditor: pick object if sufficiently near
+//##########################################################
+
+TrafficLightControlEditor.prototype.pick
+  =function(xyPixUser, xyPixObj){
+    var sizeCanvas=Math.min(canvas.width, canvas.height);
+    var dist2=Math.pow(xyPixUser[0]-xyPixObj[0], 2)
+      +Math.pow(xyPixUser[1]-xyPixObj[1], 2);
+    return dist2<Math.pow(0.012*sizeCanvas,2); // ring radius^2
+}
+
+//##########################################################
+//TrafficLightControlEditor: select button for cycle times
+//##########################################################
+
+TrafficLightControlEditor.prototype.selectCycleTime
+=function(xyPixUser){
+  var success=false;
+  for(i=0; (i<this.cycleTimesPix.length)&&(!success); i++){
+    success=this.pick(xyPixUser,this.cycleTimesPix[i]);
+    if(true){
+      console.log("selectCycleTime: i=",i,
+		  " xyPixUser=",xyPixUser,
+		  " this.cycleTimesPix[i]=",this.cycleTimesPix[i]);
+    }
+
+    if(success){
+      this.cycleTimeIndex=i;
+      this.cycleTime=this.cycleTimes[this.cycleTimeIndex];
+    }
+  }
+}
+
 
 /**
 ##########################################################
@@ -196,7 +243,7 @@ TrafficLightControlEditor: display the editor panel
 */
 
 TrafficLightControlEditor.prototype.showEditPanel=function(){
-  console.log("in TrafficLightControlEditor.showEditPanel");
+  //console.log("in TrafficLightControlEditor.showEditPanel");
 
   var sizeCanvas=Math.min(canvas.width, canvas.height);
   var textsize=0.02*sizeCanvas;
@@ -239,14 +286,16 @@ TrafficLightControlEditor.prototype.showEditPanel=function(){
   var str_cycTime=["30 s", "40 s", "50 s", "60 s", "80 s", "100 s", "120 s"];
   var radius=0.012*sizeCanvas;
   for(var i=0; i<str_cycTime.length; i++){
-    xyPix=this.get_xyPix(0.37+i*0.09,0.93);
+    this.cycleTimesPix[i]=this.get_xyPix(0.37+i*0.09,0.93);
+    var xPix=this.cycleTimesPix[i][0];
+    var yPix=this.cycleTimesPix[i][1];
     ctx.beginPath();
-    ctx.arc(xyPix[0], xyPix[1],radius, 0, 2 * Math.PI);
+    ctx.arc(xPix, yPix,radius, 0, 2 * Math.PI);
     ctx.stroke();
-    ctx.fillText(str_cycTime[i], xyPix[0]-1.5*radius, xyPix[1]+3*radius);
+    ctx.fillText(str_cycTime[i], xPix-1.5*radius, yPix+3*radius);
   }
 
-  xyPix=this.get_xyPix(0.37+this.cycleTimeIndex*0.09,0.93);
+  xyPix=this.cycleTimesPix[this.cycleTimeIndex];
   ctx.beginPath();
   ctx.arc(xyPix[0], xyPix[1],radius, 0, 2 * Math.PI);
   ctx.fill();
@@ -282,6 +331,7 @@ TrafficLightControlEditor.prototype.showEditPanel=function(){
 
     var xPix=this.get_xPix(0.08);
     var yPix=xyPixBeginSlider[1];
+    this.doubleSliders[i].isActive_xyPix=[xPix, yPix];
     ctx.beginPath();
     ctx.arc(xPix, yPix,radius, 0, 2 * Math.PI);
     if(this.doubleSliders[i].isActive){ ctx.fill(); }
@@ -289,13 +339,21 @@ TrafficLightControlEditor.prototype.showEditPanel=function(){
 
     // draw double slider colors
 
-    var valLeft=this.doubleSliders[i].left.relValue;
-    var valRight=this.doubleSliders[i].right.relValue;
-    var middleIsRed=(valLeft>valRight);
-    var valLower=Math.min(valLeft,valRight);
-    var valHigher=Math.max(valLeft,valRight);
+    var valToRed=this.doubleSliders[i].toRed.relValue;
+    var valToGreen=this.doubleSliders[i].toGreen.relValue;
 
-    var xPixLeftArr=[xyPixBeginSlider[0],
+    this.doubleSliders[i].toRed.xyPix=
+      [xyPixBeginSlider[0]+wSlider*valToRed, 
+       xyPixBeginSlider[1]];
+    this.doubleSliders[i].toGreen.xyPix=
+      [xyPixBeginSlider[0]+wSlider*valToGreen, 
+       xyPixBeginSlider[1]];
+
+    var middleIsRed=(valToRed>valToGreen);
+    var valLower=Math.min(valToRed,valToGreen);
+    var valHigher=Math.max(valToRed,valToGreen);
+
+    var xPixToRedArr=[xyPixBeginSlider[0],
 		     xyPixBeginSlider[0]+wSlider*valLower,
 		     xyPixBeginSlider[0]+wSlider*valHigher];
     var colArr=(middleIsRed) ? [colGreen,colRed,colGreen]
@@ -306,21 +364,22 @@ TrafficLightControlEditor.prototype.showEditPanel=function(){
     var yPixUpper=xyPixBeginSlider[1]-0.5*hSlider;
     for(var is=0; is<3; is++){
       ctx.fillStyle=colArr[is];
-      ctx.fillRect(xPixLeftArr[is], yPixUpper, wArr[is], hSlider);
+      ctx.fillRect(xPixToRedArr[is], yPixUpper, wArr[is], hSlider);
     }
 
     // draw double slider slit 
 
     ctx.fillStyle="rgb(0,0,0)";
     ctx.strokeStyle="rgb(0,0,0)";
-    xPixLeft=xyPixBeginSlider[0];
+    xPixToRed=xyPixBeginSlider[0];
     yPixUpper=xyPixBeginSlider[1]-0.5*hSlider;
     var dw=0.08*hSlider;
-    ctx.strokeRect(xPixLeft,yPixUpper,wSlider,hSlider);
-    ctx.strokeRect(xPixLeft,yPixUpper+0.5*dw,wSlider,hSlider-dw);
-    ctx.strokeRect(xPixLeft,yPixUpper+dw,wSlider,hSlider-2*dw);
+    ctx.strokeRect(xPixToRed,yPixUpper,wSlider,hSlider);
+    ctx.strokeRect(xPixToRed,yPixUpper+0.5*dw,wSlider,hSlider-dw);
+    ctx.strokeRect(xPixToRed,yPixUpper+dw,wSlider,hSlider-2*dw);
 
     // draw double slider knobs
+
 
     xPix=xyPixBeginSlider[0]+wSlider*valLower-0.4*hSlider;
     yPix=xyPixBeginSlider[1]-0.85*hSlider;
@@ -335,7 +394,7 @@ TrafficLightControlEditor.prototype.showEditPanel=function(){
     if(!this.doubleSliders[i].isActive){
     var dw=0.25*hSlider;
       ctx.fillStyle=colDeactivate;
-      ctx.fillRect(xPixLeft-2*dw,yPixUpper-dw,wSlider+4*dw,hSlider+2*dw);
+      ctx.fillRect(xPixToRed-2*dw,yPixUpper-dw,wSlider+4*dw,hSlider+2*dw);
     }
 
     // revert colors
