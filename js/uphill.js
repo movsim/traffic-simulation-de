@@ -11,36 +11,31 @@ density=0.;
     
 
 fracTruck=0.25; //  0.25
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 timewarp=5; //  default 6 in control_gui.js
-slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML = timewarp +" times";
+setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
 
 qIn=2500./3600; //2500./3600;
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 IDM_a=1.5; // high to allow passing cars if truck overtaking ban active
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
 factor_a_truck=2; // to allow faster slowing down of the uphill trucks
 
 
 IDM_v0Up=30/3.6
-slider_IDM_v0Up.value=3.6*IDM_v0Up;
-slider_IDM_v0UpVal.innerHTML=Math.round(3.6*IDM_v0Up)+" veh/h";
+setSlider(slider_IDM_v0Up, slider_IDM_v0UpVal, 3.6*IDM_v0Up, 0, "km/h");
+
 
 MOBIL_bBiasRight_car=-0.1; //-0.1
-slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
-slider_MOBIL_bBiasRight_carVal.innerHTML=MOBIL_bBiasRight_car
-    +" m/s<sup>2</sup>";
+setSlider(slider_MOBIL_bBiasRight_car, slider_MOBIL_bBiasRight_carVal, 
+	  MOBIL_bBiasRight_car, 1, "m/s<sup>2</sup>");
 
 MOBIL_bBiasRight_truck=0.1; //0.1
-slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
-slider_MOBIL_bBiasRight_truckVal.innerHTML=MOBIL_bBiasRight_truck
-    +" m/s<sup>2</sup>";
+setSlider(slider_MOBIL_bBiasRight_truck, slider_MOBIL_bBiasRight_truckVal, 
+	  MOBIL_bBiasRight_truck, 1, "m/s<sup>2</sup>");
 
 MOBIL_bSafe=4;   // bSafe if v to v0  (threshold, bias in sliders)
 MOBIL_bSafeMax=16;  // bSafe if v to 0 //!! use it

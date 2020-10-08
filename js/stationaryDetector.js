@@ -15,7 +15,7 @@ microscopic output also gives the lane index of the passage event
 */
 
 function stationaryDetector(road,u,dtAggr){
-    console.log("in stationaryDetector cstr: road=",road);
+    //console.log("in stationaryDetector cstr: road=",road);
     this.road=road;
     this.u=u;
     this.dtAggr=dtAggr;

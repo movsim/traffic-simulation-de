@@ -55,12 +55,12 @@ var network=[];  // to be defined in the toplevel files, e.g. [mainroad,ramp]
 //#####################################################
 
 function addTouchListeners() {
-    console.log("in gui.addTouchListeners()");
+    //console.log("in gui.addTouchListeners()");
     canvas.addEventListener("touchstart", handleTouchStart, false);
     canvas.addEventListener("touchmove", handleTouchMove, false);
     canvas.addEventListener("touchend", handleTouchEnd, false);
     canvas.addEventListener("touchcancel", cancelActivities, false);
-    console.log("addTouchListeners(): initialized some touch listeners");
+    //console.log("addTouchListeners(): initialized some touch listeners");
 }
 
 
@@ -162,8 +162,8 @@ function handleTouchMove(evt) {
 //#####################################################
 
 function handleMouseEnter(event){
-  console.log("itime=",itime," in handleMouseEnter: scenarioString=",
-	      scenarioString," nothing to do");
+  //console.log("itime=",itime," in handleMouseEnter: scenarioString=",
+//	      scenarioString," nothing to do");
 }
 
 
@@ -295,9 +295,10 @@ function pickRoadOrObject(xUser,yUser){
   }
 
 
-  console.log("  end pickRoadOrObject: found no suitable action!",
-	      " [notice: clicking callback is separate from this]");
-
+  if(false){
+    console.log("  end pickRoadOrObject: found no suitable action!",
+	        " [notice: clicking callback is separate from this]");
+  }
 
 } // canvas onmousedown or touchStart: pickRoadOrObject
 

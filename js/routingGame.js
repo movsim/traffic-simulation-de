@@ -24,8 +24,9 @@ var qInInit=2200./3600;
 // override standard settings in control_gui.js
 
 qIn=2200./3600;
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
+//slider_qIn.value=3600*qIn;
+//slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 
 fracTruck=0.15;

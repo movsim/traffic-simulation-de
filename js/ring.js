@@ -23,12 +23,10 @@ var userCanDropObjects=true;
 // override standard dettings control_gui.js
 
 density=0.03;  // default 0.03
-slider_density.value=1000*density;
-slider_densityVal.innerHTML=1000*density+"/km";
+setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
 
 fracTruck=0.1; // default 0.1 
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 
 // Global overall scenario settings and graphics objects

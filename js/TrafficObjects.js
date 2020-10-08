@@ -162,8 +162,8 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
     var img=(isTL) ? this.imgTLred : (isSpeedl)
       ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
-    console.log("TrafficObjects cstr: i=",i,
-		" img=",img," iObst=",iObst);
+    //console.log("TrafficObjects cstr: i=",i,
+//		" img=",img," iObst=",iObst);
 
     //#################################################################
     // xxx central object this.trafficObj[i]
@@ -223,7 +223,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
   // logging
 
-  if(true){
+  if(false){
     console.log("TrafficObjects Cstr: this.nTL=",this.nTL);
     for(var i=0; i<this.trafficObj.length; i++){
       console.log("TrafficObjects cstr: i=",i,

@@ -7,18 +7,17 @@ var userCanDropObjects=true;
 //#############################################################
 
 qIn=3500./3600; 
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 density=0.015;
 
 fracTruck=0.15;
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
+
 
 IDM_a=0.7; // low to allow stopGo
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
 MOBIL_mandat_bSafe=22; // standard 42

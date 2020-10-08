@@ -58,6 +58,7 @@ MOBIL_bSafeMax=17;
 density=0.02; // density per lane (0.02)
 
 IDM_v0=140./3.6;
+// setSlider here not defined
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
