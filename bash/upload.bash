@@ -55,7 +55,7 @@ html_files="${html_files} index.html index_ger.html favicon.jpg"
 # add the BaWue files and the coffeemeter files
 html_files="${html_files} onramp_BaWue_ger.html roadworks_BaWue_ger.html coffeemeterGame.html" 
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js seedrandom.min.js jquery-1.5.1.min.js"
+js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js seedrandom.min.js jquery-1.5.1.min.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
@@ -79,7 +79,7 @@ cp $js_files $targetDir/js
 
 cd $startDir/figs
 # see uploadBaWue.bash for how to obtain the actually used images
-img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png trafficLight_green.png trafficLight_red.png trafficLight_yellow.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png obstacle_[56][0-9].png road*Crop*png speedLimit_*.svg Tempo*.png infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif flagUSA.png flagGerman.png icon*Fig_small.jpg iconRing_small.jpg iconRoundabout_small.jpg sign_free_282_small.png Zeichen_Steigung4_small.png truckOvertakingBan_small.gif"
+img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png trafficLight_green.png trafficLight_red.png trafficLight_yellow.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png obstacle_[56][0-9].png road*Crop*png speedLimit_*.svg Tempo*.png infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif flagUSA.png flagGerman.png icon*Fig_small.jpg iconRing_small.jpg iconRoundabout_small.jpg sign_free_282_small.png Zeichen_Steigung4_small.png truckOvertakingBan_small.gif knobYellow.png buttonDone.png"
 cp $img_files $targetDir/figs
 
 cd $startDir
