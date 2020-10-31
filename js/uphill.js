@@ -329,18 +329,6 @@ var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 
-//############################################
-// run-time specification and functions
-//############################################
-
-var time=0;
-var itime=0;
-var fps=20; // frames per second (unchanged during runtime)
-var dt=0.5; // only initialization
-
-
-
-
 
 
 
