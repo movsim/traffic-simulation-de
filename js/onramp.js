@@ -26,8 +26,9 @@ var userCanDropObjects=true;
 //#############################################################
 
 qIn=4500./3600; 
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+commaDigits=0;
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+
 
 density=0.01; 
 
@@ -36,12 +37,11 @@ var nLanes_rmp=1;
 
 /*
 fracTruck=0.4; 
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruck.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 timewarp=2;
-slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML=timewarp +" times";
+setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
+
 */
 
 /*######################################################
@@ -427,11 +427,12 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 
 //############################################
-// traffic objects
+// traffic objects and traffic-light control editor
 //############################################
 
-// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+
 var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 

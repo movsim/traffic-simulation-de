@@ -15,19 +15,17 @@ MOBIL_bSafeMax=17;
 
 density=0;
 
-qIn=1900./3600; 
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+qIn=1850/3600; //1850
+commaDigits=0;
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
-IDM_a=2.0;
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+IDM_a=2.05;
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 
 //speedlimit now in trafficObjects
 
 fracTruck=0.25;
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 
 /*######################################################
@@ -315,6 +313,7 @@ var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,0,3,0.60,0.50,3,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 // initialize one speedlimit on road
 // the selected trafficObj needs to be of type speedlimit! not checked!

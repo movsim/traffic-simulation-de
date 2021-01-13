@@ -55,12 +55,12 @@ var network=[];  // to be defined in the toplevel files, e.g. [mainroad,ramp]
 //#####################################################
 
 function addTouchListeners() {
-    console.log("in gui.addTouchListeners()");
+    //console.log("in gui.addTouchListeners()");
     canvas.addEventListener("touchstart", handleTouchStart, false);
     canvas.addEventListener("touchmove", handleTouchMove, false);
     canvas.addEventListener("touchend", handleTouchEnd, false);
     canvas.addEventListener("touchcancel", cancelActivities, false);
-    console.log("addTouchListeners(): initialized some touch listeners");
+    //console.log("addTouchListeners(): initialized some touch listeners");
 }
 
 
@@ -162,8 +162,8 @@ function handleTouchMove(evt) {
 //#####################################################
 
 function handleMouseEnter(event){
-  console.log("itime=",itime," in handleMouseEnter: scenarioString=",
-	      scenarioString," nothing to do");
+  //console.log("itime=",itime," in handleMouseEnter: scenarioString=",
+//	      scenarioString," nothing to do");
 }
 
 
@@ -295,9 +295,10 @@ function pickRoadOrObject(xUser,yUser){
   }
 
 
-  console.log("  end pickRoadOrObject: found no suitable action!",
-	      " [notice: clicking callback is separate from this]");
-
+  if(false){
+    console.log("  end pickRoadOrObject: found no suitable action!",
+	        " [notice: clicking callback is separate from this]");
+  }
 
 } // canvas onmousedown or touchStart: pickRoadOrObject
 
@@ -477,10 +478,25 @@ function handleClick(event){
 		formd0(xPixUser)," yPixUser=",formd0(yPixUser),
 		" xUser=",formd(xUser),
 		" yUser=",formd(yUser)," distDrag=",formd(distDrag));
-    console.log("  handleClick: didSpeedlManip=",didSpeedlManip,
+    console.log("  userCanDistortRoads=",userCanDistortRoads);
+    console.log("  didSpeedlManip=",didSpeedlManip,
 		" isDragged=",isDragged,
 		" speedlBoxActive=",speedlBoxActive);
   }
+
+
+//################################################
+  // MT 2020-07
+//################################################
+
+  if((trafficLightControl.isActive)
+     && trafficLightControl.mouseIsInside(xPixUser, yPixUser)){
+    console.log("handleClick: in trafficLightControl part");
+    trafficLightControl.selectCycleTime([xPixUser, yPixUser]);
+
+    return; // editor panel overrides all other click actions
+  }
+
 
   if(!isDragged){ // only deal with speedlimit changes if click w/o drag
     if(speedlBoxActive){

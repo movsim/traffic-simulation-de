@@ -1,3 +1,10 @@
+Interface to users
+Road network
+sources and routes
+models
+multi-lane roundabouts
+
+
 See also readme_intersections
 
 w/o less of generality 4-arms roundabout
@@ -88,3 +95,31 @@ links 3,5,7,9:
   slider-controlled v0 otherwise
 
 Done!
+
+
+5. Multi-lane roundabouts
+=========================
+
+(from book->mails*)
+
+
+Hello Ibanez,
+
+multi-lane roundabouts are inherently significantly more complicated compared to single-lane roundabouts and imply several extra traffic rules that's why a simulation will not work by just adding new lanes (which, in other siduations, is simple: just use the blue German Autobahn "lane+" and "lane-" buttons; the implementation does not limit the number of lanes).  For a two-lane ring and also for all access and exit segments, they are (assuming right-handed traffic flow):
+
+(1) When going right, use the right access lane, when going left or around, the left lane, when going straight ahead, you can chose either access lane. This means, when going left, you can only enter if the gaps at *both* ring lanes are large enough
+
+(2) Enter the exit segment on the same lane as you did at the access, i.e., you will end up on the left exit lane when making a left or U turn, and on the right when making a right turn
+
+(3) Besides the priority of the ring, the inner ring lane has priority over the outer ring lane. This is necessary to allow inner-ring vehicles exit the ring by  crossing the right ring lane which may be used by some drivers going straight ahead (the right-turners are no problem because of Rules 1 and 2)
+
+When looking at real multi-lane roundabouts (just picture-search  this term) you will see that the proposed pure form rarely exists. There are designs with sub-roundabouts, "turbo" roundabouts, roundabouts with traffic lights (making void the whole idea of a roundabout), and many more. 
+
+The reason for the complications is the time-critical crossing when exiting from the left lane. If there were more space (as in the huge roundabouts in Paris with several hundred meters diameter), you could simulate multi-lane roundabouts just by a multi-lane freeway as ring with multi-lane onramps and offramps and let the drivers coordinate themselves by the lane-changing model. This only implies multi-lane onramps and offramps which I plan to do in the near future, including the roundabout.
+
+However, I am afraid that I do not have time to implement the above special rules  necessary for effective multi-lane roundabout operations. Anyway, while roundabouts are a good idea for less crowded intersections (particularly if there are more than four arms) or as a means to prevent speeding, signal-regulated intersections are the better choice as soon as more than one lane is needed to accommodate the demand
+
+Best,
+
+
+Martin

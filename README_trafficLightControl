@@ -1,0 +1,211 @@
+2020-07-20
+
+Idea:
+
+* small button 
+  <div id="div_editTL">
+  <button id="button_editTL" onclick="controlTrafficLights()">
+  Control traffic lights</button> 
+  </div>
+
+* when pressed (controlTrafficLights()), 
+  - an editor panel appears in the simulation with gray
+    borders showing all active traffic lights 
+
+  - simultaneously the info panel is updated (div element #infotext)
+
+  - simultaneously, the traffic lights are conspicuously numbered
+
+   [possibly document.getElementById("img1").style.zIndex = "1"; but
+   more flexible directly draing into canvas]
+
+* if no active lights,  message "No active
+  traffic lights. First drag some traffic lights on road segments"
+  appears both in the editor panel and in #infotext
+
+* if active editor panel:
+
+Common cycle time  o     o     o     O     o     o     o  
+                  30 s  40 s  50 s  60 s  80 s 100 s 120 s
+
+o Traffic Light 1  <double slider red - knob - green - knob - red>
+[for all active lights]
+
+button "done" in both cases -> finish_controlTrafficLights() -> editor
+panel and numbers on TL vanish 
+
+* if active #infotext: "Chose a common cycle time and the lights to be
+  included into the control. Use the double
+  sliders to control the relative green phase. Press "done" when finished"
+
+* implement editor panel drawing
+
+    function TrafficLightControlEditor(canvas,trafficObjects,xRelEditor,yRelEditor)
+
+  - draw if tl_control.isActive=true; set by controlTrafficLights() 
+    tl_control.isActive=false set by finish_controlTrafficLights()
+
+  - tl_control.cycleTime=60 by default (cstr)
+
+  - read active TL including number from trafficObjects
+
+  - draw 7 circles (1 thereof filled) and text 40 s, ...
+
+  - draw as many circles/bullets (for activating/deactivating) and double
+    sliders as there  are active TL (info from  trafficObjects). 
+
+  - gray out (semi-transparent) all double sliders for TLs with deactivated
+    control 
+  
+  - draw "done" button
+
+
+// asumes global var xPixUser, yPixUser, canvas.width,canvas.height
+* function distPixRel(xyPixElem){
+    return Math.sqrt(Math.pow(xPixUser-xyPixElem.xPix,2)
+    + Math.pow(yPixUser-xyPixElem.yPix,2))
+    / Math.min(canvas.width,canvas.height); 
+
+
+
+* implement editor panel interaction
+
+  - Basis: canvas_gui.handleClick(event), handleMouseUp(evt),
+    handleMouseDown(evt), handleMouseMove(evt).
+    All update
+    xPixUser, yPixUser, (xUser, yUser) by calling getMouseCoordinates(event);
+
+  - disable all other mouse events from all handle* if
+    trafficLightEditor.isActive=true, 
+
+  - Change cycle time: onclick -> distPixRel(cyclebutton[i].xyPix)<0.03
+    for one i => change TrafficLightEditor.cycleTime
+
+  - Activate/deactivate TL control: 
+    distPixRel(doubleSlider[j].activeSymbol.xyPix)<0.03
+    => set TL.isControlled=true/false for corresp element of TrafficObjects
+
+  - double-sliders: doubleSlider[j].left starts to be influenced if in
+    handleMouseDown(evt):
+    distPixRel(doubleSlider[j].left.xyPix)<0.02 
+    => doubleSlider[j].left.isActive=true
+
+    doubleSlider[j].left.relValue changes in handleMouseMove(evt) if
+    doubleSlider[j].left.isActive=true: then this value
+    = (xPixUser-doubleSlider[j].left.xyPix.xPix)/doubleSlider[j].wPix
+    with the restrictions min=0, max=1. 
+
+    Additionally, doubleSlider[j].right.xPix "pushed" to the right if
+    left value>right value and value
+    doubleSlider[j].right.relValue "pushed" to
+    doubleSlider[j].left.relValue in this case
+
+  - doubleSlider[j].left ends to be influenced if in handleMouseUp the
+    .isActive component=true => set to false
+
+  - the right slider in analogy
+
+  - if mousedown outside of rel=0.02, all .isActive elements set=false
+    
+  - if distPixRel(trafficLightEditor.finishButton.xyPix<0.03)
+    => trafficLightEditor.isActive=false, all editor panels and
+    numbers vanish
+
+* Implement effects on the simulator
+
+  - TLs are controlled acording to the status set by the TrafficLightEditor
+    => TrafficObjects obj.isControlled=true or false
+
+  - if(obj.isControlled=true) => controlled according to info
+    transferred to trafficObjects.obj.relGreenStarts from
+    left.relValue and trafficObjects.obj.relGreenEnds from right.relValue 
+
+   
+* Implement reverse effects of actions in TrafficObjects
+
+  - all TLs dragged from the road are set to obj.isControlled=false
+
+  - all new TLs dragged to a road segment are initialized with
+    obj.isControlled=false => appear in editor panel as grayed out
+    double-slider that can be activated (left circle)
+
+
+
+======================================================
+
+Dear Fernandez,
+
+I will add a quite flexible control of traffic lights in the next version. Then, all traffic lights dragged onto a road segment can be individually included to a fixed-time control with a common user-controlled cycle time and individual green periods with user-controllable durations and phases relative to this cycle time
+Best,
+
+ ----------------------------------------------------------
+Dr. Martin Treiber
+Institute for Transport & Economics, TU Dresden
+Chair of Traffic Modelling, Econometrics, and Statistics
+Falkenbrunnen, Room 123 (two floors up from the entrance!)
+Würzburger Str. 35, D-01062 Dresden
+martin@mtreiber.de
+www.mtreiber.de
+phone/fax: +49 (351) 463 36794 / 36809
+---------------------------------------------------------
+
+
+Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es> hat am 18. Juli 2020 um 09:52 geschrieben: 
+
+Hello,
+         I comment shortly interleaved . 
+Best,
+
+Guillermo Ibáñez 
+Depto de Automática 
+Area de Ingeniería Telemática 
+Despacho E-341 
+91-8856927 
+
+
+De: Martin Treiber <mail@martin-treiber.de>
+Enviado: viernes, 17 de julio de 2020 22:30
+Para: Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es>
+Asunto: RE: Roundabout simulation Javascript
+
+Dear Fernandez,
+of course the blue "lane+" signs do not appear in the roundabout scenario since, as I said, this is not implemented. Anyway, I would always forbid that the left-turners go to the right exit lane (as the dashed blue trajectory in your sketch).
+ ** Guillermo: I agree 
+This is hard for the drivers (the exiting car must simultaneously cross two lanes and a car driving from East to West on the right lane would be unecessarily obstructed), and also hard to simulate. 
+  
+Generally, your design looks like a conventional two-lane roundabout. Critical situations can only be avoided if either the right lanes are exclusively for the right turners (in this case, you would have, de-facto, a single-lane roundabout for the people going straight ahead or left, and additional non-interacting lanes for the right turners), 
+** Guillermo: Good argument. 
+or the geometry of your sketch if the inner ring has priority over the outer ring, or there are additional control elements which I do not see in your sketch. Anything with prescribed lane usage can be implemented quite simply, all other configurations not.
+** guillermo: The sketch is not mine, and the dotted blue lines are not possible in our proposal. My mistake.
+** What is needed to implement are the continuous blue and orange paths, not the dotted blue paths. 
+I wonder what you mean with controlability of signal cycles since they are not implemented at all (all lights are switched by hand) with the exception of the ramp-metering scenario. Implementing signal cycles, i.e., essentially defining a common cycle time and, for each light, green phases with respect to this cycle is easy as long as you have a fixed-time (fixed cycles) control. 
+** guillermo: A common cycle time and lights (two per access: one far and one closer to the roundabout, with separate controls) would be enough.
+
+Best,
+
+
+
+Martin
+
+ ----------------------------------------------------------
+Dr. Martin Treiber
+Institute for Transport & Economics, TU Dresden
+Chair of Traffic Modelling, Econometrics, and Statistics
+Falkenbrunnen, Room 123 (two floors up from the entrance!)
+Würzburger Str. 35, D-01062 Dresden
+martin@mtreiber.de
+www.mtreiber.de
+phone/fax: +49 (351) 463 36794 / 36809
+---------------------------------------------------------
+
+
+Ibáñez Fernández Guillermo Agustín <guillermo.ibanez@uah.es> hat am 17. Juli 2020 um 14:21 geschrieben: 
+
+Hello Dr. Treiber,
+      Many thanks for the detailed response.
+The blue German Autoban lane+ and lane- buttons are visible in the onramp and the offramp but not in the roundabout page  https://www.traffic-simulation.de/roundabout.html 
+We are interested on your simulator to evaluate a new approach to roundabouts that uses signalling. In one implementation of this approach the U turn is not allowed  and there would not be conflict for exiting to the left if the cars are correctly positioned when entering the roundabout. 
+It is not clear for me if it is complex or not to have a roundabout in your simulator with  two-lane ring and two-lane accesses with the above assumptions. The interactivity and controllability of the existing ones are very good. 
+Controllability of signal cycles would also be helpful. I think that in two weeks time I will be able to provide full details of our approach (currently subject to non discosure agreements). 
+ Regards 
+

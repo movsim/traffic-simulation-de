@@ -14,33 +14,31 @@ var userCanDropObjects=true;
 
 
 qIn=2200./3600;
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 var isGame=false;
 
 fracTruck=0.15;
-slider_fracTruck.value=100*fracTruck;
-slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 IDM_a=0.9; // low to allow stopGo
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
 
 MOBIL_bBiasRight_car=0.0
-slider_MOBIL_bBiasRight_car.value=MOBIL_bBiasRight_car;
-slider_MOBIL_bBiasRight_carVal.innerHTML
-	=MOBIL_bBiasRight_car+" m/s<sup>2</sup>";
+setSlider(slider_MOBIL_bBiasRight_car, slider_MOBIL_bBiasRight_carVal, 
+	  MOBIL_bBiasRight_car, 1, "m/s<sup>2</sup>");
+
 
 MOBIL_bBiasRight_truck=0.0
-slider_MOBIL_bBiasRight_truck.value=MOBIL_bBiasRight_truck;
-slider_MOBIL_bBiasRight_truckVal.innerHTML
-	=MOBIL_bBiasRight_truck+" m/s<sup>2</sup>";
+setSlider(slider_MOBIL_bBiasRight_truck, slider_MOBIL_bBiasRight_truckVal, 
+	  MOBIL_bBiasRight_truck, 1, "m/s<sup>2</sup>");
+
 
 MOBIL_bThr=0.0
-slider_MOBIL_bThr.value=MOBIL_bThr;
-slider_MOBIL_bThrVal.innerHTML=MOBIL_bThr+" m/s<sup>2</sup>";
+setSlider(slider_MOBIL_bThr, slider_MOBIL_bThrVal, 
+	  MOBIL_bThr, 1, "m/s<sup>2</sup>");
 
 
 MOBIL_mandat_bSafe=15; // standard 42
@@ -490,6 +488,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,2,0.60,0.50,0,0); // 0,0)=>nix
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 

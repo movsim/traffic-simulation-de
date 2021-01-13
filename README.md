@@ -22,6 +22,18 @@ What to do with this canvas is specified in the _init()_ procedure of onramp.js 
 The initial canvas dimensions are overridden depending on the actual browser's
 viewport size by additional controls in _canvasresize.js_ implementing a responsive design.
 
+
+## Offline Usage
+
+Just download all the html files and the js/, figs/, css/, and info/
+directories and load, e.g., _index.html_ in your favourite browser. For
+convenience and also to have access to the German version not
+contained in the repository, you can
+also download the zip file _offlineVersion.zip_ containing all
+the ressources
+
+
+
 ## Programm Files and Structure
 
 The javascript code uses pseudo objects in appropriately named files, particularly

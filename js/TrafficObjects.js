@@ -162,8 +162,8 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
     var img=(isTL) ? this.imgTLred : (isSpeedl)
       ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
-    console.log("TrafficObjects cstr: i=",i,
-		" img=",img," iObst=",iObst);
+    //console.log("TrafficObjects cstr: i=",i,
+//		" img=",img," iObst=",iObst);
 
     //#################################################################
     // xxx central object this.trafficObj[i]
@@ -172,8 +172,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     //         can have both values 
     //         (isActive=true only if (!isDragged)&&(isActive in past)) 
     // object dragged: isDragged=true, isPicked=inDepot=isActive=false
-    // object dropped on road => becomes active
-    // object dropped on road: isActive=true, 
+    // object dropped on road => isActive=true, 
     //          isDragged=isPicked=inDepot=false
     // object dropped outside of road and not yet completely zoomed back =>
     //          isPicked=isDragged=isActive=inDepot=false
@@ -224,7 +223,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
   // logging
 
-  if(true){
+  if(false){
     console.log("TrafficObjects Cstr: this.nTL=",this.nTL);
     for(var i=0; i<this.trafficObj.length; i++){
       console.log("TrafficObjects cstr: i=",i,

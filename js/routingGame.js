@@ -24,8 +24,9 @@ var qInInit=2200./3600;
 // override standard settings in control_gui.js
 
 qIn=2200./3600;
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
+//slider_qIn.value=3600*qIn;
+//slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 
 fracTruck=0.15;
@@ -482,6 +483,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,2,0.60,0.50,0,0);//0,0=>nix
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 //############################################

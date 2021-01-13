@@ -58,6 +58,7 @@ MOBIL_bSafeMax=17;
 density=0.02; // density per lane (0.02)
 
 IDM_v0=140./3.6;
+// setSlider here not defined
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
@@ -492,6 +493,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,2,3,0.50,0.72,1,6);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 var rampMeterLight=trafficObjs.trafficObj[0]; 
 //activate(trafficObject,road,u) or activate(trafficObject,road)

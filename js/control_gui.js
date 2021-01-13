@@ -41,7 +41,8 @@ function myStartStopFunction(){
 }
 
 //################################################################
-// Restart/reset the same simulation (triggered by "onclick" callback in html file)
+// Restart/reset the same simulation 
+// (triggered by "onclick" callback in html file)
 // all settings and GUI-moved objects unchanged
 //#################################################################
 
@@ -81,12 +82,34 @@ function myRestartFunction(){
 }
 
 
-// helper function for the filter (passed as func pointer)
+// helper function for the filter in myRestartFunction
+// (passed as func pointer) 
 
 function selectNotRegularVeh(veh){
   return !veh.isRegularVeh();
 }
-  //  while(i<mainroad.veh.length){
+
+
+//################################################################
+// xxxNEW Show/close the traffic light editor panel
+//#################################################################
+
+function showHideTLeditPanel(){
+  if(trafficLightControl.isActive){ // close panel
+    trafficLightControl.isActive=false; //don't redraw editor panel
+    if(drawBackground){                 // wipe out existing editor panel
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
+    }
+    document.getElementById("editTLbutton").innerHTML
+      ="Open traffic-light control panel";
+  }
+  else{ // open panel
+    trafficLightControl.isActive=true;
+    document.getElementById("editTLbutton").innerHTML
+      ="Close traffic-light control panel";
+  }
+}
+
 
 
 //#########################################################
@@ -269,7 +292,7 @@ but document.getElementById("infotext").load("info_ring.html"); does not work
 */
 
 var infoLevel=0;
-var nLevels=5;
+var nLevels=6;
 function showInfo(){ 
     var scenarioFile="info/info_"+scenarioString+".html";
     console.log("showInfo (control_gui): scenarioFile=",scenarioFile);
@@ -283,6 +306,7 @@ function showInfo(){
     else if(infoLevel===2){$("#infotext").load("info/info_IDM.html");}
     else if(infoLevel===3){$("#infotext").load("info/info_MOBIL.html");}
     else if(infoLevel===4){$("#infotext").load("info/info_BC.html");}
+    else if(infoLevel===5){$("#infotext").load("info/info_Numerics.html");}
     infoLevel++; infoLevel=(infoLevel%nLevels);
 }
 
@@ -398,14 +422,23 @@ function toggleTruckOvertakingBan(){
 // and formatted in sliders.css
 //#############################################
 
+// value in units displayed by slider, generally not SI
+// round => commaDigits=0
+
+function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
+  var formattedValue=value.toFixed(commaDigits);
+  slider.value=value;
+  sliderHTMLval.innerHTML=formattedValue+" "+str_units;
+  console.log("setSlider: value=",value
+	      ," innerHTML=",sliderHTMLval.innerHTML);
+}
+
 
 // timewarp slider
 
 var timewarp=6;
 var slider_timewarp,slider_timewarpVal;
-if(document.getElementById("slider_timewarp")==null)
-    console.log("no timewarp slider");
-else{
+if(document.getElementById("slider_timewarp")!==null){
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
     slider_timewarpVal.innerHTML=timewarp +" times";
@@ -422,9 +455,7 @@ else{
 
 var scale=2.3;  // pixel/m
 var slider_scale,slider_scaleVal;
-if(document.getElementById("slider_scale")===null) 
-    console.log("no scale slider");
-else{
+if(document.getElementById("slider_scale")!==null) {
     slider_scale= document.getElementById("slider_scale");
     slider_scaleVal = document.getElementById("slider_scaleVal");
     slider_scale.value=scale;
@@ -441,9 +472,7 @@ else{
 
 var qIn=4.4/3.6;    //total inflow, overridden in roadworks.js, routing.js
 var slider_qIn,slider_qInVal;
-if(document.getElementById("slider_qIn")===null) 
-    console.log("no qIn slider");
-else{
+if(document.getElementById("slider_qIn")!==null){
     slider_qIn= document.getElementById("slider_qIn");
     slider_qInVal = document.getElementById("slider_qInVal");
     slider_qIn.value=3600*qIn;
@@ -460,9 +489,7 @@ else{
 
 var qOn=900/3600.; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
-if(document.getElementById("slider_qOn")===null) 
-    console.log("no qOn slider");
-else{
+if(document.getElementById("slider_qOn")!==null){
     slider_qOn= document.getElementById("slider_qOn");
     slider_qOnVal = document.getElementById("slider_qOnVal");
     slider_qOn.value=3600*qOn;
@@ -481,9 +508,7 @@ else{
 var fracTruck=0.10; // 0.10
 var slider_fracTruck;
 var slider_fracTruckVal;
-if(document.getElementById("slider_fracTruck")===null) 
-    console.log("no fracTruck slider");
-else{
+if(document.getElementById("slider_fracTruck")!==null){
     slider_fracTruck = document.getElementById("slider_fracTruck");
     slider_fracTruckVal = document.getElementById("slider_fracTruckVal");
     slider_fracTruck.value=100*fracTruck;
@@ -501,9 +526,7 @@ else{
 var density=0.03; // 0.10
 var slider_density;
 var slider_densityVal;
-if(document.getElementById("slider_density")===null) 
-    console.log("no density slider");
-else{
+if(document.getElementById("slider_density")!==null){
     slider_density = document.getElementById("slider_density");
     slider_densityVal = document.getElementById("slider_densityVal");
     slider_density.value=1000*density;
@@ -522,9 +545,7 @@ else{
 var fracOff=0.25; 
 var slider_fracOff;
 var slider_fracOffVal;
-if(document.getElementById("slider_fracOff")===null) 
-    console.log("no fracOff slider");
-else{
+if(document.getElementById("slider_fracOff")!==null){
     slider_fracOff = document.getElementById("slider_fracOff");
     slider_fracOffVal = document.getElementById("slider_fracOffVal");
     slider_fracOff.value=100*fracOff;
@@ -540,9 +561,7 @@ else{
 
 var mainFrac=0.75; 
 var slider_mainFrac, slider_mainFracVal;
-if(document.getElementById("slider_mainFrac")===null) 
-    console.log("no mainFrac slider");
-else{
+if(document.getElementById("slider_mainFrac")!==null){
     slider_mainFrac = document.getElementById("slider_mainFrac");
     slider_mainFracVal = document.getElementById("slider_mainFracVal");
     slider_mainFrac.value=100*mainFrac;
@@ -559,9 +578,7 @@ else{
 
 var leftTurnBias=leftTurnBias=0.10; // 0.10
 var slider_leftTurnBias, slider_leftTurnBiasVal;
-if(document.getElementById("slider_leftTurnBias")===null) 
-    console.log("no leftTurnBias slider");
-else{
+if(document.getElementById("slider_leftTurnBias")!==null){
     slider_leftTurnBias = document.getElementById("slider_leftTurnBias");
     slider_leftTurnBiasVal = document.getElementById("slider_leftTurnBiasVal");
     slider_leftTurnBias.value=leftTurnBias;
@@ -578,9 +595,7 @@ else{
 
 var focusFrac=focusFrac=0.50;
 var slider_focusFrac, slider_focusFracVal;
-if(document.getElementById("slider_focusFrac")===null) 
-    console.log("no focusFrac slider");
-else{
+if(document.getElementById("slider_focusFrac")!==null){
     slider_focusFrac = document.getElementById("slider_focusFrac");
     slider_focusFracVal = document.getElementById("slider_focusFracVal");
     slider_focusFrac.value=100*focusFrac;
@@ -607,9 +622,7 @@ else{
 
 var IDM_v0=30; 
 var slider_IDM_v0,slider_IDM_v0Val;
-if(document.getElementById("slider_IDM_v0")===null) 
-    console.log("no IDM_v0 slider");
-else{
+if(document.getElementById("slider_IDM_v0")!==null){
    slider_IDM_v0 = document.getElementById("slider_IDM_v0");
    slider_IDM_v0Val = document.getElementById("slider_IDM_v0Val");
    slider_IDM_v0.value=3.6*IDM_v0;
@@ -626,9 +639,7 @@ else{
 
 var IDM_T=1.4; 
 var slider_IDM_T,slider_IDM_TVal;
-if(document.getElementById("slider_IDM_T")===null) 
-    console.log("no IDM_T slider");
-else{
+if(document.getElementById("slider_IDM_T")!==null){
    slider_IDM_T = document.getElementById("slider_IDM_T");
    slider_IDM_TVal = document.getElementById("slider_IDM_TVal");
    slider_IDM_T.value=IDM_T;
@@ -646,9 +657,7 @@ else{
 
 var IDM_s0=2; 
 var slider_IDM_s0,slider_IDM_s0Val;
-if(document.getElementById("slider_IDM_s0")===null) 
-    console.log("no IDM_s0 slider");
-else{
+if(document.getElementById("slider_IDM_s0")!==null){
    slider_IDM_s0 = document.getElementById("slider_IDM_s0");
    slider_IDM_s0Val = document.getElementById("slider_IDM_s0Val");
    slider_IDM_s0.value=IDM_s0;
@@ -666,9 +675,7 @@ else{
 
 var IDM_a=0.3; 
 var slider_IDM_a,slider_IDM_aVal;
-if(document.getElementById("slider_IDM_a")===null) 
-    console.log("no  IDM_a slider");
-else{
+if(document.getElementById("slider_IDM_a")!==null){
     slider_IDM_a = document.getElementById("slider_IDM_a");
     slider_IDM_aVal = document.getElementById("slider_IDM_aVal");
     slider_IDM_a.value=IDM_a;
@@ -685,9 +692,7 @@ else{
 
 var IDM_b=3; 
 var slider_IDM_b,slider_IDM_bVal;
-if(document.getElementById("slider_IDM_b")===null) 
-    console.log("no  IDM_b slider");
-else{
+if(document.getElementById("slider_IDM_b")!==null){
     slider_IDM_b = document.getElementById("slider_IDM_b");
     slider_IDM_bVal = document.getElementById("slider_IDM_bVal");
     slider_IDM_b.value=IDM_b;
@@ -708,9 +713,7 @@ var speedL=1000/3.6;
 var speedL_truck=80/3.6; // default truck speedlimit (no slider)
 
 var slider_speedL, slider_speedLVal;
-if(document.getElementById("slider_speedL")===null) 
-    console.log("no  speedL slider");
-else{
+if(document.getElementById("slider_speedL")!==null){
     slider_speedL = document.getElementById("slider_speedL");
     slider_speedLVal = document.getElementById("slider_speedLVal");
     slider_speedL.value=3.6*speedL;
@@ -729,9 +732,7 @@ else{
 
 var IDM_v0Up=100/3.6; 
 var slider_IDM_v0Up, slider_IDM_v0UpVal;
-if(document.getElementById("slider_IDM_v0Up")===null) 
-    console.log("no  IDM_v0Up slider");
-else{
+if(document.getElementById("slider_IDM_v0Up")!==null){
     slider_IDM_v0Up = document.getElementById("slider_IDM_v0Up");
     slider_IDM_v0UpVal = document.getElementById("slider_IDM_v0UpVal");
     slider_IDM_v0Up.value=3.6*IDM_v0Up;
@@ -756,9 +757,7 @@ else{
 
 var MOBIL_bThr=0.4; 
 var slider_MOBIL_bThr,slider_MOBIL_bThrVal;
-if(document.getElementById("slider_MOBIL_bThr")===null) 
-    console.log("no  MOBIL_bThr slider");
-else{
+if(document.getElementById("slider_MOBIL_bThr")!==null){
     slider_MOBIL_bThr = document.getElementById("slider_MOBIL_bThr");
     slider_MOBIL_bThrVal = document.getElementById("slider_MOBIL_bThrVal");
     slider_MOBIL_bThr.value=MOBIL_bThr;
@@ -775,9 +774,7 @@ else{
 
 var MOBIL_bBiasRight_car=0.05; 
 var slider_MOBIL_bBiasRight_car,slider_MOBIL_bBiasRight_carVal;
-if(document.getElementById("slider_MOBIL_bBiasRight_car")===null) 
-    console.log("no  MOBIL_bBiasRight_car slider");
-else{
+if(document.getElementById("slider_MOBIL_bBiasRight_car")!==null){
     slider_MOBIL_bBiasRight_car 
 	= document.getElementById("slider_MOBIL_bBiasRight_car");
     slider_MOBIL_bBiasRight_carVal 
@@ -797,9 +794,7 @@ else{
 
 var MOBIL_bBiasRight_truck=0.2; 
 var slider_MOBIL_bBiasRight_truck,slider_MOBIL_bBiasRight_truckVal;
-if(document.getElementById("slider_MOBIL_bBiasRight_truck")===null) 
-    console.log("no  MOBIL_bBiasRight_truck slider");
-else{
+if(document.getElementById("slider_MOBIL_bBiasRight_truck")!==null){
     slider_MOBIL_bBiasRight_truck 
 	=document.getElementById("slider_MOBIL_bBiasRight_truck");
     slider_MOBIL_bBiasRight_truckVal
@@ -820,9 +815,7 @@ else{
 
 var MOBIL_p=0.1; 
 var slider_MOBIL_p,slider_MOBIL_pVal;
-if(document.getElementById("slider_MOBIL_p")===null) 
-    console.log("no  MOBIL_p slider");
-else{
+if(document.getElementById("slider_MOBIL_p")!==null){
     slider_MOBIL_p 
 	=document.getElementById("slider_MOBIL_p");
     slider_MOBIL_pVal

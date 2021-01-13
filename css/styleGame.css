@@ -143,25 +143,12 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 /* basic settings for landscape formats */
 /*#############################################################*/
 
-@media all and  (min-aspect-ratio: 6/5){
-
-
-/* (1) the title */
-
-#header{ /*landscape*/
-  position: absolute;
-  top: 0.5vmin;
-  height: 5vmin;
-  left: calc( 1vw + 35vmin);
-  width: 40vmin; /* needed for reference of width: */
-  font-size: 4vmin;
-  font-weight:bold;
-  z-index: 0;  /* above simulation canvas in rare chances of overlapping */
-}
+@media all and  (min-aspect-ratio: 8/5){
 
 
 
-/* (2) the simulation canvas */
+
+/* (2) landscape: the simulation canvas ((1) header not relevant) */
 
 #contents{ /*landscape*/
   position: absolute;
@@ -175,63 +162,43 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
-/* (2a) play button  */
+/* (2a) landscape: square play button  */
 
 #gameDiv{ /*landscape*/
   position: absolute;
   top: 20vmin;
   height: 7vmin;
-  left: 51vmin;
+  left: 41vmin;
   width: 28vmin;
   font-size: 2.2vmin; 
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-/* (2b) position of the start/stop button */
+/* (2b) landscape: position of the start/stop button */
 
-#startStopDiv{ /*landscape*/
+#startStopDiv{ 
   position: absolute;
   top: 18vmin;
+  left: 70vmin;
   height: 8vmin;
-  left: 80vmin;
   width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2c) landscape: position of the restart button */
 
-
-/* (3a) main slider for deviation uses
-/* Notice: table elements relevant for font size */
-
-
-#sliderMain{ /*landscape*/
+#restartDiv{
   position: absolute;
   top: 18vmin;
+  left: 80vmin;
   height: 8vmin;
-  left: 101vmin;
-  width: 50vmin;
-  background-color: rgba(255,255,255,1);
+  width: 8vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2d) landscape: infotext (layout of ul's  in top-level ul, ul.noindent)*/
 
-/* (3b) secondary sliders info inflow, timewarp */
-
-#sliders2{ /*landscape*/
-  position: absolute;
-  top: 72vmin;
-  height: 7vmin;
-  left: 101vmin;
-  width: 50vmin;
-  background-color: rgba(255,255,255,0.5);
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-/* (4) infotext (layout of ul's in infotext in top-level ul, ul.noindent)*/
-
-
-#infotextGame{ /*landscape*/
-
+#infotextGame{ 
   position: absolute;
   border:1px solid black;
   top: 27vmin;
@@ -249,15 +216,44 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 
+/* (3a) landscape: main player's slider for deviation uses
+/* Notice: table elements relevant for font size */
 
 
-/* (5a) position of the copyright: left bottom of simCanvas*/
-
-#impressum{ /*landscape*/
+#sliderMain{
   position: absolute;
-  top: 96vmin;  /* bottom: bug in Safari */
-  height: 2vmin;
+  top: 18vmin;
+  height: 9vmin;
+  left: 101vmin;
+  width: 55vmin;
+  background-color: rgba(255,255,255,1);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (3b) landscape: secondary sliders info inflow, timewarp */
+
+#sliders2{
+  position: absolute;
+  top: 72vmin;
+  height: 8vmin;
+  left: 101vmin;
+  width: 55vmin;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+
+
+/* (4a) landscape: position of the copyright: left bottom of simCanvas*/
+
+#impressum{ 
+  position: absolute;
+  top: 97%;  /* bottom: bug in Safari */
   left: 0.5vw;
+  height: 2vmin;
   width: 10vw;
   background-color: rgba(255,255,255,0.7);
   font-size: 1.5vmin;
@@ -266,22 +262,21 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
-/* (5b) pos of the general link list (table.infoTable top-level)*/
+/* (4b) landscape: pos of the general link list (table.infoTable top-level)*/
 
-#linkDiv{ /*landscape*/
+#linkDiv{ 
   position: absolute;
-  top: 95vmin;  /* bottom: bug in Safari */
-  left:   20vmin;
-  width:  90vmin; /* no height */
+  top: 95.5%;  /* bottom: bug in Safari */
+  left:   74vmin;
   z-index: 2;
 } 
 
 
-/* (5c) position of the flags: right top of simCanvas */
+/* (4c) landscape: position of the flags: right top of simCanvas */
 
-#infoFlags{ /*landscape*/
+#infoFlags{
   position: absolute;
-  bottom:   1vmin;
+  top:   94.5%;
   right:   2vmin;
   width:  16vmin; /* no height */
   z-index: 2;
@@ -299,114 +294,100 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 /* basic settings for square/portrait formats */
 /*#############################################################*/
 
-@media all and  (max-aspect-ratio: 6/5){
-
-/* (1) the title */
-
-#header{ /*portrait*/
-  position: absolute;
-  top: 0.5vmin;
-  height: 5vmin;
-  left: calc( 1vw + 35vmin);
-  width: 40vmin; /* needed for reference of width: */
-  font-size: 4vmin;
-  font-weight:bold;
-  z-index: 0; 
-}
+@media all and  (max-aspect-ratio: 8/5){
 
 
-/* (2) the simulation canvas */
+/* (2) portrait: the simulation canvas ((1) header not relevant) */
 
-#contents{ /*portrait*/
+
+#contents{ 
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  99vmin;  /* proportional to above .#contents 120/95 approx 5/4*/
-  height: 78vmin;
+  width:  99vw; 
+  height: 60vw;
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;
 }
 
 
-/* (2a) position of the copyright: left bottom of simCanvas */
+/* (2a) portrait: square play button  */
 
-#impressum{  /*portrait*/
+#gameDiv{ 
   position: absolute;
-  top: 75.5vmin;
-  height: 2vmin;
-  left: 1vw;
-  width: 12vmin;
-  background-color: rgba(255,255,255,0.5);
-  font-size: 1.5vmin;
-  z-index: 1; /* the higher the integer, the more on top */
-}
-
-
-/* (2b) position of the info button: right top of simCanvas */
-
-#infoDiv{ /*portrait*/
-  position: absolute;
-  top: 1vmin;
+  top: 22vw;
+  left: 34vw;
   height: 6vmin;
-  left: 90vmin;
-  width: 6vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-/* (2c) position of the start/stop sign: just to the left of info button */
-
-#startStopDiv{ /*portrait*/
-  position: absolute;
-  top: 1vmin;
-  height: 6vmin;
-  left: 82vmin;
-  width: 6vmin;
-  z-index: 2; /* the higher the integer, the more on top */
-}
-
-
-#gameDiv{ /*portrait*/
-  position: absolute;
-  top: 1vmin;
-  height: 6vmin;
-  left: 40vmin;
   width: 24vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+/* (2b) portrait: position of the start/stop button */
 
-/* (2f) position of the general link list */
-
-#linkDiv{ /*portrait*/
+#startStopDiv{ /*portrait*/
   position: absolute;
-  top:   79vmin;
-  left:   51vmin;
-  width:  47.5vmin; /* no height */
-  z-index: 2;
-} 
+  top: 22vw;
+  left: 58vw;
+  height: 8vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
-/* (3) position of the flags for language selection: right top of simCanvas */
+/* (2c) portrait: position of the restart button */
 
-#infoFlags{ /*portrait*/
+#restartDiv{ 
   position: absolute;
-  top:   73.5vmin;
-  left:   83vmin;
-  width:  15vmin; /* no height */
-  z-index: 2;
+  top: 22vw;
+  left: 67vw;
+  height: 8vmin;
+  width: 8vmin;
+  z-index: 2; /* must repeat! */
+}
+
+/* (2d) portrait: infotext (layout of ul's  in top-level ul, ul.noindent)*/
+
+
+#infotextGame{ 
+  position: absolute;
+  border:1px solid black;
+  top: 62vw;
+  left: 10vw;
+  width: 80vw;
+  height: 23vw;
+  text-align: left;  /* must repeat everything */
+  padding-top: 0vmin;
+  padding-left: 2vmin;
+  padding-right: 2vmin;
+  background-color: rgba(255,255,255,1.0);
+  z-index: 2; 
+
 }
 
 
-
-
-/* (5) sliders: top-div for all three slider fields */
+/* (3a) portrait: main player's slider for deviation uses
 /* Notice: table elements relevant for font size */
 
-#sliders{ /*portrait*/
+
+#sliderMain{
   position: absolute;
-  top: 88vmin;
-  left: 0vmin;
-  width: 54vmin;
+  top: 12vw;
+  left: 30vw;
+  height: 9vmin;
+  width: 55vmin;
+  background-color: rgba(255,255,255,1);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (3b) portrait: secondary sliders info inflow, timewarp */
+
+#sliders2{
+  position: absolute;
+  top: 40vw;
+  left: 30vw;
+  height: 8vmin;
+  width: 55vmin;
   background-color: rgba(255,255,255,0.5);
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -414,22 +395,42 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 
 
-/* (6) infotext */
+/* (4a) portrait: position of the copyright: left bottom of simCanvas*/
 
-#infotextGame{ /*portrait */
-  border:1px solid black;
-  position: absolute;   /* w/respect to outer div */
-  left: 51vmin;
-  width: 43vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  top: 1vmin;
-  height: 27vmin;
-  text-align: left;
-  padding-top: 0vmin;
-  padding-left: 2vmin;
-  padding-right: 2vmin;
-  background-color: rgba(0,40,255,0.0);
-  overflow:auto;
+#impressum{ 
+  position: absolute;
+  top: 57.5vw;  /* bottom: bug in Safari */
+  left: 0.5vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vmin;
+  z-index: 2; /* the higher the integer, the more on top */
 }
+
+
+
+/* (4b) portrait: pos of the general link list (table.infoTable top-level)*/
+
+#linkDiv{ 
+  position: absolute;
+  top: 88vw; 
+  left:   15vw;
+  width:   70vw;
+  z-index: 2;
+} 
+
+
+/* (4c) portrait: position of the flags: right top of simCanvas */
+
+#infoFlags{
+  position: absolute;
+  top:   55vw;
+  right:   2vmin;
+  width:  16vmin; /* no height */
+  z-index: 2;
+}
+
+
+
 
 
 } /* end @media filter square/portrait  */

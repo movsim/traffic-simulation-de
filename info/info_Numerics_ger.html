@@ -1,0 +1,67 @@
+<!-- edit in development directory; copied to public html -->
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+  <head>
+<h1>Numerik der Simulation</h1>
+
+Das <a href="https://traffic-simulation.de/info/info_IDM_ger.html">IDM</a> und &auml;hnliche Modelle f&uuml;hren zu
+einem System aus gekoppelten gew&ouml;hnlichen Differentialgleichungen
+(ordinary diffeential equations, ODEs)
+<ul>
+<li> F&uuml;r deren L&ouml;sung gibt es explizite und implizite
+  Verfahren. Hier sind nur explizite Verfahren relevant, wo alle Info
+  aus dem letzten Schritt breechnet wird
+<li> Explizite Verfahren gibt es in verschiedenen 
+   <i>Konsistenzordnungen</i>. Bei Konsistenzordnung <i>k</i>  steigt
+  die Genauigkeit mit schrumpfenden Integrtaionszeitschritt  &Delta; t
+  gem&auml;&szlig; 
+  (&Delta; t)<sup>-k</sup> im Grenzfall &Delta; t gegen null und falls
+  die rechte Seite hinreichend glatt ist. 
+</ul>
+W&auml;hrend das IDM (mit wenigen Ausnahmen) glatt ist, f&uuml;hren die
+Spurwechsel, die Ampeln und andere interaktive Elemente zu
+Unstetigkeiten. Insbesondere ist dadurch das Standard  Runge
+Kutta-Verfahren vierter Ordnung <i>nicht</i>effizient. 
+
+In unserer Publikation
+[Martin Treiber and Venkatesan Kanagaraj (2015),
+Comparing Numerical Integration Schemes for Time-Continuous
+Car-Following Models 
+Physica A: Statistical Mechanics and its Applications 419C, 183-195
+DOI 10.1016/j.physa.2014.09.061
+<a href="https://arxiv.org/abs/1403.4881">arxiv e-print
+  1403.4881</a>] zeigten wir, dass das <i> ballistische
+  Scheme</i> am effizientesten ist, wenn es die o.g. disruptive Elemente gibt:
+Die Position <i>x<sub>i</sub></i> und
+  geschwindigkeiten <i>v<sub>i</sub></i> des fahrzeugs  <i>i</i> weden
+  wie folgt aktualisiert: <br>
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFDDAA" cellpadding="10"><tr><td>
+<font color="#0000AA"><i>
+<tr><td>
+  <font color="#0000AA"><i>
+  v<sub>i</sub>(t+&Delta; t) = v<sub>i</sub>(t)+f_i(t) &Delta; t
+</i></font>
+</td></tr>
+<tr><td>
+  <font color="#0000AA"><i>
+  x<sub>i</sub>(t+&Delta; t) = x<sub>i</sub>(t)+v_i(t) &Delta; t
+  + 1/2 &nbsp; f_i(t) (&Delta; t)<sup>2</sup>
+</i></font>
+</td></tr>
+</i></font>
+</table>
+</center>
+<br>
+<!-- ######################################## -->
+
+
+    <hr>
+
+
+  </body>
+</html>

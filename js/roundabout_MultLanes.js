@@ -1,5 +1,4 @@
 
-var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 //#############################################################
@@ -175,8 +174,8 @@ var x01=xc1+uc1
 //###############################################################
 
 
-var nLanes_arm=1;
-var nLanes_ring=1;
+var nLanes_arm=2;
+var nLanes_ring=2;
 
 
 // central ring (all in physical coordinates)
@@ -493,7 +492,7 @@ armImg2=roadImgs2[nLanes_arm-1];
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,4,0,0.80,0.25,2,2);
-var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
 
@@ -914,13 +913,6 @@ function drawSim() {
 			0.1*refSizePix, 0.2*refSizePix,
 			vmin_col,vmax_col,0,100/3.6);
     }
-
-
-  // (8) xxxNew draw TL editor panel
-
-  if(trafficLightControl.isActive){
-    trafficLightControl.showEditPanel();
-  }
 
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 
