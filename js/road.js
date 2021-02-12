@@ -284,20 +284,21 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
 //######################################################################
 
 road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-    //console.log("in road.gridTrajectories: roadID=",this.roadID,
-//		" this.nLanes=",this.nLanes,
-//		" traj_yExt=",traj_yExt);
-    for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
+  if(false){console.log("in road.gridTrajectories: roadID=",this.roadID,
+		       " this.nLanes=",this.nLanes,
+		       " traj_yExt=",traj_yExt);
+	  }
+  for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
  	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
 	this.xtab[i]=this.xtabOld[i];
 	this.ytab[i]=this.ytabOld[i];
-     }
+  }
 
     // internally chosen piecewise linear analytic traj functions
     // this.traj_xy as approx of traj_xy
 
-    this.traj_x=function(u){
+  this.traj_x=function(u){
         // restrict u to within roadLen
 	var uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
 	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
@@ -314,21 +315,21 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 	}
 
 	return (1-rest)*this.xtab[iLower]+rest*this.xtab[iUpper];
-    }
+  }
 
-    this.traj_y=function(u){
+  this.traj_y=function(u){
         // restrict u to within roadLen
 	uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
 	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
 	var iUpper=Math.min(iLower+1, this.nSegm);
 	var rest=this.nSegm*uLoc/this.roadLen-iLower;
 	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iUpper];
-    }
+  }
 
     // test code
 
 
-    if(false){
+    if(this.roadID==1){
         console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
 		" this.xtab[0]=",this.xtab[0],
 		" this.xtab[1]=",this.xtab[1],

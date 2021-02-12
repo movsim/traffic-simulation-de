@@ -1,4 +1,6 @@
 
+//var userCanDistortRoads=false; // only if true, road.gridTrajectories after
+var userCanDistortRoads=false; 
 var userCanDropObjects=true;
 
 //#############################################################
