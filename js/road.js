@@ -78,7 +78,9 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     this.roadLen=roadLen;
     this.laneWidth=laneWidth;
     this.nLanes=nLanes;
+  this.exportString="";
 
+  
     // network related properties
 
     this.isRing=isRing;
@@ -534,6 +536,69 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
       }
   }
 }
+
+
+//######################################################################
+// simple write vehicle info to file
+//######################################################################
+
+  /*
+{
+  var downloadObject={
+    time:time,
+    roadID: this.roadID,
+    vehicles: []
+  }
+  for(var i=0; i<this.veh.length; i++){
+      downloadObject["vehicles"][j]=
+	{id: this.veh[i].id,
+	 type: this.veh[i].type,
+	 u: this.veh[i].u.toFixed(2),
+	 v: this.veh[i].v.toFixed(2),
+	 lane: this.veh[i].lane,
+	 speed: this.veh[i].speed.toFixed(2),
+	 latSpeed: this.veh[i].dvdt.toFixed(2),
+         acc: this.veh[i].acc.toFixed(2)
+	}
+   var data=JSON.stringify(downloadObject);
+   download(data, filename);
+}
+*/
+
+road.prototype.writeVehiclesSimpleToFile= function(filename) {
+
+  console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.roadID,
+	      " filename=",filename);
+  //console.log("road.exportString=\n",this.exportString);
+  download(this.exportString, filename);
+  
+}
+
+//######################################################################
+// update export string for writing vehicle data to file
+//######################################################################
+
+road.prototype.updateExportString=function(){
+
+  var rest=time/dt_export-Math.floor((time+0.0001)/dt_export);
+  
+  if(rest<dt-0.0001){
+    for(var i=0; i<this.veh.length; i++){
+      var heading=(this.veh[i].speed>1e-4)
+	  ? this.veh[i].dvdt/this.veh[i].speed : 0;
+      this.exportString=this.exportString+"\n"+time.toFixed(2)
+        + "\t"+this.veh[i].id
+        + "\t"+this.veh[i].u.toFixed(2)
+        + "\t"+this.veh[i].v.toFixed(2)
+        + "\t"+this.veh[i].speed.toFixed(2)
+        + "\t\t"+heading.toFixed(2)
+        + "\t"+this.veh[i].acc.toFixed(2)
+        +"";
+    }
+  }
+}
+ 
+
 
 //######################################################################
 // write simple speedlimit info
@@ -2170,8 +2235,9 @@ road.prototype.updateSpeedPositions=function(){
 
   this.sortVehicles(); // positional update may have disturbed order
   this.updateEnvironment();// crucial!!
-}
 
+  if(downloadActive){this.updateExportString();}
+}
 
 
 

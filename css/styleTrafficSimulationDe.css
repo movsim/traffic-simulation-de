@@ -320,7 +320,7 @@ which always gives correct size!!
 
 #linkDiv{
   position: absolute;
-  top:   96%; /* bottom attribute error in Safari */ 
+  top:   92%; /* bottom attribute error in Safari */ 
   left:   40vmin;
   /*width:  40vmin;*/
   z-index: 2;
@@ -336,6 +336,14 @@ which always gives correct size!!
   z-index: 2;
 }
 
+
+#downloadDiv{
+  position: absolute;
+  top:   91.5%;
+  left:   85vmin;
+  width:  8vmin; /* no height */
+  z-index: 2;
+}
 
 /* (4) landscape: the field for selecting the scenarios */
 

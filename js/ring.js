@@ -159,7 +159,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; //!!! true only if user-driven geometry changes
+var userCanvasManip=false; //!!! true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
@@ -431,9 +431,10 @@ function drawSim() {
 
 function main_loop() {
 
-    updateSim();
-    drawSim();
-    userCanvasManip=false;
+  updateSim();
+  drawSim();
+
+ 
 }
 
 

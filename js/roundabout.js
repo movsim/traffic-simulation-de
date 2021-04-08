@@ -675,18 +675,37 @@ function updateSim(){
 
     mainroad.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
-        arm[i].updateSpeedPositions();
+      arm[i].updateSpeedPositions();
 
-        // !!! forcibly move vehicles behind virtual obstacle vehicle 0
-        // if they cross it (may happen for very low a, T)
-        // to avoid bugs (otherwise, the vehicle will orbit perpetually
-        // on (traj_x,traj_y) instead of merging)
+      // !!! forcibly move vehicles behind virtual obstacle vehicle 0
+      // if they cross it (may happen for very low a, T, high timewarp)
+      // to avoid bugs (otherwise, the vehicle will orbit perpetually
+      // on (traj_x,traj_y) instead of merging)
+      // also at least partially undo swapping of vehicle properties
+      // in roadsection.update routines veh<->obstacle
+      // by at least resetting veh[0] as obstacle of length 0
+      // the true veh may be lost but this is an extremely unrealistic
+      // situation with many crashes anyway
+      // (swap only as consequence of crash) => see roundabout_debug.js,-html
 
+      if(true){
 	if(arm[i].veh.length>=2){
-	  if(arm[i].veh[1].u>arm[i].veh[0].u-0.1){
-	      arm[i].veh[1].u=arm[i].veh[0].u-0.1;
+	  if(arm[i].veh[1].u>arm[i].veh[0].u-0.5){
+	    //console.log("veh.id=", arm[i].veh[1].id,
+	//		"veh.u=", arm[i].veh[1].u.toFixed(2),
+	//		"veh[0].type=", arm[i].veh[0].type,
+	//		"veh[0].u=", arm[i].veh[0].u.toFixed(2));
+	    arm[i].veh[1].u=arm[i].veh[0].u-0.5;
+	    arm[i].veh[0].type="obstacle"; // for some f... reason swap
+	    arm[i].veh[0].length=0;
+	    console.log("forcibly moved veh ",arm[i].veh[1].id,
+			" behind obstacle",
+			"veh.u=", arm[i].veh[1].u.toFixed(2),
+			"veh[0].u=", arm[i].veh[0].u.toFixed(2));
+			
 	  }
 	}
+      }
     } 
 
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){

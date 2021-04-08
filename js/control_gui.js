@@ -89,6 +89,44 @@ function selectNotRegularVeh(veh){
   return !veh.isRegularVeh();
 }
 
+//################################################################
+// Start/Finish Download button callback
+//#################################################################
+
+var downloadActive=false; // initialisation
+var dt_export=1;          // every dt_export seconds stored in exportString
+
+function downloadCallback(){
+  if(downloadActive){
+    performDownload();
+    downloadActive=false;
+    document.getElementById("download").src="figs/iconDownloadStart_small.png";
+  }
+  
+  else{
+    for(var i=0; i<network.length; i++){
+      network[i].exportString
+        ="#time\tid\tx[m]\ty[m]\tspeed[m/s]\theading\tacc[m/s^2]";
+    }
+    downloadActive=true;
+    document.getElementById("download").src="figs/iconDownloadFinish_small.png";
+  }
+}
+
+
+function performDownload(){
+  var msg="";
+  for(var i=0; i<network.length; i++){
+    var filename="road"+network[i].roadID+"_time"+time.toFixed(1)+".txt";
+    msg=msg+filename+" ";
+    network[i].writeVehiclesSimpleToFile(filename);
+  }
+  msg="wrote files "+msg+" to default folder (Downloads)";
+  downloadActive=false;
+  alert(msg);
+}
+
+
 
 //################################################################
 // xxxNEW Show/close the traffic light editor panel
@@ -919,3 +957,47 @@ IDM_T=0.5;
 slider_IDM_T.value=IDM_T;
 slider_IDM_TVal.innerHTML=IDM_T+" s";
 */
+
+
+
+
+
+
+
+
+//######################################################################
+// write (JSON or normal) string to file (automatically in download folder)
+//######################################################################
+  
+function download(data, filename) {
+    // data is the string type, that contains the contents of the file.
+    // filename is the default file name, some browsers allow the user to change this during the save dialog.
+
+    // Note that we use octet/stream as the mimetype
+    // this is to prevent some browsers from displaying the 
+    // contents in another browser tab instead of downloading the file
+    var blob = new Blob([data], {type:'octet/stream'});
+
+    //IE 10+
+    if (window.navigator.msSaveBlob) {
+        window.navigator.msSaveBlob(blob, filename);
+    }
+    else {
+        //Everything else
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        document.body.appendChild(a);
+        a.href = url;
+        a.download = filename;
+
+        setTimeout(() => {
+            //setTimeout hack is required for older versions of Safari
+
+            a.click();
+
+            //Cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }, 1);
+    }
+}

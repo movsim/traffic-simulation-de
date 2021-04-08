@@ -1,4 +1,5 @@
 
+var userCanDistortRoads=false;
 var userCanDropObjects=true;
 
 //#############################################################
@@ -16,7 +17,7 @@ respectRightPrio=false; // callback: control_gui-handleChangedPriority
 var markVehsMerge=true; // for debugging road.mergeDiverge
 var drawVehIDs=true;    // for debugging road.mergeDiverge
 var useSsimpleOD_debug=false;
-var drawRingDirect=false; // draw ring vehicles directly instead gen Traj (debug)
+var drawRingDirect=false; // draw ring vehicles directly instead gen Traj
 
 // merging fine tuning
 //!! fiddle to optimize de-facto anticipation of merging vehs 
@@ -61,16 +62,16 @@ timewarp=8;
 slider_timewarp.value=timewarp;
 slider_timewarpVal.innerHTML=timewarp +" times";
 
-IDM_a=0.3; // low to allow stopGo; 
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
-factor_a_truck=1; // to allow faster slowing down of the uphill trucks
-
 IDM_v0=50./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-IDM_T=0.6; // overrides standard settings in control_gui.js
+IDM_a=0.3; 
+slider_IDM_a.value=IDM_a;
+slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
+factor_a_truck=1; // to allow faster slowing down of the uphill trucks
+
+IDM_T=0.3; // overrides standard settings in control_gui.js
 slider_IDM_T.value=IDM_T;
 slider_IDM_TVal.innerHTML=IDM_T+" s";
 
@@ -325,10 +326,8 @@ uLastExits[2]=rRing*(0.75*Math.PI-stitchAngleOffset)+divLen;
 uLastExits[3]=rRing*(0.25*Math.PI-stitchAngleOffset)+divLen;
 
 
-
 // !! odd roadIDs are offramps!!
 mainroad.setOfframpInfo([1,3,5,7], uLastExits, [true,true,true,true]);
-
 console.log("mainroad.offrampIDs=",mainroad.offrampIDs);
 console.log("mainroad.offrampLastExits=",mainroad.offrampLastExits);
 mainroad.duTactical=divLen;
@@ -343,6 +342,12 @@ arm[4]=new road(4,lArm,laneWidth,nLanes_arm,traj4_x,traj4_y,0,0,0,false);
 arm[5]=new road(5,lArm,laneWidth,nLanes_arm,traj5_x,traj5_y,0,0,0,false);
 arm[6]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
 arm[7]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
+
+network[0]=mainroad;  // network declared in canvas_gui.js
+for (var i=0; i<arm.length; i++){
+  network[i+1]=arm[i];
+}
+
 
 for (var i=0; i<arm.length; i++){
     arm[i].padding=padding;
@@ -382,7 +387,6 @@ var route7R=[6,10,5];  // inflow N-arm, right turn
 for(var i=0; i<8; i+=2){
     arm[i].veh.unshift(new vehicle(0.0, laneWidth, mergeEnd, 0, 0, "obstacle"));//!!!
 }
-
 
 
 //#########################################################
@@ -444,14 +448,16 @@ traffLightGreenImg = new Image();
 traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
 
 
-// init obstacle images
+// define obstacle images
 
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
 obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
 for (var i=0; i<10; i++){
-    obstacleImgs[i]=new Image();
-    obstacleImgs[i].src = (i==0)
-	? 'figs/obstacleImg.png'
-	: "figs/constructionVeh"+i+".png";
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
 
@@ -480,16 +486,15 @@ armImg2=roadImgs2[nLanes_arm-1];
 
 
 
-//####################################################################
-// ObstacleTLDepot(nImgs,nRow,nCol,xDepot,yDepot,lVeh,wVeh,containsObstacles)
-//####################################################################
 
+//############################################
+// traffic objects
+//############################################
 
-var smallerDimPix=Math.min(canvas.width,canvas.height);
-var depot=new ObstacleTLDepot(obstacleImgs.length, 2,1,
-			   0.8*smallerDimPix/scale,
-			   -0.7*smallerDimPix/scale,
-			   10,10,true);
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+var trafficObjs=new TrafficObjects(canvas,4,0,0.80,0.25,2,2);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
+
 
 
 //############################################
@@ -554,8 +559,9 @@ function updateSim(){
 
     mainroad.calcAccelerations();
     //mainroad.updateSpeedPositions();
-    for(var i=0; i<arm.length; i++){
-      arm[i].calcAccelerations(); 
+  for(var i=0; i<arm.length; i++){
+    //if(i%2==0){arm[i].veh[0].type="obstacle";} //!!!
+    arm[i].calcAccelerations();
       //arm[i].updateSpeedPositions();
     } 
 
@@ -670,66 +676,84 @@ function updateSim(){
 
     mainroad.updateSpeedPositions();
     for(var i=0; i<arm.length; i++){
-        arm[i].updateSpeedPositions();
-        // !!! forcibly move vehicles behind virtual obstacle vehicle 0
-        // if they cross it (may happen for very low a, T)
-        // to avoid bugs (otherwise, the vehicle will orbit perpetually
-        // on (traj_x,traj_y) instead of merging)
+      arm[i].updateSpeedPositions();
 
-	if(false){// error reproduced if not commented out: veh 1063 circles first from N
-	//if(arm[i].veh.length>=2){// !!! error removed if not commented out
-	    if(arm[i].veh[1].u>arm[i].veh[0].u-0.1){
-	        arm[i].veh[1].u=arm[i].veh[0].u-0.1;
-	    }
+      // !!! forcibly move vehicles behind virtual obstacle vehicle 0
+      // if they cross it (may happen for very low a, T, high timewarp)
+      // to avoid bugs (otherwise, the vehicle will orbit perpetually
+      // on (traj_x,traj_y) instead of merging)
+      // also at least partially undo swapping of vehicle properties
+      // in roadsection.update routines veh<->obstacle
+      // by at least resetting veh[0] as obstacle of length 0
+      // the true veh may be lost but this is an extremely unrealistic
+      // situation with many crashes anyway
+      // (swap only as consequence of crash)
+      
+      if(true){
+	if(arm[i].veh.length>=2){
+	  if(arm[i].veh[1].u>arm[i].veh[0].u-0.5){
+	    console.log("veh.id=", arm[i].veh[1].id,
+			"veh.u=", arm[i].veh[1].u.toFixed(2),
+			"veh[0].type=", arm[i].veh[0].type,
+			"veh[0].u=", arm[i].veh[0].u.toFixed(2));
+	    arm[i].veh[1].u=arm[i].veh[0].u-0.5;
+	    arm[i].veh[0].type="obstacle"; // for some f... reason swap
+	    arm[i].veh[0].length=0;
+	    console.log("forcibly moved this veh behind obstacle",
+			"veh.u=", arm[i].veh[1].u.toFixed(2));
+			
+	  }
 	}
+      }
     } 
 
-
-    if(userCanDropObjects&&(!isSmartphone)){
-	if(trafficObjZoomBack){
-	    var res=depot.zoomBackVehicle();
-	    trafficObjZoomBack=res;
-	    userCanvasManip=true;
-	}
-    }
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
+  }
 
 
     //##############################################################
     // debug output
     //##############################################################
 
-    var idTest=812;
-    for(var iArm=0; iArm<8; iArm++){
+    if(true){
+    //if(false){
+      var idTest=889;
+      for(var iArm=0; iArm<8; iArm++){
 	for(var iveh=0; iveh<arm[iArm].veh.length; iveh++){
-	    if(arm[iArm].veh[iveh].id==idTest){
-		console.log("time=",time," itime=",itime, " vehID=",idTest,
-			    " road=arm",iArm, "iveh=",iveh,
-			    " u=",arm[iArm].veh[iveh].u,
-			    " veh0.u=",arm[iArm].veh[0].u
-			   );
-	    }
+	  if(arm[iArm].veh[iveh].id==idTest){
+	    console.log("time=",time.toFixed(1)," itime=",itime,
+			" vehID=",idTest,
+			" road=arm",iArm, "iveh=",iveh,
+			" type=",arm[iArm].veh[iveh].type,
+			" u=",arm[iArm].veh[iveh].u.toFixed(2),
+			" veh[0].type=",arm[iArm].veh[0].type,
+			" veh[0].u=",arm[iArm].veh[0].u.toFixed(2),
+			"");
+	  }
 	}
-    }
-    for(var iveh=0; iveh<mainroad.veh.length; iveh++){
+      }
+      for(var iveh=0; iveh<mainroad.veh.length; iveh++){
 	if(mainroad.veh[iveh].id==idTest){
 		console.log("time=",time," itime=",itime, " vehID=",idTest,
 			    " road=mainroad, iveh=",iveh,
 			    " u=",mainroad.veh[iveh].u
 			   );
 	}
-    }
+      }
 
 
 
-    //if((itime>=165)&&(itime<=168)){
-    if(false){
+      //if((itime>=165)&&(itime<=168)){
+      if(false){
 	console.log("\nDebug updateSim: Simulation time=",time,
 		    " itime=",itime);
 	mainroad.writeVehiclesSimple();
 	//console.log("\nonramp vehicles, simulation time=",time,":");
 	arm[6].writeVehiclesSimple();
 	arm[7].writeVehiclesSimple();
-    }
+      }
+    }//debug
 
 
 }//updateSim
@@ -748,8 +772,7 @@ function drawSim() {
  
     var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
     var textsize=relTextsize_vmin*Math.min(window.innerWidth,window.innerHeight);
-   // console.log("isSmartphone-",isSmartphone," textsize=",textsize);
-    var hasChanged=false;
+
 
     if(false){
         console.log(" new total inner window dimension: ",
@@ -773,9 +796,15 @@ function drawSim() {
 	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
+        //updateDimensions(); // not defined for roundabout
 
-	
-
+      trafficObjs.calcDepotPositions(canvas);
+      if(true){
+        console.log("haschanged=true: new canvas dimension: ",
+		    canvas.width," X ",canvas.height);
+      }
+ 
+/*
 	mainroad.gridTrajectories(trajRing_x,trajRing_y);
         arm[0].gridTrajectories(traj0_x,traj0_y);
         arm[1].gridTrajectories(traj1_x,traj1_y);
@@ -785,23 +814,21 @@ function drawSim() {
         arm[5].gridTrajectories(traj5_x,traj5_y);
         arm[6].gridTrajectories(traj6_x,traj6_y);
         arm[7].gridTrajectories(traj7_x,traj7_y);
+*/
     }
 
+  // (2) reset transform matrix and draw background
+  // (only needed if changes, plus "reminders" for lazy browsers)
 
-    // (2) reset transform matrix and draw background
-    // (only needed if no explicit road drawn)
-
-    // "%20-or condition"
-    //  because some older firefoxes do not start up properly?
-
-    ctx.setTransform(1,0,0,1,0,0); 
-    if(drawBackground){
-	if(userCanvasManip ||hasChanged
-	   ||(itime<=1) || (itime%2===0) || false || (!drawRoad)){
-	  ctx.drawImage(background,0,0,canvas.width,canvas.height);
-      }
+  ctx.setTransform(1,0,0,1,0,0);
+  if(drawBackground){
+    if(hasChanged||(itime<=10) || (itime%1==0) || userCanvasManip
+      || (!drawRoad)){
+      ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
+  }
 
+ 
 
     // (3) draw mainroad and arms 
 
@@ -812,10 +839,6 @@ function drawSim() {
 	arm[i].draw(armImg1,armImg2,scale,changedGeometry);
     }
     mainroad.draw(ringImg1,ringImg2,scale,changedGeometry);
-
-    // (3a) if applicable, draw traffic lights after ring=mainroad, before vehs
-
-    mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!
 
     
     // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
@@ -889,12 +912,17 @@ function drawSim() {
 	}
     }
     
-    // (5) 
-    
-    if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
-    }
+  // (5a) draw traffic objects 
 
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
+
+  // (5b) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
+ 
     // (6) draw simulated time
 
     displayTime(time,textsize);
@@ -910,8 +938,19 @@ function drawSim() {
     }
 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // (8) xxxNew draw TL editor panel
+
+  if(trafficLightControl.isActive){
+    trafficLightControl.showEditPanel();
+  }
+
+  // may be set to true in next step if changed canvas 
+  // or old sign should be wiped away 
+  hasChanged=false;
+
+  // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
+
 }// drawSim
  
 
@@ -939,17 +978,6 @@ function main_loop() {
 
 console.log("first main execution");
 showInfo();
-
-//!! this seeds the Math.random function function
-// provided in seedrandom.min.js
-// Math.seedrandom(42) will lead at 47.0 s to the first bug: 
-// The car entering the North arm begins circling around 
-
-Math.seedrandom(42); //!! start reproducibly (see docu at onramp.js)
-console.log("Warning: Using seeded random number generator for debugging");
-console.log("see https://github.com/davidbau/seedrandom");
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 
 var myRun=setInterval(main_loop, 1000/fps);

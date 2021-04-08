@@ -11,7 +11,7 @@
     <link rel="shortcut icon" type="image/jpg" href="./favicon.jpg">
     <script type="text/javascript" src="js/jquery-1.5.1.min.js">
     </script>
- 
+
     
     <title>Microsimulation of Traffic Flow: Onramp</title> 
 </head>
@@ -137,14 +137,18 @@
      
 <div id="linkDiv">
   <table class="infoTable"> <TR>
-    <TD><!--<img  src="https://www.mtreiber.de/figs/clover.png" width="20px"/>-->
-         <a href="https://www.movsim.org"> MovSim </a> </TD>
-    <TD> <a href = "http://traffic-flow-dynamics.org/" > 
-          Book "Traffic Flow Dynamics" </a></TD>
-    <TD> <a href = "https://www.verkehrsdynamik.de" >
-	  Buch "Verkehrsdynamik"</a></TD>
+    <TD> <a href="https://www.movsim.org"> MovSim &nbsp; </a> </TD>
+    <TD>
+      <table>
+	<tr><td><a href = "http://traffic-flow-dynamics.org/" > 
+              Book "Traffic Flow Dynamics" </a></td></tr>
+        <tr><td> <a href = "https://www.verkehrsdynamik.de" >
+	      Buch "Verkehrsdynamik"</a></td></tr>
+      </table>
+    </td>
   </TR></table>
  </div>
+
 
 
 <!-- ################################################# -->
@@ -267,6 +271,15 @@
 </div>   <!-- id="sliders">-->
 
 
+
+<!-- ############################################## -->
+<!-- Download
+<!-- ############################################## -->
+
+<div id="downloadDiv">
+  <img id="download" src="figs/iconDownloadStart_small.png" width="100%"
+       onclick="downloadCallback()"/>
+</div>
 
 
 
