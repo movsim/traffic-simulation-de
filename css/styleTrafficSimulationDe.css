@@ -363,7 +363,7 @@ which always gives correct size!!
 /* Notice: table elements relevant for font size */
 
 
-#sliders{ 
+#sliders{ /* Also contains info text for non-BaWue simulations!*/
   position: absolute;
   top: 16vmin;
   height: 20vmin;
@@ -583,7 +583,7 @@ body{
 #linkDiv{
   position: absolute;
   top:   81vmin;
-  left:   68vmin;
+  left:   65vmin;
   width:  32vmin;
   z-index: 2;
 } 
@@ -598,6 +598,13 @@ body{
   z-index: 2;
 }
 
+#downloadDiv{
+  position: absolute;
+  top:   74vmin;;
+  left:   75.5vmin;
+  width:  6vmin; /* no height */
+  z-index: 2;
+}
 
 /* (4) square/portrait: the field for selecting the scenarios; */
 
@@ -617,7 +624,7 @@ body{
 /* (5) portrait: sliders: top-div for all three slider fields */
 /* Notice: table elements relevant for font size */
 
-#sliders{ 
+#sliders{ /* Also contains info text for non-BaWue simulations!*/
   position: absolute;
   top: 99vmin;
   left: 0vmin;
@@ -835,7 +842,7 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 /* Notice: table elements relevant for font size */
 
 
-#sliders{ 
+#sliders{ /* Also contains info text for non-BaWue simulations!*/
   top: 20vmin;
   height: 20vmin;
   left: 110vmin;
@@ -893,7 +900,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 
 #impressum{ 
   top: 76vmin; 
-  left: 30vmin; 
+  left: 1vmin; 
   z-index: 2;
 
 }
@@ -922,7 +929,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 /* (5) smartphone portrait: sliders: top-div for all three slider fields */
 /* Notice: table elements relevant for font size */
 
-#sliders{ 
+#sliders{ /* Also contains info text for non-BaWue simulations!*/
   position: absolute;
   top: 79vmin;
   left: 0vmin;

@@ -195,7 +195,7 @@ which always gives correct size!!
   height: 8vmin;
   right: 20vmin;
   width: 8vmin;
-  z-index: 2; /* the higher the integer, the more on top */
+  z-index: 4; /* the higher the integer, the more on top */
 }
 
 
