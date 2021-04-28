@@ -94,8 +94,12 @@ stationaryDetector.prototype.display=function(textsize){
     +" veh/h";
   var speedStr="Speed: "+((this.historyFlow[this.iAggr]>0)
 			  ? Math.round(3.6*this.historySpeed[this.iAggr])
-			  : "--")
-	+" km/h";
+			  : "--")+" km/h";
+  var densStr="Dens.: "+((this.historyFlow[this.iAggr]>0)
+			 ? Math.round(1000*this.historyFlow[this.iAggr]
+				      /this.historySpeed[this.iAggr])
+			 : "--")+" veh/km";
+	
  
 
     var phi=this.road.get_phi(this.u);
@@ -109,7 +113,7 @@ stationaryDetector.prototype.display=function(textsize){
     var xPixCenter=this.road.get_xPix(this.u, toRight_axis,scale);
     var yPixCenter=this.road.get_yPix(this.u, toRight_axis,scale);
     var boxWidth=8.2*textsize;
-    var boxHeight=2.4*textsize;
+    var boxHeight=3.6*textsize;
 
     // the detector line
 
@@ -137,8 +141,9 @@ stationaryDetector.prototype.display=function(textsize){
     ctx.fillStyle="rgb(255,255,255)";
     ctx.fillRect(xPixCenter-0.5*boxWidth, yPixCenter-0.5*boxHeight,boxWidth,boxHeight);
     ctx.fillStyle="rgb(0,0,0)";
-    ctx.fillText(flowStr,xPixCenter-0.46*boxWidth,yPixCenter-0.1*boxHeight);
-    ctx.fillText(speedStr,xPixCenter-0.46*boxWidth,yPixCenter+0.4*boxHeight);
+    ctx.fillText(flowStr,xPixCenter-0.46*boxWidth,yPixCenter-0.2*boxHeight);
+    ctx.fillText(speedStr,xPixCenter-0.46*boxWidth,yPixCenter+0.1*boxHeight);
+    ctx.fillText(densStr,xPixCenter-0.46*boxWidth,yPixCenter+0.4*boxHeight);
 }
 
 
