@@ -67,8 +67,10 @@ function myRestartFunction(){
 
   // reset all detectors (each detector knows which road it is at)
 
-  for(var iDet=0; iDet<detectors.length; iDet++){
-    detectors[iDet].reset();
+  if(!(typeof detectors === 'undefined')){
+    for(var iDet=0; iDet<detectors.length; iDet++){
+      detectors[iDet].reset();
+    }
   }
 
    // activate thread if stopped
@@ -185,45 +187,8 @@ function handleChangedOD(index){
 
 
 /*#########################################################
- game callbacks 
-#########################################################
-
-at present only routing game for routing.js
-*/
-
-var nick="Voldemort";
-function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
-    isGame=true;
-    time=0;
-    itime=0;
-    var nregular=mainroad.nRegularVehs();
-    mainroad.removeRegularVehs();
-    ramp.removeRegularVehs();
-    $("#"+infotextID).load("info/info_routingGame.html");
-    //$("#infotextGame").load("info/info_routingGame.html"); // only here
-    console.log("playRoutingGame: target ID to load to: "+ "#"+infotextID);
-    nick = prompt("Please enter your nick", "Voldemort");
-}
-
-function updateRoutingGame(time){
-    qIn=(time<50) ? 3000/3600 : 
-	(time<90) ? 600/3600 : 
-	(time<120) ? 3300/3600 :
-	(time<125) ? 900/3600 : 0;
-    slider_qIn.value=3600*qIn;
-    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
-}
-
-function finishRoutingGame(infotextID, qInInit){
-    isGame=false;
-    qIn=qInInit;
-    var roundedTime=parseFloat(time).toFixed(1);
-    var messageText=updateHighscores(nick,roundedTime,
-				     "routingGame_Highscores");
-    document.getElementById(infotextID).innerHTML=messageText;
-    console.log("Game finished in ",time," seconds!");
-    myStartStopFunction(); // reset game
-}
+ general game callbacks (specific function at the game js)
+#########################################################*/
 
 
 /*#########################################################
@@ -270,7 +235,9 @@ function updateHighscores(nickName,newScore,storageName){
 		 date:dateStr
 		});
 
-    scores.sort(function(a,b){return a.score > b.score});
+  //console.log("before sorting: scores=",scores);
+  scores.sort(function(a,b){return a.score - b.score}); // !! a-b, not a>b
+  //console.log("after sorting: scores=",scores);
 
     // save the updated highscore list and return string for html display 
 

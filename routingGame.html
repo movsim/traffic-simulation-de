@@ -34,13 +34,18 @@
 </div>
 
 <div id="restartDiv"><img id="restart" width="100%"
-     src="figs/buttonRestart_small.png" onclick="myRestartFunction()"/>
+     src="figs/buttonRestart_small.png" onclick="myGameRestartFunction()"/>
 </div>
 
 
 <div id="gameDiv">
   <button onclick='playRoutingGame("infotextGame")'>
   Play Routing Game</button> 
+</div>
+
+<div id="clearHighscoresDiv">
+  <button onclick='clearHighscores();'>
+  Clear Highscores</button> 
 </div>
 
 
@@ -125,7 +130,7 @@
 <!-- Info text including display of results  (filled by showInfo()) 
 <!-- ############################################## -->
 
-  <div id="infotextGame"> </div>
+  <div id="infotextRoutingGame"> </div>
 
 
 
@@ -133,8 +138,11 @@
 <!-- Copyright/impressum                               -->
 <!-- ################################################# -->
 
-<div id="impressum"> <a href="impressum.html">
-  &copy; Martin Treiber</a></div>
+<div id="impressum">
+  <table class="infoTable"> <TR>
+    <td> <a href="impressum.html"> &copy; Martin Treiber</a></td>
+  </TR></table>
+</div>
 
 
 
@@ -147,13 +155,13 @@
       <TD> <a href="routing.html">
           traffic-simulation.de</a></TD>
       <TD> <a href="https://github.com/movsim/traffic-simulation-de">
-          Play offline: sources at GitHub</a></TD>
-      <TD><!--<img  src="https://www.mtreiber.de/figs/clover.png" width="20px"/>-->
-         <a href="https://www.movsim.org"> MovSim </a> </TD>
-      <TD> <a href = "https://www.verkehrsdynamik.de" >
+          Sources at GitHub</a></TD>
+      <!--<TD>
+         <a href="https://www.movsim.org"> MovSim </a> </TD>-->
+      <!--<TD> <a href = "https://www.verkehrsdynamik.de" >
 	  Buch "Verkehrsdynamik"</a></TD>
       <TD> <a href = "http://traffic-flow-dynamics.org/" > 
-          Book "Traffic Flow Dynamics" </a></TD>
+          Book "Traffic Flow Dynamics" </a></TD>-->
   </TR></table>
  </div>
 
@@ -175,9 +183,6 @@
  <img src="figs/flagGerman.png" width="45%" />
 </a>
 </div>
-
-
-
 
 
 
@@ -207,6 +212,7 @@
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 <script src="js/TrafficLightControlEditor.js"></script> 
+<script src="js/routingGameInfo.js"></script> 
 
 <!-- PROJ--> <script src="js/routingGame.js"></script> 
 

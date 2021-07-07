@@ -1,12 +1,6 @@
 
 var userCanDropObjects=false;
-
-//#############################################################
-// manually delete highscores from disk [loeschen remove]
-// comment out if online/game active!
-//#############################################################
-
-//deleteHighscores("routingGame_Highscores");
+var userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 
@@ -23,7 +17,7 @@ var qInInit=2200./3600;
 
 // override standard settings in control_gui.js
 
-qIn=2200./3600;
+qIn=qInInit;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 //slider_qIn.value=3600*qIn;
 //slider_qInVal.innerHTML=3600*qIn+" veh/h";
@@ -91,8 +85,12 @@ console.log("after addTouchListeners()");
 var isSmartphone=mqSmartphone();
 
 var refSizePhys=320;  // constants => all objects scale with refSizePix
+                      // also adapt in updateDimensions
 
 var critAspectRatio=1.7; // from css file width/height of #contents
+                         // the higher, the longer sim window
+                         // must be the same as in css:
+                         // max-aspect-ratio: 17/10 etc
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
@@ -496,6 +494,54 @@ var fps=30; // frames per second
 var dt=timewarp/fps;
 
 
+/*#########################################################
+ game callbacks (general callbacks for all games in control_gui.js)
+#########################################################*/
+
+var nick="Voldemort";
+function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
+  isGame=true;
+  time=0;
+  itime=0;
+  var nregular=mainroad.nRegularVehs();
+  mainroad.removeRegularVehs();
+  ramp.removeRegularVehs();
+  nick = prompt("Please enter your nick", "Voldemort");
+  var debug=true;
+  if(debug){
+    time=1000*Math.random(); // gets score in finish...
+    finishRoutingGame("infotextRoutingGame");
+  }
+
+}
+
+function updateRoutingGame(time){
+    qIn=(time<50) ? 3000/3600 : 
+	(time<90) ? 600/3600 : 
+	(time<120) ? 3300/3600 :
+	(time<125) ? 900/3600 : 0;
+    slider_qIn.value=3600*qIn;
+    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+}
+
+function finishRoutingGame(infotextID){
+    isGame=false;
+    qIn=qInInit;
+    var roundedTime=parseFloat(time).toFixed(1);
+    var messageText=updateHighscores(nick,roundedTime,
+				     "routingGame_Highscores");
+    document.getElementById(infotextID).innerHTML=messageText;
+    console.log("Game finished in ",time," seconds!");
+    myStartStopFunction(); // reset game
+}
+
+function clearHighscores(){
+  deleteHighscores("routingGame_Highscores");
+  time=10000;
+  nick="The Worst Controller"
+  finishRoutingGame("infotextRoutingGame");
+}
+  
 
 
 //#################################################################
@@ -504,9 +550,10 @@ function updateSim(){
 
     // update times and general settings
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    if(isGame){
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+
+  if(isGame){
 	updateRoutingGame(time);  // from control_gui.js
 	if(false){
 	    console.log("in game: time=",time," qIn=",qIn,
@@ -516,10 +563,10 @@ function updateSim(){
 
 	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
 	   &&(time>30)){ // last cond necessary since initially regular vehs
-	    finishRoutingGame("infotextGame",qInInit);
+	    finishRoutingGame("infotextRoutingGame");
 	}
 
-    }
+  }
 
 
     // (2) transfer effects from slider interaction and mandatory regions
@@ -749,6 +796,11 @@ function main_loop() {
     userCanvasManip=false;
 }
  
+function myGameRestartFunction(){
+  document.getElementById("infotextRoutingGame").innerHTML=infoString;
+  myRestartFunction();
+}
+
 
 
  //############################################
@@ -763,8 +815,10 @@ function main_loop() {
 
 console.log("first main execution");
 
-$("#infotextGame").load("info/info_routingGame.html");
-//showInfo();
+
+// var infoString defined in routingGameInfo.js
+
+document.getElementById("infotextRoutingGame").innerHTML=infoString;
 
 var myRun=setInterval(main_loop, 1000/fps);
 

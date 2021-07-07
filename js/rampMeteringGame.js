@@ -16,9 +16,17 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false; // only if true, road.gridTrajectories after
-//var userCanDistortRoads=true;  // external changes called
 var userCanDropObjects=true;
+var userCanDistortRoads=false; // only if true, road.gridTrajectories after
+
+
+
+//#############################################################
+// !!! manually delete highscores from disk [loeschen remove]
+// comment out if online/game active!
+//#############################################################
+
+// deleteHighscores("rampMeteringGame_Highscores");
 
 
 
@@ -26,14 +34,22 @@ var userCanDropObjects=true;
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-qIn=4500./3600; 
+var isGame=false;
+
+var qInInit=2700./3600;
+qIn=qInInit;
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
+var qOnInit=900./3600;
+qOn=qOnInit;
+commaDigits=0;
+setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
 
-density=0.01; 
 
-var nLanes_main=3;
+density=0.018; 
+
+var nLanes_main=2;
 var nLanes_rmp=1;
 
 /*
@@ -76,7 +92,7 @@ setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
 */
 
 
-var scenarioString="OnRamp"; // needed in handleDependencies in canvas_gui
+var scenarioString="OnRamp"; // needed in road.changeLanes etc
 console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
@@ -99,12 +115,12 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in updateDimensions
+var refSizePhys=320; // also adapt in updateDimensions
 
-var critAspectRatio=120./95.; // from css file width/height of #contents
-                              // the higher, the longer sim window
+var critAspectRatio=1.7; // from css file width/height of #contents
+                         // the higher, the longer sim window
                          // must be the same as in css:
-                         // max-aspect-ratio: 24/19 etc
+                         // max-aspect-ratio: 17/10 etc
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
@@ -125,10 +141,10 @@ var hasChangedPhys=true; // physical road dimensions have changed
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43;
-var center_yRel=-0.54;
-var arcRadiusRel=0.35;
-var rampLenRel=0.95;
+var center_xRel=0.54;
+var center_yRel=-0.45;
+var arcRadiusRel=0.39;
+var rampLenRel=2.50;
 
 
 // xxxnew
@@ -144,17 +160,17 @@ var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 var rampLen=rampLenRel*refSizePhys; 
-var mergeLen=0.5*rampLen;
-var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-var taperLen=0.2*rampLen;
-var rampRadius=4*arcRadius;
+var mergeLen=0.6*arcRadius;
+var mainRampOffset=mainroadLen-0.5*straightLen+mergeLen-rampLen;
+var taperLen=0.3*arcRadius;
+var rampRadius=5*arcRadius; // !! also redefine at updateDimensions
 
 // !! slightdouble-coding necessary unless big changes, 
 // I have checked this...
 
 function updateDimensions(){ // if viewport or sizePhys changed
   console.log("in updateDimensions");
-  refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in definition above
+  refSizePhys=320; // also adapt in definition above
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
@@ -170,11 +186,11 @@ function updateDimensions(){ // if viewport or sizePhys changed
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
     mainroadLen=mainroad.roadLen=arcLen+2*straightLen; //xxxnew
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; //xxxnew
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
+    rampLen=ramp.roadLen=rampLenRel*refSizePhys; //!!! two '=' here
+    mergeLen=1.5*arcRadius; // !! also make consistent with init def
+    mainRampOffset=mainroadLen-0.7*straightLen+mergeLen-rampLen;
+    taperLen=0.3*arcRadius; // !! also make consistent with init def
+    rampRadius=5*arcRadius; // !! also make consistent with init def
 
     // xxxnew bring traj to roads 
     // not needed if doGridding is false since then external traj reference
@@ -291,15 +307,34 @@ function trajRamp_x(u){ // physical coordinates
 
 
 function trajRamp_y(u){ // physical coordinates
+  // ramp consists of (i) (partly invisible) straight section,
+  // (ii) curved section, (iii) merge region, (iv) taper
 
   var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
   var yMergeEnd=yMergeBegin+laneWidth;
+  var curveLen=2*arcRadius; // ramp consists of (invisible) straight
+  var straightLenRamp=rampLen-mergeLen-curveLen;
+  //var straightLenRamp=rampLen-mergeLen-curveLen-taperLen;
+  var dyHalf=0.5*Math.pow(0.5*curveLen,2)/rampRadius;
+  
+  return (u<straightLenRamp) ? yMergeBegin - 2*dyHalf 
+    : (u<straightLenRamp+0.5*curveLen)
+    ? yMergeBegin - 2*dyHalf + 0.5*Math.pow(u-straightLenRamp,2)/rampRadius
+    : (u<straightLenRamp+curveLen)
+    ? yMergeBegin-0.5*Math.pow(curveLen+straightLenRamp-u,2)/rampRadius
+    : (u<rampLen-taperLen) ? yMergeBegin
+    : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
+  
+  /*
   return (u<rampLen-mergeLen)
     ? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
     : (u<rampLen-taperLen) ? yMergeBegin
     : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
+  */
+
+  
 }
 
 var trajNet_x=[]; // xxxnew 
@@ -365,11 +400,11 @@ var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0
 
 ramp.veh.unshift(virtualStandingVeh);
 
-var nDet=3;
-var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
+//var nDet=3;
+//var detectors=[];
+//detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
+//detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
+//detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
 
 //</NETWORK>
 
@@ -459,9 +494,10 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // traffic objects and traffic-light control editor
 //############################################
 
-
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var xRelDepot=(canvas.width/canvas.height<critAspectRatio)
+    ? 0.35 : 0.35*canvas.height/canvas.width*1.7;
+var trafficObjs=new TrafficObjects(canvas,2,3,xRelDepot,0.50,2,3);
 
 // also needed to just switch the traffic lights
 // (then args xRelEditor,yRelEditor not relevant)
@@ -479,6 +515,62 @@ var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
+
+/*#########################################################
+ game callbacks (general callbacks for all games in control_gui.js)
+#########################################################*/
+
+var nick="Voldemort";
+
+// e.g.,  playRampMeteringGame("infotext");
+
+function playRampMeteringGame(infotextID){ // only called in html
+  isGame=true;
+  myRestartFunction();
+  nick = prompt("Please enter your nick", "Voldemort");
+  var debug=true;
+  if(debug){
+    time=1000*Math.random(); // gets score in finish...
+    finishRampMeteringGame("infotextRampMeteringGame");
+  }
+}
+
+function updateRampMeteringGame(time){
+    qIn=(time<100) ? 3300/3600 : 
+	(time<150) ? 0/3600 :
+	(time<200) ? 3300/3600 : 0;
+    slider_qIn.value=3600*qIn;
+    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+
+  qOn=(time<180) ? 400./3600 : 0;
+  slider_qOn.value=3600*qOn;
+  slider_qOnVal.innerHTML=Math.round(3600*qOn)+" veh/h";
+}
+
+function finishRampMeteringGame(infotextID){
+  isGame=false;
+  qIn=qInInit;
+  qOn=qOnInit;
+  setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+  setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
+
+    var roundedTime=parseFloat(time).toFixed(1);
+    var messageText=updateHighscores(nick,roundedTime,
+				     "rampMeteringGame_Highscores");
+    document.getElementById(infotextID).innerHTML=messageText;
+    console.log("Game finished in ",time," seconds!");
+    myStartStopFunction(); // reset game
+}
+
+function clearHighscores(){
+  deleteHighscores("rampMeteringGame_Highscores");
+  time=10000;
+  nick="The Worst Controller"
+  finishRampMeteringGame("infotextRampMeteringGame");
+}
+  
+  
+
 //#################################################################
 function updateSim(){
 //#################################################################
@@ -490,6 +582,23 @@ function updateSim(){
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
 
+  if(isGame){
+	updateRampMeteringGame(time);  // from control_gui.js
+	if(true){
+	    console.log("in game: time=",time," qIn=",qIn,
+		    " mainroad: ",mainroad.nRegularVehs(),"vehicles",
+		    " deviation: ",ramp.nRegularVehs(),"vehicles");
+	}
+
+	if((mainroad.nRegularVehs()==0)&&(ramp.nRegularVehs()<=1)
+	   &&(time>30)){ // last cond necessary since initially regular vehs
+	    finishRampMeteringGame("infotextRampMeteringGame");
+	}
+
+  }
+
+
+  
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true;
@@ -502,7 +611,8 @@ function updateSim(){
     }
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
- 
+    trafficObjs.xRelDepot=(canvas.width/canvas.height<critAspectRatio)
+      ? 0.35 : 0.35*canvas.height/canvas.width*1.7;
     trafficObjs.calcDepotPositions(canvas);
     if(true){
       console.log("updateSim: haschanged=true: new canvas dimension: ",
@@ -570,12 +680,12 @@ function updateSim(){
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
-    // (4) update detector readings
+  /*  // (4) update detector readings
 
     for(var iDet=0; iDet<nDet; iDet++){
 	detectors[iDet].update(time,dt);
     }
-
+*/
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
@@ -728,9 +838,9 @@ function drawSim() {
   // (6) show simulation time and detector displays
 
   displayTime(time,textsize);
-  for(var iDet=0; iDet<nDet; iDet++){
-	detectors[iDet].display(textsize);
-  }
+  //for(var iDet=0; iDet<nDet; iDet++){
+//	detectors[iDet].display(textsize);
+//  }
 
   // (6a) show scale info
 
@@ -787,7 +897,12 @@ function main_loop() {
     drawSim();
     userCanvasManip=false;
 }
- 
+
+function myGameRestartFunction(){
+  document.getElementById("infotextRampMeteringGame").innerHTML=infoString;
+  myRestartFunction();
+}
+
 
  //############################################
 // start the simulation thread
@@ -800,7 +915,10 @@ function main_loop() {
 //############################################
 
 console.log("first main execution");
-showInfo();
+
+
+
+document.getElementById("infotextRampMeteringGame").innerHTML=infoString;
 
 var myRun=setInterval(main_loop, 1000/fps);
 
