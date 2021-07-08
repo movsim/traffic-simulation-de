@@ -167,7 +167,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 
 /* (2a) buttons; limited by height: square play button  */
 
-#gameDiv{ /*limited by height*/
+#gameRoutingDiv{ /*limited by height "Play Routing Game"*/
   position: absolute;
   top: 20vh;
   left: 41vh;
@@ -177,7 +177,7 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#gameRampMeteringDiv{ /*limited by height*/
+#gameRampMeteringDiv{ /*limited by height "Play Ramp-Metering Game" */
   position: absolute;
   top: 19vh;
   left: 40vh;
@@ -234,10 +234,10 @@ h2{
 #infotextRoutingGame{  /* limited by height */
   position: absolute;
   border:1px solid black;
-  top: 27vh;
+  top: 35vh;
   left: 45vh;
-  width: 49vh;
-  height: 50vh;
+  width: 42vh;
+  height: 30vh;
   text-align: left;
   font-size: 2vh;
   padding-top: 0vh;
@@ -254,7 +254,7 @@ h2{
   top: 15vh;
   left: 101vh;
   width: 60vh;
-  height: 40vh;
+  height: 35vh;
   text-align: left;
   font-size: 2vh;
   padding-top: 0vh;
@@ -265,16 +265,24 @@ h2{
   z-index: 2; 
 }
 
-
+#linkOtherGames{
+  position: absolute;
+  top: 54vh;
+  left: 101vh;
+  height: 0vh;
+  width: 20vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+    
 /* (3a) limited by height: main player's slider for deviation uses
 /* Notice: table elements relevant for font size */
 
 
-#sliderMain{
+#sliderMainRoutingGame{ /* limited by height */
   position: absolute;
   top: 18vh;
   height: 9vh;
-  left: 101vh;
+  left: 110vh;
   width: 55vh;
   background-color: rgba(255,255,255,1);
   z-index: 2; /* the higher the integer, the more on top */
@@ -283,20 +291,20 @@ h2{
 
 /* (3b) limited by height: secondary sliders info inflow, timewarp */
 
-#sliders2{
+#slidersRoutingGame{  /* limited by height "Inflow" */
   position: absolute;
-  top: 62vh;
-  left: 101vh;
+  top: 68vh;
+  left: 110vh;
   height: 8vh;
   width: 55vh;
   background-color: rgba(255,255,255,0.5);
-  z-index: 2; /* the higher the integer, the more on top */
+  z-index: 2; 
 }
 
-#slidersRampMeteringGame{
+#slidersRampMeteringGame{ /* limited by height "Onramp flow" */
   position: absolute;
   top: 65vh;
-  left: 101vh;
+  left: 110vh;
   height: 11vh;
   width: 65vh;
   background-color: rgba(255,255,255,0.5);
@@ -405,20 +413,20 @@ td.important{
 
 /* (2a) limited by width: square play button  */
 
-#gameDiv{ /*limited by width*/
+#gameRoutingDiv{ /*limited by width  "Play Routing Game" */
   position: absolute;
   top: 12vw;
-  left: 28vw;
+  left: 24vw;
   height: 5vw;
   width: 17vw;
   font-size: 1.4vw; 
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#gameRampMeteringDiv{ /*limited by width*/
+#gameRampMeteringDiv{ /*limited by width "Play Ramp-Metering Game" */
   position: absolute;
   top: 11vw;
-  left: 25vw;
+  left: 24vw;
   height: 4vw;
   width: 16vw;
   font-size: 1.4vw; 
@@ -471,22 +479,13 @@ h2{
      padding-top:0px;
  }
 
-#infotextRoutingGame{ /* limited by width */
-  position: absolute;
-  border:1px solid black;
-  top: 15vw;
-  left: 26vw;
-  width: 32vw;
-  height: 26vw;
-  text-align: left;
-  font-size: 1.2vw;
-  padding-top: 0vw;
-  padding-left: 2vw;
-  padding-right: 2vw;
-  background-color: rgba(255,255,255,1.0);
-  overflow:auto;  
-  z-index: 2; 
-}
+
+
+
+/* ################################################# */
+/* Ramp metering  game  limited by width             */
+/* ################################################# */
+
 
 #infotextRampMeteringGame{  /* limited by width */
   position: absolute;
@@ -494,7 +493,7 @@ h2{
   top: 9vw;
   left: 57vw;
   width: 36vw;
-  height: 24vw;
+  height: 22vw;
   text-align: left;
   font-size: 1.2vw;
   padding-top: 0vh;
@@ -505,42 +504,76 @@ h2{
   z-index: 2; 
 }
 
+#playlinksRampMeteringGame{ /* limited by width; "Go to" */
+  position: absolute;
+  top: 33vw;
+  left: 57vw;
+  height: 0vw;
+  width: 12vw;
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
-/* (3a) limited by width: main player's slider for deviation uses
-/* Notice: table elements relevant for font size */
+#slidersRampMeteringGame{ /* limited by width "Onramp flow" */
+  position: absolute;
+  top: 38vw;
+  left: 57vw;
+  height: 7vw;
+  width: 38vw;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
 
 
-#sliderMain{
+
+/* ################################################# */
+/* Routing  game  limited by width                   */
+/* ################################################# */
+
+#sliderMainRoutingGame{ /* limited by width */
   position: absolute;
   top: 11vw;
   height: 5.5vw;
-  left: 59vw;
+  left: 62vw;
   width: 30vw;
   background-color: rgba(255,255,255,1);
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-
-/* (3b) limited by width: secondary sliders info inflow, timewarp */
-
-#sliders2{
+#infotextRoutingGame{ /* limited by width */
   position: absolute;
-  top: 38vw;
-  height: 5vw;
-  left: 158vw;
-  width: 32vw;
-  background-color: rgba(255,255,255,0.5);
+  border:1px solid black;
+  top: 20vw;
+  left: 26vw;
+  width: 25vw;
+  height: 20vw;
+  text-align: left;
+  font-size: 1.2vw;
+  padding-top: 0vw;
+  padding-left: 2vw;
+  padding-right: 2vw;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+}
+
+#playlinksRoutingGame{ /* limited by width; "Go to" */
+  position: absolute;
+  top: 33vw;
+  left: 57vw;
+  height: 0vw;
+  width: 12vw;
   z-index: 2; /* the higher the integer, the more on top */
 }
 
-#slidersRampMeteringGame{
+
+#slidersRoutingGame{ /* limited by width "Inflow" */
   position: absolute;
-  top: 38vw;
-  left: 59vw;
-  height: 7vw;
-  width: 38vw;
+  top: 40vw;
+  height: 5vw;
+  left: 57vw;
+  width: 30vw;
   background-color: rgba(255,255,255,0.5);
-  z-index: 2; /* the higher the integer, the more on top */
+  z-index: 2;
 }
 
 

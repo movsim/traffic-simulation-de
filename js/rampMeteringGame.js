@@ -21,12 +21,6 @@ var userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 
-//#############################################################
-// !!! manually delete highscores from disk [loeschen remove]
-// comment out if online/game active!
-//#############################################################
-
-// deleteHighscores("rampMeteringGame_Highscores");
 
 
 
