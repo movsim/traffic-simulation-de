@@ -21,6 +21,62 @@ var userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 
+/*#########################################################
+ game callbacks (general callbacks for all games in control_gui.js)
+#########################################################*/
+
+density=0.020; // game initial density
+
+function updateRampMeteringGame(time){  // game main flow
+  qIn=(time<90) ? 3200/3600 :
+    (time<120) ? 0/3600 :
+    (time<150) ? 3300/3600 :
+    (time<150) ? 0/3600 :
+    (time<180) ? 3300/3600 :
+    0;
+  slider_qIn.value=3600*qIn;
+  slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+
+  qOn=(time<180) ? 600./3600 : 0;  // game ramp flow
+  slider_qOn.value=3600*qOn;
+  slider_qOnVal.innerHTML=Math.round(3600*qOn)+" veh/h";
+}
+
+function finishRampMeteringGame(infotextID){
+  isGame=false;
+  qIn=qInInit;
+  qOn=qOnInit;
+  setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+  setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
+
+    var roundedTime=parseFloat(time).toFixed(1);
+    var messageText=updateHighscores(nick,roundedTime,
+				     "rampMeteringGame_Highscores");
+    document.getElementById(infotextID).innerHTML=messageText;
+    console.log("Game finished in ",time," seconds!");
+    myStartStopFunction(); // reset game
+}
+
+var nick="Voldemort";
+
+function playRampMeteringGame(infotextID){ // only called in html
+  isGame=true;
+  myRestartFunction();
+  nick = prompt("Please enter your nick", "Voldemort");
+  var debug=false;
+  if(debug){
+    time=1000*Math.random(); // gets score in finish...
+    finishRampMeteringGame("infotextRampMeteringGame");
+  }
+}
+
+function clearHighscores(){
+  deleteHighscores("rampMeteringGame_Highscores");
+  time=10000;
+  nick="The Worst Controller"
+  finishRampMeteringGame("infotextRampMeteringGame");
+}
+  
 
 
 
@@ -41,7 +97,6 @@ commaDigits=0;
 setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
 
 
-density=0.018; 
 
 var nLanes_main=2;
 var nLanes_rmp=1;
@@ -135,7 +190,7 @@ var hasChangedPhys=true; // physical road dimensions have changed
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.54;
+var center_xRel=0.53;
 var center_yRel=-0.45;
 var arcRadiusRel=0.39;
 var rampLenRel=2.50;
@@ -151,7 +206,7 @@ var center_yPhys=center_yRel*refSizePhys;
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
-var straightLen=refSizePhys*critAspectRatio-center_xPhys;
+var straightLen=1.05*(refSizePhys*critAspectRatio-center_xPhys);
 var mainroadLen=arcLen+2*straightLen;
 var rampLen=rampLenRel*refSizePhys; 
 var mergeLen=0.6*arcRadius;
@@ -491,7 +546,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var xRelDepot=(canvas.width/canvas.height<critAspectRatio)
     ? 0.35 : 0.35*canvas.height/canvas.width*1.7;
-var trafficObjs=new TrafficObjects(canvas,2,3,xRelDepot,0.50,2,3);
+var trafficObjs=new TrafficObjects(canvas,2,2,xRelDepot,0.36,1,5);
 
 // also needed to just switch the traffic lights
 // (then args xRelEditor,yRelEditor not relevant)
@@ -510,59 +565,6 @@ var dt=timewarp/fps;
 
 
 
-/*#########################################################
- game callbacks (general callbacks for all games in control_gui.js)
-#########################################################*/
-
-var nick="Voldemort";
-
-// e.g.,  playRampMeteringGame("infotext");
-
-function playRampMeteringGame(infotextID){ // only called in html
-  isGame=true;
-  myRestartFunction();
-  nick = prompt("Please enter your nick", "Voldemort");
-  var debug=true;
-  if(debug){
-    time=1000*Math.random(); // gets score in finish...
-    finishRampMeteringGame("infotextRampMeteringGame");
-  }
-}
-
-function updateRampMeteringGame(time){
-    qIn=(time<100) ? 3300/3600 : 
-	(time<150) ? 0/3600 :
-	(time<200) ? 3300/3600 : 0;
-    slider_qIn.value=3600*qIn;
-    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
-
-  qOn=(time<180) ? 400./3600 : 0;
-  slider_qOn.value=3600*qOn;
-  slider_qOnVal.innerHTML=Math.round(3600*qOn)+" veh/h";
-}
-
-function finishRampMeteringGame(infotextID){
-  isGame=false;
-  qIn=qInInit;
-  qOn=qOnInit;
-  setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
-  setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
-
-    var roundedTime=parseFloat(time).toFixed(1);
-    var messageText=updateHighscores(nick,roundedTime,
-				     "rampMeteringGame_Highscores");
-    document.getElementById(infotextID).innerHTML=messageText;
-    console.log("Game finished in ",time," seconds!");
-    myStartStopFunction(); // reset game
-}
-
-function clearHighscores(){
-  deleteHighscores("rampMeteringGame_Highscores");
-  time=10000;
-  nick="The Worst Controller"
-  finishRampMeteringGame("infotextRampMeteringGame");
-}
-  
   
 
 //#################################################################
@@ -578,7 +580,7 @@ function updateSim(){
 
   if(isGame){
 	updateRampMeteringGame(time);  // from control_gui.js
-	if(true){
+	if(false){
 	    console.log("in game: time=",time," qIn=",qIn,
 		    " mainroad: ",mainroad.nRegularVehs(),"vehicles",
 		    " deviation: ",ramp.nRegularVehs(),"vehicles");

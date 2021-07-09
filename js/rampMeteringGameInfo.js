@@ -8,7 +8,7 @@ var infoString="<h2>Ramp-Metering Game</h2>\
 <li>Change speed limits/switch traffic lights by clicking on them</li>\
 <li>Remove traffic lights/speed limits by dragging them off</li><br>\
 <li>Once you <b>start the game</b>, the main and ramp inflows are externally given. No new vehicles will enter after some time</li>\
-<li> Control your traffic lights and speed limits to avoid a breakdown!</li>\
+<li> Control your traffic lights/speed limits to avoid a breakdown!</li>\
 <li>Don\'t overdo it: Onramp queues will dissolve slowly! </li>\
 <li>The game ends after all vehicles have left the simulation</li>\
 <li>The shortest time wins</li>\

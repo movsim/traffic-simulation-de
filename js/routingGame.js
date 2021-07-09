@@ -507,7 +507,7 @@ function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
   mainroad.removeRegularVehs();
   ramp.removeRegularVehs();
   nick = prompt("Please enter your nick", "Voldemort");
-  var debug=true;
+  var debug=false;
   if(debug){
     time=1000*Math.random(); // gets score in finish...
     finishRoutingGame("infotextRoutingGame");
