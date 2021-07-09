@@ -74,7 +74,7 @@ for proj in $projects; do
   cp js/${proj}.js js/${proj}_ger.js
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
 done
-
+jsfilesGer="$jsfilesGer js/control_gui_ger.js"
 
 
 
@@ -109,6 +109,9 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/de\: Road Works/de: Baustelle/g' $file
   perl -i -p -e 's/\>Resume\</>Weiter</g' $file
   perl -i -p -e 's/\>Disturb Traffic\</>St&ouml;re Verkehr</g' $file
+  perl -i -p -e 's/Main flow/Hauptfluss/g' $file
+  perl -i -p -e 's/Ramp flow/Rampenfluss/g' $file
+  perl -i -p -e 's/\(info\)/\(Info\)/g' $file
   perl -i -p -e 's/\>Timewarp\</>Zeitraffer</g' $file
   perl -i -p -e 's/\>Density\</>Dichte</g' $file
   perl -i -p -e 's/\>Density\/lane\</>Dichte\/Spur</g' $file
@@ -165,9 +168,26 @@ perl -i -p -e 's/\"Lift Truck Overtaking Ban\"/\"Hebe LKW &Uuml;berholverbot auf
 
 perl -i -p -e 's/Play Routing Game/Starte Navigationsspiel/g' routing_ger.html routingGame_ger.html
 
-perl -i -p -e 's/only info/Info/g' routingGame_ger.html
-perl -i -p -e 's/routing\.html/routing_ger.html/g' routingGame_ger.html
+perl -i -p -e 's/Play Ramp-Metering Game/Starte Zufluss-dosierungs-Spiel/g' onramp_ger.html rampMeteringGame_ger.html
 
+# Targets for link to "traffic-simulation.de"
+
+perl -i -p -e 's/routing\.html/routing_ger.html/g' routingGame_ger.html
+perl -i -p -e 's/onramp\.html/onramp_ger.html/g' rampMeteringGame_ger.html
+
+# Targets for link to other games
+
+perl -i -p -e 's/rampMeteringGame\.html/rampMeteringGame_ger\.html/g' routingGame_ger.html
+perl -i -p -e 's/routingGame\.html/routingGame_ger\.html/g' rampMeteringGame_ger.html
+
+# special treatment of game html files
+
+for file in rampMeteringGame_ger.html routingGame_ger.html; do
+  perl -i -p -e 's/Clear Highscores/L&ouml;sche Highscores/g' $file
+  perl -i -p -e 's/Go to Ramp-Metering Game/Gehe zu Zufluss-dosierungs-Spiel/g' $file
+  perl -i -p -e 's/Go to Routing Game/Gehe zu Navi-gations-Spiel/g' $file
+  perl -i -p -e 's/Time-lapse factor/Timelapse-Faktor/g' $file
+done
 
 #############################################
 # copy current main-topic project to already translated index*.html
@@ -189,10 +209,10 @@ cp ${indexProject}_ger.html index_ger.html
 echo "jsfilesGer=$jsfilesGer"
 for file in "$jsfilesGer"; do
 
-  perl -i -p -e 's/times\"/fach\"/g' $file
   perl -i -p -e 's/lane\"/Spur\"/g' $file
   perl -i -p -e 's/\" veh/\" Fz/g' $file
   perl -i -p -e 's/pixels/Pixel/g' $file
+  perl -i -p -e 's/\"times\"/\"-fach\"/g' $file
 
 
   perl -i -p -e 's/\"Resume\"/\"Weiter\"/g' $file

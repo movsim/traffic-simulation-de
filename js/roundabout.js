@@ -60,7 +60,7 @@ focusFrac=1;
 
 timewarp=8;
 slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML=timewarp +" times";
+slider_timewarpVal.innerHTML=timewarp +"times";
 
 IDM_v0=50./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;

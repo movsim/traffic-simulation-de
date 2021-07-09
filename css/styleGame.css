@@ -210,7 +210,7 @@ h2{
 
 #playlinksRampMeteringGame{ /* limited by height; "Go to Routing Game" */
   position: absolute;
-  top: 39vh;
+  top: 40vh;
   left: 27vh;
   height: 0vh;
   width: 20vh;
@@ -456,7 +456,7 @@ td.important{
 
 #playlinksRampMeteringGame{ /* limited by width; "Go to Routing Game" */
   position: absolute;
-  top: 21vw;
+  top: 23vw;
   left: 16vw;
   height: 0vw;
   width: 12vw;
@@ -520,7 +520,7 @@ td.important{
 
 #playlinksRoutingGame{ /* limited by width; "Go to Ramp-Metering Game" */
   position: absolute;
-  top: 22vw;
+  top: 23vw;
   left: 23vw;
   height: 0vw;
   width: 12vw;

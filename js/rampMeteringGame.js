@@ -15,6 +15,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
  Math.seedrandom(42);                // undo side effects of console commands 
 */
 
+// remove localStorage items by hand (the " " are crucial!)
+// localStorage.removeItem("storageName");
 
 var userCanDropObjects=true;
 var userCanDistortRoads=false; // only if true, road.gridTrajectories after
@@ -46,8 +48,8 @@ function finishRampMeteringGame(infotextID){
   isGame=false;
   qIn=qInInit;
   qOn=qOnInit;
-  setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
-  setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
+  setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, " veh/h");
+  setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, " veh/h");
 
     var roundedTime=parseFloat(time).toFixed(1);
     var messageText=updateHighscores(nick,roundedTime,
@@ -89,12 +91,12 @@ var isGame=false;
 var qInInit=2700./3600;
 qIn=qInInit;
 commaDigits=0;
-setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, " veh/h");
 
 var qOnInit=900./3600;
 qOn=qOnInit;
 commaDigits=0;
-setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
+setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, " veh/h");
 
 
 

@@ -3,6 +3,58 @@ var userCanDropObjects=false;
 var userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
+/*#########################################################
+ game callbacks (general callbacks for all games in control_gui.js)
+#########################################################*/
+
+// game starts with empty roads
+
+function updateRoutingGame(time){ // game inflow
+    qIn=(time<50) ? 3000/3600 : 
+	(time<90) ? 600/3600 : 
+	(time<120) ? 3300/3600 :
+	(time<125) ? 900/3600 : 0;
+    slider_qIn.value=3600*qIn;
+    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+}
+
+
+var nick="Voldemort";
+function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
+  isGame=true;
+  time=0;
+  itime=0;
+  var nregular=mainroad.nRegularVehs();
+  mainroad.removeRegularVehs();
+  ramp.removeRegularVehs();
+  nick = prompt("Please enter your nick", "Voldemort");
+  var debug=false;
+  if(debug){
+    time=1000*Math.random(); // gets score in finish...
+    finishRoutingGame("infotextRoutingGame");
+  }
+
+}
+
+
+function finishRoutingGame(infotextID){
+    isGame=false;
+    qIn=qInInit;
+    var roundedTime=parseFloat(time).toFixed(1);
+    var messageText=updateHighscores(nick,roundedTime,
+				     "routingGame_Highscores");
+    document.getElementById(infotextID).innerHTML=messageText;
+    console.log("Game finished in ",time," seconds!");
+    myStartStopFunction(); // reset game
+}
+
+function clearHighscores(){
+  deleteHighscores("routingGame_Highscores");
+  time=10000;
+  nick="The Worst Controller"
+  finishRoutingGame("infotextRoutingGame");
+}
+  
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -494,54 +546,6 @@ var fps=30; // frames per second
 var dt=timewarp/fps;
 
 
-/*#########################################################
- game callbacks (general callbacks for all games in control_gui.js)
-#########################################################*/
-
-var nick="Voldemort";
-function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
-  isGame=true;
-  time=0;
-  itime=0;
-  var nregular=mainroad.nRegularVehs();
-  mainroad.removeRegularVehs();
-  ramp.removeRegularVehs();
-  nick = prompt("Please enter your nick", "Voldemort");
-  var debug=false;
-  if(debug){
-    time=1000*Math.random(); // gets score in finish...
-    finishRoutingGame("infotextRoutingGame");
-  }
-
-}
-
-function updateRoutingGame(time){
-    qIn=(time<50) ? 3000/3600 : 
-	(time<90) ? 600/3600 : 
-	(time<120) ? 3300/3600 :
-	(time<125) ? 900/3600 : 0;
-    slider_qIn.value=3600*qIn;
-    slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
-}
-
-function finishRoutingGame(infotextID){
-    isGame=false;
-    qIn=qInInit;
-    var roundedTime=parseFloat(time).toFixed(1);
-    var messageText=updateHighscores(nick,roundedTime,
-				     "routingGame_Highscores");
-    document.getElementById(infotextID).innerHTML=messageText;
-    console.log("Game finished in ",time," seconds!");
-    myStartStopFunction(); // reset game
-}
-
-function clearHighscores(){
-  deleteHighscores("routingGame_Highscores");
-  time=10000;
-  nick="The Worst Controller"
-  finishRoutingGame("infotextRoutingGame");
-}
-  
 
 
 //#################################################################

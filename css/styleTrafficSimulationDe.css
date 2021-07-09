@@ -277,8 +277,8 @@ which always gives correct size!!
   position: absolute;
   top: 1vmin;
   height: 7vmin;
-  left: 42vmin;
-  width: 28vmin;
+  left: 32vmin;
+  width: 20vmin;
   font-size: 2.2vmin; 
   z-index: 2; /* the higher the integer, the more on top */
 }
@@ -545,8 +545,8 @@ body{
   position: absolute;
   top: 1vmin;
   height: 6vmin;
-  left: 40vmin;
-  width: 24vmin;
+  left: 32vmin;
+  width: 20vmin;
   z-index: 2; /* the higher the integer, the more on top */
 }
 

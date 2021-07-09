@@ -31,8 +31,12 @@ function myRedirectRoundabout(){
     window.location.href = "./roundabout.html";
 }
 
-function myRedirectGame(){
+function myRedirectRoutingGame(){
     window.location.href = "./routingGame.html";
+}
+
+function myRedirectRampMeteringGame(){
+    window.location.href = "./rampMeteringGame.html";
 }
 
 function myRedirectGridlock(){

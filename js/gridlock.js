@@ -34,7 +34,7 @@ slider_fracTruck.innerHTML=100*fracTruck+"%";
 
 timewarp=2;
 slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML=timewarp +" times";
+slider_timewarpVal.innerHTML=timewarp +"times";
 */
 
 /*######################################################

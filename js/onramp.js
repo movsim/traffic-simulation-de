@@ -36,14 +36,6 @@ density=0.01;
 var nLanes_main=3;
 var nLanes_rmp=1;
 
-/*
-fracTruck=0.4; 
-setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
-
-timewarp=2;
-setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
-
-*/
 
 /*######################################################
  Global overall scenario settings and graphics objects

@@ -213,8 +213,8 @@ function updateHighscores(nickName,newScore,storageName){
     // and get them, if applicable 
 
     var scores =[];
-    if(localStorage.storageName){
-	scores = JSON.parse(localStorage.storageName);
+    if(localStorage[storageName]){
+	scores = JSON.parse(localStorage[storageName]);
     }
 
     // add new entry to scores array
@@ -241,7 +241,7 @@ function updateHighscores(nickName,newScore,storageName){
 
     // save the updated highscore list and return string for html display 
 
-    localStorage.storageName = JSON.stringify(scores);
+    localStorage[storageName] = JSON.stringify(scores);
  
 
     var str_highScores="<h1> Game Finished!</h1> Your time is "
@@ -263,9 +263,11 @@ function updateHighscores(nickName,newScore,storageName){
 	   // + "<td>"+scores[i].date+"</td>"
             +  "</tr>"
     }
-    str_highScores += "</table>";
-
-    return str_highScores;
+  str_highScores += "</table>";
+  console.log("updateHighscores: storageName=",storageName,
+	      "\n localStorage[storageName]=", localStorage[storageName],
+	      "\n localStorage=",localStorage);
+  return str_highScores;
 }
 
 
@@ -273,14 +275,17 @@ function updateHighscores(nickName,newScore,storageName){
 // comment out in routing[Game].js if online!
 
 function deleteHighscores(storageName){
-    if (typeof(Storage) === "undefined") {
+  if (typeof(Storage) === "undefined") {
 	console.log("html5 localStorage is not available on your device");
 	return;
-    }
-    var scores =[];
-    if(localStorage.storageName){
-	localStorage.storageName = JSON.stringify(scores);
-    }
+  }
+  var scores =[];
+  if(localStorage[storageName]){
+	localStorage[storageName] = JSON.stringify(scores);
+  }
+  console.log("deleteHighscores: storageName=",storageName,
+	      "\n localStorage[storageName]=", localStorage[storageName],
+	      "\n localStorage=",localStorage);
 }
 
 
@@ -449,11 +454,11 @@ var slider_timewarp,slider_timewarpVal;
 if(document.getElementById("slider_timewarp")!==null){
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
-    slider_timewarpVal.innerHTML=timewarp +" times";
+    slider_timewarpVal.innerHTML=timewarp +"times";
     slider_timewarp.value=timewarp;
 
     slider_timewarp.oninput = function() {
-        slider_timewarpVal.innerHTML = this.value +" times";
+        slider_timewarpVal.innerHTML = this.value +"times";
         timewarp=parseFloat(this.value);
         dt=timewarp/fps;
     }
