@@ -17,7 +17,7 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp offramp roadworks uphill routing routingGame roundabout"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
 cd $startDir
@@ -55,7 +55,7 @@ html_files="${html_files} index.html index_ger.html favicon.jpg"
 # add the BaWue files and the coffeemeter files
 html_files="${html_files} onramp_BaWue_ger.html roadworks_BaWue_ger.html coffeemeterGame.html" 
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js seedrandom.min.js jquery-1.5.1.min.js"
+js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js road.js vehicle.js canvas_gui.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js rampMeteringGameInfo.js rampMeteringGameInfo_ger.js routingGameInfo.js routingGameInfo_ger.js  seedrandom.min.js jquery-1.5.1.min.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
