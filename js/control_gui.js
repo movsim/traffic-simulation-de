@@ -91,43 +91,6 @@ function selectNotRegularVeh(veh){
   return !veh.isRegularVeh();
 }
 
-//################################################################
-// Start/Finish Download button callback
-//#################################################################
-
-var downloadActive=false; // initialisation
-var dt_export=1;          // every dt_export seconds stored in exportString
-
-function downloadCallback(){
-  if(downloadActive){
-    performDownload();
-    downloadActive=false;
-    document.getElementById("download").src="figs/iconDownloadStart_small.png";
-  }
-  
-  else{
-    for(var i=0; i<network.length; i++){
-      network[i].exportString
-        ="#time\tid\tx[m]\ty[m]\tspeed[m/s]\theading\tacc[m/s^2]";
-    }
-    downloadActive=true;
-    document.getElementById("download").src="figs/iconDownloadFinish_small.png";
-  }
-}
-
-
-function performDownload(){
-  var msg="";
-  for(var i=0; i<network.length; i++){
-    var filename="road"+network[i].roadID+"_time"+time.toFixed(1)+".txt";
-    msg=msg+filename+" ";
-    network[i].writeVehiclesSimpleToFile(filename);
-  }
-  msg="wrote files "+msg+" to default folder (Downloads)";
-  downloadActive=false;
-  alert(msg);
-}
-
 
 
 //################################################################
@@ -934,6 +897,44 @@ slider_IDM_TVal.innerHTML=IDM_T+" s";
 
 
 
+
+//################################################################
+// Start/Finish Download button callback and performDownload
+// see also ~/versionedProjects/demo_js/writeFileDemo.html, .js
+//#################################################################
+
+var downloadActive=false; // initialisation
+var dt_export=1;          // every dt_export seconds stored in exportString
+
+function downloadCallback(){
+  if(downloadActive){
+    performDownload();
+    downloadActive=false;
+    document.getElementById("download").src="figs/iconDownloadStart_small.png";
+  }
+  
+  else{
+    for(var i=0; i<network.length; i++){
+      network[i].exportString
+        ="#time\tid\tx[m]\ty[m]\tspeed[m/s]\theading\tacc[m/s^2]";
+    }
+    downloadActive=true;
+    document.getElementById("download").src="figs/iconDownloadFinish_small.png";
+  }
+}
+
+
+function performDownload(){
+  var msg="";
+  for(var i=0; i<network.length; i++){
+    var filename="road"+network[i].roadID+"_time"+time.toFixed(1)+".txt";
+    msg=msg+filename+" ";
+    network[i].writeVehiclesSimpleToFile(filename);
+  }
+  msg="wrote files "+msg+" to default folder (Downloads)";
+  downloadActive=false;
+  alert(msg);
+}
 
 
 

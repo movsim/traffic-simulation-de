@@ -542,40 +542,21 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
 // simple write vehicle info to file
 //######################################################################
 
-  /*
-{
-  var downloadObject={
-    time:time,
-    roadID: this.roadID,
-    vehicles: []
-  }
-  for(var i=0; i<this.veh.length; i++){
-      downloadObject["vehicles"][j]=
-	{id: this.veh[i].id,
-	 type: this.veh[i].type,
-	 u: this.veh[i].u.toFixed(2),
-	 v: this.veh[i].v.toFixed(2),
-	 lane: this.veh[i].lane,
-	 speed: this.veh[i].speed.toFixed(2),
-	 latSpeed: this.veh[i].dvdt.toFixed(2),
-         acc: this.veh[i].acc.toFixed(2)
-	}
-   var data=JSON.stringify(downloadObject);
-   download(data, filename);
-}
-*/
 
 road.prototype.writeVehiclesSimpleToFile= function(filename) {
 
   console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.roadID,
 	      " filename=",filename);
+
+  // function download in control_gui.js
   //console.log("road.exportString=\n",this.exportString);
-  download(this.exportString, filename);
+  download(this.exportString, filename); 
   
 }
-
+ 
 //######################################################################
 // update export string for writing vehicle data to file
+// called in road.prototype.updateSpeedPositions
 //######################################################################
 
 road.prototype.updateExportString=function(){

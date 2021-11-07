@@ -1,0 +1,104 @@
+How to implement trafficObjects in a new simulation
+
+
+if needed, copy scripts for the object and associated images
+============================================================
+
+cp TrafficObjects.js TrafficLightControlEditor.js <target>/js
+cp ../figs/trafficLight_*.png <target>/figs
+cp ../figs/speedLimit*svg ../figs/obstacle_??.png <target>/figs
+
+// (needed for future TrafficLightEditor, not yet used 2021-11)
+cp ../figs/knobYellow.png ../figs/buttonDone.png <target>/figs
+
+
+
+in html file (and copy file to source if other directory)
+=========================================================
+
+<script src="js/TrafficObjects.js"></script>
+<script src="js/TrafficLightControlEditor.js"></script> 
+  
+in main simulation file:
+========================
+
+  // (1) constructor before running sim
+  // (i) traffic objects: traffic lights, speed limits, obstacles
+  
+  var trafficObjs=new TrafficObjects(canvas,nTL,nLimit,
+  xRelDepot,yRelDepot,nRow,nCol)
+
+  //=> nTL traffic lights, nLimit speed limits, nRow*nCol-nTL-nLimit obstacles
+
+  // (ii) also needed to just switch the traffic lights
+  // (then args xRelEditor,yRelEditor not relevant)
+  var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+
+
+  // (2) in main-thread update (updateSim) after new canvas dimensions
+  // (for some reason, in updateSim more responsive than in drawSim)
+  
+  trafficObjs.calcDepotPositions(canvas);
+
+
+  // (3) in updateSim after update of models: speedlimit update on all roads
+  // (must be before update of accel because model change
+  // can revert past setting)
+  
+  for(var i=0; i<network.length; i++){
+    network[i].updateSpeedlimits(trafficObjs);
+  }
+
+
+  // (4) anywhere in updateSim or drawSim
+  // (in original traffic-simulation.de more responsive in updateSim
+  // than in drawSim but this should not be so)
+
+  //  without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
+  // (here more responsive than in drawSim)
+
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
+  }
+
+
+  // (5) in main drawSim() routine after road and vehicles have been drawn:
+
+  // (i) draw traffic objects 
+
+  if(userCanDropObjects&&(!isSmartphone)){
+    trafficObjs.draw(scale);
+  }
+  
+  // (ii) draw speedlimit-change select box
+
+  ctx.setTransform(1,0,0,1,0,0); 
+  drawSpeedlBox();
+
+
+ 
+in gui file:
+============
+  
+  pickRoadOrObject,
+  pickObject
+  handleClick,
+  define global var xPixUser,yPixUser needed by many TrafficObjects methods
+
+in road instances:
+=================
+
+  define every interface element of TrafficElements having to do with roads:
+  TrafficObjects.activate
+  TrafficObjects.deactivate
+  TrafficObjects.dropObject
+  TrafficObjects.selectSignOrTL
+  TrafficObjects.changeTrafficLightByUser
+  TrafficObjects.setTrafficLight -> road.changeTrafficLight via obj.road
+
+
+
+
+
+

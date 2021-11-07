@@ -407,6 +407,8 @@ TrafficObjects.prototype.draw=function(){
 @return [successFlag, the selected object]
 */
 
+
+// !! only used via pickObject
 TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
 
   //console.log("\n\nitime=",itime," in TrafficObjects.selectByUser:");
@@ -460,6 +462,9 @@ TrafficObjects.prototype.selectByUser=function(xPixUser,yPixUser,distCritPix){
 @return [successFlag, the selected object] 
 
 */
+
+
+// !! as of 2021-11, not used
 TrafficObjects.prototype.selectById=function(id){
   success=false;
   var i_success=-1;
@@ -472,6 +477,7 @@ TrafficObjects.prototype.selectById=function(id){
   var trafficObjreturn=(success) ? this.trafficObj[i_success] : "null";
   return[success,trafficObjreturn];
 }
+
 
 //######################################################################
 // activate an object
@@ -738,7 +744,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 }
 
 //#############################################################
-// programmatic setting of a traffic light
+// programmatic setting of a traffic light (only BaWue as of 2021-11)
 //#############################################################
 
 /** 

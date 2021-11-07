@@ -451,7 +451,7 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // traffic objects and traffic-light control editor
 //############################################
 
-
+// need to define canvas prior to calling cstr: e.g.,
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
 
@@ -525,9 +525,18 @@ function updateSim(){
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
   }
+  
+  //  (2b) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
+  // (here more responsive than in drawSim)
+
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
+ }
 
 
-    // (2b) externally impose mandatory LC behaviour
+
+    // (2c) externally impose mandatory LC behaviour
     // all ramp vehicles must change lanes to the left (last arg=false)
 
   ramp.setLCMandatory(0, ramp.roadLen, false);
@@ -568,13 +577,6 @@ function updateSim(){
 	detectors[iDet].update(time,dt);
     }
 
-
-  //  (5) without this zoomback cmd, everything works but depot vehicles
-  // just stay where they have been dropped outside of a road
-
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack();
- }
 
 
 // (6) debug output
