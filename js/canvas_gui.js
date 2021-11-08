@@ -173,33 +173,32 @@ function handleMouseEnter(event){
 
 function handleMouseDown(event){
     mousedown=true;
-    getMouseCoordinates(event); //=> xUser,yUser;
-    //console.log("\n\nafter getMouseCoordinates: xUser=",xUser);
+    getMouseCoordinates(event); //=> xUser, yUser, xPixUser, yPixUser
     xUserDown=xUser; // memorize starting point of mouse drag
     yUserDown=yUser;
     pickRoadOrObject(xUser,yUser);
 }
 
 
-// get physical coordinates for all mouse events
+// get physical and pixel coordinates for all mouse events
 // for touch events: getTouchCoordinates(event)
 
 
 function getMouseCoordinates(event){
 
-    // always use canvas-related pixel and physical coordinates
+  // always use canvas-related pixel and physical coordinates
 
-    var rect = canvas.getBoundingClientRect();
-    var xPixLeft=rect.left; // left-upper corner of the canvas 
-    var yPixTop=rect.top;   // in browser reference system
-    xPixUser= event.clientX-xPixLeft; //pixel coords in canvas reference
-    yPixUser= event.clientY-yPixTop; 
-    xUser=xPixUser/scale;   //scale from main js onramp.js etc
-    yUser=-yPixUser/scale;   //scale from main js onramp.js etc (! factor -1)
+  var rect = canvas.getBoundingClientRect();
+  var xPixLeft=rect.left; // left-upper corner of the canvas 
+  var yPixTop=rect.top;   // in browser reference system
+  xPixUser= event.clientX-xPixLeft; //pixel coords in canvas reference
+  yPixUser= event.clientY-yPixTop; 
+  xUser=xPixUser/scale;   //scale from main js onramp.js etc
+  yUser=-yPixUser/scale;   //scale from main js onramp.js etc (! factor -1)
 
-    if(false){
+  if(false){
 	console.log("getMouseCoordinates: xUser=",xUser," yUser=",yUser);
-    }
+  }
 }
 
 
@@ -314,11 +313,7 @@ function handleMouseMove(event){
   //console.log("in handleMouseMove(evt): mousedown=",mousedown);
   getMouseCoordinates(event); //=> xUser,yUser;
   doDragging(xUser,yUser,xUserDown,yUserDown);
-
-  // !! draw moved objects also outside of sim thread 
-  // to be able to move objects before starting/during stopped simulation
-
-  drawSim();
+  drawSim(); // to be able to move objects during stopped simulation
 }
 
 
@@ -404,7 +399,7 @@ function handleMouseUp(evt) {
   if(false){console.log("\n\nitime=",itime," in handleMouseUp(evt):",
 			" speedlBoxActive=",speedlBoxActive);}
 
-  getMouseCoordinates(evt); // => xUser, yUser
+  getMouseCoordinates(evt); // => xUser, yUser, xPixUser, yPixUser
   finishDistortOrDropObject(xUser, yUser); 
 
   drawSim();

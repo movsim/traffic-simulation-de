@@ -71,20 +71,43 @@ in main simulation file:
     trafficObjs.draw(scale);
   }
   
-  // (ii) draw speedlimit-change select box
+  // (ii) draw speedlimit-change select box 
 
   ctx.setTransform(1,0,0,1,0,0); 
   drawSpeedlBox();
 
 
- 
-in gui file:
-============
-  
-  pickRoadOrObject,
-  pickObject
-  handleClick,
-  define global var xPixUser,yPixUser needed by many TrafficObjects methods
+Def needed gui actions for the objects
+=======================================
+
+
+// (1) again in html file: decleare mouse callback functions
+===================================================
+  <canvas id="name" 
+     onmouseenter="handleMouseEnter(event)"
+     onmousemove="handleMouseMove(event)"
+     onmousedown="handleMouseDown(event)"
+     onmouseup="handleMouseUp(event)" 
+     onclick="handleClick(event)"
+     onmouseout="handleMouseOut(event)"
+     >
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
+// (2) gui: implement TrafficObjects parts of the mouse callbacks
+================================================================
+
+// (1) def global var xPixUser,yPixUser needed by many TrafficObjects methods
+  copy canvas_gui function getMouseCoordinates(event) into the gui source
+
+
+// (2) adapt the canvas_gui function pickRoadOrObject
+
+// (3) pickObject
+
+// (4) handleClick,
+
+
 
 in road instances:
 =================
