@@ -589,8 +589,9 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
                     road less than distCritPix
 */
 
+// needs global physical coordinates xUser yUser
 TrafficObjects.prototype.dropObject=function(obj, network, 
-				    xPixUser, yPixUser, distCritPix, scale){
+				    xUser, yUser, distCritPix, scale){
 
   console.log("itime=",itime
 	      ," in TrafficObjects.dropObject: obj.id=",obj.id,
@@ -599,9 +600,6 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
   
-  var xUser=xPixUser/scale;
-  var yUser=-yPixUser/scale;
-
   // find really nearest road, not just sufficiently near one
 
   var iroadNearest=-1;

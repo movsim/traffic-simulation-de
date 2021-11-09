@@ -31,15 +31,10 @@ var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt
 var mousedown=false; //true if onmousedown event fired, but not yet onmouseup
 var touchdown=false; //true if touchstart event fired, but not yet touchend
 
-//var depotObjPicked=false; //true if a depot obj < distmin @ last mousedown
-//var funnelObjPicked=false; //same for a SpeedFunnel object
-var roadPicked=false; // true if none of the above and distRoad<crit   " "
-var trafficObjPicked=false; // xxxNew
-var trafficObjZoomBack=false; //xxxNew// =true after unsuccessful drop
+var roadPicked=false; 
+var trafficObjPicked=false; 
+var trafficObjZoomBack=false; // =true after unsuccessful drop
 
-//var depotObject;       // element depot.obstTL[i] of global var depot
-//var funnelObject;      // element speedl[i] of global var speedfunne
-var trafficObject;     // xxxNew one traffic light, speed limit, or obstacle
 var specialRoadObject; // element road.veh[i]: obstacles, TL, user-driven vehs
 var distDragCrit=10;   // drag function if dragged more [m]; otherwise click
 var distDrag=0;        // physical distance[m] of the dragging
@@ -165,6 +160,20 @@ function handleMouseEnter(event){
   //console.log("itime=",itime," in handleMouseEnter: scenarioString=",
 //	      scenarioString," nothing to do");
 }
+
+//#####################################################
+// canvas onmousemove callback
+//#####################################################
+
+// [xy]UserDown from touchinit/mousedown
+
+function handleMouseMove(event){
+  //console.log("in handleMouseMove(evt): mousedown=",mousedown);
+  getMouseCoordinates(event); //=> xUser,yUser;
+  doDragging(xUser,yUser,xUserDown,yUserDown);
+  drawSim(); // to be able to move objects during stopped simulation
+}
+
 
 
 //#####################################################
@@ -303,20 +312,6 @@ function pickRoadOrObject(xUser,yUser){
 
 
 
-//#####################################################
-// canvas onmousemove callback
-//#####################################################
-
-// [xy]UserDown from touchinit/mousedown
-
-function handleMouseMove(event){
-  //console.log("in handleMouseMove(evt): mousedown=",mousedown);
-  getMouseCoordinates(event); //=> xUser,yUser;
-  doDragging(xUser,yUser,xUserDown,yUserDown);
-  drawSim(); // to be able to move objects during stopped simulation
-}
-
-
 
 
 // do drag actions if onmousemove&&mousedown or if touchdown=true
@@ -449,7 +444,7 @@ function finishDistortOrDropObject(xUser, yUser){
     var distCrit_m=20;  // optimize!!
     var distCritPix=distCrit_m*scale;
     trafficObjs.dropObject(trafficObject, network, 
-			   xPixUser, yPixUser, distCritPix, scale);
+			   xUser, yUser, distCritPix, scale);
     trafficObjPicked=false;
     console.log("  end finishDistortOrDropObject: dropped object");
   }
