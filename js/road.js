@@ -2007,7 +2007,7 @@ road.prototype.calcAccelerations=function(){
 	if(iLead===-100){console.log("road.calcAccelerations: i=",i,
 				    " iLead=",iLead," should not happen!! possibly this.updateEnvironment() missing!");}
 	var s=this.veh[iLead].u - this.veh[iLead].length - this.veh[i].u;
-	var speedLead=this.veh[iLead].speed;;
+	var speedLead=this.veh[iLead].speed;
 	var accLead=this.veh[iLead].acc;
 	if(iLead>=i){ // vehicle i is leader, for any BC iLead defined
 	    if(this.isRing){s+=this.roadLen;} // periodic BC; accLead OK
@@ -3817,7 +3817,7 @@ road.prototype.revertVehMarkings=function(){
 
 /** #####################################################
  MT 2019-09: implement effect of user-draggable speed limits 
-from thye traffic objects:
+from the traffic objects:
 
  distribute speed limits to the regular vehicle's longmodels
  (free sign=>value=200./3.6=>effectively no influence)
@@ -3834,33 +3834,33 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
   // and object types OK since filtered in loop)
 
   trafficObjects.trafficObj.sort(function(a,b){
-	    return a.u < b.u;
+	    return a.u - b.u;
   })
 
   // implement (all speedlimits should be set to 1000 prior to this action)
 
-  var duAntic=100; // anticipation distance for  obeying the speed limit
+  var duAntic=50; // anticipation distance for  obeying the speed limit
   var success=false;
-  var iveh=0;
   for(var i=0; i<trafficObjects.trafficObj.length; i++){
     var obj=trafficObjects.trafficObj[i];
     if((obj.type==='speedLimit')&&(obj.isActive) 
        && (obj.road.roadID==this.roadID)){
       success=true;
       var speedL=obj.value/3.6;  // in m/s
-      if(false){
+      if(true){
 	console.log("road.updateSpeedlimits: speed limit ",
 		    formd(speedL)," starting at ",
 		    formd(obj.u));
       }
 
+      var iveh=0;
       while((iveh<this.veh.length)&&(this.veh[iveh].u>obj.u-duAntic)){
 	var targetVeh=this.veh[iveh];
 	if(targetVeh.isRegularVeh()){
 	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
 	    ? Math.min(speedL,speedL_truck) : speedL;
 	}
-	if(false){
+	if(true){
 	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
 		      " obj.u=",formd(obj.u),
 		      " isRegVeh=",targetVeh.isRegularVeh(),
@@ -3870,11 +3870,24 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
 	iveh++;
       }
-      if(iveh==this.veh.length){return;} // otherwise risk of range excess
+      //if(iveh==this.veh.length){return;} // otherwise risk of range excess
 
     }
   }
 
+ // test
+
+  if(true){
+    for(var iveh=0; iveh<this.veh.length; iveh++){
+      var veh=this.veh[iveh];
+      if(veh.isRegularVeh()){
+	console.log("end updateSpeedlimits: u=",veh.u,
+		    "speedlimit=",veh.longModel.speedlimit);
+      }
+    }
+  }
+
+  
   if(!success){
     //console.log(" no active limits");
   }
@@ -3944,7 +3957,7 @@ road.prototype.dropObject=function(trafficObj){
 (jun17) introduce traffic lights
 #############################################################
 
-@param depotObject=an element of the obstTL[] array of ObstacleTLDepot
+@param depotObject=a TL-type depot object
 
 @return adds a traffic-light object to this.trafficLights[] serving 
 purely for the road operations of the traffic light. 
@@ -3994,7 +4007,7 @@ road.prototype.changeTrafficLight=function(id,value){
       success=true;
       pickedTL=this.trafficLights[i];
 
-      if(typeof(value) === "undefined"){
+      if(typeof(value) === "undefined"){ // just toggle if no value given
 	pickedTL.value=(pickedTL.value==="red")
 	  ? "green" : "red";
 	console.log("road.changeTrafficLight: id=",id, "no TL state given:",
@@ -4055,8 +4068,9 @@ road.prototype.changeTrafficLight=function(id,value){
 
 @param id:     unique id in [100,199]
 
-@return:       removes a traffic light of the list if id is found, 
-               if last value was red, also removes the virtual
+@return:       removes the traffic light of this id from road.trafficLights 
+               if this id is found.  
+               If last value was red, also removes the virtual
                vehicles associated with it
 */
 
