@@ -3055,7 +3055,6 @@ road.prototype.updateBCup=function(Qin,dt,route){
       var uNew=0;
 
       //!!! MT 2019-09 hack since otherwise veh enter too fast 
-      // in speedfunnel scenarios: retrict entering to truck speed
 
       var v0New=0.9*Math.min(longModelNew.v0, longModelTruck.v0);
       var speedNew=Math.min(v0New, longModelNew.speedlimit,
@@ -3831,8 +3830,6 @@ from thye traffic objects:
 
 road.prototype.updateSpeedlimits=function(trafficObjects){
 
-  //console.log("\n\nupdateSpeedfunnel: before:"); this.writeSpeedlimits();
-
   // sort trafficObj array by decreasing u values (mixing of different roads
   // and object types OK since filtered in loop)
 
@@ -3882,7 +3879,6 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
     //console.log(" no active limits");
   }
 
-  //console.log("\n\nupdateSpeedfunnel: after:"); this.writeSpeedlimits();
 }
 
 
@@ -3895,8 +3891,6 @@ road.prototype.dropObject=function(trafficObj){
   console.log("itime=",itime,
 	      " in road.dropObject: trafficObj.u=",u,
 	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
-
-  var findResult=this.findLeaderAtLane(u, lane);  // [success,iLead]
 
 
   // construct normal road vehicle/obstacle from depot object

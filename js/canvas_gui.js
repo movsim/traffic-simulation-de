@@ -222,7 +222,7 @@ function pickRoadOrObject(xUser,yUser){
   
   /* priorities (at most one action initiated at a given time):
 
-    (1) pick/drag trafficObject on a road or in the depot. 
+    (1) pick/drag trafficObject on a road or to the depot. 
     (2) test for a road section nearby
 
     later stages not here but at onmousemove or onmouseup (onclick) callbacks
@@ -242,7 +242,7 @@ function pickRoadOrObject(xUser,yUser){
   // trafficObjs.pickObject returns [successFlag, thePickedObj]
   //==============================================================
 
-  if(!(typeof trafficObjs === 'undefined')){
+  if(!(typeof trafficObjs === 'undefined')){ // just check for scenarios w/o
     var distCrit_m=20; //[m] !! make it rather larger  
     var pickResults=trafficObjs.pickObject(xPixUser, yPixUser, 
 				      distCrit_m*scale);
@@ -300,13 +300,13 @@ function pickRoadOrObject(xUser,yUser){
   }
   else{
     console.log("  pickRoadOrObject (2): user cannot distort roads, so n.a.");
-  }
-
-
-  if(false){
-    console.log("  end pickRoadOrObject: found no suitable action!",
+    if(false){
+      console.log("  end pickRoadOrObject: found no suitable action!",
 	        " [notice: clicking callback is separate from this]");
+    }
   }
+
+
 
 } // canvas onmousedown or touchStart: pickRoadOrObject
 
@@ -315,7 +315,7 @@ function pickRoadOrObject(xUser,yUser){
 
 
 // do drag actions if onmousemove&&mousedown or if touchdown=true
-//which action(s) (booleans depotObjPicked, funnelObjPicked,roadPicked) 
+// which action(s) (drag road or trafficObject)
 //is determined by onmousedown/touchStart  callback
 
 
@@ -329,8 +329,6 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 
 	if(false){
 	    console.log("mousemove && mousedown: roadPicked=",roadPicked,
-		    " depotObjPicked=",depotObjPicked,
-		    " funnelObjPicked=",funnelObjPicked,
 		    " xUser=",xUser,"xUserDown=",xUserDown,
 		    " distDrag=",distDrag,
 		    " distDragCrit=",distDragCrit);
@@ -446,7 +444,7 @@ function finishDistortOrDropObject(xUser, yUser){
     trafficObjs.dropObject(trafficObject, network, 
 			   xUser, yUser, distCritPix, scale);
     trafficObjPicked=false;
-    console.log("  end finishDistortOrDropObject: dropped object");
+    console.log("  end finishDistortOrDropObject: dropped object!");
   }
 
   
@@ -456,11 +454,16 @@ function finishDistortOrDropObject(xUser, yUser){
 
 //#####################################################
 // canvas onclick and part of touchEnd callback
+// do at most one of the following actions
+// (1) traffic light editor (not yet operative as of 2021-11)
+// (2) change speed limits
+// (3) switch traffic lights
+// (4) slow down vehicles
+// (2)-(4) only if isDragged=false (real click)
 //#####################################################
 
 function handleClick(event){
   getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
-  var didSpeedlManip=false; // only one action; change speedl, TL or slow veh
   var isDragged=(distDrag>distDragCrit);
 
   if(true){
@@ -469,44 +472,56 @@ function handleClick(event){
 		" xUser=",formd(xUser),
 		" yUser=",formd(yUser)," distDrag=",formd(distDrag));
     console.log("  userCanDistortRoads=",userCanDistortRoads);
-    console.log("  didSpeedlManip=",didSpeedlManip,
-		" isDragged=",isDragged,
+    console.log(" isDragged=",isDragged,
 		" speedlBoxActive=",speedlBoxActive);
   }
 
 
-//################################################
-  // MT 2020-07
-//################################################
+  //################################################
+  // (1) MT 2020-07: editor panel (not yet functional)
+  // overrides all other click actions
+  //################################################
 
   if((trafficLightControl.isActive)
      && trafficLightControl.mouseIsInside(xPixUser, yPixUser)){
     console.log("handleClick: in trafficLightControl part");
     trafficLightControl.selectCycleTime([xPixUser, yPixUser]);
 
-    return; // editor panel overrides all other click actions
+    return; 
   }
 
 
-  if(!isDragged){ // only deal with speedlimit changes if click w/o drag
+  // only if clicked w/o drag:
+  // deal with either speedlimit changes, TL, or slow vehicles
+  // (drop vehicles/drag them away etc only if isDragged)
+
+  if(!isDragged){
+    
+    // (2) speedlimit changes if applicable
+    
+    var changingSpeedl=false; 
+
+    // change speedlimit if speeldBoxActive
+    
     if(speedlBoxActive){
-      didSpeedlManip=true;
-      changeSpeedl(xPixUser,yPixUser); // unify xUser->xPixUser etc !!!
+      changingSpeedl=true;
+      changeSpeedl(xPixUser,yPixUser); 
     }
-    else{
-      didSpeedlManip=activateSpeedlBox(xPixUser,yPixUser);
+
+    // check if click should activate speedlimit box for manip at next click 
+
+    else{ 
+      changingSpeedl=activateSpeedlBox(xPixUser,yPixUser);
+    }
+
+    // (3) if no speedlimit-changing related action, 
+    // change TL if applicable or otherwise slow down vehicle if applicable
+    
+    if(!changingSpeedl){
+      console.log("change TL or slow down vehicles");
+      influenceClickedVehOrTL(xUser,yUser);
     }
   }
-
-// do only one action; change speedl, TL or slowdown veh
-// veh only slowed down if no TL manipulation
-  console.log("  handleClick: before influenceClickedVehOrTL: didSpeedlManip=",didSpeedlManip);
-
-  if(!didSpeedlManip){ 
-    influenceClickedVehOrTL(xUser,yUser);
-  }
-
-
 
 }
 
@@ -716,8 +731,6 @@ function cancelActivities(event){
     //console.log("in cancelActivities");
     mousedown=false;
     touchdown=false;
-    depotObjPicked=false;
-    funnelObjPicked=false;
     roadPicked=false;
     trafficObjZoomBack=true;
 }

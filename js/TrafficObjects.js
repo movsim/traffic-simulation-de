@@ -323,7 +323,7 @@ TrafficObjects.prototype.draw=function(){
       ctx.fillStyle="rgb(255,255,255)";
       ctx.fillRect(-0.5*wPix, -0.5*lPix, wPix, lPix);
 
-      // draw the traffic light (pair) itself
+      // draw the traffic light/speed-limit sign (pair) itself
 
       // left if cphi>0, right otherwise, so that sign always above road
       // nice side-effect if both signs drawn: nearer sign drawn later
@@ -648,6 +648,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   }
 
   // update pixel coordinates to "snapped" objects for later picking
+  // pick obstacles at center => at position u-du
 
   if(success){
     console.log("  success! roadID=",obj.road.roadID,
