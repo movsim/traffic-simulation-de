@@ -114,9 +114,28 @@ function showHideTLeditPanel(){
 }
 
 
+//#########################################################
+// gui-definition of type of intersection
+// rightPrio is as 4wayStop but most complicated: no stop mandatory
+//#########################################################
+
+
+var intersectionType={0:"signalized",1:"priority",2:"4wayStop",3:"prioRight"};
+
+
+function handleIntersectionType(index){
+  intersectionIndex=index;
+  console.log("in handleIntersectionType: index=",index,
+	      " intersectionType=",intersectionType[index]);
+}
+
+// (and handleChangedOD from the rounabout section below)
+
+
 
 //#########################################################
-// give-way rules switch for roundabout (vars respectRingPrio, respectRightPrio)
+// give-way rules switch for roundabout
+// (vars respectRingPrio, respectRightPrio)
 //#########################################################
 
 
@@ -136,7 +155,7 @@ function handleChangedPriority(index){
 }
 
 
-// roundabout: change OD options
+// roundabout and intersections: change OD options
 // options={straight,right,left,all}
 
 function handleChangedOD(index){

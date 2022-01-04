@@ -9,10 +9,9 @@ var userCanDropObjects=true;
 //#############################################################
 
 // following flags defined in control_gui.js
-// controlled by a html select elements
+// controlled by html select elements
 
-respectRingPrio=true; 
-respectRightPrio=false; // callback: control_gui - handleChangedPriority
+intersectionType=0; // callback: control_gui-handleIntersectionType
 
 // debugging switches
 

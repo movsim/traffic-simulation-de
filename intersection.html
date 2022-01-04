@@ -13,7 +13,7 @@
             src="js/jquery-1.5.1.min.js">
     </script>
 
-<title> Microsimulation of Traffic Flow: Roundabout</title>
+<title> Microsimulation of Traffic Flow: Intersection</title>
 </head>
 
 
@@ -60,10 +60,11 @@ Open traffic-light control panel </button> </div>
 
 <div id="priorityDiv">
     <select id="changePrioritySelect"
-	    onchange="handleChangedPriority(this.selectedIndex)">
-        <option> Ring has Priority</option>
-        <option> Arms have Priority</option>
-        <option> First Come First Served</option>
+	    onchange="handleIntersectionType(this.selectedIndex)">
+        <option> Signalized</option>
+        <option> Priority and secondary road</option>
+        <option> Equal roads, four-way-stop</option>
+        <option> Equal roads, right has priority</option>
     </select>
 </div>
 
@@ -334,7 +335,7 @@ Open traffic-light control panel </button> </div>
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/roundabout.js"></script> 
+<!-- PROJ--> <script src="js/intersection.js"></script> 
 
 </body>
 </html>

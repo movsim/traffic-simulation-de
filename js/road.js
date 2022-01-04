@@ -511,7 +511,7 @@ road.prototype.writeVehicles= function(umin,umax) {
 
 
 //######################################################################
-// simple write vehicle info
+// simple write vehicle info (umin,umax optional)
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function(umin,umax) {
@@ -2464,12 +2464,14 @@ discretionary or forced merging takes place depending on bSafe*
 @return:        void. Both roads are affected!
 */
 
+//!!!!
 road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute,
 				     prioOther, prioOwn){
 
-    var log=false;
-    //var log=(this.roadID==7)&&isMerge;    
+    //var log=false;
+    var log=(this.roadID==0);    
+    //var log=(this.roadID==0)&&isMerge;    
     //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
 
@@ -2513,76 +2515,76 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
     var uTarget;  // long. coordinate of this vehicle on the orig road
 
 
+  
     // debug: color-code interacting vehicles 
     // and their different roles (to be specified later in this method)
     // !! notice: all markings need to be reverted in each simulation step of 
     // top-level routine by calling road.revertVehMarkings() for all roads
 
-    if(this.markVehsMerge && isMerge){
+  if(this.markVehsMerge && isMerge){
 
         // mark both potentially interacting vehicles with color 1
 
-        for(var i=0; i<originVehicles.length; i++){
-	    originVehicles[i].colorStyle=1;
-	}
-	for(var i=0; i<targetVehicles.length; i++){
-	    targetVehicles[i].colorStyle=1;
-	}
+    for(var i=0; i<originVehicles.length; i++){
+      originVehicles[i].colorStyle=1;
     }
+    for(var i=0; i<targetVehicles.length; i++){
+      targetVehicles[i].colorStyle=1;
+    }
+  }
 
-
-
-    if(log){
+  
+  if(log){
 	console.log("\n\nin road.mergeDiverge: itime=",itime,
 		    " ID=",this.roadID,
 		    " targetVehicles.length=",targetVehicles.length,
 		    " originVehicles.length=",originVehicles.length);
-    }
+  }
 
-    // (2) select changing vehicle (if any): 
-    // only one at each calling; the first vehicle has priority!
+  // (2) Both for merge and diverge: select changing vehicle (if any): 
+  // only one at each calling; the first vehicle has priority!
 
 
-    // (2a) immediate success if no target vehicles in neighbourhood
-    // and at least one (real) origin vehicle: the first one changes
+  // (2a) immediate success if no target vehicles in neighbourhood
+  // and at least one (real) origin vehicle: the first one changes
 
-    var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
-		  && originVehicles[0].isRegularVeh()
-		  && (originVehicles[0].u>=uBegin) // otherwise only LT coupl
-		  && (loc_ignoreRoute||originVehicles[0].divergeAhead));
-    if(log){console.log(" road.mergeDiverge: 2a:  success=",success);}
-    if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
+  var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
+		&& originVehicles[0].isRegularVeh()
+		&& (originVehicles[0].u>=uBegin) // otherwise only LT coupl
+		&& (loc_ignoreRoute||originVehicles[0].divergeAhead));
+  if(log){console.log(" road.mergeDiverge: 2a:  success=",success);}
+  if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
 
     // (2b) otherwise select the first suitable candidate of originVehicles
 
-    else if(originVehicles.length>0){  
+  else if(originVehicles.length>0){ 
 
         // initializing of interacting partners with virtual vehicles
         // having no interaction because of their positions
         // default models also initialized in the constructor
 
-	var duLeader=1000; // initially big distances w/o interaction
-	var duFollower=-1000;
-	var leaderNew=new vehicle(0,0,uNewBegin+10000,targetLane,0,"car");
-	var followerNew=new vehicle(0,0,uNewBegin-10000,targetLane,0,"car");
+    var duLeader=1000; // initially big distances w/o interaction
+    var duFollower=-1000;
+    var leaderNew=new vehicle(0,0,uNewBegin+10000,targetLane,0,"car");
+    var followerNew=new vehicle(0,0,uNewBegin-10000,targetLane,0,"car");
 
 
-	if(log){console.log(" entering origVeh loop");}
+    if(log){console.log(" entering origVeh loop");}
 
         // loop over originVehicles for merging veh candidates
 
-        for(var i=0;(i<originVehicles.length)&&(!success);i++){
+    for(var i=0;(i<originVehicles.length)&&(!success);i++){
 
-	  if(log){
+      if(log){
 		console.log(" i=",i,
 			    " isRegularVeh=",originVehicles[i].isRegularVeh(),
 			    " loc_ignoreRoute=",loc_ignoreRoute,
 			    " originVehicles[i].divergeAhead=",
 			    originVehicles[i].divergeAhead);
-	  }
+      }
 
-	  if(originVehicles[i].isRegularVeh()
-	     &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
+      if(originVehicles[i].isRegularVeh()
+	 &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
 
               //inChangeRegion can be false for LTC since then paddingLTC>0
 	      var inChangeRegion=(originVehicles[i].u>uBegin); 
@@ -2667,7 +2669,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
               // test: should only list reg vehicles with mergeAhead=true; 
               // check its number if suspicious happens with this var !!
 
-	      if(success&&log){
+	if(success&&log){
 	      //if(true){
 		console.log("testing origin veh "+i +" type="
 			    +originVehicles[i].type+" uTarget="+uTarget);
@@ -2678,14 +2680,15 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	        console.log("  duLeader="+duLeader+"  duFollower="+duFollower
 			    +" sLagNew="+sLagNew
 			    +" MOBILOK="+MOBILOK+" success="+success);
-	      }
-	  } // !obstacle
+	}
+	
+      } // !obstacle
 
-	}// merging veh loop
-    }// else branch (there are target vehicles)
+    }// merging veh loop
+  }// else branch (there are target vehicles)
 
 
-    //(3) realize longitudinal-transversal coupling (LTC)
+    //(3) only merge: realize longitudinal-transversal coupling (LTC)
     // exerted onto target vehicles if merge and loc_prioOwn
 
 
@@ -3238,7 +3241,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 		      +" uLastExit="+uLastExit);
 		   }
 
-          // test if the vehicle's route contains this off-ramp
+        // test if the vehicle's route contains this off-ramp
+	// !!!! Only here route is active
 
 	  var offID=this.offrampIDs[iNextOff];
 	  var route=this.veh[i].route;
@@ -3552,7 +3556,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs){
 
-    var noRestriction=(typeof umin === 'undefined'); 
+
+  var noRestriction=(typeof umin === 'undefined');
     var movingObserver=(typeof movingObs === 'undefined')
 	? false : movingObs;
     var uRef=(movingObserver) ? uObs : 0;
@@ -3562,19 +3567,21 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
     var yOffset=this.traj_y(uRef)-yRef;
 
 
-    for(var i=0; i<this.veh.length; i++){
+  for(var i=0; i<this.veh.length; i++){
 
         // do not draw vehicles outside limits
         //  or if it is a virtual traffic-light vehicle (if TL is red)
 
-        var filterPassed=(!this.veh[i].isTrafficLight())
-	    && (noRestriction // default: noRestriction=true
-		|| ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
-	if(filterPassed){
-	    this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
-			     speedmin,speedmax,xOffset,yOffset,this,0);
-	}
+    var filterPassed=(!this.veh[i].isTrafficLight())
+	&& (noRestriction // default: noRestriction=true
+	    || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
+    if(filterPassed){
+      this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
+		       speedmin,speedmax,xOffset,yOffset,this,0);
     }
+  }
+
+
 }
 
 //######################################################################
@@ -3663,7 +3670,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     // don't use smooth lane shifting if external trajectory used
 
     
-    update_v_dvdt_optical(this.veh[i]);
+    update_v_dvdt_optical(this.veh[i]); //in paths.js !!!! does not work diverge inters
 
     var type=this.veh[i].type;
     var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].length;
@@ -3672,6 +3679,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     var uCenterPhys=this.veh[i].u-0.5*this.veh[i].length;
     var vCenterPhys=this.laneWidth*(this.veh[i].v-0.5*(this.nLanes-1)); 
 
+  //if(this.roadID==7){console.log("draw single veh (2): v=",this.veh[i].v)};
 
     // (3) determine vehicle center xCenterPix, yCenterPix
     // in pixel coordinates
@@ -3796,14 +3804,15 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 	
     if(false){
 	  //if(this.veh[i].v>2){
-	      console.log("in road.drawVehicles: itime=",itime,
+	      console.log("in road.drawVehicle: itime=",itime,
 			  +" u="+this.veh[i].u
 			  +" v="+this.veh[i].v
 			  +" xCenterPix="+xCenterPix
 			  +" yCenterPix="+yCenterPix
 			 );
     }
-}
+
+}// road.drawVehicle  (a single vehicle)
 
 
 road.prototype.revertVehMarkings=function(){
@@ -3877,7 +3886,7 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
  // test
 
-  if(true){
+  if(false){
     for(var iveh=0; iveh<this.veh.length; iveh++){
       var veh=this.veh[iveh];
       if(veh.isRegularVeh()){

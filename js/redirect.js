@@ -31,6 +31,10 @@ function myRedirectRoundabout(){
     window.location.href = "./roundabout.html";
 }
 
+function myRedirectIntersection(){
+    window.location.href = "./intersection.html";
+}
+
 function myRedirectRoutingGame(){
     window.location.href = "./routingGame.html";
 }
