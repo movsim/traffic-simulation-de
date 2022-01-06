@@ -16,7 +16,7 @@ Math.seedrandom(44); // !! re-start reproducibly (undo console logs)
 //#############################################################
 
 
-/**
+/*
 ##########################################################
 road segment (link) object constructor:
 ##########################################################
@@ -2383,11 +2383,13 @@ for(var i=0; i<this.veh.length; i++)
 
         //!!! MT 2019-09: prevent trucks to change to the left by force
 
-	if((scenarioString=="OnRamp_BaWue")
-	   ||(scenarioString=="roadworks_BaWue")){
-	  if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
-	    console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
-	    changeSuccessful=false;
+	if(!(typeof scenarioString === 'undefined')){
+	  if((scenarioString=="OnRamp_BaWue")
+	     ||(scenarioString=="roadworks_BaWue")){
+	    if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
+	      console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
+	      changeSuccessful=false;
+	    }
 	  }
 	}
 
