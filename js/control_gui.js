@@ -26,7 +26,7 @@ var isStopped=false; // only initialization
 function myStartStopFunction(){ 
 
     clearInterval(myRun);
-    console.log("in myStartStopFunction: isStopped=",isStopped);
+    //console.log("in myStartStopFunction: isStopped=",isStopped);
 
     //!!
     if(isStopped){

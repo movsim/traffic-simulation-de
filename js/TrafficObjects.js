@@ -87,6 +87,7 @@ look for ".copy" in other js files
 @param nCol:      number of cols (nRow*nCol=#objects should be >=nTL+nLimit)
 */
 
+var objectsZoomBack=false;
 
 function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
 
@@ -833,12 +834,14 @@ automatic action at every timestep w/o GUI interaction
 
 
 TrafficObjects.prototype.zoomBack=function(){
+  objectsZoomBack=false;
   var relDisplacementPerCall=0.02; // zooms back as attached to a rubber band
   var pixelsPerCall=relDisplacementPerCall*this.sizeCanvas;
   for(var i=0; i<this.trafficObj.length; i++){
     var obj=this.trafficObj[i];
     if((!obj.isActive)&&(!obj.inDepot)&&(!obj.isDragged)&&(!obj.isPicked)){
-      userCanvasManip=true; 
+      userCanvasManip=true;
+      objectsZoomBack=true;
       var dx=obj.xPixDepot-obj.xPix;
       var dy=obj.yPixDepot-obj.yPix;
       var dist=Math.sqrt(dx*dx+dy*dy);

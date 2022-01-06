@@ -7,39 +7,20 @@ const userCanDropObjects=true;
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
+density=0;
+
 qIn=4500./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
-
-var nLanes_main=2;
-//var nLanes_rmp=1;
-
 
 
 
 /*######################################################
  Global overall scenario settings and graphics objects
-
- refSizePhys  => reference size in m (generally smaller side of canvas)
- refSizePix   => reference size in pixel (generally smaller side of canvas)
- scale = refSizePix/refSizePhys 
-       => roads have full canvas regardless of refSizePhys, refSizePix
-
- (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
-
- (2) refSizePhys smaller  => all phys roadlengths (but not widths/veh) smaller
-  => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
-
   NOTICE: canvas has strange initialization of width=300 in firefox 
-  and DOS when try sizing in css (see there) only 
- 
+  and DOS when try sizing in css (see there) only => always works following:
   document.getElementById("contents").clientWidth; .clientHeight;
-
-  always works!
-######################################################*
-*/
-
+######################################################*/
 
 
 console.log("\n\nstart main: test1_straight");
@@ -50,29 +31,43 @@ var ctx = canvas.getContext("2d"); // graphics context
 canvas.width  = simDivWindow.clientWidth; 
 canvas.height  = simDivWindow.clientHeight;
 
-
 console.log("before addTouchListeners()");
 addTouchListeners();
 console.log("after addTouchListeners()");
 
 
-// init overall scaling (critAspectRatio should be consistent with 
-// width/height in css.#contents)
+// init overall scaling 
 
-var isSmartphone=mqSmartphone();
+var isSmartphone=mqSmartphone();  // from css; only influences text size
 
-var refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in updateDimensions
+var refSizePhys=150;              // reference size in m
 
-var critAspectRatio=120./95.; // from css file width/height of #contents
-                              // the higher, the longer sim window
+// these two must be updated in updateDimensions (aspectRatio != const)
 
-var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-var scale=refSizePix/refSizePhys;
+var refSizePix=canvas.height;     // corresponds to pixel size of smaller side
+var scale=refSizePix/refSizePhys; // global scale
 
-var hasChanged=true; // window or physical dimensions have changed
-var hasChangedPhys=true; // physical road dimensions have changed 
-                          // in last updateDimensions
-                          // (only true when switching from/to mobile version)
+
+var aspectRatio=canvas.width/canvas.height;
+
+var hasChanged=true;              // window dimensions have changed
+
+// (hasChangedPhys=true only legacy for main scenarios)
+
+
+function updateDimensions(){ // if viewport->canvas or sizePhys changed
+
+  refSizePix=canvas.height;     // corresponds to pixel size of smaller side
+  scale=refSizePix/refSizePhys;
+  
+  if(true){
+    console.log("updateDimensions: canvas.width=",canvas.width,
+		" canvas.height=",canvas.height,
+		" aspectRatio=",aspectRatio.toFixed(2),
+		" isSmartphone=",isSmartphone,
+		" ");
+  }
+}
 
 
 
@@ -84,81 +79,47 @@ var hasChangedPhys=true; // physical road dimensions have changed
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43;   // 0: left, 1: right
-var center_yRel=-0.84;  // -1: bottom; 0: top
 
-
-// !!slight double-coding with updateDimensions unavoidable since
-// updateDimensions needs roads (mainroad.roadLen ...) 
-// which are not yet defined here
-
-var center_xPhys=center_xRel*refSizePhys; //[m]
+var center_xRel=0.5;   // 0: left, 1: right
+var center_yRel=-0.65;  // -1: bottom; 0: top
+var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-var mainroadLen=0.4*canvas.width/scale;
-
-//!!! avoid double coding
-function updateDimensions(){ // if viewport->canvas or sizePhys changed
-
-  refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in definition above
-  refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-  scale=refSizePix/refSizePhys;
-  
-  center_xPhys=center_xRel*refSizePhys; //[m]
-  center_yPhys=center_yRel*refSizePhys;
-
-  // redefine basis of traj*_x, traj*_y if hasChangedPhys=true
-
-  if(hasChangedPhys){
-    mainroadLen=0.4*canvas.width/scale;
-    mainroad.roadLen=mainroadLen;
-  }
-  
-  if(true){
-    console.log("updateDimensions: canvas.width=",canvas.width,
-		" hasChangedPhys=",hasChangedPhys,
-		" mainroadLen=",mainroadLen.toFixed(0),
-		" mainroad.roadLen=",mainroad.roadLen.toFixed(0),
-		" isSmartphone=",isSmartphone,
-		" ");
-  }
-}
+var road0Len=0.5*refSizePhys*aspectRatio;
+var road1Len=0.5*refSizePhys*aspectRatio;
 
 
 // def trajectories (do not include doGridding, only for few main scenarios)
+// !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
-function traj_x(u){ // physical coordinates
- 	return center_xPhys+u-0.5*mainroadLen;
+
+
+function traj0_x(u){ // physical coordinates
+  return center_xPhys+u-road0Len;
 }
 
-function traj_y(u){ // physical coordinates
-  return (u<0.5*mainroadLen)
-    ? center_yPhys : center_yPhys+0.1*(u-0.5*mainroadLen);
+function traj0_y(u){ 
+  return center_yPhys;
 }
 
+function traj1_x(u){ 
+  return center_xPhys+u;
+}
 
+function traj1_y(u){ 
+  return center_yPhys+0.1*u;
+}
 
-// in defining dependent geometry,
-// do not refer to mainroad or onramp!! may not be defined: 
-// mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1
-
-
-var trajNet_x=[]; 
-var trajNet_y=[];
-trajNet_x[0]=traj_x;
-trajNet_y[0]=traj_y;
-
+var trajNet_x=[traj0_x,traj1_x]; 
+var trajNet_y=[traj0_y,traj1_y];
 
 // specification of road width and vehicle sizes
-// remains constant => road becomes more compact for smaller screens
 
 var laneWidth=5; 
-
-var car_length=6; // car length in m (all a bit oversize for visualisation)
-var car_width=3; // car width in m
-var truck_length=11; // trucks
+var car_length=6;    // car length in m (all a bit oversize for visualisation)
+var car_width=3;     // car width in m
+var truck_length=11;
 var truck_width=4; 
-
 
 
 
@@ -166,23 +127,30 @@ var truck_width=4;
 // Specification of logical road network: constructing the roads
 //##################################################################
 
+var nLanes_main=2;
+//var nLanes_rmp=1;
+
 var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
 var speedInit=20;
-var densityInit=0;
 
 // roads
 // last opt arg "doGridding" left out (true:user can change road geometry)
 
 var roadID=42;
 var isRing=false;
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
-		      densityInit, speedInit,fracTruck, isRing);
+var road0=new road(roadID,road0Len,laneWidth,nLanes_main,
+		   trajNet_x[0], trajNet_y[0],
+		   density, speedInit,fracTruck, isRing);
+
+var road1=new road(roadID,road1Len,laneWidth,nLanes_main,
+		   trajNet_x[1], trajNet_y[1],
+		   density, speedInit,fracTruck, isRing);
 
 
-// road network 
+// road network (network declared in canvas_gui.js)
 
-network[0]=mainroad;  // network declared in canvas_gui.js
+network[0]=road0; 
+network[1]=road1; 
 
 
 // add standing virtual vehicles at the end of some road elements
@@ -193,10 +161,9 @@ network[0]=mainroad;  // network declared in canvas_gui.js
 //ramp.veh.unshift(virtualStandingVeh);
 
 
-var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
+var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
+detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
+detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
 
 //</NETWORK>
 
@@ -215,9 +182,9 @@ updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true;       // if false, only vehicles are drawn
-var userCanvasManip;     // true only if user-driven geometry changes
 var vmin_col=0;          // for the speed-dependent color-coding of vehicles
 var vmax_col=0.7*IDM_v0;
+
 
 //####################################################################
 // Images
@@ -280,12 +247,11 @@ roadImg2=roadImgs2[nLanes_main-1];
 // traffic objects and traffic-light control editor
 //############################################
 
-// need to define canvas prior to calling cstr: e.g.,
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var trafficObjs=new TrafficObjects(canvas,1,3,0.50,0.80,3,2);
 
-// also needed to just switch the traffic lights
-// (then args xRelEditor,yRelEditor not relevant)
+// !! Editor not yet finished
+// (then args xRelEditor,yRelEditor not relevant unless editor shown)
 var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 
 
@@ -304,13 +270,15 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  //xxxnew
-  // (1) update times and, if canvas change, 
-  // scale and, if smartphone<->no-smartphone change, physical geometry
+
+  // updateSim (1): update times and, if canvas change, 
+  // scale and update smartphone property
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-
+  //console.log("entering updateSim: time=",time," hasChanged=",hasChanged);
+  hasChanged=false;
+  
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true;
@@ -319,76 +287,61 @@ function updateSim(){
 
     if(isSmartphone!=mqSmartphone()){
       isSmartphone=mqSmartphone();
-      hasChangedPhys=true;
     }
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
  
     trafficObjs.calcDepotPositions(canvas);
-    
-    if(false){
-      console.log("updateSim: haschanged=true: new canvas dimension: ",
-		  canvas.width," X ",canvas.height);
-      console.log("window.innerWidth=",window.innerWidth,
-		  " window.innerHeight=",window.innerHeight);
-    }
   }
  
 
-  // (2) transfer effects from slider interaction and mandatory regions
-  // to the vehicles and models
+  // updateSim (2): integrate all the GUI actions (sliders, TrafficObjects)
+  // as long as not done independently (clicks on vehicles)
 
-  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck,
-				       LCModelMandatory);
 
-   // (2a) update moveable speed limits
 
-  for(var i=0; i<network.length; i++){
-    network[i].updateSpeedlimits(trafficObjs);
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+    network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
+					 LCModelCar,LCModelTruck,
+					 LCModelMandatory);
+    network[ir].updateSpeedlimits(trafficObjs);
   }
   
-  //  (2b) without this zoomback cmd, everything works but depot vehicles
-  // just stay where they have been dropped outside of a road
-  // (here more responsive than in drawSim)
-
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack();
- }
+    trafficObjs.zoomBack(); // here more responsive than in drawSim
+  }
 
 
 
+    // updateSim (3): do central simulation update of vehicles
+
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].calcAccelerations();
+  }
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].changeLanes();         
+    network[ir].updateLastLCtimes(dt);
+  }
+
+  network[0].updateBCup(qIn,dt); // argument=total inflow
+  for(var ir=0; ir<network.length; ir++){
+    // do all the mergeDiverge actions here
+    // do all the connecting stuff here
+    
+    network[ir].updateBCdown();
+  }
+  
+  for(var ir=0; ir<network.length; ir++){ // simult. update pos at the end
+    network[ir].updateSpeedPositions();
+  }
 
 
-    // (3) do central simulation update of vehicles
+    // updateSim (4): update detector readings
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
-    mainroad.updateSpeedPositions();
-    mainroad.updateBCdown();
-    mainroad.updateBCup(qIn,dt); // argument=total inflow
-
-    for (var i=0; i<mainroad.nveh; i++){
-	if(mainroad.veh[i].speed<0){
-	    console.log(" speed "+mainroad.veh[i].speed
-			    +" of mainroad vehicle "
-			    +i+" is negative!");
-	}
-    }
-
-
-
-
-    // (4) update detector readings
-
-    for(var iDet=0; iDet<detectors.length; iDet++){
-	detectors[iDet].update(time,dt);
-    }
-
-
-
+  for(var iDet=0; iDet<detectors.length; iDet++){
+    detectors[iDet].update(time,dt);
+  }
 
 
 }//updateSim
@@ -400,101 +353,75 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
-    //!! test relative motion isMoving
+  var movingObserver=false; // relative motion works, only start offset
+  var speedObs=2;
+  var uObs=speedObs*time;
 
-  var movingObserver=false;
-  var uObs=0*time;
-
-  //xxxnew [vieles nach updateSim]
-  // (1) adapt text size
+  // drawSim (1): adapt text size
  
   var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
   var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
 
 
-  // (2) reset transform matrix and draw background
+  // drawSim (2): reset transform matrix and draw background
   // (only needed if changes, plus "reminders" for lazy browsers)
-
+  // haschanged def/updated here,
+  // mousedown/touchdown in canvas_gui objectsZoomBack in TrafficObjects
+  
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
-    if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+    var objectsMoved=(mousedown ||touchdown ||objectsZoomBack);
+    if(hasChanged||objectsMoved||(itime<=10) || (itime%50==0)
+       || (!drawRoad) || movingObserver){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
-
-      if(false){
-	console.log("itime=",itime,
-		      " hasChanged=",hasChanged,
-		      " userCanvasManip=",userCanvasManip,
-		      " movingObserver=",movingObserver,
-		      " before drawing background");
-      }
     }
   }
   
 
-  // (3) draw mainroad and ramp
-  // (always drawn; changedGeometry only triggers making a new lookup table)
-
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-  // here only example for complete args (only in coffeemeterGame relevant
-  // !!! DOS in road.draw, OK in road.drawVehicles
+  // drawSim (3): draw road network
   
-  var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
+  //var changedGeometry=hasChanged||(itime<=1); 
+  var changedGeometry=(itime<=1); // if no physical change of road lengths
 
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
-		0,mainroad.roadLen,
-		movingObserver,uObs,center_xPhys,center_yPhys);
+  // road.draw(img1,img2,scale,changedGeometry,
+  //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
+  // second arg line optional, only for moving observer
 
-  if(false){
-    console.log("road.draw w/ full parameter set:",
-		" mainroad.roadLen=",mainroad.roadLen,
-		" movingObserver=",movingObserver,
-		" uObs=",uObs,
-		" center_xPhys=",center_xPhys,
- 		" center_yPhys=",center_yPhys);
+  for(var ir=0; ir<network.length; ir++){ 
+    network[ir].draw(roadImg1,roadImg2,scale,changedGeometry);
   }
- 
-  // (4) draw vehicles
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-  // here only example for complete args (only in coffeemeterGame relevant
+
+  
+  // drawSim (4): draw vehicles
+
+  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
+  // second arg line optional, only for moving observer
+
+  for(var ir=0; ir<network.length; ir++){ 
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			vmin_col,vmax_col);
+  }
 
 
-
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
-			vmin_col,vmax_col,
-			0,mainroad.roadLen,
-			movingObserver,uObs,center_xPhys,center_yPhys);
-
-  // (5a) draw traffic objects 
+  
+  // drawSim (5): redraw changeable traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
     trafficObjs.draw(scale);
   }
 
-  // (5b) draw speedlimit-change select box
-
   ctx.setTransform(1,0,0,1,0,0); 
-  drawSpeedlBox();
+  drawSpeedlBox(); // draw speedlimit-change select box
 
 
-  // (6) show simulation time and detector displays
+  // drawSim (6): show simulation time and detector displays
 
   displayTime(time,textsize);
   for(var iDet=0; iDet<detectors.length; iDet++){
 	detectors[iDet].display(textsize);
   }
-
-
-  // may be set to true in next step if changed canvas 
-  // (updateDimensions) or if old sign should be wiped away 
-
-  hasChanged=false;
-  hasChangedPhys=false; //xxxnew
-
-  // revert to neutral transformation at the end!
-
-  ctx.setTransform(1,0,0,1,0,0);
 
 
 } // drawSim
@@ -510,7 +437,6 @@ function drawSim() {
 function main_loop() {
     updateSim();
     drawSim();
-    userCanvasManip=false;
 }
  
 

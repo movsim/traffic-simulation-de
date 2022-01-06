@@ -218,6 +218,7 @@ function getMouseCoordinates(event){
 
 function pickRoadOrObject(xUser,yUser){
 
+  if(typeof userCanDistortRoads==='undefined'){userCanDistortRoads=false;}
   //console.log("itime=",itime," in pickRoadOrObject(canvas_gui):");
   
   /* priorities (at most one action initiated at a given time):
@@ -463,6 +464,7 @@ function finishDistortOrDropObject(xUser, yUser){
 //#####################################################
 
 function handleClick(event){
+  if(typeof userCanDistortRoads==='undefined'){userCanDistortRoads=false;}
   getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
   var isDragged=(distDrag>distDragCrit);
 

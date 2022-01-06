@@ -461,7 +461,7 @@ body{
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  100.5%;  /* proportional to above .#contents 120/95 approx 5/4*/
+  width:  100vmin;  /* 100.5%; proportional to above .#contents 120/95 approx 5/4*/
   height: 80vmin;
   margin-right: 0vw;
   margin-left: 0vw;
