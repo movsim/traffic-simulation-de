@@ -85,7 +85,7 @@ road.connect(targetRoad, uSource, uTarget, offsetLane, uAntic, conflicts)
 * each conflict has the form
 
   {roadConflict:certain_road,
-   uOtherConflict:conflicting_coord_on_conflicting_road (may be > roadLen)
+   uConflict:conflicting_coord_on_conflicting_road (may be > roadLen)
    uOwnConflict: conflict_coord_on_target_road}
 
 * The checks assume ballistic/constant-speed heuristics:

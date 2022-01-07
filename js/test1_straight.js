@@ -85,8 +85,8 @@ var center_yRel=-0.65;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-var road0Len=0.5*refSizePhys*aspectRatio;
-var road1Len=0.5*refSizePhys*aspectRatio;
+var road0Len=0.47*refSizePhys*aspectRatio;
+var road1Len=0.47*refSizePhys*aspectRatio;
 
 
 // def trajectories (do not include doGridding, only for few main scenarios)
@@ -136,15 +136,17 @@ var speedInit=20;
 // roads
 // last opt arg "doGridding" left out (true:user can change road geometry)
 
-var roadID=42;
+
 var isRing=false;
-var road0=new road(roadID,road0Len,laneWidth,nLanes_main,
+var road0=new road(0,road0Len,laneWidth,nLanes_main,
 		   trajNet_x[0], trajNet_y[0],
 		   density, speedInit,fracTruck, isRing);
 
-var road1=new road(roadID,road1Len,laneWidth,nLanes_main,
+var road1=new road(42,road1Len,laneWidth,nLanes_main,
 		   trajNet_x[1], trajNet_y[1],
 		   density, speedInit,fracTruck, isRing);
+
+var route1=[road0.roadID, road1.roadID];
 
 
 // road network (network declared in canvas_gui.js)
@@ -324,10 +326,16 @@ function updateSim(){
     network[ir].updateLastLCtimes(dt);
   }
 
-  network[0].updateBCup(qIn,dt); // argument=total inflow
+  network[0].updateBCup(qIn,dt,route1); // route is optional arg
+
+  // do all the mergeDiverge actions here
+  // do all the connecting stuff here
+
+    // road.connect(target, uSource, uTarget, offsetLane, conflicts)
+  network[0].connect(network[1],network[0].roadLen,0,0,[]);
+
   for(var ir=0; ir<network.length; ir++){
-    // do all the mergeDiverge actions here
-    // do all the connecting stuff here
+
     
     network[ir].updateBCdown();
   }

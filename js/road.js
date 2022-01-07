@@ -905,9 +905,51 @@ road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
     }
     return [success,vehReturn,Math.sqrt(dist2_min), iReturn];
 }
-/**
 
 
+/*
+#############################################################
+find nearest regular leader or followers index at position u any lane
+#############################################################
+
+@param  longitudinal physical position
+@return the nearest vehicle index to this position, regardless of lane 
+        (index=-1 if none)
+*/
+
+road.prototype.findLeaderIndexAt=function(u){
+    //console.log("in road.findLeaderIndexAt");
+
+  var index=-1; // initialize for "no success"
+  
+  var i=0;
+  while ((i<this.veh.length) && (this.veh[i].u>u)){
+    if(this.veh[i].isRegularVeh()){
+      index=i;
+    }
+    i++;
+  }
+
+  return index;
+}
+
+//################################################################
+// nearest followers on any lane 
+//################################################################
+
+road.prototype.findFollowerIndexAt=function(u){
+  var index=-1; // initialize for "no success"
+  var i=this.veh.length-1;
+  while ((i>=0) && (this.veh[i].u<u)){
+    if(this.veh[i].isRegularVeh()){
+      index=i;
+    }
+    i--;
+  }
+  return index;
+}
+
+/*
 #############################################################
 (aug17) find nearest regular leaders or followers 
 at position u on a given lane
@@ -916,7 +958,6 @@ at position u on a given lane
 @param  longitudinal physical position
 @return the nearest vehicle to this position, regardless of lane 
         (id=-1 if none)
-
 */
 
 road.prototype.findLeaderAt=function(u){
@@ -982,7 +1023,7 @@ road.prototype.findFollowerAt=function(u){
 
 
 
-/**
+/*
 #############################################################
 (jun17) find nearest leader at position u on a given lane
 #############################################################
@@ -2020,7 +2061,7 @@ road.prototype.calcAccelerations=function(){
         // (it may have truck model by this.updateModelsOfAllVehicles)
         // do not accelerate programmatically the ego vehicle(s)
 
-	if(this.veh[i].id>1){
+	if(this.veh[i].id>1){ // no ego vehicles
 	    this.veh[i].acc =(this.veh[i].isRegularVeh()) 
 		? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead)
 		: 0;
@@ -2184,6 +2225,7 @@ road.prototype.updateSpeedPositions=function(){
   // for non-ego vehicles and non-obstacles
 
   for(var i=0; i<this.veh.length; i++){
+
     if( (this.veh[i].id!=1) && (this.veh[i].isRegularVeh())){
 
 
@@ -2424,11 +2466,288 @@ for(var i=0; i<this.veh.length; i++)
 }
 
 
+//######################################################################
+// functionality to connect two or more roads with optional conflicts 
+//######################################################################
+
+/*
+* connectors only work with routes (set of road IDs) for each vehicle
+
+* unlike mergings/divergings (segments connect in parallel),
+  connectors connect segments pointwise/frontal. Often, but not
+  always, end to beginning but generally from decision point
+  uDecision to target point uTarget with no logical transition
+
+* optically, the vehicles on the same logical road may have different
+  trajectories selected by elements of the vehicle's route
+
+* One road may have several connecting
+  roads -> several connectors. The vehicle on the source road "picks"
+  the right connector (1:1 relation) comparing the target id with its route
+  If the route does not fit any target ID of any connector
+  or if there is no
+  route or no connector, the vehicle just vanishes ("sink")
+
+* Each lane of source connects to exactly one lane of target,
+  e.g. 2->1 lanes, left lane closes: offsetLane=-1
+  e.g. 2->1 lanes, right lane closes: offsetLane=0
+  e.g. 1->2 lanes, new left lane: offsetLane=+1
+
+* If a lane ends, e.g. nLanes=2, target.nLanes=1, offsetLane=-1, orig
+  lane 0 (any lane for which lane+offsetLane<0 or >=target.nLanes),
+  laneChangeBias in the anticipation zone:
+  - pos bias (to right) and obstacle at the end if lane+offsetLane<0
+  - neg bias and obstacle at the end if lane+offsetLane>=target.nLanes
+
+* connectors may have one or more segments with conflicting traffic
+  given in the argument as array [conflict0,conflict1,..]
+  if there is no conflict, [] is passed and vehs need not to stop
+  (they only watch the last vehs on each lane on 
+  the target road), so a jam can pass the connector.
+
+* If there is a possible conflict, vehicles stop at the stopping point
+  (virtual obstacle) unless all conflict checks are passed which lifts
+  the virtual obstacle and instantaneously transfers the veh to the
+  new segment
+
+* The conflict checks are first taken after having passed the decision
+  point (a few meters upstream of the stopping point uSource) and, 
+  if one check is negative, repeated in every timestep 
+  until all checks are passed
+
+
+@param targetRoad: where traffic flows to (source is the calling road)
+                   only a single target for each connector
+@param uSource:    Logical long coordinate where vehicles transit to the
+                   target road (often the downstream end)
+@param uTarget:    connected coordinate of the target (often upstream end)
+@param offsetLane: lanes are connected 1:1 offsetLane=-1 
+                   if source lane 1 connected to target lane 0
+                   (lane indices increase from left to right)
+@param conflicts:  [] (no conflict) or [conflict1,conflict2,...]
+                   each conflict has the form
+                   {roadConflict:road, uConflict:uOther, uOwnConflict:uOwn}
+ */
+
+road.prototype.connect=function(targetRoad, uSource, uTarget,
+				offsetLane, conflicts){
+
+  if(false){
+    console.log("road.connect: this.roadLen=",this.roadLen.toFixed(1),
+		" targetRoad.roadLen=",targetRoad.roadLen.toFixed(1),
+		" uSource=",uSource.toFixed(1),
+		" uTarget=",uTarget.toFixed(1),
+		" offsetLane=",offsetLane,
+		" conflicts=",conflicts,
+		"");
+  }
+  var duAntic=50;
+  var duConnect=10; // all suitable vehicles closer than duConnect to
+                    // the connecting point are instantaneously transferred
+  var targetID=targetRoad.roadID;
+  var conflictsExist=(conflicts.length>0);
+
+  //(1) check if there are candidates and, if so, influence them
+
+  var imax=this.findFollowerIndexAt(uSource); //=-1 if there is none
+  for(var iveh=imax; iveh>=0; iveh--){
+    if(this.veh[iveh].u>uSource-duAntic){ // then vehicle is candidate
+
+      // check if route is consistent with targetID
+      
+      var connecting=false;  
+      var route=this.veh[iveh].route;
+      for(var ir=0; ir<route.length; ir++){
+	if(route[ir]==targetID){connecting=true;}
+	//console.log("route[ir]=",route[ir]," targetID=",targetID);
+      }
+
+      // only further treatment if veh in influence range and route
+      // fits to this connector
+      
+      if(connecting){
+	var veh=this.veh[iveh];
+	var u=veh.u;
+	
+        // check if lane continues
+      
+	var lane=veh.lane;
+	var laneContinues=((lane+offsetLane>=0)
+			   &&(lane+offsetLane<targetRoad.nLanes));
+
+        // if no through lane, impose lateral bias towards a through lane
+
+	if(!laneContinues){
+	  //impose lateral bias towards a through lane
+	}
+
+	
+	// if through lane and no conflicts,
+	// prepare and perform transition. Otherwise do nothing special
+	
+	if(laneContinues&&(!conflictsExist)){
+
+	  // !!! impose new accelerations using findLeaderAtLane(u=0,lane) etc
+	  // needed for jam propagation
+
+	  // imposing min of actual acceleration (due to non-route leaders)
+	  // and accel imposed by the target road:
+	  
+	/*if(this.veh[i].id>1){ // no ego vehicles
+	    this.veh[i].acc =(this.veh[i].isRegularVeh()) 
+		? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead)
+		: 0;
+	}
+*/
+
+	  if(u>uSource-duConnect){
+	    console.log("\nroad.connect: actual transfer!!");
+
+	    // !! MUST use new vehicle(...) Otherwise heineous errors at
+	    // adding new vehicles to road; shallow copy etc NO use!
+
+	    var transferredVeh
+	        = new vehicle(veh.length, veh.width, u-uSource,
+			      lane+offsetLane, veh.speed, veh.type);
+	    transferredVeh.id=veh.id;
+
+	    // vehicleNeighborhood is deep copy=>do splice actions on original
+	    // Array.splice(position, howManyItems, opt_addedItem1,...) 
+
+	    if(false){
+	      console.log("\nbefore splicing:",
+			" this.veh.length=",this.veh.length,
+			" transferredVeh=",this.veh[iveh],
+			" targetRoad.veh.length=",targetRoad.veh.length,
+			"");
+	      this.writeVehiclesSimple();
+	      targetRoad.writeVehiclesSimple();
+	    }
+	  
+	    this.veh.splice(0,1);
+	    this.updateEnvironment();
+	    //targetRoad.veh.unshift(transferredVeh); // add at beginning
+	    //targetRoad.veh.push(transferredVeh); // add at end
+	  
+	    targetRoad.veh[targetRoad.veh.length]=transferredVeh;
+	    targetRoad.updateEnvironment();
+	  
+	  
+	    if(false){
+	      console.log("\nafter splicing:",
+			" this.veh.length=",this.veh.length,
+			" candidateVeh=",this.veh[iveh],
+			" targetRoad.veh.length=",targetRoad.veh.length,
+			"");
+	      this.writeVehiclesSimple();
+	      targetRoad.writeVehiclesSimple();
+	    }
+	  }
+	  
+	}
+      }
+    }
+  }
+
+	
+    
+  // (1) get neighbourhood of each lane
+  //     getTargetNeighbourhood also sets [this|newRoad].iTargetFirst
+
+  /*
+  for(var lane=0; lane<this.nLanes; lane++){
+    var originVehicles=this.getTargetNeighbourhood(
+      uSource-duAntic, uSource, lane);
+
+
+    if(false){
+      console.log("originVehicles=",originVehicles);
+      for(var i=0; i<originVehicles.length; i++){
+	var veh=originVehicles[i];
+	console.log(" type=",veh.type," id=",veh.id,
+		    "  u=",veh.u.toFixed(1),
+		    "  v=",veh.v.toFixed(1),
+		    "  lane=",veh.lane,
+		    "  dvdt=",veh.dvdt.toFixed(2),
+		    "  speed=",veh.speed.toFixed(1),
+		    "  acc=",veh.acc.toFixed(1),
+		    "");
+      }
+    }
+
+    var laneContinues=((lane+offsetLane>=0)
+		       &&(lane+offsetLane<targetRoad.nLanes));
+
+    // "express dispatch": directly transfer suitable vehicles
+    // to the target road if certain conditions apply
+    
+    if(laneContinues&&(!conflictsExist)){
+      var candidateVehExists=(originVehicles.length>0);
+      var connecting=false;
+      if(candidateVehExists){
+        var candidateVeh=originVehicles[0];
+	if(typeof(candidateVeh.route) != 'undefined'){
+	  var route=candidateVeh.route;
+          for(var ir=0; ir<route.length; ir++){
+	    if(route[ir]==targetID){connecting=true;}
+	    //console.log("route[ir]=",route[ir]," targetID=",targetID);
+	  }
+	}
+      }
+
+      //console.log("candidateVehExists=",candidateVehExists," connecting=",connecting);
+      
+      if(connecting){ //!!! at first ignore back traffic
+	var targetVehicles=targetRoad.getTargetNeighbourhood(
+	  uTarget-duAntic, uTarget+duAntic, lane+offsetLane);
+	
+	//!!! add decel interactions by targetVehicles
+
+	if(candidateVeh.u>uSource-duConnect){
+	  console.log("\nroad.connect: actual transfer!!");
+
+	  //Array.splice(position, howManyItems, opt_addedItem1,...) 
+	  if(true){
+	    console.log("before splicing:",
+			" originVehicles.length=",originVehicles.length,
+			" this.veh.length=",this.veh.length,
+			" candidateVeh=",candidateVeh);
+	  }
+
+	  // vehicleNeighborhood is deep copy=>do splice actions on original
+	  
+	  candidateVeh=originVehicles.splice(0,1);
+
+	  if(true){
+	    console.log("after splicing:",
+			" originVehicles.length=",originVehicles.length,
+			" this.veh.length=",this.veh.length,
+			" candidateVeh=",candidateVeh);
+	  }
+
+
+	  
+	  targetVehicles.splice(targetVehicles.length-1, 0, candidateVeh);
+	  console.log("targetVehicles=",targetVehicles);
+	}
+      }
+      else if(candidateVehExists){
+	// do interactions with target by redefining accel
+      }
+
+    }
+  }
+  */
+  
+}
+
+
+
 
 //######################################################################
 // functionality for merging and diverging to another road. 
 //######################################################################
-/**
+/*
 In both cases, the road change is from the road calling this function
 to the road in the argument list. Only the immediately neighboring 
 lanes of the two roads interact. The rest must be handled in the
@@ -2964,7 +3283,8 @@ road.prototype.updateBCdown=function(){
   var nvehOld=this.veh.length;
   if( (!this.isRing) &&(this.veh.length>0)){
       if(this.veh[0].u>this.roadLen){
-	  //console.log("road.updateBCdown: nveh="+this.veh.length+" removing one vehicle);
+	//console.log("road.updateBCdown: nveh="+this.veh.length+" removing one vehicle);
+	//Array.splice(position, howManyItems, opt_addedItem1,...) 
 	  this.veh.splice(0,1);
       }
       if(this.veh.length<nvehOld){this.updateEnvironment();}
@@ -2981,7 +3301,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
   var emptyOverfullBuffer=true; //!!
 
-  this.route=(typeof route === 'undefined') ? [0] : route; // handle opt. args
+  this.route=(typeof route === 'undefined') ? [] : route; // handle opt. args
 
    //console.log("in road.updateBCup: inVehBuffer="+this.inVehBuffer);
 
