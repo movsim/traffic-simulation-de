@@ -51,7 +51,7 @@ slider_qInVal.innerHTML=3600*qIn+" veh/h";
 
 mainFrac=0.8;
 slider_mainFrac.value=100*mainFrac;
-slider_mainFracVal.innerHTML=100*mainFrac+"%";
+slider_mainFracVal.innerHTML=100*mainFrac+" %";
 
 leftTurnBias=0;
 //slider_leftTurnBias.value=leftTurnBias;
@@ -63,7 +63,7 @@ focusFrac=1;
 
 timewarp=8;
 slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML=timewarp +"times";
+slider_timewarpVal.innerHTML=timewarp +" times";
 
 IDM_v0=50./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
@@ -700,7 +700,7 @@ function updateSim(){
 	//		"veh[0].u=", arm[i].veh[0].u.toFixed(2));
 	    arm[i].veh[1].u=arm[i].veh[0].u-0.5;
 	    arm[i].veh[0].type="obstacle"; // for some f... reason swap
-	    arm[i].veh[0].length=0;
+	    arm[i].veh[0].len=0;
 	    console.log("forcibly moved veh ",arm[i].veh[1].id,
 			" behind obstacle",
 			"veh.u=", arm[i].veh[1].u.toFixed(2),

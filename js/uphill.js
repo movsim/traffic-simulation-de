@@ -501,7 +501,7 @@ function drawSim() {
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
   // (4a) draw traffic signs (banButtonClicked => control_gui.js) MT 2020-01
-  console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
+  //console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
 
   if(backgroundJustDrawn||banButtonClicked){ // MT 2020-01
  

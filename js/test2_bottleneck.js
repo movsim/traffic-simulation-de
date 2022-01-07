@@ -1,6 +1,6 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // draw veh IDs for selected roads
+var drawVehIDs=true; // debug: draw veh IDs for selected roads
 // (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
 
 var nLanes_main=2;
@@ -95,6 +95,14 @@ var road0Len=0.47*refSizePhys*aspectRatio;
 var road1Len=0.47*refSizePhys*aspectRatio;
 
 
+// specification of road width and vehicle sizes
+
+var laneWidth=5; 
+var car_length=6;    // car length in m (all a bit oversize for visualisation)
+var car_width=3;     // car width in m
+var truck_length=11;
+var truck_width=4; 
+
 // def trajectories (do not include doGridding, only for few main scenarios)
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
@@ -113,19 +121,11 @@ function traj1_x(u){
 }
 
 function traj1_y(u){ 
-  return center_yPhys+0.0*u;
+  return center_yPhys+laneWidth; // offsetLane=+1, see road.connect(...)
 }
 
 var trajNet_x=[traj0_x,traj1_x]; 
 var trajNet_y=[traj0_y,traj1_y];
-
-// specification of road width and vehicle sizes
-
-var laneWidth=5; 
-var car_length=6;    // car length in m (all a bit oversize for visualisation)
-var car_width=3;     // car width in m
-var truck_length=11;
-var truck_width=4; 
 
 
 
@@ -307,6 +307,7 @@ function updateSim(){
   // (needed for updateModelsOfAllVehicles)
 
 
+
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -322,8 +323,6 @@ function updateSim(){
 
 
   // updateSim (3): do central simulation update of vehicles
-  // new accel only calculated, vehicles moved with it at the end
-  // because some special-case accel changes are performed in the next steps
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].calcAccelerations();
@@ -339,11 +338,9 @@ function updateSim(){
   // do all the connecting stuff here
 
     // road.connect(target, uSource, uTarget, offsetLane, conflicts)
-  network[0].connect(network[1],network[0].roadLen,0,0,[]);
+  network[0].connect(network[1],network[0].roadLen,0,1,[]);
 
   for(var ir=0; ir<network.length; ir++){
-
-    
     network[ir].updateBCdown();
   }
 
@@ -351,13 +348,13 @@ function updateSim(){
   // updateSim (5): move the vehicles longitudinally and laterally
   // at the end because some special-case changes of calculated
   // accelerations and lane changing model parameters were done before
-  
-  for(var ir=0; ir<network.length; ir++){ // simult. update pos at the end
-    network[ir].updateSpeedPositions();
-  }
+
   for(var ir=0; ir<network.length; ir++){
     network[ir].changeLanes();         
     network[ir].updateLastLCtimes(dt);
+  }
+  for(var ir=0; ir<network.length; ir++){ // simult. update pos at the end
+    network[ir].updateSpeedPositions();
   }
 
 

@@ -423,7 +423,7 @@ function toggleTruckOvertakingBan(){
 function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
   var formattedValue=value.toFixed(commaDigits);
   slider.value=value;
-  sliderHTMLval.innerHTML=formattedValue+" "+str_units;
+  sliderHTMLval.innerHTML=formattedValue+" "+str_units; // +" " DOS=>str_units
   console.log("setSlider: value=",value
 	      ," innerHTML=",sliderHTMLval.innerHTML);
 }
@@ -436,11 +436,11 @@ var slider_timewarp,slider_timewarpVal;
 if(document.getElementById("slider_timewarp")!==null){
     slider_timewarp = document.getElementById("slider_timewarp");
     slider_timewarpVal = document.getElementById("slider_timewarpVal");
-    slider_timewarpVal.innerHTML=timewarp +"times";
+    slider_timewarpVal.innerHTML=timewarp +" times";
     slider_timewarp.value=timewarp;
 
     slider_timewarp.oninput = function() {
-        slider_timewarpVal.innerHTML = this.value +"times";
+        slider_timewarpVal.innerHTML = this.value +" times";
         timewarp=parseFloat(this.value);
         dt=timewarp/fps;
     }
@@ -507,10 +507,10 @@ if(document.getElementById("slider_fracTruck")!==null){
     slider_fracTruck = document.getElementById("slider_fracTruck");
     slider_fracTruckVal = document.getElementById("slider_fracTruckVal");
     slider_fracTruck.value=100*fracTruck;
-    slider_fracTruckVal.innerHTML=100*fracTruck+"%";
+    slider_fracTruckVal.innerHTML=100*fracTruck+" %";
 
     slider_fracTruck.oninput = function() {
-        slider_fracTruckVal.innerHTML = this.value+"%";
+        slider_fracTruckVal.innerHTML = this.value+" %";
         fracTruck=parseFloat(this.value/100.);
     }
 }
@@ -525,10 +525,10 @@ if(document.getElementById("slider_density")!==null){
     slider_density = document.getElementById("slider_density");
     slider_densityVal = document.getElementById("slider_densityVal");
     slider_density.value=1000*density;
-    slider_densityVal.innerHTML=1000*density+"/km";
+    slider_densityVal.innerHTML=1000*density+" veh/km";
 
     slider_density.oninput = function() {
-        slider_densityVal.innerHTML = this.value+"/km";
+        slider_densityVal.innerHTML = this.value+" veh/km";
         density=parseFloat(this.value/1000.);
     }
 }
@@ -544,10 +544,10 @@ if(document.getElementById("slider_fracOff")!==null){
     slider_fracOff = document.getElementById("slider_fracOff");
     slider_fracOffVal = document.getElementById("slider_fracOffVal");
     slider_fracOff.value=100*fracOff;
-    slider_fracOffVal.innerHTML=100*fracOff+"%";
+    slider_fracOffVal.innerHTML=100*fracOff+" %";
 
     slider_fracOff.oninput = function() {
-        slider_fracOffVal.innerHTML = this.value+"%";
+        slider_fracOffVal.innerHTML = this.value+" %";
         fracOff=parseFloat(this.value/100.);
     }
 }
@@ -560,10 +560,10 @@ if(document.getElementById("slider_mainFrac")!==null){
     slider_mainFrac = document.getElementById("slider_mainFrac");
     slider_mainFracVal = document.getElementById("slider_mainFracVal");
     slider_mainFrac.value=100*mainFrac;
-    slider_mainFracVal.innerHTML=100*mainFrac+"%";
+    slider_mainFracVal.innerHTML=100*mainFrac+" %";
 
     slider_mainFrac.oninput = function() {
-        slider_mainFracVal.innerHTML = this.value+"%";
+        slider_mainFracVal.innerHTML = this.value+" %";
         mainFrac=parseFloat(this.value/100.);
     }
 }
@@ -594,10 +594,10 @@ if(document.getElementById("slider_focusFrac")!==null){
     slider_focusFrac = document.getElementById("slider_focusFrac");
     slider_focusFracVal = document.getElementById("slider_focusFracVal");
     slider_focusFrac.value=100*focusFrac;
-    slider_focusFracVal.innerHTML=100*focusFrac+"%";
+    slider_focusFracVal.innerHTML=100*focusFrac+" %";
 
     slider_focusFrac.oninput = function() {
-        slider_focusFracVal.innerHTML = this.value+"%";
+        slider_focusFracVal.innerHTML = this.value+" %";
         focusFrac=parseFloat(this.value/100.);
     }
 }
@@ -901,8 +901,8 @@ function updateModelsUphill(){
     longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
     LCModelCarUphill=LCModelCar;
     LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
-    console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
-		LCModelTruckUphill);
+    //console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
+//		LCModelTruckUphill);
 }
 
 // example for changing sliders from standard init setting in gui

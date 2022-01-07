@@ -16,9 +16,10 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false; // only if true, road.gridTrajectories after
-//var userCanDistortRoads=true;  // external changes called
-var userCanDropObjects=true;
+const userCanDistortRoads=false; // only if true, road.gridTrajectories after
+const userCanDropObjects=false;
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
+// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
 
 
 
@@ -344,10 +345,10 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp_x,trajRamp_y,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
-// road network 
+// road network (network declared in canvas_gui.js)
 
-network[0]=mainroad;  // network declared in canvas_gui.js
-network[1]=ramp;
+network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
+network[1]=ramp; network[1].drawVehIDs=drawVehIDs;
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)

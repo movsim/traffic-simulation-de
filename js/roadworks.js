@@ -1,6 +1,7 @@
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDistortRoads=false;
+const userCanDropObjects=true;
+var drawVehIDs=true; // debug: draw veh IDs for selected roads
 
 //#############################################################
 // adapt/override standard param settings from control_gui.js
@@ -169,8 +170,10 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
 		      density, speedInit,fracTruck, isRing,
 		      userCanDistortRoads);
-network[0]=mainroad;  // network declared in canvas_gui.js
 
+// network declared in canvas_gui.js
+network[0]=mainroad;  
+network[0].drawVehIDs=drawVehIDs;
 
 mainroad.uminLC=0; // allow lane changing right at the beginning
 mainroad.setTrucksAlwaysRight=false;

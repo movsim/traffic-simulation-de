@@ -570,7 +570,7 @@ function updateSim(){
 	//		"veh[0].u=", arm[i].veh[0].u.toFixed(2));
 	    arm[i].veh[1].u=arm[i].veh[0].u-0.5;
 	    arm[i].veh[0].type="obstacle"; // for some f... reason swap
-	    arm[i].veh[0].length=0;
+	    arm[i].veh[0].len=0;
 	    console.log("forcibly moved veh ",arm[i].veh[1].id,
 			" behind obstacle",
 			"veh.u=", arm[i].veh[1].u.toFixed(2),
