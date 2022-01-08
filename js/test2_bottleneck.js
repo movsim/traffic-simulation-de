@@ -161,10 +161,11 @@ network[1]=road1; network[1].drawVehIDs=drawVehIDs;
 
 // add standing virtual vehicles at the end of some road elements
 // prepending=unshift (strange name)
+// vehicle(length, width, u, lane, speed, type)
+var virtualStandingVeh
+    =new vehicle(2, laneWidth, road0.roadLen-0.5*laneWidth, 1, 0, "obstacle");
 
-//var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
-
-//ramp.veh.unshift(virtualStandingVeh);
+road0.veh.unshift(virtualStandingVeh);
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)

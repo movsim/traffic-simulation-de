@@ -364,7 +364,7 @@ function MOBIL(bSafe, bSafeMax, p, bThr, bBiasRight){
 }
 
 
-/**
+/*
 generalized MOBIL lane chaning decision
 with bSafe increasing with decrease vrel=v/v0
 but at present w/o politeness
