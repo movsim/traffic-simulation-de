@@ -548,9 +548,8 @@ road.prototype.writeVehiclesSimpleToFile= function(filename) {
   console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.roadID,
 	      " filename=",filename);
 
-  // function download in control_gui.js
   //console.log("road.exportString=\n",this.exportString);
-  download(this.exportString, filename); 
+  download(this.exportString, filename);  // download(.) in control_gui.js
   
 }
  

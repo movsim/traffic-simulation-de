@@ -16,9 +16,10 @@ microscopic output also gives the lane index of the passage event
 
 function stationaryDetector(road,u,dtAggr){
     //console.log("in stationaryDetector cstr: road=",road);
-    this.road=road;
-    this.u=u;
-    this.dtAggr=dtAggr;
+  this.road=road;
+  this.u=u;
+  this.dtAggr=dtAggr;
+  this.exportString=""; // for export to file
 
     if(this.u>road.roadLen){
 	console.log("Warning: trying to place a detector at position u=",
@@ -63,6 +64,9 @@ stationaryDetector.prototype.update=function(time,dt){
       this.historySpeed[this.iAggr]=this.speedSum/this.vehCount;
       this.vehCount=0;
       this.speedSum=0;
+
+      if(downloadActive){this.updateExportString();}
+      
       if(false){
 	console.log("\nnew aggregation:",
 		    " this.historyFlow[",this.iAggr,"]=",
@@ -72,6 +76,31 @@ stationaryDetector.prototype.update=function(time,dt){
       }
     }
 }
+
+
+stationaryDetector.prototype.updateExportString=function(){
+
+  var rest=time/this.dtAggr-Math.floor((time+0.0001)/this.dtAggr);
+  
+  if(rest<dt-0.0001){
+    var flowStr=Math.round(3600*this.historyFlow[this.iAggr])
+    var speedStr=((this.historyFlow[this.iAggr]>0)
+		  ? Math.round(3.6*this.historySpeed[this.iAggr])
+		  : "--");
+    this.exportString=this.exportString+"\n"+time.toFixed(0)
+      +"\t\t"+flowStr+"\t\t"+speedStr;
+    
+  }
+}
+ 
+stationaryDetector.prototype.writeToFile= function(filename){
+  console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.road.roadID,
+	      " filename=",filename);
+  
+  console.log("stationaryDetector.exportString=\n",this.exportString);
+  download(this.exportString, filename); // download(.) in control_gui.js
+}
+
 
 
 stationaryDetector.prototype.reset=function(){
