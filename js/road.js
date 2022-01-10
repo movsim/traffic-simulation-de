@@ -2641,7 +2641,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	if(laneContinues&&potentialConflictsExist){
 	  // otherwise, skip this step and go directly to Action 4
 
-	  console.log("vehConnect=",vehConnect);
 	  var takeDecision=(vehConnect.u>uSource-duDecision);
 	  console.log("road.connect: vehID=",vehConnect.id,
 		      " potential conflicts exist",
@@ -2650,30 +2649,69 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  
 	  // Action 2: slow down (prepare to stop)
 	  // before reaching the decision point
+
+	  var speed=vehConnect.speed;
 	  
 	  if(!takeDecision){
 	    var s=uSource-vehConnect.u;
-	    var speed=vehConnect.speed;
 	    var accTarget=vehConnect.longModel.calcAcc(s,speed,0,0);
 	    vehConnect.acc=Math.min(accPresent,accTarget);
-	    console.log(" Action2: decelerating towards decision:",
-			" accTarget=",accTarget);
-	    this.writeVehiclesSimple();
+	    console.log(" Action 2: decelerating towards decision:",
+			"accTarget=",accTarget.toFixed(1));
+	    //this.writeVehiclesSimple();
 	  }
 
 	  // Action 3: If decision point passed, check if the
 	  // potential conflicts are resolved. If so, conflictsExist=false
-	  // and the driver goes to Action 5 //!!! allow reverting decision
-
+	  // and the driver goes to Action 4 //!!! allow reverting decision
+          // see ../README_IntersectionsVarNetworks.txt
+	  
 	  if(takeDecision){
-	    console.log(" Action3: decide on conflicts");
+	    console.log(" Action 3: decide on conflicts");
+
 	    var noConflictDetected=true; // each conflict makes this false
-	    for(var ic=0; ic<conflicts.length; ic++){
+	    var TTCdown=1; // min negative TTC for downstream conflict vehs
+	    var TTCup=4;   // min positive TTC for downstream conflict vehs
+	    var XTC=10;    // min bumper-to-bumper gap
+	    var smax=60;   // do not consider upstream veh further away
+	    for(var ic=0; (ic<conflicts.length)&&noConflictDetected; ic++){
 	      // check if there is a conflict for this potental conflict
-	      // then set noConflictDetected=false; 
-	    }
+
+	      // remaining distance of the subject veh to collision point
+	      var uc=(uSource-vehConnect.u) + conflicts[ic].uOwnConflict;
+
+	      // expected time to reach collision point
+	      var acc=vehConnect.longModel.calcAcc(10000,speed, speed,0);
+	      var tc=-speed/acc+Math.sqrt(Math.pow(speed/acc,2)+2*uc/acc);
+
+	      // determine the existence of actual conflicts
+	      var xtc=-10000; //=gap s
+	      var vehsConflict=conflicts[ic].roadConflict.veh;
+
+	      console.log("  checking conflict ",ic,":",
+			  " uc=",uc.toFixed(1),
+			  " speed=",speed.toFixed(1),
+			  " acc=",acc.toFixed(2),
+			  " tc=",tc.toFixed(1),
+			  "");
+
+	      var endCrit=false;
+	      for (var iveh=0; endCrit; iveh++){
+		var du=conflicts[ic].uConflict
+		  -(vehsConflict[iveh].u+vehsConflict[iveh].speed*tc);
+		var subjIsLeader=(du>0);
+		xtc=(subjIsLeader)
+		  ? du-vehConnect.len  // >0 if no overlap
+		  : du+vehsConflict[iveh].len; // <0 if no overlap
+		var ttc=xtc/Math.max(speed,0.01)-tc;
+		noConflictDetected=(Math.abs(xtc)>XTC)
+		  &&((ttc>TTCup)||(ttc<-TTCdown));
+		endCrit=((iveh>=vehsConflict.length)||(xtc>smax)
+			 ||(!noConflictDetected));
+	      }// inner loop over vehs of conflicts[ic].roadConflict
+	    }// outer loop over the conflicts
 	    conflictsExist=(!noConflictDetected);
-	  }
+	  }//takeDecision
 	    
 	}//potentialConflictsExist
 
@@ -2684,7 +2722,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	
 	if(laneContinues&&(!conflictsExist)){
-	  console.log("Action 4: check traffic on target lane and go ahead");
+	  console.log(" Action 4: no conflicts: check traffic on",
+		      "target lane and go ahead");
 	  // impose new accelerations needed for jam propagation
 
 	  var targetLeaderInfo=targetRoad.findLeaderAtLane(0,lane+offsetLane);
