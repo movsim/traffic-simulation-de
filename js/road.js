@@ -2572,15 +2572,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		" conflicts=",conflicts,
 		"");
   }
-  var duAntic=70;
+  var duAntic=60;
+  var duDecision=10;
   var targetID=targetRoad.roadID;
-  var conflictsExist=(conflicts.length>0);
+  var potentialConflictsExist=(conflicts.length>0);
 
-  //(1) check if there are candidates and, if so, influence them
+  // check if there are candidates and, if so, influence them
 
   var imax=this.findFollowerIndexAt(uSource); //=-1 if there is none
   for(var iveh=0; iveh<this.veh.length; iveh++){
-    //console.log("\nconnect: time=",time," checking veh ",this.veh[iveh].id,	" u=",this.veh[iveh].u," uEnter=",uSource-duAntic);
 
     // veh is candidate if in anticipation regime and regular veh
     if((this.veh[iveh].u>uSource-duAntic)&&(this.veh[iveh].isRegularVeh())){
@@ -2596,43 +2596,97 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	//console.log("route[ir]=",route[ir]," targetID=",targetID);
       }
 
-      // only further treatment if veh in influence range and route
-      // fits to this connector
+      // only further treatment if veh regular, in influence range,
+      // and route fits to this connector
       
       if(connecting){
 	//console.log(" veh ",this.veh[iveh].id," is connecting");
 
 	var vehConnect=this.veh[iveh];
 	var u=vehConnect.u;
-	
+	var accPresent=vehConnect.acc;
+
         // check if lane continues
       
 	var lane=vehConnect.lane;
 	var laneContinues=((lane+offsetLane>=0)
 			   &&(lane+offsetLane<targetRoad.nLanes));
 
-        // if no through lane, impose lateral bias towards a through lane
 
-	if(!laneContinues){//!!!! not yet implemented: Forbid changing back to the closing lane 
+        // Action 1:
+	// if no through lane, impose lateral bias towards a through lane
+
+	if(!laneContinues){//!! need forbidding changing back to the
+	                   // closing lane?
 	  var toRight=(lane+offsetLane<0);
 	  var bBiasRight=((toRight) ? 1 : -1)*10; //!! 
 	  vehConnect.LCModel.bBiasRight=bBiasRight;
 	  if(false){
-	    console.log("setting LC bias of ",bBiasRight,
+	    console.log("Action 1: setting LC bias of ",bBiasRight,
 			" to veh ",vehConnect.id);
 	  }
 	}
 
 
+	// If through lane,
+	// test if there are potential conflicts.
+	// Go directly ahead if there are none
+	// Otherwise, brake (virtual standing vehicle only for this route)
+	// until the decision point duDecision upstream of the
+	// connection uSource is reached. Then, check if there are
+	// actual conflicts 
+
+	var conflictsExist=potentialConflictsExist;
 	
-	// if through lane and no conflicts,
-	// prepare and perform transition. Otherwise do nothing special
+	if(laneContinues&&potentialConflictsExist){
+	  // otherwise, skip this step and go directly to Action 4
+
+	  console.log("vehConnect=",vehConnect);
+	  var takeDecision=(vehConnect.u>uSource-duDecision);
+	  console.log("road.connect: vehID=",vehConnect.id,
+		      " potential conflicts exist",
+		      " du=s=",(uSource-vehConnect.u).toFixed(1),
+		      " takeDecision=",takeDecision);
+	  
+	  // Action 2: slow down (prepare to stop)
+	  // before reaching the decision point
+	  
+	  if(!takeDecision){
+	    var s=uSource-vehConnect.u;
+	    var speed=vehConnect.speed;
+	    var accTarget=vehConnect.longModel.calcAcc(s,speed,0,0);
+	    vehConnect.acc=Math.min(accPresent,accTarget);
+	    console.log(" Action2: decelerating towards decision:",
+			" accTarget=",accTarget);
+	    this.writeVehiclesSimple();
+	  }
+
+	  // Action 3: If decision point passed, check if the
+	  // potential conflicts are resolved. If so, conflictsExist=false
+	  // and the driver goes to Action 5 //!!! allow reverting decision
+
+	  if(takeDecision){
+	    console.log(" Action3: decide on conflicts");
+	    var noConflictDetected=true; // each conflict makes this false
+	    for(var ic=0; ic<conflicts.length; ic++){
+	      // check if there is a conflict for this potental conflict
+	      // then set noConflictDetected=false; 
+	    }
+	    conflictsExist=(!noConflictDetected);
+	  }
+	    
+	}//potentialConflictsExist
+
+	
+
+	//Action 4: if through lane and no conflicts,
+	// prepare and perform transition.
+
 	
 	if(laneContinues&&(!conflictsExist)){
-
+	  console.log("Action 4: check traffic on target lane and go ahead");
 	  // impose new accelerations needed for jam propagation
 
-	  var accPresent=vehConnect.acc;
 	  var targetLeaderInfo=targetRoad.findLeaderAtLane(0,lane+offsetLane);
 	  if(targetLeaderInfo[0]){ //success
 	    var vehLead=targetRoad.veh[targetLeaderInfo[1]];
@@ -2670,7 +2724,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 */
 
 	  if(u>uSource){
-	    console.log("\nroad.connect: actual transfer!!");
+	    console.log("\nroad.connect: Action 5: actual transfer!!");
 
 	    // !! MUST use new vehicle(...) Otherwise heineous errors at
 	    // adding new vehicles to road; shallow copy etc NO use!
@@ -3692,7 +3746,7 @@ road.prototype.get_yPix=function(u,v,scale){
 // draw road (w/o vehicles; for latter -> drawVehicles(...)
 //######################################################################
 
-/**
+/*
 @param roadImg1:  image of a (small, straight) road element w/o middle lines
 @param roadImg2:  image of a (small, straight) road element with middle lines
 @param scale:     physical road coordinbates => pixels, [scale]=pixels/m
@@ -3793,6 +3847,27 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     }
   }
 
+     //(6) optionally draw road ID at the road segment center
+
+  if(this.drawRoadIDs){
+
+    var xCenterPix= scale*this.traj_x(0.5*this.roadLen);
+    var yCenterPix=-scale*this.traj_y(0.5*this.roadLen);
+    var textsize=0.022*Math.min(canvas.width,canvas.height);
+    var lPix=3.5*textsize;
+    var hPix=1.5*textsize;
+    var xOffset=0.5*scale*this.nLanes*this.laneWidth+0.6*lPix;
+    var yOffset=0.5*scale*this.nLanes*this.laneWidth+0.6*hPix;
+
+    ctx.font=textsize+'px Arial';
+    ctx.setTransform(1,0,0,1,xCenterPix+xOffset,yCenterPix+yOffset);
+    ctx.fillStyle="rgb(202,202,202)";
+    ctx.fillRect(-0.5*lPix, -0.5*hPix, lPix, hPix);
+    ctx.fillStyle="rgb(0,0,0)";
+    ctx.fillText("road " +this.roadID, -0.45*lPix, 0.20*hPix);
+  }
+
+ 
 
 // draw traffic lights separately by its own command .draw(imgRed,imgGreen)
 

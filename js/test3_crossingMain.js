@@ -1,20 +1,22 @@
 
 const userCanDropObjects=true;
 var drawVehIDs=true; // debug: draw veh IDs for selected roads
+var drawRoadIDs=true; // debug: draw veh IDs for selected roads
 // (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
 
-var nLanes_main=2;
 
 
 //#############################################################
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-density=0;
 
-qIn=2000./3600; 
+qIn=2000./3600; // inflow to main road
+q2=500./3600;   // inflow to secondary (subordinate) road
+
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+setSlider(slider_q2, slider_q2Val, 3600*q2, commaDigits, "veh/h");
 
 timewarp=2;
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
@@ -75,113 +77,6 @@ function updateDimensions(){ // if viewport->canvas or sizePhys changed
   }
 }
 
-
-
-//##################################################################
-//<NETWORK>
-// Specification of physical road network and vehicle geometry
-// If viewport or refSizePhys changes => updateDimensions();
-//##################################################################
-
-// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
-
-
-var center_xRel=0.5;   // 0: left, 1: right
-var center_yRel=-0.65;  // -1: bottom; 0: top
-var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
-var center_yPhys=center_yRel*refSizePhys;
-
-var road0Len=0.47*refSizePhys*aspectRatio;
-var road1Len=0.47*refSizePhys*aspectRatio;
-
-
-// specification of road width and vehicle sizes
-
-var laneWidth=5; 
-var car_length=6;    // car length in m (all a bit oversize for visualisation)
-var car_width=3;     // car width in m
-var truck_length=11;
-var truck_width=4; 
-
-// def trajectories (do not include doGridding, only for few main scenarios)
-// !! cannot define diretly function trajNet_x[0](u){ .. } etc
-
-
-
-function traj0_x(u){ // physical coordinates
-  return center_xPhys+u-road0Len;
-}
-
-function traj0_y(u){ 
-  return center_yPhys;
-}
-
-function traj1_x(u){ 
-  return center_xPhys+u;
-}
-
-function traj1_y(u){ 
-  return center_yPhys+laneWidth; // offsetLane=+1, see road.connect(...)
-}
-
-var trajNet_x=[traj0_x,traj1_x]; 
-var trajNet_y=[traj0_y,traj1_y];
-
-
-
-//##################################################################
-// Specification of logical road network: constructing the roads
-//##################################################################
-
-
-var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-var speedInit=20;
-
-// roads
-// last opt arg "doGridding" left out (true:user can change road geometry)
-
-
-var isRing=false;
-var road0=new road(0,road0Len,laneWidth,nLanes_main,
-		   trajNet_x[0], trajNet_y[0],
-		   density, speedInit,fracTruck, isRing);
-
-var road1=new road(1,road1Len,laneWidth,nLanes_main,
-		   trajNet_x[1], trajNet_y[1],
-		   density, speedInit,fracTruck, isRing);
-
-var route1=[road0.roadID, road1.roadID];
-
-
-// road network (network declared in canvas_gui.js)
-
-network[0]=road0; network[0].drawVehIDs=drawVehIDs;
-network[1]=road1; network[1].drawVehIDs=drawVehIDs;
-
-
-// add standing virtual vehicles at the end of some road elements
-// prepending=unshift (strange name)
-// vehicle(length, width, u, lane, speed, type)
-var virtualStandingVeh
-    =new vehicle(2, laneWidth, road0.roadLen-0.5*laneWidth, 1, 0, "obstacle");
-
-road0.veh.unshift(virtualStandingVeh);
-
-
-var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
-detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
-
-//</NETWORK>
-
-
-//#########################################################
-// model initialization (models and methods defined in control_gui.js)
-//#########################################################
-	
-updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
-
-
 //####################################################################
 // Global graphics specification
 //####################################################################
@@ -234,20 +129,171 @@ for (var i=0; i<10; i++){
 
 // init road images for 1 to 4 lanes
 
-roadImgs1 = []; // road with lane separating line
-roadImgs2 = []; // road without lane separating line
+roadImgWith_lane = []; // road with lane separating line
+roadImgWithout_lane = []; // road without lane separating line
 
 for (var i=0; i<4; i++){
-    roadImgs1[i]=new Image();
-    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
-    roadImgs2[i]=new Image();
-    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+  roadImgWith_lane[i]=new Image();
+  roadImgWith_lane[i].src="figs/road"+(i+1)+"lanesCropWith.png";
+  roadImgWithout_lane[i]=new Image();
+  roadImgWithout_lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png";
 }
 
-roadImg1 = new Image();
-roadImg1=roadImgs1[nLanes_main-1];
-roadImg2 = new Image();
-roadImg2=roadImgs2[nLanes_main-1];
+
+
+//##################################################################
+//<NETWORK>
+// Specification of physical road network and vehicle geometry
+// If viewport or refSizePhys changes => updateDimensions();
+//##################################################################
+
+// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+
+
+var center_xRel=0.50;   // 0: left, 1: right
+var center_yRel=-0.50;  // -1: bottom; 0: top
+var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
+var center_yPhys=center_yRel*refSizePhys;
+
+// specification of road width and vehicle sizes
+
+var laneWidth=5; 
+var car_length=6;    // car length in m (all a bit oversize for visualisation)
+var car_width=3;     // car width in m
+var truck_length=11;
+var truck_width=4; 
+
+
+var crossingSize=4*laneWidth;
+var road0Len=0.95*refSizePhys*aspectRatio;
+var road1Len=0.48*refSizePhys-0.5*crossingSize;
+var road2Len=0.48*refSizePhys+0.5*crossingSize;
+
+// def trajectories (do not include doGridding, only for few main scenarios)
+// !! cannot define diretly function trajNet_x[0](u){ .. } etc
+
+
+function traj0_x(u){ // physical coordinates
+  return center_xPhys+u-0.5*road0Len;
+}
+function traj0_y(u){ 
+  return center_yPhys;
+}
+
+
+function traj1_x(u){ 
+  return center_xPhys;
+}
+function traj1_y(u){ 
+  return center_yPhys-0.5*crossingSize-road1Len+u;
+}
+
+
+function traj2_x(u){ 
+  return center_xPhys;
+}
+function traj2_y(u){ 
+  return center_yPhys-0.5*crossingSize+u;
+}
+
+var traj_x=[traj0_x,traj1_x,traj2_x];
+var traj_y=[traj0_y,traj1_y,traj2_y];
+
+
+
+// road images for the trajectories; 2 images per road/network element
+
+// general
+
+var roadImages=[];
+for(var ir=0; ir<traj_x.length; ir++){
+  roadImages[ir]=[];
+  for(var j=0; j<2; j++){roadImages[ir][j]=new Image();}
+}
+
+// specific
+
+var nLanes_main=2;
+var nLanes_sec=1;
+var nLanes=[2,1,1];   // main, secondary inflow. secondary outflow
+
+// network not yet defined here!!
+
+for(var ir=0; ir<traj_x.length; ir++){
+  roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
+  roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
+}
+
+//##################################################################
+// Specification of logical road network: constructing the roads
+//##################################################################
+
+
+var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
+var speedInit=20;
+density=0;
+
+// roads
+// last opt arg "doGridding" left out (true:user can change road geometry)
+
+
+var isRing=false;
+var road0=new road(0,road0Len,laneWidth,nLanes_main,
+		   traj_x[0], traj_y[0],
+		   density, speedInit,fracTruck, isRing);
+
+var road1=new road(1,road1Len,laneWidth,nLanes_sec,
+		   traj_x[1], traj_y[1],
+		   density, speedInit,fracTruck, isRing);
+
+var road2=new road(2,road2Len,laneWidth,nLanes_sec,
+		   traj_x[2], traj_y[2],
+		   density, speedInit,fracTruck, isRing);
+
+var route0=[road0.roadID];  // mainroad needs no route
+var route1=[road1.roadID, road2.roadID];
+var route2=[road2.roadID];  // no route needed
+
+
+// road network (network declared in canvas_gui.js)
+
+network[0]=road0;
+network[1]=road1;
+network[2]=road2;
+for(var ir=0; ir<network.length; ir++){
+  network[ir].drawVehIDs=drawVehIDs;
+  network[ir].drawRoadIDs=drawVehIDs;
+}
+
+// add standing virtual vehicles at the end of some road elements
+// prepending=unshift (strange name)
+// vehicle(length, width, u, lane, speed, type)
+
+//var virtualStandingVeh
+//    =new vehicle(2, laneWidth, road0.roadLen-0.5*laneWidth, 1, 0, "obstacle");
+
+//road0.veh.unshift(virtualStandingVeh);
+
+
+var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
+detectors[0]=new stationaryDetector(road0,0.20*road0Len,10);
+detectors[1]=new stationaryDetector(road0,0.80*road0Len,10);
+
+
+
+// add road graphics (!! need network to be defined before)
+
+
+//</NETWORK>
+
+
+//#########################################################
+// model initialization (models and methods defined in control_gui.js)
+//#########################################################
+	
+updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+
+
 
 
 //############################################
@@ -255,7 +301,7 @@ roadImg2=roadImgs2[nLanes_main-1];
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.50,0.80,3,2);
+var trafficObjs=new TrafficObjects(canvas,1,3,0.20,0.20,3,2);
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
@@ -333,13 +379,21 @@ function updateSim(){
   // updateSim (4): do all the network actions
   // (inflow, outflow, merging and connecting)
   
-  network[0].updateBCup(qIn,dt,route1); // route is optional arg
+  network[0].updateBCup(qIn,dt,route0); // route is optional arg
+  network[1].updateBCup(q2,dt,route1); // route is optional arg
 
   // do all the mergeDiverge actions here
   // do all the connecting stuff here
 
-    // road.connect(target, uSource, uTarget, offsetLane, conflicts)
-  network[0].connect(network[1],network[0].roadLen,0,1,[]);
+  conflict0={roadConflict:network[0],
+	     uConflict: 0.5*network[0].roadLen,
+	     uOwnConflict: crossingSize};
+  conflicts=[];
+  conflicts[0]=conflict0;
+	     
+  
+  //network[1].connect(network[2],network[1].roadLen,0,0,[]);
+  network[1].connect(network[2],network[1].roadLen,0,0,conflicts);
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateBCdown();
@@ -395,7 +449,7 @@ function drawSim() {
   if(drawBackground){
     var objectsMoved=(mousedown ||touchdown ||objectsZoomBack);
     if(hasChanged||objectsMoved||(itime<=10) || (itime%50==0)
-       || (!drawRoad) || movingObserver){
+       || (!drawRoad) || movingObserver||drawVehIDs){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }
@@ -410,8 +464,9 @@ function drawSim() {
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
-  for(var ir=0; ir<network.length; ir++){ 
-    network[ir].draw(roadImg1,roadImg2,scale,changedGeometry);
+  for(var ir=network.length-1; ir>=0; ir--){ // draw secon roads first
+    network[ir].draw(roadImages[ir][0],roadImages[ir][1],
+		     scale,changedGeometry);
   }
 
   

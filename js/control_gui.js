@@ -479,6 +479,23 @@ if(document.getElementById("slider_qIn")!==null){
     }
 }
 
+// second flow slider
+
+var q2=900/3600.; //total onramp flow of onramp scenario
+var slider_q2,slider_q2Val;
+if(document.getElementById("slider_q2")!==null){
+    slider_q2= document.getElementById("slider_q2");
+    slider_q2Val = document.getElementById("slider_q2Val");
+    slider_q2.value=3600*q2;
+    slider_q2Val.innerHTML=3600*q2+" veh/h";
+
+    slider_q2.oninput = function() {
+        slider_q2Val.innerHTML = this.value+" veh/h";
+        q2=parseFloat(this.value/3600.);
+    }
+}
+
+
 
 // ramp flow slider
 
