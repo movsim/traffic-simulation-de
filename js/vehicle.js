@@ -36,7 +36,9 @@ function vehicle(length, width, u, lane, speed, type){
     this.dt_LC=4;
     this.dt_afterLC=10;
     this.dt_lastPassiveLC=10;
-    this.acc=0;
+  this.acc=0;
+
+  this.conflictsExist=false; // for intersections: road.connect
     this.iLead=-100;
     this.iLag=-100;
     //this.iLeadOld=-100; // necessary for update local environm after change

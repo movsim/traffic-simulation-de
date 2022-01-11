@@ -2,7 +2,9 @@
 const userCanDropObjects=true;
 var drawVehIDs=true; // debug: draw veh IDs for selected roads
 var drawRoadIDs=true; // debug: draw veh IDs for selected roads
-// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                  // definition => showLogicalCoords(.) in canvas_gui.js
+
 
 
 
@@ -164,10 +166,9 @@ var truck_length=11;
 var truck_width=4; 
 
 
-var crossingSize=4*laneWidth;
 var road0Len=0.95*refSizePhys*aspectRatio;
-var road1Len=0.48*refSizePhys-0.5*crossingSize;
-var road2Len=0.48*refSizePhys+0.5*crossingSize;
+var road1Len=0.48*refSizePhys-2*laneWidth;
+var road2Len=0.48*refSizePhys+2*laneWidth;
 
 // def trajectories (do not include doGridding, only for few main scenarios)
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
@@ -185,7 +186,7 @@ function traj1_x(u){
   return center_xPhys;
 }
 function traj1_y(u){ 
-  return center_yPhys-0.5*crossingSize-road1Len+u;
+  return center_yPhys-2*laneWidth-road1Len+u;
 }
 
 
@@ -193,7 +194,7 @@ function traj2_x(u){
   return center_xPhys;
 }
 function traj2_y(u){ 
-  return center_yPhys-0.5*crossingSize+u;
+  return center_yPhys-2*laneWidth+u;
 }
 
 var traj_x=[traj0_x,traj1_x,traj2_x];
@@ -387,7 +388,7 @@ function updateSim(){
 
   conflict0={roadConflict:network[0],
 	     uConflict: 0.5*network[0].roadLen,
-	     uOwnConflict: crossingSize};
+	     uOwnConflict: 2*laneWidth};
   conflicts=[];
   conflicts[0]=conflict0;
 	     
@@ -500,6 +501,12 @@ function drawSim() {
 	detectors[iDet].display(textsize);
   }
 
+  // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+  
 
 } // drawSim
 

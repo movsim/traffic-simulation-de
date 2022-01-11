@@ -20,6 +20,7 @@ const userCanDistortRoads=false; // only if true, road.gridTrajectories after
 const userCanDropObjects=false;
 var drawVehIDs=false; // debug: draw veh IDs for selected roads
 // (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 
 
@@ -744,7 +745,7 @@ function drawSim() {
 		 scaleStr_ylb-0.2*textsize);
   }
 
-      // (7) draw the speed colormap
+      // (6b) draw the speed colormap
       //!! Now always false; drawn statically by html file!
 
   if(drawColormap){
@@ -753,7 +754,15 @@ function drawSim() {
                    0.1*refSizePix, 0.2*refSizePix,
 		   vmin_col,vmax_col,0,100/3.6);
   }
+
   
+  // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+
+
   // may be set to true in next step if changed canvas 
   // (updateDimensions) or if old sign should be wiped away 
 
