@@ -2657,7 +2657,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
          if(C2||(C3 && C4)) then A2 -> C4
          if(C0 || ((C2||C3) && (!C4))) then A3
  
-
+*/
 
 	// Go directly ahead if there are none
 	// Otherwise, brake (virtual standing vehicle only for this route)

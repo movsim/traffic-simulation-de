@@ -17,7 +17,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 
 const userCanDistortRoads=false; // only if true, road.gridTrajectories after
-const userCanDropObjects=false;
+const userCanDropObjects=true;
 var drawVehIDs=false; // debug: draw veh IDs for selected roads
 // (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
@@ -455,11 +455,13 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 // need to define canvas prior to calling cstr: e.g.,
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+//var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
+var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
 
 // also needed to just switch the traffic lights
 // (then args xRelEditor,yRelEditor not relevant)
-var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+//var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
 
 
 
@@ -606,7 +608,7 @@ function updateSim(){
       ramp.writeVehiclesSimple();
     }
 
-    if(false){
+    if(true){
       onlyTL=true;
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
       onlyTL=true;

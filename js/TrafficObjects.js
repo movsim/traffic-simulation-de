@@ -144,6 +144,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
   for (var i=0; i<Math.min(this.nObst, this.nObstMax); i++){
     this.imgObstRepo[i]=new Image();
     this.imgObstRepo[i].src = "figs/obstacle_"+(50+i)+".png";
+    console.log("i=",i," this.imgObstRepo[i].src=",this.imgObstRepo[i].src);
   }
 
 
@@ -163,8 +164,10 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
     var img=(isTL) ? this.imgTLred : (isSpeedl)
       ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
-    //console.log("TrafficObjects cstr: i=",i,
-//		" img=",img," iObst=",iObst);
+    if(true){
+      console.log("TrafficObjects cstr: i=",i,
+		  " img=",img," iObst=",iObst);
+    }
 
     //#################################################################
     // xxx central object this.trafficObj[i]
@@ -284,7 +287,7 @@ TrafficObjects.prototype.calcDepotPositions=function(canvas){
 
 TrafficObjects.prototype.draw=function(){
 
-
+  //console.log("in TrafficObjects.draw");
   var crossingLineWidth=1;   // width[m] of white line at sign/TL
 
 
