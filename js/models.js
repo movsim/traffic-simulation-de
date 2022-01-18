@@ -269,8 +269,9 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 	//if(this.alpha_v0<0.6){ // alpha not yet used
 
+  //if(time<1.3){
+  //if(s<2){
   if(false){
-    //if(s<2){
     console.log("ACC.calcAcc:"
 		+" s="+parseFloat(s).toFixed(3)
 		      +" v="+parseFloat(v).toFixed(3)

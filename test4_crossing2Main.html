@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Test 2: Lane closing/opening bottlenecks</title> 
+    <title>Test 4: Crossing two mainroads</title> 
 </head>
 
 
@@ -61,6 +61,8 @@
   <a href="./test2_bottleneck.html">test2: lane-closing bottleneck</a><br>
   <a href="./test3_crossingMain.html">test3: crossing mainroad</a><br>
   <a href="./test4_crossing2Main.html">test4: crossing two mainroads</a><br>
+  <a href="./test5_crossingAndRightturn.html">
+    test5: crossing two mainroads and right turns</a><br>
 </div> 
 
 
@@ -116,10 +118,17 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Inflow</td>
+  <td>Main Inflow</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Secondary Inflow</td>
+  <td> <input id="slider_q2" type="range" 
+              min="0" max="2000" step="10"></td>
+  <td> <div id="slider_q2Val"></div> </td>
 </tr>
 
 
@@ -225,7 +234,7 @@
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/test2_bottleneck.js"></script> 
+<!-- PROJ--> <script src="js/test4_crossing2Main.js"></script> 
 
 </body>
 </html>

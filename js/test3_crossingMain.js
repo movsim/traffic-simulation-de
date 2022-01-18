@@ -13,14 +13,21 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 //#############################################################
 
 
-qIn=2000./3600; // inflow to main road
+qIn=1200./3600; // inflow to main road
 q2=500./3600;   // inflow to secondary (subordinate) road
+IDM_v0=15;
+IDM_a=2.0;
+timewarp=2;
+var mainroadLen=200;              // reference size in m
+var nLanes_main=2;
+var nLanes_sec=1;
 
 commaDigits=0;
+
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 setSlider(slider_q2, slider_q2Val, 3600*q2, commaDigits, "veh/h");
-
-timewarp=2;
+setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 
 fracTruck=0.;
@@ -48,9 +55,9 @@ console.log("after addTouchListeners()");
 
 // init overall scaling 
 
+var refSizePhys=1.05*mainroadLen*canvas.height/canvas.width;
 var isSmartphone=mqSmartphone();  // from css; only influences text size
 
-var refSizePhys=150;              // reference size in m
 
 // these two must be updated in updateDimensions (aspectRatio != const)
 
@@ -166,7 +173,7 @@ var truck_length=11;
 var truck_width=4; 
 
 
-var road0Len=0.95*refSizePhys*aspectRatio;
+var road0Len=mainroadLen;
 var road1Len=0.48*refSizePhys-2*laneWidth;
 var road2Len=0.48*refSizePhys+2*laneWidth;
 
@@ -214,9 +221,7 @@ for(var ir=0; ir<traj_x.length; ir++){
 
 // specific
 
-var nLanes_main=2;
-var nLanes_sec=1;
-var nLanes=[2,1,1];   // main, secondary inflow. secondary outflow
+var nLanes=[nLanes_main,nLanes_sec,nLanes_sec];  // main, sec. inflow/outflow
 
 // network not yet defined here!!
 
@@ -377,7 +382,7 @@ function updateSim(){
   }
 
 
-  // updateSim (4): do all the network actions
+  // updateSim (4): !!! do all the network actions
   // (inflow, outflow, merging and connecting)
   
   network[0].updateBCup(qIn,dt,route0); // route is optional arg
