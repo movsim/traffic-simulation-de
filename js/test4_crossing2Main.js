@@ -15,8 +15,6 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 qIn=400./3600; // inflow to both directional main roads
 q2=500./3600;   // inflow to secondary (subordinate) road
-qIn0=0.95*qIn;
-qIn1=1.05*qIn;
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -411,7 +409,10 @@ function updateSim(){
 
   // updateSim (4): !!! do all the network actions
   // (inflow, outflow, merging and connecting)
-  
+
+  var qIn0=0.95*qIn;
+  var qIn1=1.05*qIn;
+
   network[0].updateBCup(qIn0,dt,route0); // route is optional arg
   network[1].updateBCup(qIn1,dt,route1);
   network[2].updateBCup(q2,dt,route2); 

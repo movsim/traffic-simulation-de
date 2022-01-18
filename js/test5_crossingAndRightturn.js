@@ -416,10 +416,11 @@ function updateSim(){
   var qIn1=1.05*qIn;
 
   var turnRight=(Math.random()<fracRight);
+
   network[0].updateBCup(qIn0,dt,route0); // route is optional arg
   network[1].updateBCup(qIn1,dt,route1);
-  if(turnRight){network[2].updateBCup(q2,dt,route23);} 
-  else{network[2].updateBCup(q2,dt,route20)}; 
+  if(turnRight){network[2].updateBCup(q2,dt,route20);} 
+  else{network[2].updateBCup(q2,dt,route23)}; 
 
   // do all the mergeDiverge actions here
   // do all the connecting stuff here

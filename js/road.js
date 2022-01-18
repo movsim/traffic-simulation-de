@@ -1030,12 +1030,13 @@ road.prototype.findFollowerAt=function(u){
 
 @param  xUser,yUser: the external physical position
 @return [success flag, index of nearest vehicle which is no obstacle]
+        (index=-1 if no leader)
 */
 
 road.prototype.findLeaderAtLane=function(u,lane){
     var success=false;
     var i=0;
-    var iLead;
+    var iLead=-1;
     while ((i<this.veh.length) && (this.veh[i].u>u)){
 	if(this.veh[i].lane===lane){
 	    success=true;
@@ -1055,13 +1056,14 @@ road.prototype.findLeaderAtLane=function(u,lane){
 
 @param  xUser,yUser: the external physical position
 @return [success flag, index of nearest vehicle which is no obstacle]
+        (index=-1 if no follower)
 */
 
 road.prototype.findFollowerAtLane=function(u,lane){
     var success=false;
     var i=this.veh.length-1;
-    var iFollow;
-    while ((i>0) && (this.veh[i].u<u)){
+    var iFollow=-1; 
+    while ((i>=0) && (this.veh[i].u<u)){
 	if(this.veh[i].lane===lane){
 	    success=true;
 	    iFollow=i;
@@ -2564,7 +2566,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 				offsetLane, conflicts){
   var connectLog=true;
 
-  if(connectLog){
+  if(false){
     console.log("\n\nbegin road.connect: t=",time.toFixed(2),
 		" this.roadLen=",this.roadLen.toFixed(1),
 		" targetRoad.roadLen=",targetRoad.roadLen.toFixed(1),
@@ -2592,8 +2594,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
     // veh is candidate if in anticipation regime and regular veh
     if((this.veh[iveh].u>uSource-duAntic)&&(this.veh[iveh].isRegularVeh())){
-      console.log(" veh ",this.veh[iveh].id," in interaction zone");
-
+ 
 
       // check if route is consistent with targetID
       
@@ -2601,7 +2602,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       var route=this.veh[iveh].route;
       for(var ir=0; ir<route.length; ir++){
 	if(route[ir]==targetID){connecting=true;}
-	console.log("route[ir]=",route[ir]," targetID=",targetID);
       }
 
       /* 
@@ -2682,14 +2682,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	
 	if(connectLog){
-	  console.log("\nroad.connect: connecting: t=",time.toFixed(1),
+	  console.log("\nroad.connect: connecting veh",id,
+		      " t=",time.toFixed(1),
 		      " veh id=",id,
 		      " u=",u.toFixed(1),
 		      " uAntic=",uAntic.toFixed(1),
 		      " uDecide=",uDecide.toFixed(1),
 		      " uGo=",uGo.toFixed(1),
 		      " uSource=",uSource.toFixed(1),
-		      "\n                          C1=",C1,
+		      "\n              C1=",C1,
 		      " C2=",C2," C3=",C3,
 		      " laneContinues=",laneContinues,
 		      " conflictsExist=",conflictsExist,
@@ -2746,20 +2747,31 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
 	  var followerExists=followerInfo[0];
 	  var iFollow=followerInfo[1];
-	  var uFollow=targetRoad.veh[iFollow].u;
-	  var speedFollow=targetRoad.veh[iFollow].speed;
+	  //console.log("followerInfo=",followerInfo);
+	  var uFollow=(followerExists)
+	      ? targetRoad.veh[iFollow].u : -1000000;
+	  var speedFollow=(followerExists)
+	      ? targetRoad.veh[iFollow].speed : 0;
 
 	  var leaderInfo
 	      = targetRoad.findLeaderAtLane(uTarget,lane+offsetLane);
 	  var leaderExists=leaderInfo[0];
 	  var iLead=leaderInfo[1];
-	  var uLead=targetRoad.veh[iLead].u;
-	  var speedLead=targetRoad.veh[iLead].speed;
+	  var uLead=(leaderExists)
+	      ? targetRoad.veh[iLead].u : +1000000;
+	  var speedLead=(leaderExists)
+	      ? targetRoad.veh[iLead].speed : 0;
 
-	  // calculate possibility to enter target road | no conflicts
-	  // in detail if near to it; assume free-road acceleration
+	  if(true){
+	    console.log("  uTarget=",uTarget,
+		        " lane+offsetLane=",lane+offsetLane,
+		        " leaderExists=",leaderExists,
+			" followerExists=",followerExists);
+	    targetRoad.writeVehiclesSimple();
+	  }
 	  
-	  var accGo=vehConnect.longModel.calcAcc(10000,speed,speed,0);
+	  // analyse target road in detail if near to it
+	  // and possibly switch leaders/followers to anticipated vehs
 	  
 	  if(C2||C3){
 	    var du=uSource-u;
@@ -2786,8 +2798,11 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
             // none if veh[iFollow].iLead>=iFollow
 	    
 	    if(anticipatedFollowerExists){ // otherwise use initialisation
+
+	      //!!influence
 	      leaderExists=(targetRoad.veh[iFollow].iLead<iFollow);
-	      if(leaderExists){
+	      
+	      if(leaderExists){//!!influence
 		iLead=(targetRoad.veh[iFollow].iLead);
 		uLead=targetRoad.veh[iLead].u;
 		speedLead=targetRoad.veh[iLead].speed;
@@ -2796,44 +2811,73 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  } // if(C2||C3)
 
 
-	  // treatment if too far away to anticipate target vehicles
-	  // (C1 applies).
-	  // If potential conflicts, one brakes anyway
-	  // if not, one typically connects to the end of the target road
-	  // => only leaders relevant
-	  
-	  else{ // C1 applies (too far away to anticipate target vehicles)
-	    followerExists=false;
-	  }
+	  // determine target road entrance conditions | no conflicts
+          // (i) default if no transfer limitations except possible leaders
 
-	  // determine entrance conditions | no conflicts
-	  
 	  var targetCanBeEntered=true;
-	  
-	  if(leaderExists){ // correct accGo from free-road acceleration
+	  var accGo=vehConnect.longModel.calcAcc(1000000,speed,speedLead,0);
+
+
+
+	  // allow entrance always if farther away and determine
+	  // accelerations: IDM accel to leader if no follower
+	  // otherwise accStop
+
+	  if(leaderExists){
 	    var lenLead=targetRoad.veh[iLead].len;
 	    var s=uLead-lenLead-uTarget+(uSource-u);
 	    var accLead=targetRoad.veh[iLead].acc;
-	    accGo=vehConnect.longModel.calcAcc(s,speed,speedLead,accLead);
-	    targetCanBeEntered=(uLead-lenLead-vehConnect.len-2*s0>uTarget);
+
+	    accGo=vehConnect.longModel.calcAcc(
+	      s,speed,speedLead,accLead); // !! influence
+	    if(potentialConflictsExist){ // only reference to conflicts here
+	      var uOwnMax=0; // own conflicting point on target road
+	      for(var ic=0; ic<conflicts.length; ic++){
+		uOwnMax=Math.max(conflicts[ic].uOwnConflict,uOwnMax);
+	      }
+	      if(uLead-lenLead-vehConnect.len-2*s0<uOwnMax){
+		targetCanBeEntered=false; // !! influence
+	      }
+	      if(true){
+		console.log("uLead=",uLead,
+			    "lenLead=",lenLead,
+			    "vehConnect.len=",vehConnect.len,
+			    " 2*s0=",2*s0,
+			    " uOwnMax=",uOwnMax,
+			    " targetCanBeEntered=",targetCanBeEntered);
+	      }
+	    }
 	  }
 
-	  if(followerExists){ 
-	    var s=uTarget-(uSource-u)-vehConnect.len - uFollow;
-	    var accFollow=targetRoad.veh[iFollow].acc;
-	    var accLead=vehConnect.acc;
-	    var accFollow=targetRoad.veh[iFollow].longModel.calcAcc
-	    (s,speedFollow,speed,accLead);
-	    if(accFollow<-bsafe){targetCanBeEntered=false;}
+	  // calculation whether it is safe to merge in front of followers
+	  // only sensible if near to target road, i.e., (C2||C3)
+
+	  
+	  if(followerExists){
+	    accGo=accSlowdown;  // !! influence
+	    if(C2||C3){ // then always braking in region C1
+	      var sFollow=uTarget-(uSource-u)-vehConnect.len - uFollow;
+	      var accFollow=targetRoad.veh[iFollow].acc;
+	      var accLead=vehConnect.acc;
+	      var accFollow=targetRoad.veh[iFollow].longModel.calcAcc
+	      (sFollow,speedFollow,speed,accLead);
+	      if(accFollow<-bsafe){
+	        targetCanBeEntered=false; // !! influence
+	      }
+	    }
 	  }
+
+	    
+
 	  
 	  if(connectLog){
 	    console.log("  Prepare Action A4 assuming no conflicts",
 			" and check entrance to target",
 			" id=",vehConnect.id,
+			"nvehTarget=",targetRoad.veh.length,
 			" leaderExists=",leaderExists,
 			" followerExists=",followerExists,
-			" targetCanBeEntered=",targetCanBeEntered,
+			"\n    targetCanBeEntered=",targetCanBeEntered,
 			" accGo=",accGo.toFixed(2));
 	  }
 	 
