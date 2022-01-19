@@ -15,7 +15,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 qIn=300./3600; // inflow to both directional main roads
 q2=500./3600;   // inflow to secondary (subordinate) road
-var fracRight=0.5; // fracRight of drivers on road 2 turn right
+var fracRight=0.2; // fracRight of drivers on road 2 turn right
+var fracLeft=0.5; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -274,8 +275,9 @@ var road3=new road(3,road3Len,laneWidth,nLanes_sec,
 
 var route0=[road0.roadID];  // mainroad needs no route
 var route1=[road1.roadID];  // mainroad needs no route
-var route23=[road2.roadID, road3.roadID];
 var route20=[road2.roadID, road0.roadID];
+var route21=[road2.roadID, road1.roadID];
+var route23=[road2.roadID, road3.roadID];
 var route3=[road3.roadID];  // no route needed
 
 
@@ -296,7 +298,8 @@ var conflict0={roadConflict:network[0],
 var conflict1={roadConflict:network[1],
 	       uConflict: 0.5*network[0].roadLen,
 	       uOwnConflict: 1.5*mainroadWidth};
-var conflicts=[conflict0,conflict1];
+var conflictsAhead=[conflict0,conflict1];
+var conflictsLeft=[conflict0];
 
 
 // add standing virtual vehicles at the end of some road elements
@@ -413,11 +416,14 @@ function updateSim(){
   var qIn0=0.95*qIn;
   var qIn1=1.05*qIn;
 
-  var turnRight=(Math.random()<fracRight);
+  var r=Math.random();
+  var turnRight=(r<=fracRight);
+  var turnLeft=((r>fracRight)&&(r<=fracRight+fracLeft));
 
   network[0].updateBCup(qIn0,dt,route0); // route is optional arg
   network[1].updateBCup(qIn1,dt,route1);
-  if(turnRight){network[2].updateBCup(q2,dt,route20);} 
+  if(turnRight){network[2].updateBCup(q2,dt,route20);}
+  else if (turnLeft){network[2].updateBCup(q2,dt,route21);}
   else{network[2].updateBCup(q2,dt,route23)}; 
 
   // do all the mergeDiverge actions here
@@ -428,8 +434,8 @@ function updateSim(){
     console.log("before network[2].connect:",
 		"\n network[2]=",network[2],
 		"\n network[3]=",network[3],
-		"\n conflicts[0]=",conflicts[0],
-		"\n conflicts[1]=",conflicts[1],
+		"\n conflictsAhead[0]=",conflictsAhead[0],
+		"\n conflictsAhead[1]=",conflictsAhead[1],
 	       "");
   }
 
@@ -438,10 +444,19 @@ function updateSim(){
   var maxspeed_turn=7;
   
   // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
+
+  // straight  ahead
   network[2].connect(network[3], network[2].roadLen,
-		     0, 0, conflicts);
+		     0, 0, conflictsAhead);
+
+  // turn right
   network[2].connect(network[0], network[2].roadLen,
 		     0.5*network[0].roadLen, 0, [], maxspeed_turn);
+
+  // turn left
+  network[2].connect(network[1], network[2].roadLen,
+		     0.5*network[1].roadLen-nLanes_main*laneWidth,
+		     0, conflictsLeft, maxspeed_turn);
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateBCdown();

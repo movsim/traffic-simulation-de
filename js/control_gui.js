@@ -574,15 +574,15 @@ if(document.getElementById("slider_fracOff")!==null){
 var mainFrac=0.75; 
 var slider_mainFrac, slider_mainFracVal;
 if(document.getElementById("slider_mainFrac")!==null){
-    slider_mainFrac = document.getElementById("slider_mainFrac");
-    slider_mainFracVal = document.getElementById("slider_mainFracVal");
-    slider_mainFrac.value=100*mainFrac;
-    slider_mainFracVal.innerHTML=100*mainFrac+" %";
+  slider_mainFrac = document.getElementById("slider_mainFrac");
+  slider_mainFracVal = document.getElementById("slider_mainFracVal");
+  slider_mainFrac.value=100*mainFrac;
+  slider_mainFracVal.innerHTML=100*mainFrac+" %";
 
-    slider_mainFrac.oninput = function() {
-        slider_mainFracVal.innerHTML = this.value+" %";
-        mainFrac=parseFloat(this.value/100.);
-    }
+  slider_mainFrac.oninput = function() {
+    slider_mainFracVal.innerHTML = this.value+" %";
+    mainFrac=parseFloat(this.value/100.);
+  }
 }
 
 
@@ -617,6 +617,40 @@ if(document.getElementById("slider_focusFrac")!==null){
         slider_focusFracVal.innerHTML = this.value+" %";
         focusFrac=parseFloat(this.value/100.);
     }
+}
+
+
+// right percentage slider (intersections) in [0,1]
+
+var fracRight=0.2;
+var slider_fracRight, slider_fracRightVal;
+if(document.getElementById("slider_fracRight")!==null){
+  slider_fracRight = document.getElementById("slider_fracRight");
+  slider_fracRightVal = document.getElementById("slider_fracRightVal");
+  slider_fracRight.value=100*fracRight;
+  slider_fracRightVal.innerHTML=100*fracRight+" %";
+
+  slider_fracRight.oninput = function() {
+    slider_fracRightVal.innerHTML = this.value+" %";
+    fracRight=parseFloat(this.value/100.);
+  }
+}
+
+
+// left percentage slider (intersections) in [0,1] (rest straight on)
+
+var fracLeft=0.2;
+var slider_fracLeft, slider_fracLeftVal;
+if(document.getElementById("slider_fracLeft")!==null){
+  slider_fracLeft = document.getElementById("slider_fracLeft");
+  slider_fracLeftVal = document.getElementById("slider_fracLeftVal");
+  slider_fracLeft.value=100*fracLeft;
+  slider_fracLeftVal.innerHTML=100*fracLeft+" %";
+
+  slider_fracLeft.oninput = function() {
+    slider_fracLeftVal.innerHTML = this.value+" %";
+    fracLeft=parseFloat(this.value/100.);
+  }
 }
 
 

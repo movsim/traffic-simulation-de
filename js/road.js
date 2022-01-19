@@ -2530,9 +2530,6 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
   the target road), so a jam can pass the connector.
 
 * If there is a possible conflict, vehicles stop at the stopping point
-  (virtual obstacle) unless all conflict checks are passed which lifts
-  the virtual obstacle and instantaneously transfers the veh to the
-  new segment
 
 * The conflict checks are first taken after having passed the decision
   point (a few meters upstream of the stopping point uSource) and, 
@@ -2548,32 +2545,30 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 @param offsetLane: lanes are connected 1:1 offsetLane=-1 
                    if source lane 1 connected to target lane 0
                    (lane indices increase from left to right)
-@param conflicts:  [] (no conflict) or [conflict1,conflict2,...]
+@param conflicts:  (optional) default none. 
+                   [] (no conflict) or [conflict1,conflict2,...]
                    each conflict has the form
                    {roadConflict:road, uConflict:uOther, uOwnConflict:uOwn}
+@param speed:      (optional) the maxspeed at transition (default none)
  */
 
 
-/*TODO!!!
-(1) must not transfer vehs to negative u values of target road; then vehs
-    are not recognized there and interactions to orig are wrong
-    => can only instantly transfer once uSource is reached
-    => if there are conflicts, must introduce an additional var 
-       "conflictsResolved" at duDecision, e.g., 5 m upstream uSource
- */
 
 road.prototype.connect=function(targetRoad, uSource, uTarget,
-				offsetLane, conflicts){
-  var connectLog=true;
+				offsetLane, conflicts, maxspeed){
+  var connectLog=false;
+  if(typeof conflicts === 'undefined'){conflicts=[];}
+  var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
 
   if(false){
     console.log("\n\nbegin road.connect: t=",time.toFixed(2),
 		" this.roadLen=",this.roadLen.toFixed(1),
-		" targetRoad.roadLen=",targetRoad.roadLen.toFixed(1),
+		" targetRoad.roadID=",targetRoad.roadID,
 		" uSource=",uSource.toFixed(1),
 		" uTarget=",uTarget.toFixed(1),
 		" offsetLane=",offsetLane,
 		" conflicts=",conflicts,
+		" maxspeedImposed=",maxspeedImposed,
 		"");
     if(false){this.writeVehiclesSimple();}
   }
@@ -2591,7 +2586,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   // check if there are candidates and, if so, influence them
 
   for(var iveh=0; iveh<this.veh.length; iveh++){
-
     // veh is candidate if in anticipation regime and regular veh
     if((this.veh[iveh].u>uSource-duAntic)&&(this.veh[iveh].isRegularVeh())){
  
@@ -2680,7 +2674,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
         var C2=((u>uDecide)&&(u<=uGo));     // unconditional decision zone
         var C3=(u>uGo);                     // final go if conflicts resolved
 
-	
+	console.log("duGo=",Math.max(1.1*s0,0.5*duDecision).toFixed(1));
 	if(connectLog){
 	  console.log("\nroad.connect: connecting veh",id,
 		      " t=",time.toFixed(1),
@@ -2695,6 +2689,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		      " laneContinues=",laneContinues,
 		      " conflictsExist=",conflictsExist,
 		      " potentialConflictsExist=",potentialConflictsExist,
+		      " maxspeedImposed=",maxspeedImposed,
 		      "");
 	}
 		    
@@ -2762,7 +2757,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var speedLead=(leaderExists)
 	      ? targetRoad.veh[iLead].speed : 0;
 
-	  if(true){
+	  if(false){
 	    console.log("  uTarget=",uTarget,
 		        " lane+offsetLane=",lane+offsetLane,
 		        " leaderExists=",leaderExists,
@@ -2810,16 +2805,32 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 	  } // if(C2||C3)
 
-
+	  //########################################################
 	  // determine target road entrance conditions | no conflicts
-          // (i) default if no transfer limitations except possible leaders
+	  //########################################################
 
-	  var targetCanBeEntered=true;
-	  var accGo=vehConnect.longModel.calcAcc(1000000,speed,speedLead,0);
+	  
+          // (i) default if not any limitations except a possible maxspeed
+
+	  // if maxspeed imposed, set virtual obstacle
+	  // the braking distance v^2/(2*b) after transition point
+
+	  var targetCanBeEntered=true; //!! influence
+	  var s=1000000;
+	  if(maxspeedImposed){
+	    var ds=0.5*maxspeed*maxspeed/vehConnect.longModel.b
+	    s=(uSource-u)+ds;
+	    //console.log("    ds=",ds," s=",s);
+	  }
+	  var accDefault=vehConnect.longModel.calcAcc(s,speed,0,0);
+	  var accGo=accDefault;
+	  if(connectLog){
+	    console.log("(i) default: targetCanBeEntered=",targetCanBeEntered,
+			"accDefault=",accDefault);
+	  }
 
 
-
-	  // allow entrance always if farther away and determine
+	  // (ii) allow entrance always if farther away and determine
 	  // accelerations: IDM accel to leader if no follower
 	  // otherwise accStop
 
@@ -2828,8 +2839,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    var s=uLead-lenLead-uTarget+(uSource-u);
 	    var accLead=targetRoad.veh[iLead].acc;
 
-	    accGo=vehConnect.longModel.calcAcc(
-	      s,speed,speedLead,accLead); // !! influence
+	    accGo=Math.min(accDefault, vehConnect.longModel.calcAcc(
+	      s,speed,speedLead,accLead)); // !! influence
 	    if(potentialConflictsExist){ // only reference to conflicts here
 	      var uOwnMax=0; // own conflicting point on target road
 	      for(var ic=0; ic<conflicts.length; ic++){
@@ -2838,18 +2849,23 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      if(uLead-lenLead-vehConnect.len-2*s0<uOwnMax){
 		targetCanBeEntered=false; // !! influence
 	      }
-	      if(true){
-		console.log("uLead=",uLead,
+	      if(connectLog){
+		console.log("(ii) leaderExists: targetCanBeEntered=",
+			    targetCanBeEntered,
+			    "accGo=",accGo);
+		if(false){console.log("uLead=",uLead,
 			    "lenLead=",lenLead,
 			    "vehConnect.len=",vehConnect.len,
 			    " 2*s0=",2*s0,
 			    " uOwnMax=",uOwnMax,
-			    " targetCanBeEntered=",targetCanBeEntered);
+				      " targetCanBeEntered=",targetCanBeEntered);
+			 }
 	      }
 	    }
 	  }
 
-	  // calculation whether it is safe to merge in front of followers
+	  // (iii) calculation whether it is safe to merge in
+	  // front of followers
 	  // only sensible if near to target road, i.e., (C2||C3)
 
 	  
@@ -2865,6 +2881,13 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	        targetCanBeEntered=false; // !! influence
 	      }
 	    }
+
+	    if(connectLog){
+		console.log("(iii) followerExists: targetCanBeEntered=",
+			    targetCanBeEntered,
+			    "accGo=",accGo);
+	    }
+	    
 	  }
 
 	    
@@ -3013,7 +3036,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   if(conflicts.length==0){return false;}
   
   var noConflictDetected=true; // each conflict makes this false
-  var TTCdown=1; // min negative TTC for downstream conflict vehs
+  var TTCdown=1.5; // min negative TTC for downstream conflict vehs
   var TTCup=4;   // min positive TTC for downstream conflict vehs
   var XTC=10;    // min bumper-to-bumper gap
   var smax=60;   // do not consider upstream veh further away
@@ -3041,6 +3064,8 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 
     if(true){
       console.log("    road.determineConflicts: check conflict", ic,":",
+		  "t=",time.toFixed(1),
+		  "id=",vehConnect.id,
 		  "uSource-u=", (uSource-u).toFixed(1),
 		  "uOwnConflict=", conflicts[ic].uOwnConflict.toFixed(1),
 		  "duOwn=",duOwn.toFixed(1),
@@ -3051,6 +3076,8 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 		  "");
     }
 
+
+     
     for (var iveh=0; goOnCrit; iveh++){
       var speedConflict=vehsConflict[iveh].speed;
       var speedmax=Math.max(speed, speedConflict, 0.01);

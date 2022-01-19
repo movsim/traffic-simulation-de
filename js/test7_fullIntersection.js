@@ -12,14 +12,16 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
+// slider-controlled vars definined in control_gui.js
 
-qIn=300./3600; // inflow to both directional main roads
-q2=500./3600;   // inflow to secondary (subordinate) road
-var fracRight=0.5; // fracRight of drivers on road 2 turn right
+qIn=310./3600; // inflow to both directional main roads
+q2=350./3600;   // inflow to secondary (subordinate) roads
+fracRight=0.; // fracRight of drivers on road 2 turn right
+fracLeft=0.; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
-timewarp=2;
+timewarp=4;
 var mainroadLen=200;              // reference size in m
 var nLanes_main=1;
 var nLanes_sec=1;
@@ -31,6 +33,8 @@ setSlider(slider_q2, slider_q2Val, 3600*q2, commaDigits, "veh/h");
 setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
+setSlider(slider_fracRight, slider_fracRightVal, 100*fracRight, 0, " %");
+setSlider(slider_fracLeft, slider_fracLeftVal, 100*fracLeft, 0, " %");
 
 fracTruck=0.;
 
@@ -175,12 +179,15 @@ var truck_length=11;
 var truck_width=4; 
 
 
-var mainroadWidth=(nLanes_main+0.1)*laneWidth;
+var mainroadWidth=(nLanes_main+0.1)*laneWidth; // one direction!
+var secondroadWidth=(nLanes_sec+0.1)*laneWidth;
 
 var road0Len=mainroadLen;
 var road1Len=mainroadLen;
 var road2Len=0.48*refSizePhys-mainroadWidth;
 var road3Len=0.48*refSizePhys+mainroadWidth;
+var road4Len=0.48*refSizePhys-mainroadWidth;
+var road5Len=0.48*refSizePhys+mainroadWidth;
 
 // def trajectories (do not include doGridding, only for few main scenarios)
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
@@ -202,7 +209,7 @@ function traj1_y(u){
 
 
 function traj2_x(u){ 
-  return center_xPhys;
+  return center_xPhys+0.5*secondroadWidth;
 }
 function traj2_y(u){ 
   return center_yPhys-1.1*mainroadWidth-road2Len+u;
@@ -210,14 +217,30 @@ function traj2_y(u){
 
 
 function traj3_x(u){ 
-  return center_xPhys;
+  return center_xPhys+0.5*secondroadWidth;
 }
 function traj3_y(u){ 
   return center_yPhys-mainroadWidth+u;
 }
 
-var traj_x=[traj0_x,traj1_x,traj2_x,traj3_x];
-var traj_y=[traj0_y,traj1_y,traj2_y,traj3_y];
+
+function traj4_x(u){ 
+  return center_xPhys-0.5*secondroadWidth;
+}
+function traj4_y(u){ 
+  return center_yPhys-(-1.1*mainroadWidth-road4Len+u);
+}
+
+
+function traj5_x(u){ 
+  return center_xPhys-0.5*secondroadWidth;
+}
+function traj5_y(u){ 
+  return center_yPhys+mainroadWidth-u;
+}
+
+var traj_x=[traj0_x,traj1_x,traj2_x,traj3_x,traj4_x,traj5_x];
+var traj_y=[traj0_y,traj1_y,traj2_y,traj3_y,traj4_y,traj5_y];
 
 
 
@@ -233,7 +256,8 @@ for(var ir=0; ir<traj_x.length; ir++){
 
 // specific
 
-var nLanes=[nLanes_main,nLanes_main,nLanes_sec,nLanes_sec];  
+var nLanes=[nLanes_main,nLanes_main,
+	    nLanes_sec,nLanes_sec,nLanes_sec,nLanes_sec];  
 
 // network not yet defined here!!
 
@@ -241,6 +265,8 @@ for(var ir=0; ir<traj_x.length; ir++){
   roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
   roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
 }
+
+
 
 //##################################################################
 // Specification of logical road network: constructing the roads
@@ -272,31 +298,66 @@ var road3=new road(3,road3Len,laneWidth,nLanes_sec,
 		   traj_x[3], traj_y[3],
 		   density, speedInit,fracTruck, isRing);
 
-var route0=[road0.roadID];  // mainroad needs no route
-var route1=[road1.roadID];  // mainroad needs no route
-var route23=[road2.roadID, road3.roadID];
+var road4=new road(4,road4Len,laneWidth,nLanes_sec,
+		   traj_x[4], traj_y[4],
+		   density, speedInit,fracTruck, isRing);
+
+var road5=new road(5,road5Len,laneWidth,nLanes_sec,
+		   traj_x[5], traj_y[5],
+		   density, speedInit,fracTruck, isRing);
+
+var route00=[road0.roadID];                // mainE-straight
+var route05=[road0.roadID, road5.roadID]; // mainE-right
+var route03=[road0.roadID, road3.roadID]; // mainE-left
+var route11=[road1.roadID];                // mainW-straight
+var route13=[road1.roadID, road3.roadID]; // mainW-right
+var route15=[road1.roadID, road5.roadID]; // mainW-left
 var route20=[road2.roadID, road0.roadID];
-var route3=[road3.roadID];  // no route needed
+var route21=[road2.roadID, road1.roadID];
+var route23=[road2.roadID, road3.roadID];
+var route40=[road4.roadID, road0.roadID];
+var route41=[road4.roadID, road1.roadID];
+var route45=[road4.roadID, road5.roadID];
+
 
 
 // road network (network declared in canvas_gui.js)
 
-network[0]=road0;
-network[1]=road1;
-network[2]=road2;
-network[3]=road3;
+network=[road0,road1,road2,road3,road4,road5];
+
+// draw veh IDs on selected links
+
 for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
   network[ir].drawRoadIDs=drawVehIDs;
 }
 
-var conflict0={roadConflict:network[0],
-	       uConflict: 0.5*network[0].roadLen,
+var conflict0up={roadConflict:network[0], // conflicts by road0 for Northbound
+	       uConflict: 0.5*network[0].roadLen+0.5*mainroadWidth,
 	       uOwnConflict: 0.5*mainroadWidth};
-var conflict1={roadConflict:network[1],
-	       uConflict: 0.5*network[0].roadLen,
+var conflict0down={roadConflict:network[0],
+	       uConflict: 0.5*network[0].roadLen-0.5*mainroadWidth,
 	       uOwnConflict: 1.5*mainroadWidth};
-var conflicts=[conflict0,conflict1];
+var conflict1up={roadConflict:network[1],
+	       uConflict: 0.5*network[0].roadLen-0.5*mainroadWidth,
+	       uOwnConflict: 1.5*mainroadWidth};
+var conflict1down={roadConflict:network[1],
+	       uConflict: 0.5*network[0].roadLen+0.5*mainroadWidth,
+	       uOwnConflict: 0.5*mainroadWidth};
+
+var conflicts05=[];
+var conflicts03=[conflict1down];  //!!! change
+var conflicts13=[];
+var conflicts15=[conflict0up];  //!!! change
+
+var conflicts20=[];
+var conflicts21=[conflict0up];
+var conflicts23=[conflict0up,conflict1up];
+
+var conflicts40=[conflict1down];
+var conflicts41=[];
+var conflicts45=[conflict0down,conflict1down];
+
 
 
 // add standing virtual vehicles at the end of some road elements
@@ -310,8 +371,8 @@ var conflicts=[conflict0,conflict1];
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.20*road0Len,10);
-detectors[1]=new stationaryDetector(road0,0.80*road0Len,10);
+//detectors[0]=new stationaryDetector(road0,0.20*road0Len,10);
+//detectors[1]=new stationaryDetector(road0,0.80*road0Len,10);
 
 
 
@@ -354,6 +415,9 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
+  console.log("time=",time.toFixed(2));
+  if((time>76)&&(time<76.2)){alert("crash at 81 s!");}
+  
 
   // updateSim (1): update times and, if canvas change, 
   // scale and update smartphone property
@@ -410,38 +474,89 @@ function updateSim(){
   // updateSim (4): !!! do all the network actions
   // (inflow, outflow, merging and connecting)
 
-  var qIn0=0.95*qIn;
-  var qIn1=1.05*qIn;
+  var qEastbound=0.95*qIn;
+  var qWestbound=1.05*qIn;
+  var qNorthbound=0.95*q2;
+  var qSouthbound=1.05*q2;
 
-  var turnRight=(Math.random()<fracRight);
+  // direction={0: straight, 1: right, 2: left}
+  var r=Math.random();
+  var direction=(r<=fracRight) ? 1 : (r<fracRight+fracLeft) ? 2 : 0;
 
-  network[0].updateBCup(qIn0,dt,route0); // route is optional arg
-  network[1].updateBCup(qIn1,dt,route1);
-  if(turnRight){network[2].updateBCup(q2,dt,route20);} 
-  else{network[2].updateBCup(q2,dt,route23)}; 
+  var routes0=[route00,route05,route03]; // E-bound - straight-right-left
+  var routes1=[route11,route13,route15]; // W - straight-right-left
+  var routes2=[route23,route20,route21]; // N - straight-right-left
+  var routes4=[route45,route41,route40]; // S - straight-right-left
 
+  network[0].updateBCup(qEastbound,dt,routes0[direction]);
+  
+  r=Math.random(); direction=(r<=fracRight) ?1:(r<fracRight+fracLeft) ?2:0;
+  network[1].updateBCup(qWestbound,dt,routes1[direction]);
+			
+  r=Math.random(); direction=(r<=fracRight) ?1:(r<fracRight+fracLeft) ?2:0;
+  network[2].updateBCup(qNorthbound,dt,routes2[direction]);
+			
+  r=Math.random(); direction=(r<=fracRight) ?1:(r<fracRight+fracLeft) ?2:0;
+  network[4].updateBCup(qSouthbound,dt,routes4[direction]);
+
+  
   // do all the mergeDiverge actions here
   // do all the connecting stuff here
 
-	     
-  if(false){
-    console.log("before network[2].connect:",
-		"\n network[2]=",network[2],
-		"\n network[3]=",network[3],
-		"\n conflicts[0]=",conflicts[0],
-		"\n conflicts[1]=",conflicts[1],
-	       "");
-  }
 
   // connectors selected by the route of the vehicles
 
   var maxspeed_turn=7;
   
   // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
+
+  // straight  ahead
+  
   network[2].connect(network[3], network[2].roadLen,
-		     0, 0, conflicts);
+		     0, 0, conflicts23);
+  
+  network[4].connect(network[5], network[4].roadLen,
+		     0, 0, conflicts45);
+
+  // turn right
+
+  network[0].connect(network[5],
+		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
+		     nLanes_main*laneWidth, 0,
+		     conflicts05, maxspeed_turn);
+
+  network[1].connect(network[3],
+		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
+		     nLanes_main*laneWidth, 0,
+		     conflicts13, maxspeed_turn);
+
   network[2].connect(network[0], network[2].roadLen,
-		     0.5*network[0].roadLen, 0, [], maxspeed_turn);
+		     0.5*network[0].roadLen, 0,
+		     conflicts20, maxspeed_turn);
+  
+  network[4].connect(network[1], network[4].roadLen,
+		     0.5*network[1].roadLen, 0,
+		     conflicts41, maxspeed_turn);
+
+  // turn left
+
+  network[0].connect(network[3],
+		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
+		     nLanes_main*laneWidth, 0,
+		     conflicts03, maxspeed_turn);
+
+  network[1].connect(network[5],
+		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
+		     nLanes_main*laneWidth, 0,
+		     conflicts15, maxspeed_turn);
+ 
+  network[2].connect(network[1], network[2].roadLen,
+		     0.5*network[1].roadLen-nLanes_main*laneWidth,0,
+		     conflicts21, maxspeed_turn);
+  
+  network[4].connect(network[0], network[4].roadLen,
+		     0.5*network[0].roadLen-nLanes_main*laneWidth,0,
+		     conflicts40, maxspeed_turn);
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateBCdown();
@@ -512,7 +627,7 @@ function drawSim() {
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
-  for(var ir=network.length-1; ir>=0; ir--){ // draw secon roads first
+  for(var ir=network.length-1; ir>=0; ir--){ // draw second. roads first
     network[ir].draw(roadImages[ir][0],roadImages[ir][1],
 		     scale,changedGeometry);
   }

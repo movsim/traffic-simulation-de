@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Test 4: Crossing two mainroads</title> 
+    <title>Test 7: full intersection</title> 
 </head>
 
 
@@ -57,12 +57,12 @@
 
 <div id="scenarios">
   <br>
-  <a href="./test1_straight.html">test1: straight connected roads</a><br>
-  <a href="./test2_bottleneck.html">test2: lane-closing bottleneck</a><br>
-  <a href="./test3_crossingMain.html">test3: crossing mainroad</a><br>
-  <a href="./test4_crossing2Main.html">test4: crossing two mainroads</a><br>
   <a href="./test5_crossingAndRightturn.html">
     test5: crossing and right turns</a><br>
+  <a href="./test6_crossingLeftRight.html">
+    test6: crossing left and right</a><br>
+  <a href="./test7_fullIntersection.html">
+    test7: full intersection</a><br>
 </div> 
 
 
@@ -129,6 +129,20 @@
   <td> <input id="slider_q2" type="range" 
               min="0" max="2000" step="10"></td>
   <td> <div id="slider_q2Val"></div> </td>
+</tr>
+
+<tr>
+  <td>Percentage Right</td>
+  <td> <input id="slider_fracRight" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracRightVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Percentage Left</td>
+  <td> <input id="slider_fracLeft" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracLeftVal"></div> </td>
 </tr>
 
 
@@ -234,7 +248,7 @@
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/test4_crossing2Main.js"></script> 
+<!-- PROJ--> <script src="js/test7_fullIntersection.js"></script> 
 
 </body>
 </html>
