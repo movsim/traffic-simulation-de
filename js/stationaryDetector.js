@@ -131,7 +131,7 @@ stationaryDetector.prototype.display=function(textsize){
 	
  
 
-    var phi=this.road.get_phi(this.u);
+    var phi=this.road.get_phi(this.u,this.road.traj_x,this.road.traj_y);
     var cphi=Math.cos(phi);
     var sphi=Math.sin(phi);
     

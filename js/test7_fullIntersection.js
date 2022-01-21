@@ -14,9 +14,9 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=310./3600; // inflow to both directional main roads
+qIn=10./3600; // inflow to both directional main roads
 q2=350./3600;   // inflow to secondary (subordinate) roads
-fracRight=0.; // fracRight of drivers on road 2 turn right
+fracRight=1.; // fracRight [0-1] of drivers on road 2 turn right
 fracLeft=0.; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
@@ -189,6 +189,11 @@ var road3Len=0.48*refSizePhys+mainroadWidth;
 var road4Len=0.48*refSizePhys-mainroadWidth;
 var road5Len=0.48*refSizePhys+mainroadWidth;
 
+var turningRadius=6.1*laneWidth;//!!!! 1.1*laneWidth
+var uSource20=1*road2Len;
+var uTarget20=0.5*road0Len;
+//...
+
 // def trajectories (do not include doGridding, only for few main scenarios)
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
@@ -198,6 +203,15 @@ function traj0_x(u){ // physical coordinates
 }
 function traj0_y(u){ 
   return center_yPhys-0.5*mainroadWidth;
+}
+
+function traj0_20x(u){ // special coordinate for the route 20 for road 0
+  return traj2_x(road2Len)
+    +turningRadius*(1-Math.cos((u-uTarget20)/turningRadius));
+}
+function traj0_20y(u){ // special coordinate for the route 20 for road 0
+  return traj0_y(0.5*road0Len)
+    +turningRadius*(-1+Math.sin((u-uTarget20)/turningRadius));
 }
 
 function traj1_x(u){ // physical coordinates
@@ -276,48 +290,58 @@ for(var ir=0; ir<traj_x.length; ir++){
 var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
 var speedInit=20;
 density=0;
+var isRing=false;
+var roadIDs=[0,1,2,3,4,5];
+
+var route00=[roadIDs[0]];                // mainE-straight
+var route05=[roadIDs[0], roadIDs[5]]; // mainE-right
+var route03=[roadIDs[0], roadIDs[3]]; // mainE-left
+var route11=[roadIDs[1]];                // mainW-straight
+var route13=[roadIDs[1], roadIDs[3]]; // mainW-right
+var route15=[roadIDs[1], roadIDs[5]]; // mainW-left
+var route20=[roadIDs[2], roadIDs[0]];
+var route21=[roadIDs[2], roadIDs[1]];
+var route23=[roadIDs[2], roadIDs[3]];
+var route40=[roadIDs[4], roadIDs[0]];
+var route41=[roadIDs[4], roadIDs[1]];
+var route45=[roadIDs[4], roadIDs[5]];
+
+
+
 
 // roads
 // last opt arg "doGridding" left out (true:user can change road geometry)
 
-
-var isRing=false;
-var road0=new road(0,road0Len,laneWidth,nLanes_main,
+var road0=new road(roadIDs[0],road0Len,laneWidth,nLanes_main,
 		   traj_x[0], traj_y[0],
 		   density, speedInit,fracTruck, isRing);
+road0.trajAlt[0]={x: traj0_20x,
+		  y: traj0_20y,
+		  route: route20,
+		  umin:uTarget20,
+		  umax:uTarget20+0.5*Math.PI*turningRadius
+		 };
+  
 
-var road1=new road(1,road1Len,laneWidth,nLanes_main,
+var road1=new road(roadIDs[1],road1Len,laneWidth,nLanes_main,
 		   traj_x[1], traj_y[1],
 		   density, speedInit,fracTruck, isRing);
 
-var road2=new road(2,road2Len,laneWidth,nLanes_sec,
+var road2=new road(roadIDs[2],road2Len,laneWidth,nLanes_sec,
 		   traj_x[2], traj_y[2],
 		   density, speedInit,fracTruck, isRing);
 
-var road3=new road(3,road3Len,laneWidth,nLanes_sec,
+var road3=new road(roadIDs[3],road3Len,laneWidth,nLanes_sec,
 		   traj_x[3], traj_y[3],
 		   density, speedInit,fracTruck, isRing);
 
-var road4=new road(4,road4Len,laneWidth,nLanes_sec,
+var road4=new road(roadIDs[4],road4Len,laneWidth,nLanes_sec,
 		   traj_x[4], traj_y[4],
 		   density, speedInit,fracTruck, isRing);
 
-var road5=new road(5,road5Len,laneWidth,nLanes_sec,
+var road5=new road(roadIDs[5],road5Len,laneWidth,nLanes_sec,
 		   traj_x[5], traj_y[5],
 		   density, speedInit,fracTruck, isRing);
-
-var route00=[road0.roadID];                // mainE-straight
-var route05=[road0.roadID, road5.roadID]; // mainE-right
-var route03=[road0.roadID, road3.roadID]; // mainE-left
-var route11=[road1.roadID];                // mainW-straight
-var route13=[road1.roadID, road3.roadID]; // mainW-right
-var route15=[road1.roadID, road5.roadID]; // mainW-left
-var route20=[road2.roadID, road0.roadID];
-var route21=[road2.roadID, road1.roadID];
-var route23=[road2.roadID, road3.roadID];
-var route40=[road4.roadID, road0.roadID];
-var route41=[road4.roadID, road1.roadID];
-var route45=[road4.roadID, road5.roadID];
 
 
 
@@ -415,9 +439,9 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  console.log("time=",time.toFixed(2));
+  //console.log("time=",time.toFixed(2));
   if((time>76)&&(time<76.2)){alert("crash at 81 s!");}
-  
+
 
   // updateSim (1): update times and, if canvas change, 
   // scale and update smartphone property
@@ -530,8 +554,7 @@ function updateSim(){
 		     nLanes_main*laneWidth, 0,
 		     conflicts13, maxspeed_turn);
 
-  network[2].connect(network[0], network[2].roadLen,
-		     0.5*network[0].roadLen, 0,
+  network[2].connect(network[0], uSource20, uTarget20, 0,
 		     conflicts20, maxspeed_turn);
   
   network[4].connect(network[1], network[4].roadLen,

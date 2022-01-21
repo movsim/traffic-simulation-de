@@ -877,6 +877,8 @@ function drawSim() {
 	var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
 	var du=-stitchAngleOffset*rRing;
 
+      //!!!!
+      //uOffset0_merge=0; du=0;
     mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
 			     0, 1./8*mainroad.roadLen+du, // between stitch
 			     arm[0], uOffset0_merge);

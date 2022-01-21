@@ -319,7 +319,7 @@ TrafficObjects.prototype.draw=function(){
       var yCenterPix= -scale*road.traj_y(obj.u); // minus!!
       var wPix=scale*crossingLineWidth;
       var lPix=scale*crossingLineLength;
-      var phi=road.get_phi(obj.u);
+      var phi=road.get_phi(obj.u, road.traj_x, road.traj_y);
       var cphi=Math.cos(phi);
       var sphi=Math.sin(phi);
 
