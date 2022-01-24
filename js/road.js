@@ -2340,7 +2340,7 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
     if(false){ //!!!
     //if(itime==100){
-      //if(this.veh[i].id==208){
+    //if(this.veh[i].id==207){
       console.log("road.doChangesInDirection: vehID= ",this.veh[i].id,
 		 " time=",time," i=",i,
 		  " targetLaneExists=",targetLaneExists,
@@ -2424,8 +2424,8 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
          // only test output
 
          //if(MOBILOK&&(this.veh[i].id===107)){
-        if(false){
-        //if(this.veh[i].id==207){
+        //if(false){
+        if(this.veh[i].id==207){
 
 	  console.log("determining MOBILOK by LCmodel.realizeLaneChange:",
 		      " acc=",acc.toFixed(1)," accNew=",accNew.toFixed(1),
@@ -3916,7 +3916,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   if(deepCopying){
     for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].isRegularVeh()){// then do nothing
+      if(this.veh[i].isRegularVeh()){
         this.veh[i].longModel.copy((this.veh[i].type === "car")
 				   ? longModelCar : longModelTruck);
         this.veh[i].LCModel=(this.veh[i].type === "car")
@@ -3932,7 +3932,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   else{
     for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].isRegularVeh()){// then do nothing
+      if(this.veh[i].isRegularVeh()){
         this.veh[i].longModel=(this.veh[i].type === "car")
 	  ? longModelCar : longModelTruck;
         this.veh[i].LCModel=(this.veh[i].type === "car")
@@ -4303,7 +4303,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
   var usedTraj_x=this.traj[0]; // default
   var usedTraj_y=this.traj[1]; // default
 
-  if(this.roadID==0){console.log("road.drawVehicles: traj init:",
+  if(false){console.log("road.drawVehicles: traj init:",
 				 " usedTraj_x=",usedTraj_x);}
 
     
@@ -4342,13 +4342,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	    iTraj=itr;
 	    success=true;
 	  }
-	  if(false){console.log("vehid=",this.veh[i].id," itr=",itr,
-		      " this.trajAlt[itr].route=",this.trajAlt[itr].route,
-				" this.veh[i].route=",this.veh[i].route);
-		   }
         }
-	console.log("road.drawVehicles: alt traj before:",
-		    " usedTraj_x=",usedTraj_x);
 	if(success && (this.veh[i].u>=this.trajAlt[iTraj].umin)
 	   && (this.veh[i].u<=this.trajAlt[iTraj].umax)){
 	  usedTraj_x=this.trajAlt[iTraj].x;
@@ -4358,7 +4352,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	  usedTraj_x=this.traj[0];
 	  usedTraj_y=this.traj[1];
 	}
-	if(true){
+	if(false){
 	  console.log("road.drawVehicles: alt traj:",
 		      "success=",success," iTraj=",iTraj,
 		      " u=",this.veh[i].u.toFixed(1),

@@ -23,7 +23,7 @@ IDM_v0=15;
 IDM_a=2.0;
 timewarp=1.5;
 var mainroadLen=200;              // reference size in m
-var nLanes_main=1;
+var nLanes_main=3;
 var nLanes_sec=2;
 
 commaDigits=0;
@@ -503,9 +503,9 @@ function updateSim(){
       for(var i=0; i<network[ir].veh.length; i++){
         if(network[ir].veh[i].id==207){
 	  var veh=network[ir].veh[i];
-          console.log("itime=",itime,
+          console.log("time=",time.toFixed(2),
 		    "test7 start updateSim: status of veh id=",veh.id,
-		      " lane=",veh.lane," v=",veh.v);
+		      " lane=",veh.lane," v=",veh.v.toFixed(2));
 	}
       }
     }
@@ -661,6 +661,15 @@ function updateSim(){
   // at the end because some special-case changes of calculated
   // accelerations and lane changing model parameters were done before
 
+  // restrict LC for inflowing road2-vehicles for route 20
+
+  for(var i=0; i<network[2].veh.length; i++){
+    if(arraysEqual(network[2].veh[i].route, [2,0])){
+      network[2].veh[i].LCModel=network[2].LCModelMandatoryRight;
+      //console.log("set mandatory LC: network[2].veh[i]=",network[2].veh[i]);
+    }
+  }
+      
   for(var ir=0; ir<network.length; ir++){
     network[ir].changeLanes();         
     network[ir].updateLastLCtimes(dt);
