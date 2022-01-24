@@ -176,7 +176,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
   
     if(userCanDistortRoads){
       for(var i=0; i<network.length; i++){
-	network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
+	network[i].gridTrajectories(trajNet[i]);
       }
     }
   
@@ -202,8 +202,8 @@ function updateRampGeometry(){
   // crucial: correct x/y attachment at begin of merge 
   // (assume heading=0 @ merge for the moment)
 
-  xRamp[nArrRamp-1]=traj_x(mainRampOffset+rampLen-mergeLen)+mergeLen;
-  yRamp[nArrRamp-1]=traj_y(mainRampOffset+rampLen-mergeLen)
+  xRamp[nArrRamp-1]=traj[0](mainRampOffset+rampLen-mergeLen)+mergeLen;
+  yRamp[nArrRamp-1]=traj[1](mainRampOffset+rampLen-mergeLen)
     -0.5*laneWidth*(nLanes_main-nLanes_rmp);
 
   for(var i=nArrRamp-2; i>=0; i--){
@@ -270,7 +270,7 @@ function traj_y(u){ // physical coordinates
 	return center_yPhys+dyPhysFromCenter;
 }
 
-
+var traj=[traj_x,traj_y];
 
 // !! in defining dependent geometry,
 // do not refer to mainroad or onramp!! may not be defined: 
@@ -287,7 +287,7 @@ function trajRamp_x(u){ // physical coordinates
 
 function trajRamp_y(u){ // physical coordinates
 
-  var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
+  var yMergeBegin=traj[1](mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
   var yMergeEnd=yMergeBegin+laneWidth;
@@ -297,12 +297,11 @@ function trajRamp_y(u){ // physical coordinates
     : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
 }
 
-var trajNet_x=[];
-var trajNet_y=[];
-trajNet_x[0]=traj_x;
-trajNet_x[1]=trajRamp_x;
-trajNet_y[0]=traj_y;
-trajNet_y[1]=trajRamp_y;
+var trajRamp=[trajRamp_x,trajRamp_y];
+
+var trajNet=[];
+trajNet[0]=traj;
+trajNet[1]=trajRamp;
 
 
 //###################################################
@@ -339,11 +338,11 @@ var speedInit=20; // IC for speed
 
   //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
+		      traj,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+		    trajRamp,
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 // road network (network declared in canvas_gui.js)
@@ -676,8 +675,8 @@ function drawSim() {
   ramp.draw(rampImg,rampImg,scale,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
-	    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-	    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
+	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0)); 
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen,
@@ -700,8 +699,8 @@ function drawSim() {
 		    vmin_col,vmax_col,
 		    0,ramp.roadLen,
 		    movingObserver,0,
-		    center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-		    center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
+		    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+		    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,

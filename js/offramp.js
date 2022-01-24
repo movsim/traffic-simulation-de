@@ -133,8 +133,6 @@ var truck_length=15; // trucks
 var truck_width=7; 
 
 
-// on constructing road, road elements are gridded and interna
-// road.traj_xy(u) are generated. Then, main.traj_xy*(u) obsolete
 
 
 function traj_x(u){ // physical coordinates
@@ -153,6 +151,7 @@ function traj_y(u){ // physical coordinates
 	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
 	return center_yPhys+dyPhysFromCenter;
 }
+var traj=[traj_x,traj_y];
 
 
 function trajRamp_x(u){ // physical coordinates
@@ -173,7 +172,7 @@ function trajRamp_y(u){ // physical coordinates
 	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
 }
 
-
+var trajRamp=[trajRamp_x,trajRamp_y];
 
 
 //##################################################################
@@ -190,10 +189,10 @@ var speedInit=20; // IC for speed
 
 duTactical=250; // anticipation distance for applying mandatory LC rules
 
-var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj_x,traj_y,
+var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj,
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
-var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp_x,trajRamp_y,
+var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp,
 		     0.1*density,speedInit,fracTruck,isRing,userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;

@@ -1,0 +1,60 @@
+<!-- edit in development directory; copied to public html -->
+
+<h1>Randbedingungen</h1>
+<p>
+Je nach Szenario werden <i> periodische</i>
+oder <i>offene</i> Randbedingungen angewandt
+<br><br>
+
+<h3> Periodische Randbedingungen </h3>
+
+<p> 
+F&uuml;r das Ringstra&szlig;en-Szenario:
+<ul class="red">
+<li> Nummeriere die Fahrzeuge auf einer gegebenen Spur von 1 (erstes)
+  bis n (letztes). Das erste Fahrzeug kann beliebig gew&auml;hlt werden.
+<li> Fahrzeuge 2 bis n folgen ihren Vorderfahrzeugen. Das
+  Vorderfahrzeug von Fahrzeug 1 hingegen ist Fahrzeug n.
+</ul>
+
+<h3> Offene Randbedingungen </h3>
+
+Hier wird es komplizierter, Wir unterscheiden zwischen Ausfluss- und
+Zufluss-Randbedingungen:
+ 
+<h4> Ausfluss-Randbedingungen </h4>
+
+Wir nehmen eine freie Stra&szlig;e jenseits des simulierten Abschnitts
+an. Das vorderste fahrzeug "sieht" also einen Abstand zum n&auml;chsten
+Fahrzeug von unendlich. &Uuml;berquert es den Simulationsabschnitt, wird
+es aus der Simulation genommen.
+
+<h4> Zufluss-Randbedingungen </h4>
+
+Hier gilt es, k&uuml;nstliche Staus zu vermeiden:
+
+<ul class="red">
+
+ <li> Berechne den zeitlichen Bruttoabstand tau gleich dem Inversen
+ des Zufluss,
+
+ <li> nachdem tau verstrichen ist, Versuch, ein neues Fahrzeug einzusetzen,
+
+ <li> der Versuch ist erfolgreich, wenn die r&auml;unmliche L&uuml;cke
+ gr&ouml;&szlig;er als ein fester Wert von 27 m ist, 
+
+ <li> bei Erfolg wird das Fahrzeug bei x=0 mit der der L&uuml;cke
+   entsprechenden Gleichgewichtsgeschwindigkeit eingesetzt.
+</ul>
+
+
+<hr>
+
+    <address><a href="mailto:&#109;&#097;&#114;&#116;&#105;&#110;&#064;&#109;&#116;&#114;&#101;&#105;&#098;&#101;&#114;&#046;&#100;&#101;">
+Martin Treiber</a></address>
+<!-- Created: Mon Apr 19 21:11:03 CEST 1999 -->
+<!-- hhmts start -->
+<!--Last modified: Thu May 26 12:12:25 CEST 2011-->
+<!-- hhmts end -->
+  </body>
+</html>

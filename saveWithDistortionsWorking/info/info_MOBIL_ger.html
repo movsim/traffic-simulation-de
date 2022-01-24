@@ -1,0 +1,83 @@
+<h1>Spurwechselmodelle: das Model MOBIL</h1>
+
+Spurwechsel finden statt, wenn
+<ul class="red"> 
+<li> eine andere Spur attraktiver ist, d.h., das <b>
+	"Anreizkriterium" </b> ist erf&uuml;llt,
+<li> und wenn der Wechsel sicher ist, d.h., das 
+<b> "Sicherheitskriterium" </b> ist erf&uuml;llt.
+</ul>
+
+<h2> Modellgleichungen</h2>
+
+In unserem Wechselmodell MOBIL (<i>Minimizing Overall Braking by
+  Intelligent Lane changes</i>) sind beide Kriterien auf die
+  Beschleunigungen des Fahrzeugfolgemodells gebaut: 
+
+<ul class="red">
+  
+  <li> <b>Sicherheitskriterium:</b> Die IDM Verz&ouml;gerung
+    <font color="#0000AA"><i>acc'=acc'<sub>IDM</sub></i></font> des neuen
+  Nachfolgers &uuml;berschreitet nicht die komfortable Verz&ouml;gerung b:
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFEE88" cellpadding="10"><tr><td>
+
+<font color="#0000AA"><i> acc' (B') > - b</i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+
+
+<br><br>
+<li> <b>Anreizkriterium:</b>Wir gewichten den eigenen Vorteil ("geht
+  es auf der neuen Spur schneller, ist also dort die
+  IDM-Beschleunigung h&ouml;her?") mit dem evtl. Nachteil, der anderen
+  Fahrzeugen auferlegt wird, allerdings gewichtet mit einem
+  <i>H&ouml;flichkeitsfaktor p</i>, der i.A. kleiner 1 ist:
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFEE88" cellpadding="10"><tr><td>
+<font color="#0000AA"><i> acc' (M') - acc (M)
+> p <font size="+2">[</font>
+     acc  (B) + acc  (B')
+  -  acc'  (B) - acc'  (B') 
+  <font size="+2">]</font>
++ a<sub>thr</sub></i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+
+
+<li> In unserer Implementierung ber&uuml;cksichtigten wir allerdings
+  nicht den Vor- bzw. nachteil des alten Nachfolgers
+  ("Push-away-Effekt"), wir wandten also folgende Regel an:
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFEE88" cellpadding="10"><tr><td>
+<font color="#0000AA"><i> acc' (M') - acc (M)
+> p <font size="+2">[</font>
+     acc  (B')
+  - acc'  (B') 
+  <font size="+2">]</font>
++ a<sub>thr</sub></i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+</center>
+</ul>
+
+F&uuml;r weitergehende Informationen verweise ich auf
+die <a href="https://traffic-simulation.de/info/info_MOBIL.html">englischsprachige Version</a>.

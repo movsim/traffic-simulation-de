@@ -306,7 +306,7 @@ var density=0.00;
 
 
 var mainroad=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
-		  trajRing_x,trajRing_y,0,0,0,true);
+		  [trajRing_x,trajRing_y],0,0,0,true);
 
 mainroad.padding=padding; mainroad.paddingLTC=paddingLTC;
 if(markVehsMerge){mainroad.markVehsMerge=true;}
@@ -337,14 +337,14 @@ mainroad.duTactical=divLen;
 
 
 var arm=[]; 
-arm[0]=new road(0,lArm,laneWidth,nLanes_arm,traj0_x,traj0_y,0,0,0,false);
-arm[1]=new road(1,lArm,laneWidth,nLanes_arm,traj1_x,traj1_y,0,0,0,false);
-arm[2]=new road(2,lArm,laneWidth,nLanes_arm,traj2_x,traj2_y,0,0,0,false);
-arm[3]=new road(3,lArm,laneWidth,nLanes_arm,traj3_x,traj3_y,0,0,0,false);
-arm[4]=new road(4,lArm,laneWidth,nLanes_arm,traj4_x,traj4_y,0,0,0,false);
-arm[5]=new road(5,lArm,laneWidth,nLanes_arm,traj5_x,traj5_y,0,0,0,false);
-arm[6]=new road(6,lArm,laneWidth,nLanes_arm,traj6_x,traj6_y,0,0,0,false);
-arm[7]=new road(7,lArm,laneWidth,nLanes_arm,traj7_x,traj7_y,0,0,0,false);
+arm[0]=new road(0,lArm,laneWidth,nLanes_arm,[traj0_x,traj0_y],0,0,0,false);
+arm[1]=new road(1,lArm,laneWidth,nLanes_arm,[traj1_x,traj1_y],0,0,0,false);
+arm[2]=new road(2,lArm,laneWidth,nLanes_arm,[traj2_x,traj2_y],0,0,0,false);
+arm[3]=new road(3,lArm,laneWidth,nLanes_arm,[traj3_x,traj3_y],0,0,0,false);
+arm[4]=new road(4,lArm,laneWidth,nLanes_arm,[traj4_x,traj4_y],0,0,0,false);
+arm[5]=new road(5,lArm,laneWidth,nLanes_arm,[traj5_x,traj5_y],0,0,0,false);
+arm[6]=new road(6,lArm,laneWidth,nLanes_arm,[traj6_x,traj6_y],0,0,0,false);
+arm[7]=new road(7,lArm,laneWidth,nLanes_arm,[traj7_x,traj7_y],0,0,0,false);
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 for (var i=0; i<arm.length; i++){

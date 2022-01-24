@@ -195,11 +195,11 @@ var speedInit=20; // IC for speed
 // last arg = doGridding (true: user can change road geometry)
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
+		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+		    [trajRamp_x,trajRamp_y],
 		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
 
 

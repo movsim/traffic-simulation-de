@@ -1,0 +1,100 @@
+<!-- edit in development directory; copied to public html -->
+
+<h1>Das Intelligent-Driver Model und seine Varianten</h1>
+
+Die IDM-Modellgleichungen f&uuml;r die Beschleunigung des Folgefahrzeugs
+als Funktion der eigenen Geschwindigkeit  <i>v</i>, der L&uuml;cke <i>s</i> zum
+F&uuml;hrungsfahrzeug und der Ann&auml;herungsrate  <i>&Delta;
+  v=v-v<sub>lead</sub></i>
+lauten
+<center>
+  <p>
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "https://www.traffic-simulation.de/info/IDMv.png" width="80%" align="center" 
+                          alt = "IDM acceleration equation">
+</center>
+<p> 
+mit dem dynamischen Wunschabstand
+<center>
+<p>
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "https://www.traffic-simulation.de/info/IDMsstar.png" width="80%" align="center" 
+                   alt = "relation for desired distance">
+</center>
+<p>
+Schlie&szlig;lich ben&ouml;tigen wir noch die Definition der
+Ann&auml;herungsrate: 
+
+<br><br>
+<center>
+  <i>ds/dt=&#8722; &Delta; v</i>
+</center>
+<br><br>
+
+
+<a name = "IDMparameters"><h3> Modellparameter </h3> </a>
+
+Das IDM und das daraus entwickelte ACC-Modell haben folgende
+intuitiven Modellparameter:
+<br><br>
+<!-- ######################################## -->
+
+<center>
+<table border="1" bgcolor="#ddddf5" cellpadding="4" width="95%">
+<tr>
+  <th> <b> Parameter </b> </th>
+  <th> <b> Wert PKW </b>  </th>
+  <th> <b> Wert LKW </b>  </th>
+  <th> <b> Bemerkungenb </b>  </th>
+</tr>
+<tr>
+  <td> Wunschgeschwindigkeit <font color="#0000AA">v<sub>0</sub></font></td>
+  <td> 120 km/h </td>
+  <td> 80 km/h </td>
+  <td> Entsprechende Anpassung f&uuml;r Stadtverkehr. Die anderen
+    Parameter bleiben unver&auml;ndert.
+ </td>
+</tr>
+<tr>
+  <td> Netto-Zeitl&uuml;cke <font color="#0000AA">T</font></td>
+  <td> 1.5 s </td>
+  <td> 1.7 s </td>
+  <td> "Abstand=halber Tacho" entspricht 1.8 s; realistische Werte
+	    liegen zwischen 0.6 s and 2.0 s.</td>
+</tr>
+<tr>
+  <td> L&uuml;cke im Stau <font color="#0000AA">s<sub>0</sub></font></td>
+  <td> 2.0 m </td>
+  <td> 2.0 m </td>
+  <td> Autobahnstaus und Warteschlangen hinter Ampeln.</td>
+</tr>
+<tr>
+  <td> Max Beschleunigung <font color="#0000AA">a</font></td>
+  <td> 0.3 m/s<sup>2</sup> </td>
+  <td> 0.3 m/s<sup>2</sup> </td>
+  <td> Unralistisch niedrig, um schneller Stop-and-Go Verkehr zu
+  erzeugen. Realistische Werte 0.8 bis 2.5 m/s<sup>2</sup> </td>
+</tr>
+<tr>
+  <td> Komfortable Verz&ouml;gerung <font color="#0000AA">b</font></td>
+  <td> 3.0 m/s<sup>2</sup> </td>
+  <td> 2.0 m/s<sup>2</sup> </td>
+  <td> Realistische Werte um 2 m/s<sup>2</sup> </td>
+</tr>
+
+</table>
+</center>
+
+<br>
+Allgemein hat jede "Fahrer-Fahrzeug-Einheit" ihren eigenen
+Parametersatz, z.B.
+<ul  class="red">
+<li> LKW: niedrige Werte f&uuml;r v0, a, and b,
+<li> vorsichtige Fahrer haben eine hohe Zeitl&uuml;cke T,
+<li> aggressive Fahrer sind durch eine niedrige Zeitluecke  T in Verbindung
+	mit hohen Werten von v0, a, and b charakterisiert.
+</ul>
+<br>
+
+
+F&uuml;r weitere Details, siehe den <a href="https://www.traffic-simulation.de/info/info_IDM.html"> englischen Text.</a>

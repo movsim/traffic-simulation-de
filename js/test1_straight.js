@@ -116,8 +116,8 @@ function traj1_y(u){
   return center_yPhys+0.0*u;
 }
 
-var trajNet_x=[traj0_x,traj1_x]; 
-var trajNet_y=[traj0_y,traj1_y];
+var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y] ]; 
+
 
 // specification of road width and vehicle sizes
 
@@ -143,11 +143,11 @@ var speedInit=20;
 
 var isRing=false;
 var road0=new road(0,road0Len,laneWidth,nLanes_main,
-		   trajNet_x[0], trajNet_y[0],
+		   trajNet[0],
 		   density, speedInit,fracTruck, isRing);
 
 var road1=new road(42,road1Len,laneWidth,nLanes_main,
-		   trajNet_x[1], trajNet_y[1],
+		   trajNet[1],
 		   density, speedInit,fracTruck, isRing);
 
 var route1=[road0.roadID, road1.roadID];

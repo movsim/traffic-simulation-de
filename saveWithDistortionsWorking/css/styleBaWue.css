@@ -1,0 +1,514 @@
+/*
+!! check/make consistent with ../js/media.js
+
+media queries: 
+https://developer.mozilla.org/en-US/docs/Web/CSS/Media_Queries/Using_media_queries
+
+background : full HD =1080p (1920×1080 px), aspect ratio 5/3; 
+
+reality check what works: http://cssmediaqueries.com/overview.html
+=> ~/versionedProjects/traffic-simulation-de/README_mediaqueries
+*/
+
+
+
+
+/*#############################################################*/
+/* basic settings for all aspect ratios */
+/*#############################################################*/
+
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+/* text layout of sliders: tables override general text spec) */
+
+th{                    /* only used in infotext */
+  font-size: 2.4vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:2.0vmin; 
+  font-weight: bold; 
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:2.0vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+
+/* <h2>, <h3> not used in the main sim page but in some help pages */
+
+ h1{
+     font-family: helvetica, sans-serif;
+     font-size: 2.6vmin;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h2{
+     font-family: helvetica, sans-serif;
+     font-size: 2.6vmin;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h3{ 
+     font-family: sans-serif;
+     font-size: 2.4vmin; 
+     font-weight: bold;
+     font-style: italic;
+     color: #446;
+     padding-top:0px;
+ }
+
+button,select{
+     font-size: 2.2vmin; 
+}
+
+ #gameSliderTitle{
+     font-size: 2.5vmin; 
+     font-weight: bold; 
+     color: #dd0033;
+ }
+ 
+/* standard: white */
+
+#container{
+    margin: 0em auto;
+    width: 98vw;
+    text-align: left;
+    background-color: #FFFFFF;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+    border-width: 0;
+}
+
+
+/* general links */
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+table.infoTable {
+   border: 0px ridge rgb(130,130,130); /* spacing, padding DOS with border-collapse */
+   border-collapse: collapse; 
+   background-color: rgba(255,255,255,0.7);
+}
+table.infoTable td {
+   border: 2px ridge rgb(130,130,130);
+}
+
+
+
+/*#############################################################*/
+/* basic settings for landscape formats !! check with ../js/media.js */
+/* at the first cascade, do not restrict anything to avoid errors
+   by reverting to the default (huge images etc) */
+/*#############################################################*/
+
+@media all /* and  (min-aspect-ratio: 4/3) */ {
+
+
+/* (1) landscape: the title (not used actually) */
+
+#header{
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 0;  /* above simulation canvas in rare chances of overlapping */
+}
+
+
+
+
+/* (2) landscape: the simulation canvas */
+
+/* DOS canvas size specification:
+=> NEED document.getElementById("contents").clientWidth
+which always gives correct size!!
+*/
+
+
+#contents{
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  170vmin; 
+  height: 100vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (2a) landscape: position of the info button: right top of simCanvas */
+
+#infoDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  right: 20vmin;
+  width: 8vmin;
+  z-index: 4; /* the higher the integer, the more on top */
+}
+
+
+/* (2b) landscape: position of the restart button: 
+at the former trafficSimulationDe info button */
+
+#restartDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 52vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (2c) landscape: position of the start/stop button */
+
+#startStopDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 43vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (2d) landscape: symbols for add/subtract one lane */
+
+#lanePlusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 7vmin;
+  left: 34vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#laneMinusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 7vmin;
+  left: 25vmin;
+  width: 7vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+#debugDiv{
+  position: absolute;
+  top: 25vmin;
+  height: 15vmin;
+  left: 92vmin;
+  width: 15vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (4) landscape: the field for selecting the scenarios */
+
+#scenarios{
+  position: absolute;
+  top:     1vmin;
+  left: 62vmin;
+  width: 30vmin; /* no height; otherwise obstacle objects can "get stuck"*/
+  z-index: 2;  /*top-always focussed! */
+}
+
+
+
+/* (5) landscape: sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+
+#sliders{ 
+  position: absolute;
+  top: 41vmin;
+  height: 31vmin;
+  left: 68vmin;
+  width: 55vmin;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 1; /* the higher the integer, the more on top */
+}
+
+
+
+/* (5a-c) nested div's single slider-areas. In landscape, just let them flow
+(no spec), in portrait,  unfortunately DOS  => position by brute force  */
+
+#slidersGen,#slidersIDM,#slidersLC{
+
+}
+
+
+
+/* (7) landscape: position/size of the colorbox */
+
+#colorBox{
+  position: absolute;
+  top:     38vmin;
+/*  height:  20vmin;*/
+  left:   150vmin;
+  width:   20vmin; 
+  z-index: 1;
+}
+
+
+
+} /* end @media filter landscape normal */
+
+
+
+
+/*#############################################################*/
+/* basic settings for square/portrait formats !! check with ../js/media.js */
+/*#############################################################*/
+
+@media all and  (max-aspect-ratio: 4/3){
+
+/* (1) portrait:  the title  (not used actually) */
+
+#header{
+  position: absolute;
+  top: 0.5vmin;
+  height: 5vmin;
+  left: calc( 1vw + 35vmin);
+  width: 40vmin; /* needed for reference of width: */
+  font-size: 4vmin;
+  font-weight:bold;
+  z-index: 0; 
+}
+
+
+
+
+/* (2) portrait: the simulation canvas */
+
+#contents{
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  99vmin;  /* proportional to above .#contents 16:9 */
+  height: 78vmin;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+/* (2a) portrait: position of the info button: right top of simCanvas */
+
+#infoDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 8vmin;
+  left: 88vmin;
+  width: 8vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+/* (2b) portrait: position of the start/stop sign: just to the left of info button*/
+
+#startStopDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 82vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+/* (2c) portrait: position of the restart button: at the info button */
+
+#restartDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 89vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (2d) portrait: symbols add/subtract one lane */
+
+#lanePlusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6vmin;
+  left: 74vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#laneMinusDiv{
+  position: absolute;
+  top: 1vmin;
+  height: 6min;
+  left: 66vmin;
+  width: 6vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+#debugDiv{
+  position: absolute;
+  top: 25vmin;
+  height: 15vmin;
+  left: 84vmin;
+  width: 15vmin;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+/* (4) portrait: the field for selecting the scenarios; */
+
+#scenarios{
+  position: absolute;
+  top:     76vmin;
+  height:  50vmin;
+  left: 1vmin;
+  width: 40vmin;
+  z-index: 2;
+}
+
+
+
+
+
+/* (5) portrait: sliders: top-div for all three slider fields */
+/* Notice: table elements relevant for font size */
+
+#sliders{ 
+  position: absolute;
+  top: 95vmin;
+  left: 0vmin;
+  width: 54vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 3; /* the higher the integer, the more on top */
+}
+
+/* text layout of sliders: tables override general text spec) */
+
+th{                    /* only used in infotext */
+  font-size: 2.2vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #404060;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+
+/* (5a-c) portrait: nested div's single slider-areas. In landscape, just let them flow
+(no spec), in portrait,  unfortunately DOS  => position by brute force  */
+
+#slidersGen{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 0;
+  width: 50vmin;
+  top: 0;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#slidersIDM{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 49vmin;
+  width: 50vmin;
+  top: 0;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#slidersLC{ 
+  position: absolute;   /* w/respect to outer div */
+  left: 0;
+  width: 46vmin;
+  top: 18vmin;
+  background-color: rgba(0,40,255,0);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+/* (7) portrait: position/size of the colorbox */
+/*
+#colorBox{
+  position: absolute;
+  top:   45vmin;
+  left: 83vmin;
+  width:  14vmin; 
+  z-index: 2;
+}
+*/
+
+} /* end @media filter portrait */
+
+
+
+
+

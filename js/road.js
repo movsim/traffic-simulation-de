@@ -46,8 +46,7 @@ they are specially drawn and externally influenced from the main program
 @param roadLen:         link length [m]
 @param laneWidth:       lane width [m]
 @param nLanes:          #lanes (replaced by roadWidth in mixed traffic)
-@param traj_x:          function arc length u -> phys x coordinate (East)
-@param traj_y:          function arc length u -> phys y coordinate (North)
+@param traj:            [traj_x,traj_y] function arc length u -> (xPhys,yPhys)
 @param densInitPerLane: initial linear density [veh/m/lane]
 @param speedInit:       initial longitudinal speed [m/s]
 @param fracTruck:   initial truck fraction [0-1]
@@ -68,12 +67,12 @@ NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 
 var deepCopying=true;
 
-function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
+function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
 
 
-  //console.log("1. in road cstr: traj_x(0)=",traj_x(0));
+  //console.log("1. in road cstr: traj=",traj);
   this.roadID=roadID;
   this.roadLen=roadLen;
   this.laneWidth=laneWidth;
@@ -146,16 +145,14 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
   this.egoVeh=new vehicle(0,0,0,0,0,"car");
 
 
-  this.traj_x=traj_x; // will be redefined if doGridding
-  this.traj_y=traj_y; // by this.gridTrajectories
-
+  this.traj=trajIn; // will be redefined if doGridding by this.gridTrajectories
+  this.trajGrid=[];
 
   /*########################################################
    set of alternative trajectories including info
    each of the this.trajAlt[r] elements has the form
-   {x: alternative traj_x function(u), e.g., for turning vehicles,
-    y: alternative traj_y function(u),
-    route: vehicles with this route (array of integers) use this traj
+   {xy: alternative trajectory, e.g., for turning vehicles,
+     route: vehicles with this route (array of integers) use this traj
     umin: minimum logical this.u coordinate for using this traj
     umax: maximum logical this.u coordinate
     }
@@ -190,16 +187,13 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
 
   if(this.doGridding){
 
-        this.gridTrajectories(traj_x,traj_y); 
-        this.update_nSegm_tabxy();
-
 
         // defines the variables for user-driven change in road geometry
 
-        this.iPivot=0; // index of nearest element of a user mouse/touchdown
+    this.iPivot=0; // index of nearest element of a user mouse/touchdown
                    // event in {0, ..., nSegm}
-        this.xPivot=0; // x coordinate of this event
-        this.yPivot=0; // y coordinate of this event
+    this.xPivot=0; // x coordinate of this event
+    this.yPivot=0; // y coordinate of this event
 
     // helper array: normalized shift kernel, icKernel=center index of kernel
     // kernel width this.icKernel set at beginning, 
@@ -208,15 +202,36 @@ function road(roadID,roadLen,laneWidth,nLanes,traj_x,traj_y,
     //!! eff kernel smaller if high pow in cos-definition of kernel
     // (this.createKernel)
 
-        this.kernelWidth=0.20*this.roadLen;  
-        this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
-        this.nKernel=2*this.icKernel+1; // uneven number
+    this.kernelWidth=0.20*this.roadLen;  
+    this.icKernel=Math.round(this.nSegm*this.kernelWidth/this.roadLen); 
+    this.nKernel=2*this.icKernel+1; // uneven number
 
-        this.kernel=[];
-        this.createKernel();
+    this.kernel=[];
+    this.createKernel();
+    this.gridTrajectories(this.traj); 
+    this.update_nSegm_tabxy();
+
+    if(true){
+      console.log("\nend doGridding in road cstr: ",
+	//	"this.xtab=",this.xtab,
+		"this.traj[0]=",this.traj[0],
+		"this.traj[0](100)=",this.traj[0](100),
+		"this.trajGrid_x=",this.trajGrid_x,
+		"this.trajGrid_x(100)=",this.trajGrid_x(100),
+	       "");
+    }
+    
   }
   // end transform functions kin road.cstr
-  
+
+  //this.traj=[this.trajGrid_x,this.trajGrid_y]; fuck
+  if(true){
+    console.log("\nend road cstr: ",
+	//	"this.xtab=",this.xtab,
+		"this.traj[0]=",this.traj[0],
+		"this.traj[0](100)=",this.traj[0](100),
+	       "");
+  }
 
 } // cstr
 
@@ -281,42 +296,41 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
 // this.traj_x, this.traj_y (in a save way, also for u<0, u>roadLen defined)
 //######################################################################
 
-road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
-  if(false){console.log("in road.gridTrajectories: roadID=",this.roadID,
+road.prototype.gridTrajectories=function(traj_Ext){
+  if(true){console.log("in road.gridTrajectories: roadID=",this.roadID,
 		       " this.nLanes=",this.nLanes,
-		       " traj_yExt=",traj_yExt);
+		       " traj_Ext=",traj_Ext,
+		       " this.roadLen=",this.roadLen);
 	  }
   for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
- 	this.xtabOld[i]=traj_xExt(i*this.roadLen/this.nSegm);
- 	this.ytabOld[i]=traj_yExt(i*this.roadLen/this.nSegm);
+    this.xtabOld[i]=traj_Ext[0](i*this.roadLen/this.nSegm);
+ 	this.ytabOld[i]=traj_Ext[1](i*this.roadLen/this.nSegm);
 	this.xtab[i]=this.xtabOld[i];
 	this.ytab[i]=this.ytabOld[i];
   }
-
+  console.log("Hier: this.roadLen=",this.roadLen);
   // redefine this.traj_xy by internally defined
   // piecewise linear analytic traj functions
   // this.traj_xy as approx of traj_xy
 
-  this.traj_x=function(u){ // redefine within this.gridTrajectories
-        // restrict u to within roadLen
-	var uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
-	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
-	var iUpper=Math.min(iLower+1, this.nSegm);
-	var rest=this.nSegm*uLoc/this.roadLen-iLower;
-	if(false){
-	//if(this.roadID==10){
-	//if((uLoc<2)||(uLoc>this.roadLen-2)){
-	    console.log("in road.gridTrajectories def this.traj_x: u=",u,
-			" roadLen=",this.roadLen, " this.nSegm=",this.nSegm,
-			" iLower=",iLower," iUpper=",iUpper,
-			" this.xtab[iLower]=",this.xtab[iLower],
-			" this.xtab[iUpper]=",this.xtab[iUpper]);
-	}
+  this.trajGrid_x=function(u){ // 
+  //this.traj[0]=function(u){ // redefine within this.gridTrajectories
+    // restrict u to within roadLen
 
-	return (1-rest)*this.xtab[iLower]+rest*this.xtab[iUpper];
+    var uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
+    var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
+    var iUpper=Math.min(iLower+1, this.nSegm);
+    var rest=this.nSegm*uLoc/this.roadLen-iLower;
+   
+    if(false){
+      console.log("this.trajGrid_x: this.roadLen=",this.roadLen," uLoc=",uLoc," this.nSegm=",this.nSegm," iUpper=",iUpper," iLower=",iLower);
+    }
+
+    return (1-rest)*this.xtab[iLower]+rest*this.xtab[iUpper];
   }
 
-  this.traj_y=function(u){ // redefine within this.gridTrajectories
+  this.trajGrid_y=function(u){ // 
+  //this.traj[1]=function(u){ // redefine within this.gridTrajectories
 	uLoc=Math.min(this.roadLen-1e-6, Math.max(1e-6, u));
 	var iLower=Math.max(Math.floor(this.nSegm*uLoc/this.roadLen), 0);
 	var iUpper=Math.min(iLower+1, this.nSegm);
@@ -324,20 +338,39 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 	return (1-rest)*this.ytab[iLower]+rest*this.ytab[iUpper];
   }
 
+
+  this.fu=this.trajGrid_x;
+  this.trajGrid=[this.trajGrid_x, this.trajGrid_y];
+  //!!!!FUCK bei Arrays kein Zugriff auf this.roadLen usw!!!
+  // Unaufloeslicher Fehler allergroesster Ordnung
+  // kann keine eleganten Arrays (oder auch Objekte) innerhalb Objekte
+  // definieren, wenn diese Attribute des aeusseren Objekts benoetigen
+
+  //console.log("\n\n\n\nHIER this.trajGrid=",this.trajGrid);
+  //console.log("this.trajGrid[0](50)=",this.trajGrid[0](50));
     // test code for this.gridTrajectories
 
-
-    if(this.roadID==1){
-        console.log("end road.gridTrajectories: this.nSegm=",this.nSegm,
+  //this.traj=this.trajGrid
+  if(true){
+    console.log("\n\nend road.gridTrajectories: this.nSegm=",this.nSegm,
 		" this.xtab[0]=",this.xtab[0],
 		" this.xtab[1]=",this.xtab[1],
-		" this.traj_x(0)=",this.traj_x(0),
+		" this.trajGrid_x(0)=",this.trajGrid_x(0),
+		" this.trajGrid_x(0)=",this.trajGrid_x(0),
+		" this.trajGrid_y(0)=",this.trajGrid_y(0),
+		" this.fu(0)=",this.fu(0),
+		" this.traj[0](0)=",this.traj[0](0),
+		//" this.trajGrid[0](0)=",this.trajGrid[0](0),
 		" this.xtab[this.nSegm]=",this.xtab[this.nSegm],
-		" this.traj_x(this.roadLen)=",this.traj_x(this.roadLen)
-		   );
+		" this.traj[0](this.roadLen)=",this.traj[0](this.roadLen),
+		"\n\n !!!ACHTUNG bei Arrays kein Zugriff",
+		"auf this.roadLen usw!",
+		"Daher funzt  road.gridTrajectories hier NICHT!!!",
+		"Aufruf von zB this.trajGrid[0](0) fuehrt zu Fehler",
+		"");
     }
 
-    if(false){
+  if(false){
 	var utab=[];
 	utab[0]=0;
 	console.log("road cstr: traj before and after gridding:");
@@ -352,7 +385,7 @@ road.prototype.gridTrajectories=function(traj_xExt, traj_yExt){
 		" utab=",parseFloat(utab[i]).toFixed(1),
 		" xtabOld=",parseFloat(this.xtabOld[i]).toFixed(1),
 		" xtab=",
-		parseFloat(this.traj_x(i*this.roadLen/this.nSegm)).toFixed(1),
+		parseFloat(this.traj[0](i*this.roadLen/this.nSegm)).toFixed(1),
 		""
 	    );
 	}
@@ -377,10 +410,10 @@ road.prototype.update_nSegm_tabxy=function(){
     var nSegm_per_m=0.1; // nSegm_per_len segments for each m in roadLen
 
     var phiabsCum=0;
-  var phiOld=this.get_phi(0,this.traj_x,this.traj_y);
+  var phiOld=this.get_phi(0,this.traj);
     for (var i=0; i<this.nSegm; i++){
       var phi=this.get_phi((i+0.5)*this.roadLen/this.nSegm,
-			   this.traj_x,this.traj_y);
+			   this.traj);
 	phiabsCum += Math.abs(phi-phiOld);
 	phiOld=phi;
 	//console.log("road.update_nSegm_tabxy: i=",i," phi=",phi);
@@ -392,8 +425,8 @@ road.prototype.update_nSegm_tabxy=function(){
     // notice that this.traj_xy depends on xtab => two for loops
 
     for(var i=0; i<=nSegmNew; i++){ // nSegmNew+1 elements
- 	this.xtabOld[i]=this.traj_x(i*this.roadLen/nSegmNew);
- 	this.ytabOld[i]=this.traj_y(i*this.roadLen/nSegmNew);
+ 	this.xtabOld[i]=this.traj[0](i*this.roadLen/nSegmNew);
+ 	this.ytabOld[i]=this.traj[1](i*this.roadLen/nSegmNew);
     }
 
     for(var i=0; i<=nSegmNew; i++){
@@ -404,27 +437,12 @@ road.prototype.update_nSegm_tabxy=function(){
     this.nSegm=nSegmNew;
     if(false){
         console.log("end road.update_nSegm_tabxy: new this.nSegm=",this.nSegm,
-		" this.traj_y(0)=",this.traj_y(0),
-		" this.traj_y(this.roadLen)=",this.traj_y(this.roadLen)
+		" this.traj[1](0)=",this.traj[1](0),
+		" this.traj[1](this.roadLen)=",this.traj[1](this.roadLen)
 	       );
     }
 
-    if(false){
-	console.log("\nafter update_nSegm_tabxy:");
-	u=this.roadLen-0.5;
-        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
-		    " this.traj_y(u)=",this.traj_y(u));
-	u=this.roadLen;
-        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
-		    " this.traj_y(u)=",this.traj_y(u));
-	var u=0;
-        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
-		    " this.traj_y(u)=",this.traj_y(u));
-	u=0.5;
-        console.log("u=",u," this.traj_x(u)=",this.traj_x(u),
-		    " this.traj_y(u)=",this.traj_y(u));
-    }
-
+ 
 }
 
 
@@ -825,8 +843,8 @@ longitudinal coordinate u of the road calling this method
 
 road.prototype.getNearestUof=function(otherRoad, u){
     var dist2_min=1e9;
-    var xOwn=this.traj_x(u);
-    var yOwn=this.traj_y(u);
+    var xOwn=this.traj[0](u);
+    var yOwn=this.traj[1](u);
     var uReturn=0;
     var duOther=otherRoad.roadLen/otherRoad.nSegm;
     for(var i=0; i<=otherRoad.nSegm; i++){
@@ -879,8 +897,8 @@ road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
 	//	    " filterFun(this.veh[i])=",filterFun(this.veh[i]));
 	if(filterPassed){
 	    var u=this.veh[i].u;
-	    var dist2=Math.pow(xUser-this.traj_x(u),2)
-	        + Math.pow(yUser-this.traj_y(u),2);
+	    var dist2=Math.pow(xUser-this.traj[0](u),2)
+	        + Math.pow(yUser-this.traj[1](u),2);
 	    if(dist2<dist2_min){
 	        success=true;
 	        dist2_min=dist2;
@@ -1087,8 +1105,8 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
     var uReturn,dxReturn,dyReturn;
     for(var i=0; i<=this.nSegm; i++){
 	var u=i*this.roadLen/this.nSegm;
-	var dx=xUser-this.traj_x(u);
-	var dy=yUser-this.traj_y(u);
+	var dx=xUser-this.traj[0](u);
+	var dy=yUser-this.traj[1](u);
 	var dist2=dx*dx+dy*dy;
 	if(dist2<dist2_min){
 	    dist2_min=dist2;
@@ -1100,7 +1118,7 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
 
     // determine sign of v: positive if (-cosphi,sinphi).dr>0
 
-  var phiNorm=this.get_phi(uReturn,this.traj_x,this.traj_y)
+  var phiNorm=this.get_phi(uReturn,this.traj)
       -0.5*Math.PI; // angle in v direction
     var sign_v=(Math.cos(phiNorm)*dxReturn 
 		+Math.sin(phiNorm)*dyReturn > 0) ? 1 : -1;
@@ -1237,7 +1255,7 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
                 // tangential and normal unit vectors
 
 		var uOther=this.getNearestUof(otherRoad,u);
-		var phiOther=otherRoad.get_phi(uOther,this.traj_x,this.traj_y);
+		var phiOther=otherRoad.get_phi(uOther,this.traj);
 		var e=[]; // tangential target unit vector
 		e[0]=Math.cos(phiOther); 
 		e[1]=Math.sin(phiOther); 
@@ -1269,7 +1287,7 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
 
 	    var u=i*this.roadLen/this.nSegm;
 	    var uOther=this.getNearestUof(otherRoad,u);
-	    var phiOther=otherRoad.get_phi(uOther,this.traj_x,this.traj_y);
+	    var phiOther=otherRoad.get_phi(uOther,this.traj);
 	    var e=[];
 	    e[0]=Math.cos(phiOther);
 	    e[1]=Math.sin(phiOther);
@@ -1293,6 +1311,18 @@ road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
 	this.xtab[itab]=this.xtabOld[itab]+deltaX[i];
 	this.ytab[itab]=this.ytabOld[itab]+deltaY[i];
     }
+
+  if(false){
+    console.log("\nend doCRG: this.xtab.length=",this.xtab.length);
+    for(var j=0; j<20; j++){
+      var u=j*this.roadLen/20;
+      console.log("u=",u,
+		  " this.traj[0](u)=",this.traj[0](u),
+		  " this.trajGrid_x(u)=",this.trajGrid_x(u),
+		  " this.trajGrid_y(u)=",this.trajGrid_y(u)
+		 );
+    }
+  }
 } // end doCRG
 
 
@@ -1404,7 +1434,7 @@ road.prototype.finishCRG=function(){
 
     this.update_nSegm_tabxy(); // needs updated this.xytab for traj_xy!! 
 
-
+  //this.traj=[this.trajGrid_x,this.trajGrid_y];
     // test output
 
     if(false){
@@ -2146,8 +2176,8 @@ road.prototype.updateEgoVeh=function(externalEgoVeh){
     // starting at x (East) coordinate x=0; 
     // get_phi=PI/2 if road to North and smaller if East component
 
-    var xRoadAxis=this.traj_x(ego.u)-this.traj_x(0); 
-    var dotxRoadAxis=(0.5*Math.PI-this.get_phi(ego.u,this.traj_x,this.traj_y))*ego.speed; 
+    var xRoadAxis=this.traj[0](ego.u)-this.traj[0](0); 
+    var dotxRoadAxis=(0.5*Math.PI-this.get_phi(ego.u,this.traj))*ego.speed; 
 
 
     // calculate logical accelerations
@@ -2394,8 +2424,8 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
          // only test output
 
          //if(MOBILOK&&(this.veh[i].id===107)){
-        //if(this.veh[i].id===208){//!!!
         if(false){
+        //if(this.veh[i].id==207){
 
 	  console.log("determining MOBILOK by LCmodel.realizeLaneChange:",
 		      " acc=",acc.toFixed(1)," accNew=",accNew.toFixed(1),
@@ -2970,14 +3000,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    console.log("  Action 5: actual transfer");
 	  }
 
-	    // !! MUST use new vehicle(...) Otherwise heineous errors at
-	    // adding new vehicles to road; shallow copy etc NO use!
-
-	  var testVeh // !!influence
-	      = new vehicle(vehConnect.len, vehConnect.width,
-			    uTarget+u-uSource,
-			    lane+offsetLane, speed, vehConnect.type);
-	  testVeh.id=id;
 
 	  // vehicleNeighborhood is deep copy=>do splice actions on original
 	  // Array.splice(position, howManyItems, opt_addedItem1,...) 
@@ -2999,8 +3021,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
           // transform state vars of transferred vehicle
 	  transferredVeh.u=uTarget+u-uSource;
 	  transferredVeh.lane=lane+offsetLane;
+	  transferredVeh.v=transferredVeh.lane;
 
-	  console.log("transferredVeh=",transferredVeh);
+	  // following two settings to perform an immediate LC w/o past memory
+	  transferredVeh.dt_afterLC=0; // !! otherwise, veh may change at once
+	  transferredVeh.laneOld=transferredVeh.lane;
+	  
+	  console.log("\n==============================",
+		      "\ntransferredVeh=",transferredVeh,
+		      "\n==============================");
 
 	  //targetRoad.veh.unshift(transferredVeh); // add at beginning
 	  //targetRoad.veh.push(transferredVeh); // add at end
@@ -4007,24 +4036,24 @@ road.prototype.updateLastLCtimes=function(dt){
 //######################################################################
 /*
 @param u:             actual arclength for which to get direction
-@param traj_x,traj_y: used trajectories 
-                      (use this.traj_x .. for the default)
+@param traj: used trajectories traj_x=traj[0], traj_y=traj[1]
+                      (use this.traj for the default)
 @return direction (heading) of the road in [0,2*pi] (0=East, pi/2=North etc)
 */
 
-road.prototype.get_phi=function(u,traj_x,traj_y){
+road.prototype.get_phi=function(u,traj){
 
     var smallVal=0.0000001;
 
     var du=0.1;
     var uLoc=Math.max(du, Math.min(this.roadLen-du,u));
-    var dx=traj_x(uLoc+du)-traj_x(uLoc-du);
-    var dy=traj_y(uLoc+du)-traj_y(uLoc-du);
+    var dx=traj[0](uLoc+du)-traj[0](uLoc-du);
+    var dy=traj[1](uLoc+du)-traj[1](uLoc-du);
     if((Math.abs(dx)<smallVal)&&(Math.abs(dy)<smallVal)){
       console.log("road.get_phi: id=",this.roadID,
 		  " uLoc+du=",uLoc+du," uLoc-du=",uLoc-du,
-		  " traj_x(uLoc+du)=",traj_x(uLoc+du),
-		  " traj_x(uLoc-du)=",traj_x(uLoc-du),
+		  " traj[0](uLoc+du)=",traj[0](uLoc+du),
+		  " traj[0](uLoc-du)=",traj[0](uLoc-du),
       " error: cannot determine heading of two identical points"); 
       return 0;
     }
@@ -4048,8 +4077,8 @@ road.prototype.get_curv=function(u){
     var smallVal=0.0000001;
 
     var du=0.1;
-    var phiPlus=this.get_phi(u+du,this.traj_x,this.traj_y);
-    var phiMinus=this.get_phi(u-du,this.traj_x,this.traj_y);
+    var phiPlus=this.get_phi(u+du,this.traj);
+    var phiMinus=this.get_phi(u-du,this.traj);
     return 0.5*(phiPlus-phiMinus)/du;
 
 }
@@ -4068,8 +4097,8 @@ see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
 */
 
 road.prototype.get_xPix=function(u,v,scale){
-    var phi=this.get_phi(u,this.traj_x,this.traj_y);
-    return scale*(this.traj_x(u)+v*Math.sin(phi));
+    var phi=this.get_phi(u,this.traj);
+    return scale*(this.traj[0](u)+v*Math.sin(phi));
 }
 
 //######################################################################
@@ -4086,8 +4115,8 @@ see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
 */
 
 road.prototype.get_yPix=function(u,v,scale){
-    var phi=this.get_phi(u,this.traj_x,this.traj_y);
-    return -scale*(this.traj_y(u)-v*Math.cos(phi));
+    var phi=this.get_phi(u,this.traj);
+    return -scale*(this.traj[1](u)-v*Math.cos(phi));
 }
 
  
@@ -4121,8 +4150,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
   var movingObserver=(typeof movingObs === 'undefined')
     ? false : movingObs;
   var uRef=(movingObserver) ? uObs : 0;
-  var xRef=(movingObserver) ? xObs : this.traj_x(0);
-  var yRef=(movingObserver) ? yObs : this.traj_y(0);
+  var xRef=(movingObserver) ? xObs : this.traj[0](0);
+  var yRef=(movingObserver) ? yObs : this.traj[1](0);
 
 
   var smallVal=0.0000001;
@@ -4140,9 +4169,9 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
     this.draw_scaleOld=scale;
     for (var iSegm=0; iSegm<this.nSegm; iSegm++){
       var u=this.roadLen*(iSegm+0.5)/this.nSegm;
-      this.draw_x[iSegm]=this.traj_x(u);
-      this.draw_y[iSegm]=this.traj_y(u);
-      this.draw_phi[iSegm]=this.get_phi(u,this.traj_x,this.traj_y);
+      this.draw_x[iSegm]=this.traj[0](u);
+      this.draw_y[iSegm]=this.traj[1](u);
+      this.draw_phi[iSegm]=this.get_phi(u,this.traj);
       this.draw_cosphi[iSegm]=Math.cos(this.draw_phi[iSegm]);
       this.draw_sinphi[iSegm]=Math.sin(this.draw_phi[iSegm]);
     }
@@ -4168,8 +4197,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       var lSegmPix=scale*factor*lSegm;
       var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
 
-      var xCenterPix= scale*(this.draw_x[iSegm]-this.traj_x(uRef)+xRef);
-      var yCenterPix=-scale*(this.draw_y[iSegm]-this.traj_y(uRef)+yRef);
+      var xCenterPix= scale*(this.draw_x[iSegm]-this.traj[0](uRef)+xRef);
+      var yCenterPix=-scale*(this.draw_y[iSegm]-this.traj[1](uRef)+yRef);
 
 
       ctx.setTransform(cosphi, -sinphi, +sinphi, cosphi, xCenterPix,yCenterPix);
@@ -4181,7 +4210,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
         console.log(
 	  "road.draw: ID=",this.roadID," iSegm=",iSegm,
 	  " this.draw_y[iSegm]=",formd(this.draw_y[iSegm]),
-	  " this.traj_y(this.roadLen-50)=",formd(this.traj_y(this.roadLen-50)),
+	  " this.traj[1](this.roadLen-50)=",formd(this.traj[1](this.roadLen-50)),
 	  //" lSegmPix=",formd(lSegmPix)," wSegmPix=",formd(wSegmPix),
 	  //" xCenterPix=",formd(xCenterPix),
 	  " yCenterPix=",formd(yCenterPix)
@@ -4194,8 +4223,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 
   if(this.drawRoadIDs){
 
-    var xCenterPix= scale*this.traj_x(0.5*this.roadLen);
-    var yCenterPix=-scale*this.traj_y(0.5*this.roadLen);
+    var xCenterPix= scale*this.traj[0](0.5*this.roadLen);
+    var yCenterPix=-scale*this.traj[1](0.5*this.roadLen);
     var textsize=0.022*Math.min(canvas.width,canvas.height);
     var lPix=3.5*textsize;
     var hPix=1.5*textsize;
@@ -4271,8 +4300,11 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
   // select trajectories (non-default only if turning left or right or
   // in roundabout)
 
-  var usedTraj_x=this.traj_x; // default
-  var usedTraj_y=this.traj_y;
+  var usedTraj_x=this.traj[0]; // default
+  var usedTraj_y=this.traj[1]; // default
+
+  if(this.roadID==0){console.log("road.drawVehicles: traj init:",
+				 " usedTraj_x=",usedTraj_x);}
 
     
   
@@ -4310,28 +4342,37 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	    iTraj=itr;
 	    success=true;
 	  }
-	  console.log("vehid=",this.veh[i].id," itr=",itr,
+	  if(false){console.log("vehid=",this.veh[i].id," itr=",itr,
 		      " this.trajAlt[itr].route=",this.trajAlt[itr].route,
-		      " this.veh[i].route=",this.veh[i].route);
+				" this.veh[i].route=",this.veh[i].route);
+		   }
         }
+	console.log("road.drawVehicles: alt traj before:",
+		    " usedTraj_x=",usedTraj_x);
 	if(success && (this.veh[i].u>=this.trajAlt[iTraj].umin)
 	   && (this.veh[i].u<=this.trajAlt[iTraj].umax)){
 	  usedTraj_x=this.trajAlt[iTraj].x;
 	  usedTraj_y=this.trajAlt[iTraj].y;
 	}
+	else{
+	  usedTraj_x=this.traj[0];
+	  usedTraj_y=this.traj[1];
+	}
 	if(true){
-	  console.log("road.drawVehicles: alternative trajectories:",
-		      "success=",success," iTraj=",iTraj," u=",this.veh[i].u);
-	  if(success){
-	    console.log("this.trajAlt[iTraj]=",this.trajAlt[iTraj]);
-	  }
+	  console.log("road.drawVehicles: alt traj:",
+		      "success=",success," iTraj=",iTraj,
+		      " u=",this.veh[i].u.toFixed(1),
+		      " umin=",this.trajAlt[iTraj].umin.toFixed(1),
+		      " umax=",this.trajAlt[iTraj].umax.toFixed(1),
+		      " lane=",this.veh[i].lane,
+		      "\n   usedTraj_x=",usedTraj_x);
 	}
 	  
       }
 	     
 
       this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
-		       speedmin,speedmax,usedTraj_x, usedTraj_y,
+		       speedmin,speedmax,[usedTraj_x,usedTraj_y],
 		       xOffset,yOffset,0);
     }
   }
@@ -4356,7 +4397,7 @@ carImg, truckImg, obstacleImg, scale, speedmin,speedmax,umin,umax as above
 
 */
 
-
+ 
 road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale,
 					    speedmin,speedmax,umin,umax,
 					    otherRoad, uOffset){
@@ -4380,7 +4421,7 @@ road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale
 	if(filterPassed){
 	    this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
 			     speedmin,speedmax,
-			     otherRoad.traj_x,otherRoad.traj_y,
+			     otherRoad.traj,
 			     xOffset,yOffset,uOffset);
 	}
     }
@@ -4409,7 +4450,7 @@ road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale
 //!!!! finally get rid of uOffset; only used in drawVehiclesGenTraj called only in the roundabout scenarios
 
 road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
-				    speedmin,speedmax,traj_x,traj_y,
+				    speedmin,speedmax,traj,
 				    xOffset,yOffset,uOffset){
 
   var drawID=(typeof(displayIDs)==='undefined') ? false : displayIDs; 
@@ -4427,17 +4468,17 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
   // other/alternative trajectories passed in argument;
   // default is normal traj
   
-  var trajLoc_x=(useAltTraj) ? traj_x : this.traj_x;
-  var trajLoc_y=(useAltTraj) ? traj_y : this.traj_y;
-  if(!useAltTraj){du=0;} //!!!! get rid
+  var trajLoc=(useAltTraj) ? traj : this.traj;
 
+  if(!useAltTraj){du=0;} //!!!! get rid
+  d0=0; //!!!
 
     // (2) determine uCenter, vCenter in logical long/lat coordinates
     // v increasing from left to right, 0 @ road center
     // don't use smooth lane shifting if external trajectory used
 
     
-    update_v_dvdt_optical(this.veh[i]); //in paths.js !!! does not work diverge intersection
+    update_v_dvdt_optical(this.veh[i]); // !! in paths.js 
 
     var type=this.veh[i].type;
     var vehLenPix=vehSizeShrinkFactor*scale*this.veh[i].len;
@@ -4452,7 +4493,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     // in pixel coordinates
 
   //!!!!!
-  var phiRoad=this.get_phi(uCenterPhys+du,trajLoc_x,trajLoc_y);
+  var phiRoad=this.get_phi(uCenterPhys+du,trajLoc);
 
     var phiVehRel=(this.veh[i].speed<0.1)
 	? 0
@@ -4491,9 +4532,9 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
     // xOffset=0 (two terms cancel out) for normal fixed viewpoint 
     // (movingObserver=false)
 
-    var xCenterPix= scale*(trajLoc_x(uCenterPhys+du) + vCenterPhys*sphiRoad
-			   -xOffset); // -xOffset=-trajLoc_x(uRef)+xRef)
-    var yCenterPix=-scale*(trajLoc_y(uCenterPhys+du) - vCenterPhys*cphiRoad
+    var xCenterPix= scale*(trajLoc[0](uCenterPhys+du) + vCenterPhys*sphiRoad
+			   -xOffset); // -xOffset=-trajLoc[0](uRef)+xRef)
+    var yCenterPix=-scale*(trajLoc[1](uCenterPhys+du) - vCenterPhys*cphiRoad
 			   -yOffset);
 
 

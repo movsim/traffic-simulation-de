@@ -131,7 +131,7 @@ stationaryDetector.prototype.display=function(textsize){
 	
  
 
-    var phi=this.road.get_phi(this.u,this.road.traj_x,this.road.traj_y);
+    var phi=this.road.get_phi(this.u,this.road.traj);
     var cphi=Math.cos(phi);
     var sphi=Math.sin(phi);
     
@@ -150,10 +150,10 @@ stationaryDetector.prototype.display=function(textsize){
     var detLineDist=2;     // dist of the loops of double-loop detector [m]
     var detLineLength=this.road.nLanes*this.road.laneWidth;
 
-    var xCenterPix1=  scale*this.road.traj_x(this.u-0.5*detLineDist);
-    var yCenterPix1= -scale*this.road.traj_y(this.u-0.5*detLineDist);//minus!!
-    var xCenterPix2=  scale*this.road.traj_x(this.u+0.5*detLineDist);
-    var yCenterPix2= -scale*this.road.traj_y(this.u+0.5*detLineDist); 
+    var xCenterPix1=  scale*this.road.traj[0](this.u-0.5*detLineDist);
+  var yCenterPix1= -scale*this.road.traj[1](this.u-0.5*detLineDist);//minus!!
+    var xCenterPix2=  scale*this.road.traj[0](this.u+0.5*detLineDist);
+    var yCenterPix2= -scale*this.road.traj[1](this.u+0.5*detLineDist); 
     var wPix=scale*detLineWidth;
     var lPix=scale*detLineLength;
 

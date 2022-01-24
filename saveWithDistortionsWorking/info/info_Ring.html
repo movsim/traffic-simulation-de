@@ -1,0 +1,95 @@
+<!-- edit in development directory; copied to public html -->
+
+<h1>Ring Road and Phantom Traffic Jams</h1>
+
+
+The microscopic ring-road simulation scenario shows three-lane
+vehicular traffic in a 
+closed system, symbolized by a ring road  ("Indianopolis").
+We simulate two types of vehicles, "cars" (small, color-coded by
+speed), and "trucks" 
+(bigger and darker). The vehicle types 
+are distinguished by the parameters of the
+<a href="./IDM.html"> <emph>Intelligent-Driver Model (IDM)</emph> </a>
+which is a representative of the class of <emph>car-following models</emph>. 
+For simplicity, 
+we assume symmetric ("American") lane-changing and lane-usage
+    rules, i.e., one can pass also on the right lane, and trucks can
+    drive on the left lane whenever their drivers want to do it.
+<p>
+The dynamics depends essentially on the average vehicle density rho,
+    which is 
+the main control parameter in closed systems. 
+In the simulations, you can vary the density. On increasing the
+      density, new vehicles are "dropped at locations, where 
+there is sufficiently space. On decreasing the density, 
+arbitrarily selected vehicles are
+      just removed.
+The following density ranges
+    depend on the number and distibution of trucks and can vary from
+    simulation to simulation.
+<ul>
+<li>
+ Density rho < 8 vehicles/km/lane:
+    Free traffic. Only in very rare cases cars are blocked by two
+	parallel-driving trucks.
+<li>
+rho = 8..15 veh./km/lane: Queues of vehicles
+    behind trucks become more frequently
+<li>
+ rho = 15..25 veh./km/lane: Traffic becomes so dense that, on average,
+ also	car-drivers drive more slowly than the maximum speed of
+	trucks.
+Therefore, there are rarely distinct queues behind trucks. Traffic is
+	dense, but yet without congestions.
+<li>
+ rho = 25..55 veh./km/lane:
+the initially nearly homogeneous
+traffic flow becomes unstable and small perturbations
+(caused by the trucks) develop to one or more "phantom" traffic jams
+ emerging "out of
+	nothing"! Notice that the stop-and go waves propagate 
+<i>against</i> the driving direction.
+<li>
+rho>50 veh./km/lane: Several regions with
+    standing traffic separated by regions where vehicles move slowly.
+</ul>
+
+<h2> Feedback Mechanism for Traffic Jams </h2>
+
+Assume that one car brakes a little bit (initial perturbation).
+As a consequence, the driver of the car
+behind has to brake as well to 
+maintain the safety distance. Because the braking deceleration
+is finite, the gap between the two vehicle nevertheless becomes too
+low, and the driver of the car behind has to
+brake even more to regain the correct safety distance.
+As a consequence, the driver of the <i>next</i> vehicle behind has to brake
+even more and so on ...
+Besides this destabilizing mechanism, the relaxation to a certain
+gap-dependent local equilibrium velocity acts as a stabililizing
+mechanism.
+For sufficiently small (or very large) traffic densities, this latter
+effects is dominating and perturbations die out
+
+<h2> Universal properties of Traffic jams </h2>
+
+Such stop-and go waves and other kinds of congested
+traffic have remarkably universal features characterized by the
+following <i> "Traffic jam constants"</i>:
+
+<ul>
+<li> The density waves propagate <i> against </i> the direction of
+the traffic flow at a velocity of about 15 km/h which does not
+depend on the system size, the
+initial or boundary conditions or on the perturbations
+<li> For equal external conditions, 
+the ouflow of all types of moving downstream fronts of congested
+  traffic (per lane) 
+is about the same. This includes
+stop-and-go waves (this scenario <b>Ring Road</b> and also the <b>On-Ramp
+    scenario</b>)
+but also dissolving 
+queues in city traffic when the traffic light gets green.
+</ul>
+

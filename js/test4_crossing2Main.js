@@ -182,7 +182,7 @@ var road2Len=0.48*refSizePhys-mainroadWidth;
 var road3Len=0.48*refSizePhys+mainroadWidth;
 
 // def trajectories (do not include doGridding, only for few main scenarios)
-// !! cannot define diretly function trajNet_x[0](u){ .. } etc
+// !! cannot define directly function trajNet_x[0](u){ .. } etc
 
 
 function traj0_x(u){ // physical coordinates
@@ -215,8 +215,8 @@ function traj3_y(u){
   return center_yPhys-mainroadWidth+u;
 }
 
-var traj_x=[traj0_x,traj1_x,traj2_x,traj3_x];
-var traj_y=[traj0_y,traj1_y,traj2_y,traj3_y];
+var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
+	     [traj3_x,traj3_y] ]; 
 
 
 
@@ -225,7 +225,7 @@ var traj_y=[traj0_y,traj1_y,traj2_y,traj3_y];
 // general
 
 var roadImages=[];
-for(var ir=0; ir<traj_x.length; ir++){
+for(var ir=0; ir<trajNet.length; ir++){
   roadImages[ir]=[];
   for(var j=0; j<2; j++){roadImages[ir][j]=new Image();}
 }
@@ -236,7 +236,7 @@ var nLanes=[nLanes_main,nLanes_main,nLanes_sec,nLanes_sec];
 
 // network not yet defined here!!
 
-for(var ir=0; ir<traj_x.length; ir++){
+for(var ir=0; ir<trajNet.length; ir++){
   roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
   roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
 }
@@ -256,19 +256,19 @@ density=0;
 
 var isRing=false;
 var road0=new road(0,road0Len,laneWidth,nLanes_main,
-		   traj_x[0], traj_y[0],
+		   trajNet[0],
 		   density, speedInit,fracTruck, isRing);
 
 var road1=new road(1,road1Len,laneWidth,nLanes_main,
-		   traj_x[1], traj_y[1],
+		   trajNet[1],
 		   density, speedInit,fracTruck, isRing);
 
 var road2=new road(2,road2Len,laneWidth,nLanes_sec,
-		   traj_x[2], traj_y[2],
+		   trajNet[2],
 		   density, speedInit,fracTruck, isRing);
 
 var road3=new road(3,road3Len,laneWidth,nLanes_sec,
-		   traj_x[3], traj_y[3],
+		   trajNet[3],
 		   density, speedInit,fracTruck, isRing);
 
 var route0=[road0.roadID];  // mainroad needs no route

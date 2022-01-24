@@ -1,0 +1,611 @@
+/* (2018-06-14) adapted from styleTrafficSimulationDe.css
+for routing game
+*/
+
+
+/*#############################################################*/
+/* basic settings for all aspect ratios */
+/*#############################################################*/
+
+
+body{
+  margin: 0;
+  padding: 0;
+  font-family: 'helvetica', sans-serif;
+                 /*font-size: 14px;*/
+  font-size: 2vmin;
+  text-align: center;
+  color: #404050;   /* text color */
+  background-color: #FFFFFF;
+}
+
+
+/* <h2>, <h3> not used in the main sim page but in some help pages */
+
+ h1{
+     font-family: helvetica, sans-serif;
+     font-size: 2.6vmin;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h2{
+     font-family: helvetica, sans-serif;
+     font-size: 2.4vh;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+ h3{ 
+     font-family: sans-serif;
+     font-size: 2.2vmin; 
+     font-weight: bold;
+     font-style: italic;
+     color: #446;
+     padding-top:0px;
+ }
+
+button{
+     font-size: 2.2vmin; 
+}
+
+ #gameSliderTitle{
+     font-size: 2.5vmin; 
+     font-weight: bold; 
+     color: #dd0033;
+ }
+ 
+/* standard: white */
+
+#container{
+    margin: 0em auto;
+    width: 98vw;
+    text-align: left;
+    background-color: #FFFFFF;
+}
+
+/* suppresses borders on images used as links */
+
+img {
+    border-width: 0;
+}
+
+
+/* general links */
+
+a {
+	color: #07A;
+	font-weight: normal;
+ }
+
+a:link {
+	color: #07A;
+	text-decoration: none;
+}
+
+a:visited {
+	color: #957;
+	text-decoration: none;
+}
+
+a:active {
+	text-decoration: underline;
+	background-color: #F80;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #07A;
+}
+
+
+th{                    /* only used in infotext */
+  font-size: 2.2vmin;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #000000;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.8vmin; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+table.infoTable {
+   border: 0px ridge rgb(130,130,130); /* spacing, padding DOS with border-collapse */
+   border-collapse: collapse; 
+   background-color: rgba(255,255,255,0.7);
+}
+table.infoTable td {
+   border: 2px ridge rgb(130,130,130);
+}
+
+ul { margin-left: 2vmin; padding: 0vmin; }
+
+ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
+    margin-left: 5px;
+    margin-right: 0px;
+    padding-left: 10px;
+    padding-right: 0px;
+}
+
+
+/*#############################################################
+ Game: fixed aspect ratio! 
+ here: size limited by HEIGHT; second switch: size limited by width
+ -aspect-ratio must be the same as critAspectRatio in js file! 
+#############################################################*/
+
+@media all and  (min-aspect-ratio: 17/10){
+
+
+h2{
+     font-family: helvetica, sans-serif;
+     font-size: 2.4vh;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+ }
+
+    
+#contents{ /*limited by height*/
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  99.8vw;  /* 6/5 */
+  height: 99.8vh;
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+
+#clearHighscoresDiv{ /*limited by height*/
+  position: absolute;
+  top: 7vh;
+  left: 2vh;
+  height: 4vh;
+  width: 14vh;
+  font-size: 2.0vh; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+#startStopDiv{ /* limited by height */
+  position: absolute;
+  top: 17vh;
+  left: 39vh;
+  height: 8vh;
+  width: 8vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#restartDiv{ /* limited by height */
+  position: absolute;
+  top: 17vh;
+  left: 49vh;
+  height: 8vh;
+  width: 8vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#gameRampMeteringDiv{ /*limited by height "Play Ramp-Metering Game" */
+  position: absolute;
+  top: 28vh;
+  left: 27vh;
+  height: 7vh;
+  width: 20vh;
+  font-size: 2.2vh; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#playlinksRampMeteringGame{ /* limited by height; "Go to Routing Game" */
+  position: absolute;
+  top: 40vh;
+  left: 27vh;
+  height: 0vh;
+  width: 20vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+
+#slidersRampMeteringGame{ /* limited by height "Onramp flow" */
+  position: absolute;
+  top: 30.5vh;
+  left: 121vh;
+  height: 11vh;
+  width: 47vh;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#infotextRampMeteringGame{ /* limited by height "Choose your weapons" */
+  position: absolute;
+  border:1px solid black;
+  top: 43.5vh;
+  left: 103vh;
+  width: 60vh;
+  height: 35vh;
+  text-align: left;
+  font-size: 2vh;
+  padding-top: 0vh;
+  padding-left: 2.5vh;
+  padding-right: 2.5vh;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+}
+
+
+
+/* ################################################# */
+/* routing game    limited by height                 */
+/* ################################################# */
+
+
+#gameRoutingDiv{ /*limited by height "Play Routing Game"*/
+  position: absolute;
+  top: 27vh;
+  left: 39vh;
+  height: 0vh;
+  width: 20vh;
+  font-size: 2.2vh; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#playlinksRoutingGame{ /* limited by height; "Go to Ramp-Metering Game" */
+  position: absolute;
+  top: 37vh;
+  left: 39vh;
+  height: 0vh;
+  width: 20vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+#sliderMainRoutingGame{ /* limited by height "Deviation Use" */
+  position: absolute;
+  top: 18vh;
+  height: 9vh;
+  left: 85vh;
+  width: 55vh;
+  background-color: rgba(255,255,255,1);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#slidersRoutingGame{  /* limited by height "Inflow" */
+  position: absolute;
+  top: 42vh;
+  left: 115vh;
+  height: 8vh;
+  width: 51vh;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; 
+}
+
+
+#infotextRoutingGame{  /* limited by height "Playing Directions" */
+  position: absolute;
+  border:1px solid black;
+  top: 53vh;
+  left: 115vh;
+  width: 46vh;
+  height: 30vh;
+  text-align: left;
+  font-size: 2vh;
+  padding-top: 0vh;
+  padding-left: 2.5vh;
+  padding-right: 2.5vh;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+}
+
+
+
+
+
+/* ################################################# */
+/* bottom panel    limited by height                 */
+/* ################################################# */
+
+#impressum{ /* limited by height */ 
+  position: absolute;
+  top: 95.5%;  /* bottom: bug in Safari */
+  left: 120vh;
+  height: 0vh; /* to omit semitransp background (width needed for text) */
+  width: 15vh;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.5vh;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#linkDiv{ /* limited by height */ 
+  position: absolute;
+  top: 95.5%; 
+  left:   74vh;
+  z-index: 2;
+} 
+
+#infoFlags{ /* limited by height */ 
+  position: absolute;
+  top:   94.5%;
+  right:   2vh;
+  width:  16vh; /* no height */
+  z-index: 2;
+}
+
+
+
+
+} /* end @media filter limited by height  */
+
+
+
+
+/*#############################################################
+ Game: fixed aspect ratio! 
+ here: size limited by WIDTH
+ -aspect-ratio must be the same as critAspectRatio in js file! 
+#############################################################*/
+
+@media all and  (max-aspect-ratio: 17/10){
+
+
+
+h2{
+     font-family: helvetica, sans-serif;
+     font-size: 1.4vw;
+     font-weight: bold;
+     color: #446;
+     padding-top:0px;
+}
+
+
+button{
+     font-size: 1.4vw; 
+}
+
+th{                    /* only used in infotext */
+  font-size: 1.4vw;
+  font-weight: bold; 
+  color: #404060;      /* text color */
+
+}
+
+td{
+  font-size:1.1vw; 
+  font-weight: bold; 
+  color: #000000;   /* only WITHOUT quotes here, not "#404060" etc */
+}
+
+td.important{
+  font-size:1.1vw; 
+  font-weight: bold; 
+  color: #dd0033;
+}
+
+
+
+
+
+
+#contents{  /*limited by width*/
+  position: absolute;
+  left:   0vw;
+  top:   0vmin;
+  width:  99.8vw; 
+  height: 58vw;  /* vw OK */
+  margin-right: 0vw;
+  margin-left: 0vw;
+  z-index: 1;
+}
+
+#clearHighscoresDiv{ /*limited by width*/
+  position: absolute;
+  top: 4vw;
+  left: 1vw;
+  height: 2.4vw;
+  width: 8vw;
+  font-size: 1.2vw; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+
+#startStopDiv{ /*limited by width*/
+  position: absolute;
+  top: 10vw;
+  left: 23vw;
+  height: 5vw;
+  width: 5vw;
+  z-index: 2;
+}
+
+#restartDiv{ /*limited by width*/
+  position: absolute;
+  top: 10vw;
+  left: 29vw;
+  height: 5vw;
+  width: 5vw;
+  z-index: 2;
+}
+
+
+#gameRampMeteringDiv{ /*limited by width "Play Ramp-Metering Game" */
+  position: absolute;
+  top: 16vw;
+  left: 16vw;
+  height: 4vw;
+  width: 12vw;
+  font-size: 1.4vw; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#playlinksRampMeteringGame{ /* limited by width; "Go to Routing Game" */
+  position: absolute;
+  top: 23vw;
+  left: 16vw;
+  height: 0vw;
+  width: 12vw;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+
+
+
+/* ################################################# */
+/* Ramp metering game     limited by width           */
+/* ################################################# */
+
+
+#slidersRampMeteringGame{ /* limited by width "Onramp flow" */
+  position: absolute;
+  top: 17vw;
+  left: 70.5vw;
+  height: 7vw;
+  width: 28vw;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+#infotextRampMeteringGame{  /* limited by width "Choose your weapons" */
+  position: absolute;
+  border:1px solid black;
+  top: 25vw;
+  left: 61.5vw;
+  width: 34vw;
+  height: 21vw;
+  text-align: left;
+  font-size: 1.2vw;
+  padding-top: 0vh;
+  padding-left: 1.5vw;
+  padding-right: 1.5vw;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+}
+
+
+
+
+/* ################################################# */
+/* Routing  game     limited by width                */
+/* ################################################# */
+
+#gameRoutingDiv{ /*limited by width  "Play Routing Game" */
+  position: absolute;
+  top: 16vw;
+  left: 23vw;
+  height: 5vw;
+  width: 12vw;
+  font-size: 1.4vw; 
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#playlinksRoutingGame{ /* limited by width; "Go to Ramp-Metering Game" */
+  position: absolute;
+  top: 23vw;
+  left: 23vw;
+  height: 0vw;
+  width: 12vw;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+
+
+#sliderMainRoutingGame{ /* limited by width "Deviation Use" */
+  position: absolute;
+  top: 10vw;
+  height: 5.5vw;
+  left: 50vw;
+  width: 30vw;
+  background-color: rgba(255,255,255,1);
+  z-index: 2; 
+}
+
+#slidersRoutingGame{ /* limited by width "Inflow" */
+  position: absolute;
+  top: 24vw;
+  height: 5vw;
+  left: 68vw;
+  width: 30vw;
+  background-color: rgba(255,255,255,0.5);
+  z-index: 2;
+}
+
+#infotextRoutingGame{ /* limited by width "Playing Directions" */
+  position: absolute;
+  border:1px solid black;
+  top: 30vw;
+  left: 68vw;
+  width: 26vw;
+  height: 18vw;
+  text-align: left;
+  font-size: 1.2vw;
+  padding-top: 0vw;
+  padding-left: 2vw;
+  padding-right: 2vw;
+  background-color: rgba(255,255,255,1.0);
+  overflow:auto;  
+  z-index: 2; 
+}
+
+
+
+/* ################################################# */
+/* bottom panel   limited by width                   */
+/* ################################################# */
+
+#impressum{ /* limited by width */ 
+  position: absolute;
+  top: 55.8vw;  /* bottom: bug in Safari */
+  left: 70vw;
+  height: 0vw;
+  width: 9vw;
+  background-color: rgba(255,255,255,0.7);
+  font-size: 1.0vw;
+  z-index: 2; /* the higher the integer, the more on top */
+}
+
+#linkDiv{ /*limited by width*/ 
+    position: absolute;
+  top: 55.8vw;  /* bottom: bug in Safari */
+  left:   41vw;
+  z-index: 2;
+} 
+
+#infoFlags{ /* limited by width */
+  position: absolute;
+  top:   55.2vw;
+  right:   1.2vw;
+  width:  9vw; /* no height */
+  z-index: 2;
+}
+
+
+
+
+} /* end @media filter limited by width  */
+
+
+
+
+/*#########################################################*/
+/* no addl settings hendheld-type devices with small screen */
+/*#########################################################*/

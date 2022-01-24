@@ -338,7 +338,7 @@ function updateRampGeometry(){
 
   //!!! necessary, since roads internal tables!
 
-  ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
+  ramp.gridTrajectories([trajRamp_x,trajRamp_y]); 
   //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
 //	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
 //	     );
@@ -376,11 +376,11 @@ var speedInit=20; // IC for speed
 // last arg = doGridding (true: user can change road geometry)
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
-		      traj_x,traj_y,
+		      [traj_x,traj_y],
 		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
-		    trajRamp_x,trajRamp_y,
+		    [trajRamp_x,trajRamp_y],
 		  density, speedInit, fracTruck,isRing,userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
@@ -706,8 +706,8 @@ function drawSim() {
     ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin_col,vmax_col,0,ramp.roadLen,
 			movingObserver,0,
-			center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
-			center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
+			center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
+			center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,

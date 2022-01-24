@@ -1,6 +1,7 @@
 
-//var userCanDistortRoads=false;
-var userCanDistortRoads=true;
+// !!!! userCanDistortRoads not possible in new version
+// because var functions cannot be passed if manipulated inside
+var userCanDistortRoads=false; //!!! Not possible in new version; f... 
 var userCanDropObjects=true;
 
 /*######################################################
@@ -107,14 +108,15 @@ var truck_width=7;
 // on constructing road, road elements are gridded and interna
 // road.traj_xy(u) are generated. The, traj_xy*Init(u) obsolete
 
-function traj_x(u){
+function trajIn_x(u){
     return center_xPhys + roadRadius*Math.cos(u/roadRadius);
 }
 
-function traj_y(u){
+function trajIn_y(u){
     return center_yPhys + roadRadius*Math.sin(u/roadRadius);
 }
 
+var trajIn=[trajIn_x,trajIn_y];
 
 //##################################################################
 // Specification of logical road 
@@ -125,7 +127,7 @@ var roadID=1;
 var speedInit=20; // IC for speed
 var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js
 

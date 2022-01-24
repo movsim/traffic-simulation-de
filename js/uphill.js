@@ -1,5 +1,7 @@
+// !!!! userCanDistortRoads not possible in new version
+// because var functions cannot be passed if manipulated inside
+var userCanDistortRoads=false; //!!! Not possible in new version; f... 
 
-var userCanDistortRoads=true;
 var userCanDropObjects=true;
 
 //#############################################################
@@ -191,7 +193,8 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // m/s
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
+		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing, 
 		      userCanDistortRoads);
 

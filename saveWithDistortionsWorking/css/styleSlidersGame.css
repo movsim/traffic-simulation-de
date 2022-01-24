@@ -1,0 +1,154 @@
+/*###########################################*/
+/* sliders */
+/*###########################################*/
+
+/* html5 slider appearence */
+/* stupidly need separately firefox (-moz-*) and chrome (-webkit-*)*/
+/* http://danielstern.ca/range.css/#/ */
+
+
+/*#############################################################
+ Game: fixed aspect ratio! 
+ here: size limited by HEIGHT
+ -aspect-ratio must be the same as critAspectRatio in js file! 
+#############################################################*/
+
+@media all and  (min-aspect-ratio: 17/10){
+
+
+input[type=range]{
+  width: 16vh;
+  height: 2.5vh;
+  background: #bbbbc5;
+  -moz-appearance: none;
+
+}
+
+
+/* stupidly, does not work comma-separated with webkit*/
+input[type=range]::-moz-range-track{
+  width: 100%;  /* !!! here ONLY relative values possible!!!! */
+  height: 2.5vh;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: #ddddf5;
+  border-radius: 1px;
+  border: 0.2px solid #010101;
+}
+
+
+input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 3.5vh;
+  width: 1.0vh;
+  border-radius: 0.5vh;
+  background: #666699;
+  cursor: pointer;
+}
+
+
+input[type=range] {
+  -webkit-appearance: none;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 1.7vh;
+  cursor: pointer;
+  box-shadow: 3px 3px 3px #000000, 0px 0px 1px #0d0d0d;
+  background: #bbbbc5;;
+  border-radius: 1.3px;
+  border: 0.1vh solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 2.5vh;
+  width: 2.0vh;
+  border-radius: 0.5vh;
+  background: #666699;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -0.5vh; /* 0.5 (trackWidth - thumbWidth) */
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #ddddee;
+}
+
+}
+
+
+/*#############################################################
+ Game: fixed aspect ratio! 
+ here: size limited by WIDTH
+ -aspect-ratio must be the same as critAspectRatio in js file! 
+#############################################################*/
+
+
+@media all and  (max-aspect-ratio: 17/10){
+
+
+input[type=range]{
+  width: 9.5vw;
+  height: 1.5vw;
+  background: #bbbbc5;
+  -moz-appearance: none;
+
+}
+
+
+/* stupidly, does not work comma-separated with webkit*/
+input[type=range]::-moz-range-track{
+  width: 100%;  /* !!! here ONLY relative values possible!!!! */
+  height: 1.5vw;
+  cursor: pointer;
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  background: #ddddf5;
+  border-radius: 1px;
+  border: 0.2px solid #010101;
+}
+
+
+input[type=range]::-moz-range-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 2.2vw;
+  width: 0.6vw;
+  border-radius: 0.4vw;
+  background: #666699;
+  cursor: pointer;
+}
+
+
+input[type=range] {
+  -webkit-appearance: none;
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track { /*chrome*/
+  height: 1.0vw;
+  cursor: pointer;
+  box-shadow: 2px 2px 2px #000000, 0px 0px 1px #0d0d0d;
+  background: #bbbbc5;;
+  border-radius: 1.3px;
+  border: 0.1vw solid #010101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  border: 1px solid #000000;
+  height: 1.6vw;
+  width: 1.2vw;
+  border-radius: 0.3vw;
+  background: #666699;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -0.3vw; /* 0.5 (trackWidth - thumbWidth) */
+}
+input[type=range]:focus::-webkit-slider-runnable-track {
+  background: #ddddee;
+}
+
+}

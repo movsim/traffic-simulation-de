@@ -1,0 +1,82 @@
+<!-- edit in development directory; copied to public html -->
+
+<h1>Boundary Conditions</h1>
+<p>
+Depending on the simulation scenario, we use <i> periodic</i>
+and <i>open</i> boundary conditions. 
+<br><br>
+
+<h3> Periodic Boundary Conditions </h3>
+
+<p> 
+These apply to the ring-road scenario. These conditions are easy:
+<ul class="red">
+<li> First, one numbers the vehicles from 1 to n with 1 the first and
+  n the last vehicle on a given lane. The first vehicle can be chosen
+  arbitrarily.
+<li> Vehicles 2 to n follow their respective leaders. The leader of Vehicle 1,
+  however, is  assigned to be Vehicle n, so the approaching rate for
+  vehicle 1 is given by Delta v<sub>1</sub> = v<sub>n</sub> - v<sub>1</sub>, and
+  the gap by s<sub>1</sub> =
+  x<sub>1</sub>-x<sub>n</sub>-l<sub>n</sub>-L, where l<sub>n is the
+  length of the n'th vehicle, and L the circumference of the ring
+  road.
+</ul>
+
+<h3> Open Boundary Conditions </h3>
+
+These conditions are more tricky. Specifically, one has to distinguish
+ between outflow and inflow boundary conditions.
+ 
+<h4> Outflow Boundary Conditions </h4>
+
+Here, we assume just a free road, i.e., the gap of the first vehicle
+of the simulation is just set to infinity, so this vehicle accelerates
+freely until it is taken out of the simulation once it crosses the end
+of the simulated road section.
+
+<h4> Inflow Boundary Conditions </h4>
+
+These are the most tricky ones since the requested inflow cannot
+always be accomodated by the road, particularly if high inflows are
+set by the sliders, or a traffic jam or
+stop-and-go wave propagates to the upstream end. In the simulator, we
+do the following:
+
+<ul class="red">
+
+ <li> Calculate the time headway as the inverse of the actually set inflow
+
+ <li> After this time headway has elapsed, try to insert a new vehicle
+ on the other lane as the last one (notice: it would be better to
+ select the lane with the largest gap) 
+
+ <li> The insertion is successfull if the (bumper-to-bumper) gap is
+ larger than a minimum which is set to a fixed value of 27 m. 
+
+ <li> If the insertion attempt is successful, the vehicle will be
+ inserted at the beginning (x=0) at a speed corresponding to the
+ steady-state speed for this gap. Otherwise, the vehicle attempting to
+ enter is discarded (one could also add it to a buffer of waiting
+ vehicles but this would make the simulation less reactive). In any
+ case, the time interval since the last attempt is reset to zero and
+ the next insertion attempt will be done after a new time headway
+ (calculated with the actual inflow request) has elapsed. 
+
+</ul>
+
+This makes sure that the requested inflow is accepted whenever this is
+possible, and  no crashes occur otherwise, i.e., when the upstream end
+of the road is congested and/or the
+demand is too high.
+
+<hr>
+
+    <address><a href="mailto:&#109;&#097;&#114;&#116;&#105;&#110;&#064;&#109;&#116;&#114;&#101;&#105;&#098;&#101;&#114;&#046;&#100;&#101;">
+Martin Treiber</a></address>
+<!-- Created: Mon Apr 19 21:11:03 CEST 1999 -->
+<!-- hhmts start -->
+<!--Last modified: Thu May 26 12:12:25 CEST 2011-->
+<!-- hhmts end -->
+  </body>
+</html>

@@ -189,7 +189,8 @@ var roadID=1;
 var speedInit=20; // IC for speed
 var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,traj_x,traj_y,
+var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
+		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing,
 		      userCanDistortRoads);
 network[0]=mainroad;  // network declared in canvas_gui.js

@@ -1,0 +1,311 @@
+<!-- edit in development directory; copied to public html -->
+
+<h1>The Intelligent-Driver Model and its Variants</h1>
+<p>
+The basis model for the longitudinal
+ dynamics, i.e., accelerations and braking decelerations of the
+ drivers, is the 
+<a href="https://xxx.uni-augsburg.de/abs/cond-mat/0002177">
+Intelligent-Driver Model (IDM)</a>. In the actual simulation, we use a
+ variant of it, the Adaptive Cruise Control Model (ACC Model), see the
+ book <a href="https://www.springer.com/physics/complexity/book/978-3-642-32459-8">Traffic
+ Flow Dynamics</a>, Chapter 11 (it's a free sample chapter).
+<br>
+
+<h2> Model Structure </h2>
+
+<p> 
+The IDM and the ACC model are <i>car-following model</i>. In
+  such models, 
+
+<ul class="red">
+<li> The influencing factors (model input) are the own speed <i>v</i>, the
+  bumper-to-bumper gap <i>s</i> to the leading vehicle, and the relative
+  speed (speed difference) <i>&Delta; v = v-v<sub>lead</sub></i> of
+  the two vehicles (positive when approaching). 
+<li> The model output is the acceleration <i>dv/dt</i> chosen by the driver
+  for this situation.
+<li> The model <i> parameters</i> describe the driving style, i.e.,
+  whether the simulated driver drives slow or fast, careful or
+  reckless, and so on: They will be described in
+  detail <a href="#IDMparameters">below.</a> 
+</ul>
+Notice that, in contrast to car-following,
+lane-changing decisions depend on all  neighboring
+vehicles (see the lane-changing model <a href="./info_MOBIL.html">MOBIL</a>).
+
+
+<h2> Model Equations </h2>
+
+<p>The IDM model equations read as follows:
+<center>
+<p>
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "https://www.traffic-simulation.de/info/IDMv.png" width="80%" align="center" 
+                          alt = "IDM acceleration equation">
+</center>
+<p> 
+where
+
+<center>
+<p>
+    <!-- need absolute link if loaded by javaScript -->
+<img src = "https://www.traffic-simulation.de/info/IDMsstar.png" width="80%" align="center" 
+                   alt = "relation for desired distance">
+</center>
+<p>
+Furthermore, to close this system (one dynamical equation for the two
+unknown quantities v and s), the gap s obeys its own kinematic
+equation since the changing rate of the gap is just the relative speed:
+
+<br><br>
+<center>
+  <i>ds/dt=&#8722; &Delta; v</i>
+</center>
+<br><br>
+
+The IDM acceleration is divided into a "desired" acceleration 
+<i>a [1 &#8722; (<sup>v</sup>/<sub>v<sub>0</sub></sub>)<sup>&delta;</sup>]</i> on a free
+road (typically <i>&delta;=4</i>), 
+and braking decelerations induced by the front vehicle.
+The acceleration on a free road decreases from the initial
+      acceleration a to zero when approaching the "desired speed"
+      <i>v<sub>0</sub></i>.
+<br><br>
+The braking term is based on a comparison between the "desired
+      dynamical distance" <i>s<sup>*</sup></i>, and the actual gap <i>s</i> to the
+      preceding vehicle. If the actual gap is approximatively equal to
+      <i>s<sup>*</sup></i>, then the breaking deceleration essentially
+      compensates the free acceleration part, so the resulting
+      acceleration is nearly zero. This means, <i>s<sup>*</sup></i>
+      corresponds to the gap when following other vehicles in steadily
+      flowing traffic. 
+In addition, <i>s<sup>*</sup></i> increases dynamically when
+      approaching slower vehicles and decreases when the front vehicle
+      is faster. As a consequence,
+the imposed deceleration increases with
+<ul class="red">
+<li> decreasing distance to the front vehicle (one wants to maintain a
+	certain "safety distance")
+<li> increasing own speed (the safety distance increases)
+<li> increasing speed difference to the front vehicle (when approaching
+	the front vehicle at a too high rate, a dangerous situation 
+        may occur).
+</ul>
+
+<p>The mathematical form of the IDM model equations is that of <i>
+  coupled ordinary differential equations</i>:
+
+<ul class="red">
+<li> They are differential equations since, in one equation, the dynamic
+  quantities v (speed) and its derivative dv/dt (acceleration) appear
+  simultaneously.
+<li> They are coupled since, besides the speed v, the equations also
+  contain the speed v<sub>l</sub>=v&#8722; Delta v of the leading
+  vehicle. 
+</ul>
+
+
+
+
+<a name = "IDMparameters"><h3> Model Parameters </h3> </a>
+
+The IDM and the ACC model has intuitive parameters as displayed in following
+table:
+<br><br>
+<!-- ######################################## -->
+
+<center>
+<table border="1" bgcolor="#ddddf5" cellpadding="4" width="95%">
+<tr>
+  <th> <b> Parameter </b> </th>
+  <th> <b> Value Car </b>  </th>
+  <th> <b> Value Truck </b>  </th>
+  <th> <b> Remarks </b>  </th>
+</tr>
+<tr>
+  <td> Desired speed <font color="#0000AA">v<sub>0</sub></font></td>
+  <td> 120 km/h </td>
+  <td> 80 km/h </td>
+  <td> For city traffic, one would adapt the desired
+    speed while the other parameters essentially can be left
+    unchanged.
+ </td>
+</tr>
+<tr>
+  <td> Time headway <font color="#0000AA">T</font></td>
+  <td> 1.5 s </td>
+  <td> 1.7 s </td>
+  <td> Recommendation in German driving schools: 1.8 s; realistic values
+	    vary between 2 s and 0.8 s and even below.</td>
+</tr>
+<tr>
+  <td> Minimum gap <font color="#0000AA">s<sub>0</sub></font></td>
+  <td> 2.0 m </td>
+  <td> 2.0 m </td>
+  <td> Kept at complete standstill, also in queues that are caused by red
+	    traffic lights.</td>
+</tr>
+<tr>
+  <td> Acceleration <font color="#0000AA">a</font></td>
+  <td> 0.3 m/s<sup>2</sup> </td>
+  <td> 0.3 m/s<sup>2</sup> </td>
+  <td> Very low values to enhance the formation of stop-and go
+	    traffic. Realistic  values are 0.8 to 2.5 m/s<sup>2</sup> </td>
+</tr>
+<tr>
+  <td> Deceleration <font color="#0000AA">b</font></td>
+  <td> 3.0 m/s<sup>2</sup> </td>
+  <td> 2.0 m/s<sup>2</sup> </td>
+  <td> Realistic  values are around 2 m/s<sup>2</sup> </td>
+</tr>
+
+</table>
+</center>
+
+<br>
+In general, every "driver-vehicle unit" can have its individual parameter
+apply    set, e.g.,
+<ul  class="red">
+<li> trucks are characterized by low values of v0, a, and b,
+<li> careful drivers drive at a high safety time headway T,
+<li> aggressive ("pushy") drivers
+are characterized by a low T in connection
+	with high values
+	of v0, a, and b.
+</ul>
+Often two different types are sufficient to show the main phenomena.
+<br>
+
+<!-- ######################################## -->
+
+
+<a name = "IDMsim"><h2> Simulation of the Model </h2> </a>
+
+Simulation means to numerically "integrate", i.e., approximatively 
+solve the coupled differential
+equations of the model. For this, one defines a finite <i> numerical
+  update time interval</i> &Delta;t, and integrates over this time
+step assuming constant accelerations. This so-called <i> ballistic
+  method</i> reads
+<br><br>
+<center>
+<table border="0">
+<tr><th style="text-align:left"> new speed:</th>
+    <th style="text-align:left">
+      <i> v(t+&Delta;t) = v(t) + (dv/dt) &Delta;t,</i></th>
+</tr>
+<tr><th style="text-align:left">new position:&nbsp;&nbsp;&nbsp;</th>
+    <th style="text-align:left">
+      <i>x(t+&Delta;t) = x(t) + v(t)&Delta;t
+         + 1/2 (dv/dt) (&Delta;t)<sup>2</sup>,</i></th>
+</tr>
+<tr><th style="text-align:left">new gap:</th>
+    <th style="text-align:left"> 
+      <i> s(t+&Delta;t)
+           = x<sub>l</sub>(t+&Delta;t) &#8722; x(t+&Delta;t)&#8722;
+            L<sub>l</sub>.</i></th>
+</tr>
+</table>
+</center>
+<br><br>
+where dv/dt is the IDM acceleration calculated at time t,
+x is the position of the front bumper, and L<sub>l</sub> the
+length of the leading vehicle.
+For the Intelligent-Driver Model, any update time steps below 0.5
+seconds will essentially lead to the same result, i.e., sufficiently approximate
+the true solution. <br>
+&nbsp; &nbsp; 
+Strictly speaking, the model is only well defined if there is a
+leading vehicle and no other object impeding the driving. However,
+generalizations are straightforward:
+<ul class="red">
+<li> If there is no leading vehicle and no other obstructing object ("free
+road"), just set the gap to a very large value such as
+1000 m (The limes gap to infinity is well-defined for any meaningful
+car-following model such as the IDM).
+<li> If the next obstructing object is not a leading vehicle but a red
+  traffic light or a stop-signalized intersection, just model the
+  red light or the stop sign by a standing <i>virtual
+  vehicle</i> of length zero positioned at the stopping line. When
+  simulating a transition to a green light, just eliminate the virtual
+  vehicle. (See the szenario "traffic Lights")
+<li> If a speed limit (either directly by a sign or indirectly, e.g.,
+  when crossing the city limits) becomes effective, reduce the desired
+  speed, if the present value is above this limit (scenario
+  "Laneclosing"). Likewise, reduce
+  the desired speed of trucks in the presence of gradients (scenario
+  "Uphill Grade")
+</ul>
+
+
+<a name = "IDMsimStop"><h3> Special Case of Stopped  Vehicles </h3> </a>
+
+For vehicles approaching
+an already stopped vehicle or a red traffic light, the ballistic
+update method as described above will lead to negative 
+speeds whenever the end of a time integration interval is not exactly
+equal to the true stopping time (of course, there is always a mismatch).
+Then, the ballistic method has to be generalized to
+simulate following approximate dynamics:
+<br><br> <i> If the true stopping
+  time is within an update time interval, decelerate at constant
+deceleration (dv/dt) to a complete stop and remain at standstill
+until this interval has ended</i>.<br><br>
+
+Furthermore, it may happen that the actual gap of a stopped vehicle <i> s</i> is slightly
+  below the minimum gap <i> s<sub>0</sub></i>, in which case the
+  unchanged IDM would give a negative acceleration, hence a negative
+  velocity in the next time step. In most cases, however, real drivers
+  will just keep that somewhat too low gap until the leader drives
+  again rather than driving backwards. 
+
+Both special cases can be implemented by following rules
+which are generally applicable to integrating any time-continuous
+car-following model, not just the IDM:
+
+<br><br>
+<center>
+<table border="0">
+<tr><td style="text-align:left">
+      At least one of the above situations applies if:&nbsp;&nbsp;&nbsp;</td> 
+    <td style="text-align:left">
+      <i> v(t) + (dv/dt) &Delta;t &lt; 0,</i></td>
+</tr>
+<tr><td style="text-align:left">
+     new speed in this case:</td>
+    <td style="text-align:left">
+     <i>  v(t+&Delta;t)=0,</i> </td>
+</tr>
+<tr><td style="text-align:left">new position in this case:</td>
+   <td style="text-align:left">
+   <i>  x(t+&Delta;t)=x(t) &#8722;  1/2 v<sup>2</sup>(t) /
+   (dv/dt),</i></td>
+</tr>
+<tr><td style="text-align:left">new gap:</td>
+   <td style="text-align:left">
+     <i> s(t+&Delta;t)
+    =x<sub>l</sub>(t+&Delta;t)&#8722; x(t+&Delta;t)&#8722; L<sub>l</sub>.</i></td></tr>
+</table>
+</center>
+<br><br>
+Notice that <i> &#8722; 1/2 v<sup>2</sup>(t) / (dv/dt)</i> is greater than
+zero if the special cases apply.
+
+
+<h3>Further information: </h3>
+
+<ul class="red">
+<li> the 
+<a href="https://arxiv.org/abs/cond-mat/0002177">
+scientific reference</a> for the IDM, 
+<li> a <a
+	href="https://en.wikipedia.org/wiki/Intelligent_Driver_Model">Wikipedia
+	article</a>, 
+<li> the book 
+<a href="https://www.springer.com/physics/complexity/book/978-3-642-05227-9">
+Verkehrsdynamik</a> (German),
+<li> or the book 
+<a href="https://www.springer.com/physics/complexity/book/978-3-642-32459-8">
+Traffic Flow Dynamics</a>.
+</ul>

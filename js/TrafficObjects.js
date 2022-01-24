@@ -315,11 +315,11 @@ TrafficObjects.prototype.draw=function(){
 
       var crossingLineLength=road.nLanes*road.laneWidth;
 
-      var xCenterPix=  scale*road.traj_x(obj.u);
-      var yCenterPix= -scale*road.traj_y(obj.u); // minus!!
+      var xCenterPix=  scale*road.traj[0](obj.u);
+      var yCenterPix= -scale*road.traj[1](obj.u); // minus!!
       var wPix=scale*crossingLineWidth;
       var lPix=scale*crossingLineLength;
-      var phi=road.get_phi(obj.u, road.traj_x, road.traj_y);
+      var phi=road.get_phi(obj.u, road.traj);
       var cphi=Math.cos(phi);
       var sphi=Math.sin(phi);
 

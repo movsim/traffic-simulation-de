@@ -1,0 +1,331 @@
+<h1>The Lane-change Model MOBIL</h1>
+
+Lane changes takes place, if 
+<ul class="red"> 
+<li> the potential new target lane 
+is more attractive, i.e., the <b> "incentive criterion" </b> is
+	satisfied,
+<li> and the change can be performed safely, i.e., the
+<b> "safety criterion" </b> is
+	satisfied.
+</ul>
+
+In our lane change model 
+ </i> MOBIL,
+<!--<a href="../publications/MOBIL.pdf" target="extern">
+MOBIL </a>,
+-->
+We base both criteria on the accelerations on the old and the 
+    prospective new lanes, as calculated with the longitudinal model,
+    i.e., the IDM in our case.
+<br><br>
+
+<h2> Model equations</h2>
+
+<ul class="red">
+<li> The safety criterion is satisfied, if the IDM braking deceleration
+	<font color="#0000AA"><i>acc'=acc'<sub>IDM</sub></i></font>
+imposed on the back vehicle 	<font color="#0000AA"><i>B'</i></font>
+ of the target lane after a
+	possible change
+       does not exceed
+	a certain limit <font
+	  color="#0000AA"><i>b<sub>save</sub></i></font>, this means, the
+<b> safety criterion</b>
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFDDAA" cellpadding="10">
+<tr><td>
+
+<font color="#0000AA"><i> acc' (B') > - b<sub>save</sub></i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+
+is satisfied. 
+In this formula, the dash of the acceleration acc'=acc'<sub>IDM</sub>
+ stands for "after a possible change", 
+while the dash of the back vehicle label <font
+	  color="#0000AA"><i>B'</i></font>
+ stands for "on the target
+	lane".
+<br><br>
+<li> To asses the incentive criterion, we weight the 
+<b> own advantage</b> on the target  lane, 
+	measured by the increased acceleration (or
+	reduced braking deceleration),  against
+    the <b> disadvantage imposed to other drivers</b>, again measured
+	by the decrease  acceleration or increased braking
+	deceleration for these drivers.
+Since we tend to be egoistic, we weight the disadvantage imposed
+on other drivers with a <b> politeness factor p </b> whose values are
+	typically less than 1, resulting in following 
+<b> incentive criterion</b>:
+
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFDDAA" cellpadding="10"><tr><td>
+<font color="#0000AA"><i> acc' (M') - acc (M)
+> p <font size="+2">[</font>
+     acc  (B) + acc  (B')
+  -  acc'  (B) - acc'  (B') 
+  <font size="+2">]</font>
++ a<sub>thr</sub></i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+
+<ul class="blue">
+<li> As above, <font color="#0000AA"><i>acc</i></font> mean the actual IDM accelerations while
+	    <font color="#0000AA"><i>acc'</i></font> mean the accelerations after a possible
+	    change. The car labels <font
+	    color="#0000AA"><i>M</i></font>
+ and <font color="#0000AA"><i>M'</i></font> mean "Me" before and
+	    after a possible change, respectively, while <font color="#0000AA"><i>B</i></font> and <font color="#0000AA"><i>B'</i></font> mean
+	    the back vehicle before and
+	    after a possible change, respectively.<br><br>
+ 
+<li> The own advantage is measured by "my" acceleration difference
+<font color="#0000AA"><i>acc' (M') - acc (M)</i></font> after the change, compared to the actual
+	    situation.<br><br>
+
+<li> The combined disadvatage to the new and old back vehicles
+is given by the sum
+<font color="#0000AA"><i>[acc  (B) + acc  (B')]</i></font> of the 
+accelerations of both vehicles before the change, minus the
+	    acceleration sum 
+<font color="#0000AA"><i>[acc'  (B) + acc'  (B')]</i></font>
+	   of these vehicles after the change.<br><br>
+
+<li> <i> Note on implementation: </i>
+In the actual version, we did not consider the disadvantage 
+acc(B) - acc'(B), that the driver of the "old" back vehicle may suffer
+ due to a lane change, so we used the incentive criterion
+<!-- ######################################## -->
+<br><br>
+<center>
+<table border="0" bgcolor="#FFDDAA" cellpadding="10"><tr><td>
+<font color="#0000AA"><i> acc' (M') - acc (M)
+> p <font size="+2">[</font>
+     acc  (B')
+  - acc'  (B') 
+  <font size="+2">]</font>
++ a<sub>thr</sub></i>
+</font>
+</td></tr></table>
+</center>
+<br>
+<!-- ######################################## -->
+
+
+In fact, acc(B) - acc'(B) nearly always is
+negative since changing to another lane generally gives an advantage
+	    to the driver of B. This  means, 
+we ignored "pushy" people urging us to change
+lanes for their own benefit. This definitely is a correct strategy for
+drivers on the right-hand lane while the
+"full" MOBIL should be considered for drivers on the left-hand lane.
+<br><br>
+
+<li> To avoid lane-change maneoeuvres triggered by marginal 
+advantages which can lead to frantic lane hopping, 
+an additional lane-changing threshold 
+<font color="#0000AA"><i>a<sub>thr</sub></i></font>
+has been added to the balance of the above equation.
+<br><br>
+
+<li>There are some situations where high-frequency lane hopping may
+  occur triggered, e.g., when a faster vehicle
+  follows a slower one and the leader changes due to politeness while
+  the follower changes to move ahead faster with the result that both
+  drivers find themselves in the same situation, and so on. Therefore,
+  I do not allow lane changes if the actual vehicle, or one in the
+  immediate neighbourhood, changed lanes less than vehicle.dt_lastLC
+  or  vehicle.dt_lastPassiveLC ago for active and passive lane
+  changes, respectively.
+
+</ul></ul>
+
+<h2> Model Parameters and Typical Values</h2>
+<br>
+<!-- ######################################## -->
+
+<center>
+<table border="2" bgcolor="#CCCCCC" cellpadding="8" width="80%">
+<tr>
+  <td> <b> Parameter </b> </td>
+  <td> <b> Typical Value </b>  </td>
+  <td> <b> Remarks </b>  </td>
+</tr>
+<tr>
+  <td> Politeness factor <font color="#0000AA">p</font></td>
+  <td> 0 ... 0.5 </td>
+  <td> For details, see below </td>
+</tr>
+<tr>
+  <td> Maximum safe deceleration 
+        <font color="#0000AA">b<sub>save</sub></font></td>
+  <td> 4 m/s<sup>2</sup> </td>
+  <td> Must be lower than maximum deceleration of about 9 m/s<sup>2</sup> </td>
+</tr>
+<tr>
+  <td> Threshold  <font color="#0000AA">a<sub>thr</sub></font></td>
+  <td> 0.2 m/s<sup>2</sup> </td>
+  <td> Must be below the lowest acceleration ability 
+       (IDM parameter  <font color="#0000AA"> a</font>)
+       of any vehicle type </td>
+</tr>
+<tr>
+  <td> Bias to the right lane  
+        <font color="#0000AA">Delta b</font></td>
+  <td> 0.2 m/s<sup>2</sup> </td>
+  <td> Only for European traffic rules (see below) </td>
+</tr>
+</table>
+</center>
+
+<br>
+<!-- ######################################## -->
+
+
+<h2> The lane-change model MOBIL has the following main features:</h2>
+
+<ul class="red">
+<li> 
+While other lane-change models typically assume purely egoistic
+	    behaviour, i.e., <font color="#0000AA"><i>p</i></font>=0, we can model different
+	    behaviours by varying this factor:
+<br><br>
+<ul class="blue">
+<li> <font color="#0000AA"><i>p</i></font> > 1 => a very altruistic
+	    behaviour.<br><br>
+
+<li> <font color="#0000AA"><i>p</i></font> in ]0, 0.5] => a realistic behaviour: Advantages of other
+		drivers have a lower priority, but are not neglected:
+		Notice that this feature means that yielding 
+to "pushy" is included into MOBIL.<br><br>
+
+<li> <font color="#0000AA"><i>p</i></font>=0 => a purely selfish behaviour. Notice that also
+		selfish drivers do not ignore the safety
+	    criterion!<br><br>
+
+<li> <font color="#0000AA"><i>p</i></font><0 => a malicious personality who takes pleasure in
+		thwarting other
+		drivers even at the cost of own disadvantages. This
+		may have some interesting game-theoretic consequences.
+Of course, even those mischief makers do obey the safety
+	    criterion.
+</ul>
+<br><br>
+
+<li> A special case is given by <font
+	  color="#0000AA"><i>p</i></font>=1 and 
+<font
+	  color="#0000AA"><i>a<sub>thr</sub>=0.</i></font> In this
+	case, lane changing takes place whenever the sum of the
+	accelerations of all affected drivers increases after the
+	change, or, equivalently, the overall decelerations are minimized.
+
+This effect gave birth to the acronym for this model:
+<br>
+
+<br>
+<center>
+
+<table border="0" bgcolor="#CCCCF7" cellpadding="10"><tr><td>
+<b><font color="#FF0000">MOBIL</font> = 
+<font color="#FF0000">M</font>inimizing <font color="#FF0000">O</font>verall 
+<font color="#FF0000">B</font>raking decelerations
+ <font color="#FF0000">I</font>nduced by 
+<font color="#FF0000">L</font>ane changes</b>
+</td></tr></table>
+
+</center>
+</ul>
+
+<h2> Variants of MOBIL for asymmetric traffic rules or situations </h2>
+
+
+The model defined by the two equations above describes more or
+	less symmetric lane usage where overtaking on the right is not
+	explicitely forbidden. If traffic rules or situations are
+      asymmetric, one needs modifications. In the following, there are
+      some typical situations:
+
+<ul class="red">
+<li> In many European countries,
+	the lane usage rules are explicitely asymmetric, particularly,<br><br>
+<ul class="blue">
+<li> one should keep to the right,
+<li> overtaking to the right is forbidden unless traffic is congested.
+</ul>
+<br>For some countries such as Thailand, Britain or Australia, 
+swap "left" and "right". 
+
+To incorporate the keep-right directive, 
+we added to the incentive criterion an
+	additional bias
+<font color="#0000AA"><i>a<sub>bias</sub></i></font> 
+ in favour of the right lane.<br><br>
+
+<li> If there are forced lane changes such as <br><br>
+<ul class="blue">
+<li> entering a freeway
+	      <i>via</i> an onramp, 
+<li> exiting a freeway, 
+<li> lane changes as a reaction of a closing of the actual lane ahead, 
+</ul>
+
+<br> the lane-usage bias introduced above can be used to treat this
+	      situation: Of course, the bias is in favour of the
+	      target lane(s):<br><br>
+<ul class="blue">
+<li> For on-ramp traffic, 
+<font color="#0000AA"><i>a<sub>bias</sub></i></font> 
+is  negative (modelling a bias to the left) 
+<li> For the lane closing szenario 3,
+<font color="#0000AA"><i>a<sub>bias</sub></i></font> 
+is positive for vehicles on
+		the left lane that is about to be closed.
+</ul>
+
+<br>
+<li>
+Implementing the overtaking rule is more difficult and requires a
+	so-called "longitudinal-transversal coupling", see
+<!--
+<a href="../publications/MOBIL.pdf" target="extern">
+this reference </a>
+-->
+<a href="https://mtreiber.de/publications/MOBIL_ASIM.pdf" target="extern">
+this reference (in German)</a>
+ for details.
+</ul>
+
+
+<br>
+<h3> References </h3>
+
+<ul class="red">
+<!--
+<li> Arne Kesting, Martin Treiber, and Dirk Helbing,
+<a href="../publications/MOBIL.pdf" target="extern">
+<i>Game-theoretic approach to lane-changing in microscopic traffic models.</i></a>
+Submitted to Transp. Res. B.
+-->
+<li> The original publication (in German):<br>
+M. Treiber and D. Helbing, 
+<a href="../publications/MOBIL_ASIM.pdf" target="extern">
+<i>Realistische Mikrosimulation von Straﬂenverkehr mit 
+einem einfachen Modell</i> </a>,
+16. Symposium "Simulationstechnik ASIM 2002" Rostock, 10.09
+    -13.09.2002, edited by Djamshid Tavangarian and Rolf Gr&uuml;tzner
+    pp. 514--520.
+</ul>
+
