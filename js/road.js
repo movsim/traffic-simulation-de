@@ -2424,8 +2424,8 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
          // only test output
 
          //if(MOBILOK&&(this.veh[i].id===107)){
-        //if(false){
-        if(this.veh[i].id==207){
+        if(false){
+        //if(this.veh[i].id==206){
 
 	  console.log("determining MOBILOK by LCmodel.realizeLaneChange:",
 		      " acc=",acc.toFixed(1)," accNew=",accNew.toFixed(1),
@@ -2580,8 +2580,8 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
 road.prototype.connect=function(targetRoad, uSource, uTarget,
 				offsetLane, conflicts, maxspeed){
-  //var connectLog=false;
-  var connectLog=(time>75);
+  var connectLog=false;
+  //var connectLog=(time>75);
   if(typeof conflicts === 'undefined'){conflicts=[];}
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
 
@@ -2615,10 +2615,18 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     if((this.veh[iveh].u>uSource-duAntic)&&(this.veh[iveh].isRegularVeh())){
  
 
+      //oder arraysEqual((this.trajAlt[itr].route, this.veh[i].route))//!!!
+
       // check if route is consistent with targetID
       // Array.indexOf(a) gives index of the first element==a, and-1 if none
-
+      
       var connecting=(this.veh[iveh].route.indexOf(targetID)>=0);
+      if(this.veh[iveh].id==208){
+	console.log("1: veh id=",this.veh[iveh].id,
+		    " route=",this.veh[iveh].route," targetID=",targetID,
+		    " indexOf=",this.veh[iveh].route.indexOf(targetID),
+		    " connecting=",connecting);
+      }
  
       /* 
        only further treatment if veh regular, in influence range,
@@ -2681,6 +2689,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	var id=vehConnect.id;
 	var u=vehConnect.u;
 	var lane=vehConnect.lane;
+	var v=vehConnect.v;
 	var speed=vehConnect.speed;
 	var s0=vehConnect.longModel.s0;
 	var uGo=uSource-Math.max(1.1*s0,0.5*duDecision);
@@ -2697,7 +2706,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
         var C3=(u>uGo);                     // final go if conflicts resolved
 
 	//console.log("duGo=",Math.max(1.1*s0,0.5*duDecision).toFixed(1));
-	if(connectLog){
+	if(id==208){
+	//if(connectLog){
 	  console.log("\nroad.connect: connecting veh",id,
 		      " t=",time.toFixed(1),
 		      " veh id=",id,
@@ -2994,6 +3004,13 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	} // laneContinues==true
 
 	// Action A5: actual transfer!!
+	if(this.veh[iveh].id==208){
+	  console.log("2: veh id=",this.veh[iveh].id,
+		    " route=",this.veh[iveh].route," targetID=",targetID,
+		    " indexOf=",this.veh[iveh].route.indexOf(targetID),
+		    " connecting=",connecting);
+        }
+ 
 	
 	if(u>uSource){
 	  if(connectLog){
@@ -3014,22 +3031,29 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    targetRoad.writeVehiclesSimple();
 	  }
 
+
 	  // watch out that an array is returned by splice!
-	  var transferredVeh=(this.veh.splice(0,1))[0];
+	  var transferredVeh=(this.veh.splice(iveh,1))[0];
 	  this.updateEnvironment();
 
           // transform state vars of transferred vehicle
 	  transferredVeh.u=uTarget+u-uSource;
 	  transferredVeh.lane=lane+offsetLane;
-	  transferredVeh.v=transferredVeh.lane;
+	  //transferredVeh.v=transferredVeh.lane;
 
 	  // following two settings to perform an immediate LC w/o past memory
 	  transferredVeh.dt_afterLC=0; // !! otherwise, veh may change at once
 	  transferredVeh.laneOld=transferredVeh.lane;
-	  
-	  console.log("\n==============================",
-		      "\ntransferredVeh=",transferredVeh,
-		      "\n==============================");
+	  console.log(
+	    "\n=========================================================",
+	    "\ntransfer veh ",transferredVeh.id,
+	    "from road ",this.roadID," u=",u.toFixed(1),
+	    "lane=",lane," v=",v.toFixed(1),
+	    "to road ",targetRoad.roadID,
+	    "at u=",transferredVeh.u.toFixed(1),
+	    " lane=",transferredVeh.lane,"v=",transferredVeh.v.toFixed(1),
+	    //"\ntransferredVeh=",transferredVeh,
+	    "\n=========================================================");
 
 	  //targetRoad.veh.unshift(transferredVeh); // add at beginning
 	  //targetRoad.veh.push(transferredVeh); // add at end
@@ -3098,7 +3122,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
     var vehsConflict=conflicts[ic].roadConflict.veh;
     var goOnCrit=(vehsConflict.length>0);
 
-    if(true){
+    if(false){
       console.log("    road.determineConflicts: check conflict", ic,":",
 		  "t=",time.toFixed(1),
 		  "id=",vehConnect.id,
@@ -3147,9 +3171,6 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   }// outer loop over the conflicts
   
   var conflictsExist=(!noConflictDetected);
-  console.log("    end of road.determineConflicts for veh ",vehConnect.id,
-	      ": conflictsExist=",conflictsExist,
-	      "\n");
   return conflictsExist;
 
 }//road.determineConflicts
@@ -3546,7 +3567,6 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	changingVeh.colorStyle=0;
 	changingVeh.dt_afterLC=0;             // just changed
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
-
 
 //####################################################################
 	this.veh.splice(iOrig,1);// removes chg veh from orig.
@@ -4329,6 +4349,26 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	    || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
 
     if(filterPassed){
+
+
+      if(false){  //if filter success but traj wrong, use lower debug log
+      //if(this.veh[i].id==207){
+	var iTraj=1;
+	var nTraj=this.trajAlt.length;
+	var ok=(nTraj>iTraj);
+	umin=(ok) ?this.trajAlt[iTraj].umin:-1;
+	umax=(ok) ?this.trajAlt[iTraj].umax:-1;
+	console.log("road ",this.roadID," drawVehicles: ",
+		    "veh ",this.veh[i].id,
+		    "this.trajAlt.length",this.trajAlt.length,
+		    ((ok) ? "iTraj="+iTraj : ""),
+		    "u=",this.veh[i].u.toFixed(1),
+		    ((ok) ? "umin="+umin.toFixed(1) : ""),
+		    ((ok) ? "umax="+umax.toFixed(1) : ""),
+		    "routeVeh=",this.veh[i].route,
+		    ((ok) ? "routeTraj="+this.trajAlt[iTraj].route :""),
+		    "");
+      }
       
       // check if alternative trajectories apply (turning etc)
       // i.e., the vehicle route is equal to one of the list of routes
@@ -4348,12 +4388,15 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 	if(success){
 	  usedTraj_x=this.trajAlt[iTraj].x;
 	  usedTraj_y=this.trajAlt[iTraj].y;
-	  if(true){
+	  //if(false){//if filter problems, use upper debug log
+	  if(this.veh[i].id==207){
 	    var u=this.veh[i].u;
+	    var v=this.veh[i].v;
 	    console.log("road ",this.roadID," drawVehicles: ",
 		        "veh ",this.veh[i].id,
 		        "alternative trajectory",iTraj,
 		        "u=",u.toFixed(1),
+		        "v=",v.toFixed(1),
 		        "umin=",this.trajAlt[iTraj].umin.toFixed(1),
 		        "umax=",this.trajAlt[iTraj].umax.toFixed(1),
 		        "lane=",this.veh[i].lane,
