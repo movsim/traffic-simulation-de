@@ -14,8 +14,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=10./3600; // inflow to both directional main roads
-q2=350./3600;   // inflow to secondary (subordinate) roads
+qIn=300./3600; // inflow to both directional main roads
+q2=0./3600;   // inflow to secondary (subordinate) roads
 fracRight=1.; // fracRight [0-1] of drivers on road 2 turn right
 fracLeft=0.; // rest of q2-drivers cross straight ahead
 
@@ -170,62 +170,123 @@ var center_yRel=-0.50;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-// specification of road width and vehicle sizes
+// specification of lane width and vehicle sizes
 
-var laneWidth=5; 
-var car_length=6;    // car length in m (all a bit oversize for visualisation)
-var car_width=3;     // car width in m
-var truck_length=11;
-var truck_width=4; 
+var laneWidth=3.5; 
+var car_length=5;    // car length in m (all a bit oversize for visualisation)
+var car_width=2.5;     // car width in m
+var truck_length=10;
+var truck_width=3; 
 
-
-var mainroadWidth=(nLanes_main+0.0)*laneWidth; // one direction!
-var secondroadWidth=(nLanes_sec+0.0)*laneWidth;
-
-//!!!!
-var turningRadius=2.1*laneWidth;
+//#########################################################
+// geometry
+// (mainroadLen and refSizePhys=smaller edge define global scale)
+var turningRadius=2.5*laneWidth;
 var offsetMain=0.5*laneWidth*nLanes_main;
-var offsetMainTarget=(nLanes_main-0.5)*laneWidth;
 var offsetSec=0.5*laneWidth*nLanes_sec;
-var road0Len=mainroadLen;
-var road2Len=0.48*refSizePhys-offsetMainTarget-turningRadius;
-var road3Len=0.48*refSizePhys+offsetMainTarget+turningRadius;
-var uSource20=1.0*road2Len;
-var uTarget20=0.5*mainroadLen+(nLanes_sec-0.5)*laneWidth+(1-0.5*Math.PI)*turningRadius;
-//...
+var offset20Target=(nLanes_main-0.5)*laneWidth;
+var offset20Source=(nLanes_sec-0.5)*laneWidth;
+var road0Len=mainroadLen; 
+var road2Len=0.48*refSizePhys-offset20Target-turningRadius;
+var road3Len=0.48*refSizePhys+offset20Target+turningRadius;
+var road20len=0.5*Math.PI*turningRadius; // for all right-turn special traj
+var u20Source=1.0*road2Len;
+var u20Target=0.5*mainroadLen+offset20Source+(1-0.5*Math.PI)*turningRadius;
+var u13Source=0.5*mainroadLen-offset20Source-turningRadius;
+var u13Target=2*(offset20Target+turningRadius)-road20len;
 
 var road1Len=mainroadLen;
-var road4Len=0.48*refSizePhys-mainroadWidth;
-var road5Len=0.48*refSizePhys+mainroadWidth;
+var road4Len=road2Len;
+var road5Len=road3Len;
+var u41Source=u20Source;
+var u41Target=u20Target;
+var u05Source=u13Source;
+var u05Target=u13Target;
+
+//#########################################################
 
 
-// def trajectories (do not include doGridding, only for few main scenarios)
-// !! cannot define diretly function trajNet_x[0](u){ .. } etc
-
+//#########################################################
+// def main trajectories 
+//#########################################################
 
 function traj0_x(u){ // physical coordinates
   return center_xPhys+u-0.5*road0Len;
 }
 function traj0_y(u){ 
-  return center_yPhys-0.5*mainroadWidth;
+  return center_yPhys-offsetMain;
 }
 
-var iCount=0;
-function traj0_20x(u){ // special coordinate for the route 20 for road 0
-  var urel=u-uTarget20; // long coord target relative to start of transition
+
+
+function traj1_x(u){ // physical coordinates
+  return center_xPhys-(u-0.5*road0Len);
+}
+function traj1_y(u){ 
+  return center_yPhys+offsetMain;
+}
+
+
+function traj2_x(u){ 
+  return center_xPhys+offsetSec;
+}
+function traj2_y(u){ 
+  return center_yPhys-offset20Target-turningRadius-road2Len+u;
+}
+
+
+function traj3_x(u){ 
+  return center_xPhys+offsetSec;
+}
+function traj3_y(u){ 
+  return center_yPhys-offset20Target-turningRadius+u;
+}
+
+
+function traj4_x(u){ 
+  return center_xPhys-offsetSec;
+}
+function traj4_y(u){ 
+  return center_yPhys+offset20Target+turningRadius+road4Len-u;
+}
+
+
+function traj5_x(u){ 
+  return center_xPhys-offsetSec;
+}
+function traj5_y(u){ 
+  return center_yPhys+offset20Target+turningRadius-u;
+}
+
+
+var traj=[ [traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
+	   [traj3_x,traj3_y], [traj4_x,traj4_y], [traj5_x,traj5_y] ];
+
+//#################################################################
+// special trajectories for the right turns on the target roads 0,1,3,5
+// routes 20,41,13,05
+//#################################################################
+
+function traj0_20x(u){return trajRight_x(u,offset20Target-offsetMain);}
+
+
+// dr=difference between target road center and center of target lane
+// since traj always with resp to road center but I want r with resp to
+// single-lane right turn (target since special lane atatched to target)
+
+function trajRight_x(u,dr){ // special coordinate for the route 20 for road 0
+  var urel=u-u20Target; // long coord target relative to start of transition
 
   // center of the arc for the right turn from right to right lane
   
-  var x0=center_xPhys+(nLanes_sec-0.5)*laneWidth+turningRadius;
-  var y0=center_yPhys-(nLanes_main-0.5)*laneWidth-turningRadius;
+  var x0=center_xPhys+offset20Source+turningRadius;
+  var y0=center_yPhys-offset20Target-turningRadius;
 
   // distance of right target lane to target road axis
-  
-  var dr=0.5*(nLanes_main-1)*laneWidth;
 
-  // x coordinate of always single-lane transition road axis
-  // if lane=nLanes_main-1 if right lane of target road (need case
-  // distinction since for veh rotation u-vehLen/2 relevant)
+  //var dr=offset20Target-offsetMain;
+
+  // case distinction since for veh rotation u-vehLen/2 relevant)
 
   var x=(urel<0)
       ? x0-(turningRadius+dr)
@@ -241,80 +302,40 @@ function traj0_20x(u){ // special coordinate for the route 20 for road 0
   return x;
 }
 
-function traj0_20y(u){ // special coordinate for the route 20 for road 0
-  var urel=u-uTarget20;
-  // center of the arc for the right turn from right to right lane
-  
-  var y0=center_yPhys-(nLanes_main-0.5)*laneWidth-turningRadius;
+function traj0_20y(u){return trajRight_y(u,offset20Target-offsetMain);}
 
-  // distance of right target lane to target road axis
-  
-  var dr=0.5*(nLanes_main-1)*laneWidth;
-
-  // x coordinate of always single-lane transition road axis
-  // if lane=nLanes_main-1 if right lane of target road (need case
-  // distinction since for veh rotation u-vehLen/2 relevant)
-
+function trajRight_y(u,dr){ // special coordinate for the route 20 for road 0
+  var urel=u-u20Target;
+  var y0=center_yPhys-offset20Target-turningRadius;
   var y=(urel<0)
       ? y0+urel
       : y0+(turningRadius+dr)*Math.sin(urel/turningRadius);
-
-  if(false){
-    console.log("traj0_20y: t=",time.toFixed(2),
-		" urel=",urel," y0=",y0," y=",y);
-  }
   return y;
 }
   
+function traj1_41x(u){return 2*center_xPhys-traj0_20x(u);}
+function traj1_41y(u){return 2*center_yPhys-traj0_20y(u);}
 
-function traj1_x(u){ // physical coordinates
-  return center_xPhys-(u-0.5*road0Len);
-}
-function traj1_y(u){ 
-  return center_yPhys+0.5*mainroadWidth;
-}
+var len20=0.5*Math.PI*turningRadius;
 
-
-function traj2_x(u){ 
-  return center_xPhys+offsetSec;
+function traj3_13x(u){
+  return trajRight_x(len20-u+u20Target+u13Target,offset20Source-offsetSec);
 }
-function traj2_y(u){ 
-  return center_yPhys-offsetMainTarget-turningRadius-road2Len+u;
+function traj3_13y(u){
+  return 2*center_yPhys
+    -trajRight_y(len20-u+u20Target+u13Target,offset20Source-offsetSec);
 }
 
-
-function traj3_x(u){ 
-  return center_xPhys+0.5*secondroadWidth;
-}
-function traj3_y(u){ 
-  return center_yPhys-offsetMain-turningRadius+u;
-}
-
-
-function traj4_x(u){ 
-  return center_xPhys-0.5*secondroadWidth;
-}
-function traj4_y(u){ 
-  return center_yPhys-(-1.1*mainroadWidth-road4Len+u);
-}
-
-
-function traj5_x(u){ 
-  return center_xPhys-0.5*secondroadWidth;
-}
-function traj5_y(u){ 
-  return center_yPhys+mainroadWidth-u;
-}
-
-
-var traj=[ [traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
-	   [traj3_x,traj3_y], [traj4_x,traj4_y], [traj5_x,traj5_y] ];
-//var traj_x=[traj0_x,traj1_x,traj2_x,traj3_x,traj4_x,traj5_x];
-//var traj_y=[traj0_y,traj1_y,traj2_y,traj3_y,traj4_y,traj5_y];
+function traj5_05x(u){return 2*center_xPhys-traj3_13x(u);}
+function traj5_05y(u){return 2*center_yPhys-traj3_13y(u);}
 
 
 
+
+// #############################################################3
 // road images for the trajectories; 2 images per road/network element
+// #############################################################3
+
 
 // general
 
@@ -371,13 +392,6 @@ var route45=[roadIDs[4], roadIDs[5]];
 var road0=new road(roadIDs[0],road0Len,laneWidth,nLanes_main,
 		   traj[0],
 		   density, speedInit,fracTruck, isRing);
-road0.trajAlt[0]={x: traj0_20x,
-		  y: traj0_20y,
-		  route: route20,
-		  umin:uTarget20,
-		  umax:uTarget20+0.5*Math.PI*turningRadius
-		 };
-  
 
 var road1=new road(roadIDs[1],road1Len,laneWidth,nLanes_main,
 		   traj[1],
@@ -400,6 +414,38 @@ var road5=new road(roadIDs[5],road5Len,laneWidth,nLanes_sec,
 		   density, speedInit,fracTruck, isRing);
 
 
+// adding the alternative trajectories ([0]=right turn, [1]=left turn)
+
+road0.trajAlt[0]={x: traj0_20x,
+		  y: traj0_20y,
+		  route: route20,
+		  umin:u20Target,
+		  umax:u20Target+len20
+		 };
+  
+road1.trajAlt[0]={x: traj1_41x,
+		  y: traj1_41y,
+		  route: route41,
+		  umin:u41Target,
+		  umax:u41Target+len20
+		 };
+  
+
+road3.trajAlt[0]={x: traj3_13x,
+		  y: traj3_13y,
+		  route: route41,
+		  umin:u13Target,
+		  umax:u13Target+len20
+		 };
+  
+road5.trajAlt[0]={x: traj5_05x,
+		  y: traj5_05y,
+		  route: route05,
+		  umin:u05Target,
+		  umax:u05Target+len20
+		 };
+  
+
 
 // road network (network declared in canvas_gui.js)
 
@@ -413,22 +459,22 @@ for(var ir=0; ir<network.length; ir++){
 }
 
 var conflict0up={roadConflict:network[0], // conflicts by road0 for Northbound
-	       uConflict: 0.5*network[0].roadLen+0.5*mainroadWidth,
-	       uOwnConflict: 0.5*mainroadWidth};
+		 uConflict: 0.5*network[0].roadLen+offsetSec,
+		 uOwnConflict: turningRadius+offset20Target-offsetMain};
 var conflict0down={roadConflict:network[0],
-	       uConflict: 0.5*network[0].roadLen-0.5*mainroadWidth,
-	       uOwnConflict: 1.5*mainroadWidth};
+		   uConflict: 0.5*network[0].roadLen-offsetSec,
+		   uOwnConflict: turningRadius+offset20Target+offsetMain};
 var conflict1up={roadConflict:network[1],
-	       uConflict: 0.5*network[0].roadLen-0.5*mainroadWidth,
-	       uOwnConflict: 1.5*mainroadWidth};
+		 uConflict: 0.5*network[0].roadLen-offsetSec,
+		 uOwnConflict: turningRadius+offset20Target+offsetMain};
 var conflict1down={roadConflict:network[1],
-	       uConflict: 0.5*network[0].roadLen+0.5*mainroadWidth,
-	       uOwnConflict: 0.5*mainroadWidth};
+		   uConflict: 0.5*network[0].roadLen+offsetSec,
+		   uOwnConflict: turningRadius+offset20Target-offsetMain};
 
 var conflicts05=[];
-var conflicts03=[conflict1down];  //!!! change
+var conflicts03=[conflict1up];  //!!! change
 var conflicts13=[];
-var conflicts15=[conflict0up];  //!!! change
+var conflicts15=[conflict0down];  //!!! change
 
 var conflicts20=[];
 var conflicts21=[conflict0up];
@@ -540,6 +586,8 @@ function updateSim(){
   // check that global var deepCopying=true (in road.js)
   // (needed for updateModelsOfAllVehicles)
 
+  // LCModelMandatory in control_gui.js;
+  // road.updateM... makes road.LCModelMandatoryLeft, -Right out of this
 
 
   for(var ir=0; ir<network.length; ir++){
@@ -612,24 +660,17 @@ function updateSim(){
 
   // turn right
 
-  network[0].connect(network[5],
-		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
-		     nLanes_main*laneWidth, 0,
-		     conflicts05, maxspeed_turn);
+  network[0].connect(network[5], u05Source, u05Target,
+		     nLanes_sec-nLanes_main, conflicts05, maxspeed_turn);
 
-  network[1].connect(network[3],
-		     0.5*network[0].roadLen-0.5*nLanes_main*laneWidth,
-		     nLanes_main*laneWidth, 0,
-		     conflicts13, maxspeed_turn);
+  network[1].connect(network[3], u13Source, u13Target,
+		     nLanes_sec-nLanes_main, conflicts13, maxspeed_turn);
 
-  //!!!!
-  network[2].connect(network[0], uSource20, uTarget20, nLanes_main-nLanes_sec,
-  //network[2].connect(network[0], uSource20, uTarget20, 0,
-		     conflicts20, maxspeed_turn);
+  network[2].connect(network[0], u20Source, u20Target,
+		     nLanes_main-nLanes_sec, conflicts20, maxspeed_turn);
   
-  network[4].connect(network[1], network[4].roadLen,
-		     0.5*network[1].roadLen, 0,
-		     conflicts41, maxspeed_turn);
+  network[4].connect(network[1], u41Source, u41Target, 
+		     nLanes_main-nLanes_sec, conflicts41, maxspeed_turn);
 
   // turn left
 
@@ -663,10 +704,28 @@ function updateSim(){
 
   // restrict LC for inflowing road2-vehicles for route 20
 
+  for(var i=0; i<network[0].veh.length; i++){
+    if(arraysEqual(network[0].veh[i].route, [0,5])){
+      network[0].veh[i].LCModel=network[0].LCModelMandatoryRight;
+    }
+  }
+
+  for(var i=0; i<network[1].veh.length; i++){
+    if(arraysEqual(network[1].veh[i].route, [1,3])){
+      network[1].veh[i].LCModel=network[1].LCModelMandatoryRight;
+    }
+  }
+
   for(var i=0; i<network[2].veh.length; i++){
     if(arraysEqual(network[2].veh[i].route, [2,0])){
       network[2].veh[i].LCModel=network[2].LCModelMandatoryRight;
       //console.log("set mandatory LC: network[2].veh[i]=",network[2].veh[i]);
+    }
+  }
+
+  for(var i=0; i<network[4].veh.length; i++){
+    if(arraysEqual(network[4].veh[i].route, [4,1])){
+      network[4].veh[i].LCModel=network[4].LCModelMandatoryRight;
     }
   }
       

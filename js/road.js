@@ -4336,30 +4336,38 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
       if(this.trajAlt.length>0){
         var iTraj=-1;
-        var success=false;
-        for(var itr=0; (itr<this.trajAlt.length)&&(!success); itr++){
+        var routefits=false;
+        for(var itr=0; (itr<this.trajAlt.length)&&(!routefits); itr++){
 	  if(arraysEqual(this.trajAlt[itr].route, this.veh[i].route)){
 	    iTraj=itr;
-	    success=true;
+	    routefits=true;
 	  }
         }
-	if(success && (this.veh[i].u>=this.trajAlt[iTraj].umin)
-	   && (this.veh[i].u<=this.trajAlt[iTraj].umax)){
+	var success=routefits && (this.veh[i].u>=this.trajAlt[iTraj].umin)
+	    && (this.veh[i].u<=this.trajAlt[iTraj].umax);
+	if(success){
 	  usedTraj_x=this.trajAlt[iTraj].x;
 	  usedTraj_y=this.trajAlt[iTraj].y;
+	  if(true){
+	    var u=this.veh[i].u;
+	    console.log("road ",this.roadID," drawVehicles: ",
+		        "veh ",this.veh[i].id,
+		        "alternative trajectory",iTraj,
+		        "u=",u.toFixed(1),
+		        "umin=",this.trajAlt[iTraj].umin.toFixed(1),
+		        "umax=",this.trajAlt[iTraj].umax.toFixed(1),
+		        "lane=",this.veh[i].lane,
+			"\n  usedTraj_x(u)=",usedTraj_x(u).toFixed(1),
+			"usedTraj_y(u)=",usedTraj_y(u).toFixed(1),
+			"\n  this.traj[0](u)=",this.traj[0](u).toFixed(1),
+			"this.traj[1](u)=",this.traj[1](u).toFixed(1),
+			"");
+	  }
 	}
+
 	else{
 	  usedTraj_x=this.traj[0];
 	  usedTraj_y=this.traj[1];
-	}
-	if(false){
-	  console.log("road.drawVehicles: alt traj:",
-		      "success=",success," iTraj=",iTraj,
-		      " u=",this.veh[i].u.toFixed(1),
-		      " umin=",this.trajAlt[iTraj].umin.toFixed(1),
-		      " umax=",this.trajAlt[iTraj].umax.toFixed(1),
-		      " lane=",this.veh[i].lane,
-		      "\n   usedTraj_x=",usedTraj_x);
 	}
 	  
       }
