@@ -21,21 +21,26 @@ var drawVehIDs=false;    // for debugging road.mergeDiverge
 var useSsimpleOD_debug=false;
 var drawRingDirect=false; // draw ring vehicles directly instead gen Traj
 
+
 // merging fine tuning
 //!! fiddle to optimize de-facto anticipation of merging vehs 
 // and last stopping in order to prevent crashes while waiting
 
-var padding=30;         // merge: visib. extension for target by origin vehs
-var paddingLTC=20;      // merge: visib. extension for origin by target vehs
-var fracArmBegin=0.87; // merge begin at fracArmBegin of arm length
-var fracArmEnd=0.92; // merge end at fracArmEnd of arm length
+var visibilityExt=30;   // merge: logical visib. ext [m] target to origin vehs
+var visibilityExtUp=20; // merge: visib. extension [m] origin to target vehs
+var mergeBeginRel=0.52; // merge begins mergeBeginRel*rRing before arm ends
+var mergeEndRel=0.32;   // merge ends mergeEndRel*rRing before arm ends
 
-// vehicle and traffic properties
 
-fracTruck=0.2; // overrides control_gui 0.15
-factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
-                     // (incorporated/updated in sim by updateModels) 
+// non-slider vehicle and traffic properties
+
+fracTruck=0.2; // overrides control_gui 0.15 (w/o providing slider)
+
 IDM_b=1;
+factor_a_truck=1; 
+factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
+                     // (incorporated/updated in sim
+                     // by control_gui-updateModels along factor_a_truck etc) 
 
 MOBIL_mandat_bSafe=4; // >b, <physical limit
 MOBIL_mandat_bThr=0;  
@@ -43,42 +48,33 @@ MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 
+//OD settings (depend addtl on slider-controlled mainFrac)
+// all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
+// only left: leftTurnBias=focusFrac=1 
+// only center: leftTurnBias=0, focusFrac=1
+// with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
+
+leftTurnBias=0;  // in [-1,1]
+focusFrac=1; // in [0,1]
+
+
 // define non-standard slider initialisations
+// (no s0,LC sliders for roundabout)
 
 qIn=2000./3600;
-slider_qIn.value=3600*qIn;
-slider_qInVal.innerHTML=3600*qIn+" veh/h";
+setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
 mainFrac=0.8;
-slider_mainFrac.value=100*mainFrac;
-slider_mainFracVal.innerHTML=100*mainFrac+" %";
-
-leftTurnBias=0;
-//slider_leftTurnBias.value=leftTurnBias;
-//slider_leftTurnBiasVal.innerHTML=leftTurnBias;
-
-focusFrac=1;
-//slider_focusFrac.value=100*focusFrac;
-//slider_focusFracVal.innerHTML=100*focusFrac+"%";
+setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
 timewarp=8;
-slider_timewarp.value=timewarp;
-slider_timewarpVal.innerHTML=timewarp +" times";
+setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
 
 IDM_v0=50./3.6;
-slider_IDM_v0.value=3.6*IDM_v0;
-slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
+setSlider(slider_IDM_v0,slider_IDM_v0Val,3.6*IDM_v0,0," km/h");
 
 IDM_a=0.9; 
-slider_IDM_a.value=IDM_a;
-slider_IDM_aVal.innerHTML=IDM_a+" m/s<sup>2</sup>";
-factor_a_truck=1; // to allow faster slowing down of the uphill trucks
-
-//IDM_T=0.6; // overrides standard settings in control_gui.js
-//slider_IDM_T.value=IDM_T;
-//slider_IDM_TVal.innerHTML=IDM_T+" s";
-
-// no LC sliders for roundabout
+setSlider(slider_IDM_a,slider_IDM_aVal,IDM_a,1," m/s<sup>2</sup>");
 
 
 
@@ -127,8 +123,9 @@ var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? 90 : 110;  // const; all objects scale with refSizePix
 
+// css/styleTrafficSimulationDe.css: canvas width:  112vmin; height: 100vmin;
 
-var critAspectRatio=120./95.; // from css file width/height of #contents
+var critAspectRatio=120./95.; // css file: width/height of portrait #contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
@@ -146,15 +143,17 @@ var car_length=4.5; // car length in m
 var car_width=2.5; // car width in m
 var truck_length=8; // trucks
 var truck_width=3; 
-var laneWidth=4; 
+var laneWidth=3.8; 
 
 
-// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+// all relative "Rel" settings with respect to refSizePhys
 
-var center_xRel=0.63;
+var center_xRel=0.63; // ring center relative to canvas
+                      // (>0.5 is centered because refSizePhys smaller edge)
 var center_yRel=-0.55;
-var rRingRel=0.14; // ring size w/resp to refSizePhys
-var lArmRel=0.6;
+var rRingRel=0.15; // ring radius w/resp to refSizePhys
+var lArmRel=0.6;   // minimum arm length approx 0.3;
+                   // longer arms only make straight sec longer
 
 // geom specification ring
 
@@ -166,9 +165,9 @@ var rRing=rRingRel*refSizePhys; // roundabout radius [m]
 
 var lArm=lArmRel*refSizePhys;
 var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-var uc1=lArm-0.25*Math.PI*r1;   
-var xc1=(rRing+r1)/Math.sqrt(2)
-var yc1=(rRing+r1)/Math.sqrt(2)
+var uc1=lArm-0.25*Math.PI*r1;  // begin of r1 arc 
+var xc1=(rRing+r1)/Math.sqrt(2) // r1 center. > r1 since connect to
+var yc1=(rRing+r1)/Math.sqrt(2) // directional road center, not median
 var x01=xc1+uc1
 
 
@@ -178,12 +177,13 @@ var x01=xc1+uc1
 //###############################################################
 
 
-var nLanes_arm=1;
+var nLanes_arm=1;  // geometry fits only for 1/1 lanes
 var nLanes_ring=1;
 
 
 // central ring (all in physical coordinates)
-// stitchAngleOffset brings stitch of ring as far upstream of merge as possible 
+// stitchAngleOffset brings stitch of ring
+// as far upstream of merge as possible 
 
 var stitchAngleOffset=-0.20*Math.PI; 
 
@@ -200,7 +200,8 @@ function trajRing_y(u){
 
 // arms 0 and 1 (ingoing/outgoing east arms)
 
-
+// lArm ends exactly at stitchAngleOffset+0.25*PI, +0.75*PI, ... of the ring
+// but traj def is valid also for u>lArm
 
 function traj0_x(u){ 
     var dxPhysFromCenter=(u<uc1) ? x01-u : xc1-r1*Math.sin((u-uc1)/r1);
@@ -278,8 +279,8 @@ function traj7_y(u){
 
 
 
-var mergeBegin=fracArmBegin*lArm; // logical merges
-var mergeEnd=fracArmEnd*lArm;
+var mergeBegin=lArm-mergeBeginRel*rRing; // logical merges
+var mergeEnd=lArm-mergeEndRel*rRing;
 
 
 
@@ -308,7 +309,8 @@ var density=0.00;
 var mainroad=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
 		  [trajRing_x,trajRing_y],0,0,0,true);
 
-mainroad.padding=padding; mainroad.paddingLTC=paddingLTC;
+mainroad.visibilityExt=visibilityExt;
+mainroad.visibilityExtUp=visibilityExtUp;
 if(markVehsMerge){mainroad.markVehsMerge=true;}
 if(drawVehIDs){mainroad.drawVehIDs=true;}
 
@@ -353,8 +355,8 @@ for (var i=0; i<arm.length; i++){
 
 
 for (var i=0; i<arm.length; i++){
-    arm[i].padding=padding;
-    arm[i].paddingLTC=paddingLTC;
+    arm[i].visibilityExt=visibilityExt;
+    arm[i].visibilityExtUp=visibilityExtUp;
     if(markVehsMerge){arm[i].markVehsMerge=true;}
     if(drawVehIDs){arm[i].drawVehIDs=true;}
 }
@@ -408,6 +410,8 @@ var v0TruckRing=Math.min(factor_v0_truck*IDM_v0, Math.sqrt(longModelTruck.b*rRin
 var longModelCarRing=new ACC(v0CarRing,IDM_T,IDM_s0,IDM_a,IDM_b); 
 var longModelTruckRing=new ACC(v0TruckRing,factor_T_truck*IDM_T,
 			       IDM_s0,factor_a_truck*IDM_a,IDM_b); 
+
+
 
 //####################################################################
 // Global graphics specification and image file settings
@@ -487,7 +491,7 @@ armImg1=roadImgs1[nLanes_arm-1];
 armImg2 = new Image();
 armImg2=roadImgs2[nLanes_arm-1];
 
-
+console.log("ringImg1=",ringImg1);
 
 
 //############################################
@@ -570,7 +574,7 @@ function updateSim(){
 
     // inflow BC
 
-    // route fractions depend on slider-controlled 
+    // route fractions depend on 
     // mainFrac, focusFrac  and leftTurnBias
     // main routes: route1C (=[1,10,6], inflow E-arm, straight ahead) 
     //              route5C (=[5,10,2], inflow W-arm, opposite direction)
@@ -585,7 +589,7 @@ function updateSim(){
 
     var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
     var lFrac=(1-cFrac)/2.*(1+leftTurnBias);
-    var rFrac=(1-cFrac)/2.*(1-leftTurnBias);
+    var rFrac=(1-cFrac)/2.*(1-leftTurnBias); // cFrac+lFrac+rFrac=1
     var clFrac=cFrac+lFrac;
 
     //console.log("roundabout:updateSim: cFrac=",cFrac," lFrac=",lFrac," rFrac=",rFrac);
@@ -804,17 +808,6 @@ function drawSim() {
 		    canvas.width," X ",canvas.height);
       }
  
-/*
-	mainroad.gridTrajectories(trajRing_x,trajRing_y);
-        arm[0].gridTrajectories(traj0_x,traj0_y);
-        arm[1].gridTrajectories(traj1_x,traj1_y);
-        arm[2].gridTrajectories(traj2_x,traj2_y);
-        arm[3].gridTrajectories(traj3_x,traj3_y);
-        arm[4].gridTrajectories(traj4_x,traj4_y);
-        arm[5].gridTrajectories(traj5_x,traj5_y);
-        arm[6].gridTrajectories(traj6_x,traj6_y);
-        arm[7].gridTrajectories(traj7_x,traj7_y);
-*/
     }
 
   // (2) reset transform matrix and draw background
@@ -823,7 +816,7 @@ function drawSim() {
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
     if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+      || (!drawRoad) || drawVehIDs){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }

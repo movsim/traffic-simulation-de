@@ -229,7 +229,7 @@ function updateHighscores(nickName,newScore,storageName){
     var str_highScores="<h1> Game Finished!</h1> Your time is "
 	+newScore+" Seconds"
 	+"<h2>Highscore list:</h2>"
-	+"<table border=\"0\" cellspacing=\"1\" cellpadding=\"3\">"
+	+"<table border=\"0\" cellspacing=\"1\" cellvisibilityExt=\"3\">"
 	//+"<tr><th> name</th><th>score [s]</th><th>time</th></tr>";
 	+"<tr><th>rank</th><th> name</th><th>score [s]</th></tr>";
 
@@ -904,7 +904,7 @@ var MOBIL_mandat_bThr=0;   // to be specified below
 var MOBIL_mandat_p=0;
 var MOBIL_mandat_bias=42;
 
-// define truck longModel as f(car longModel)v0 limited by speed limit
+// define truck longModel as f(car longModel) v0 limited by speed limit
 
 var factor_v0_truck=1; 
 var factor_a_truck=1.0;

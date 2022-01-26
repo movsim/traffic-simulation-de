@@ -27,8 +27,8 @@ var drawRingDirect=false; // draw ring vehicles directly instead gen Traj
 //!! fiddle to optimize de-facto anticipation of merging vehs 
 // and last stopping in order to prevent crashes while waiting
 
-var padding=30;         // merge: visib. extension for target by origin vehs
-var paddingLTC=20;      // merge: visib. extension for origin by target vehs
+var visibilityExt=30;         // merge: visib. extension for target by origin vehs
+var visibilityExtUp=20;      // merge: visib. extension for origin by target vehs
 var fracArmBegin=0.87; // merge begin at fracArmBegin of arm length
 var fracArmEnd=0.92; // merge end at fracArmEnd of arm length
 
@@ -257,8 +257,8 @@ for (var i=0; i<arm.length; i++){
 
 
 for (var i=0; i<arm.length; i++){
-    //arm[i].padding=padding;
-    //arm[i].paddingLTC=paddingLTC;
+    //arm[i].visibilityExt=visibilityExt;
+    //arm[i].visibilityExtUp=visibilityExtUp;
     //if(markVehsMerge){arm[i].markVehsMerge=true;}
     if(drawVehIDs){arm[i].drawVehIDs=true;}
 }

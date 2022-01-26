@@ -3839,6 +3839,11 @@ road.prototype.updateBCup=function(Qin,dt,route){
 			  " type=",vehType," s=",space," speed=",speedNew);
 	console.log(this.veh.length);
       }
+      if(true){
+	console.log("road.updateBCup: road",this.roadID,
+		    "veh ",vehNew.id,"route ",vehNew.route);
+      }
+		   
     }
   }
 
@@ -4669,7 +4674,7 @@ road.prototype.revertVehMarkings=function(){
 
 
 
-/** #####################################################
+/* #####################################################
  MT 2019-09: implement effect of user-draggable speed limits 
 from the traffic objects:
 

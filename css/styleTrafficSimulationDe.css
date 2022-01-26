@@ -461,8 +461,8 @@ body{
   position: absolute;
   left:   0vw;
   top:   0vmin;
-  width:  100vmin;  /* 100.5%; proportional to above .#contents 120/95 approx 5/4*/
-  height: 80vmin;
+  width:  100vmin; 
+  height: 80vmin; /* OK: in portrait canvas has a *smaller* rel height */
   margin-right: 0vw;
   margin-left: 0vw;
   z-index: 1;

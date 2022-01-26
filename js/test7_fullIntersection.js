@@ -432,6 +432,8 @@ function traj3_03y(u){return trajLeftMainSec_y(u,offsetSec-offset21Source);}
 function traj5_15x(u){return 2*center_xPhys-traj3_03x(u);}
 function traj5_15y(u){return 2*center_yPhys-traj3_03y(u);}
 
+
+
 // #############################################################3
 // road images for the trajectories; 2 images per road/network element
 // #############################################################3
@@ -583,7 +585,7 @@ network=[road0,road1,road2,road3,road4,road5];
 
 for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
-  network[ir].drawRoadIDs=drawVehIDs;
+  network[ir].drawRoadIDs=drawRoadIDs;
 }
 
 // conflicts by road0 for all Northbound OD combinations (!! distinguish
@@ -660,7 +662,8 @@ var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
 // model initialization (models and methods defined in control_gui.js)
 //#########################################################
 	
-updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+// ok 2021. Defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+updateModels(); 
 
 
 
@@ -708,12 +711,11 @@ function updateSim(){
     }
   }
 
-  // updateSim (1): update times and, if canvas change, 
-  // scale and update smartphone property
+
+  // updateSim (1): update time, global geometry, and traffic objects
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  //console.log("entering updateSim: time=",time," hasChanged=",hasChanged);
   hasChanged=false;
   
   if ((canvas.width!=simDivWindow.clientWidth)
@@ -731,6 +733,10 @@ function updateSim(){
     trafficObjs.calcDepotPositions(canvas);
   }
  
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack(); // here more responsive than in drawSim
+  }
+
 
   // updateSim (2): integrate all the GUI actions (sliders, TrafficObjects)
   // as long as not done independently (clicks on vehicles)
@@ -740,7 +746,6 @@ function updateSim(){
   // LCModelMandatory in control_gui.js;
   // road.updateM... makes road.LCModelMandatoryLeft, -Right out of this
 
-
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -749,13 +754,10 @@ function updateSim(){
     network[ir].updateSpeedlimits(trafficObjs);
   }
   
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack(); // here more responsive than in drawSim
-  }
 
 
-
-  // updateSim (3): do central simulation update of vehicles
+  // updateSim (3): do central acc calculation of vehicles
+  // (may be later overridden by special actions before speed and pos update)
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].calcAccelerations();
@@ -765,6 +767,9 @@ function updateSim(){
   // updateSim (4): !!! do all the network actions
   // (inflow, outflow, merging and connecting)
 
+
+  // (4a) inflow BC
+  
   var qEastbound=0.95*qIn;
   var qWestbound=1.05*qIn;
   var qNorthbound=0.95*q2;
@@ -791,16 +796,15 @@ function updateSim(){
   network[4].updateBCup(qSouthbound,dt,routes4[direction]);
 
   
-  // do all the mergeDiverge actions here
-  // do all the connecting stuff here
+  // updateSim (4b) mergeDiverge actions
 
-
+  
+  // updateSim (4c): direct connecting stuff
   // connectors selected by the route of the vehicles
+  // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
 
   var maxspeed_turn=7;
   
-  // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
-
   // straight  ahead
   
   network[2].connect(network[3], network[2].roadLen,
@@ -839,6 +843,8 @@ function updateSim(){
 		     0, conflicts40, maxspeed_turn);
   
 
+  // updateSim (4d): outflow BC (if not relevant, updateBCdown does nothing)
+
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateBCdown();
   }
@@ -851,39 +857,39 @@ function updateSim(){
 
   // restrict LC for inflowing road2-vehicles for route 20
 
-  for(var i=0; i<network[0].veh.length; i++){
-    if(arraysEqual(network[0].veh[i].route, [0,5])){
-      network[0].veh[i].LCModel=network[0].LCModelMandatoryRight;
+  for(var ir=0; ir<network[0].veh.length; ir++){
+    if(arraysEqual(network[0].veh[ir].route, [0,5])){
+      network[0].veh[ir].LCModel=network[0].LCModelMandatoryRight;
     }
-    if(arraysEqual(network[0].veh[i].route, [0,3])){
-      network[0].veh[i].LCModel=network[0].LCModelMandatoryLeft;
-    }
-  }
-
-  for(var i=0; i<network[1].veh.length; i++){
-    if(arraysEqual(network[1].veh[i].route, [1,3])){
-      network[1].veh[i].LCModel=network[1].LCModelMandatoryRight;
-    }
-    if(arraysEqual(network[1].veh[i].route, [1,5])){
-      network[1].veh[i].LCModel=network[1].LCModelMandatoryLeft;
+    if(arraysEqual(network[0].veh[ir].route, [0,3])){
+      network[0].veh[ir].LCModel=network[0].LCModelMandatoryLeft;
     }
   }
 
-  for(var i=0; i<network[2].veh.length; i++){
-    if(arraysEqual(network[2].veh[i].route, [2,0])){
-      network[2].veh[i].LCModel=network[2].LCModelMandatoryRight;
+  for(var ir=0; ir<network[1].veh.length; ir++){
+    if(arraysEqual(network[1].veh[ir].route, [1,3])){
+      network[1].veh[ir].LCModel=network[1].LCModelMandatoryRight;
     }
-    if(arraysEqual(network[2].veh[i].route, [2,1])){
-      network[2].veh[i].LCModel=network[2].LCModelMandatoryLeft;
+    if(arraysEqual(network[1].veh[ir].route, [1,5])){
+      network[1].veh[ir].LCModel=network[1].LCModelMandatoryLeft;
+    }
+  }
+
+  for(var ir=0; ir<network[2].veh.length; ir++){
+    if(arraysEqual(network[2].veh[ir].route, [2,0])){
+      network[2].veh[ir].LCModel=network[2].LCModelMandatoryRight;
+    }
+    if(arraysEqual(network[2].veh[ir].route, [2,1])){
+      network[2].veh[ir].LCModel=network[2].LCModelMandatoryLeft;
     }
  }
 
-  for(var i=0; i<network[4].veh.length; i++){
-    if(arraysEqual(network[4].veh[i].route, [4,1])){
-      network[4].veh[i].LCModel=network[4].LCModelMandatoryRight;
+  for(var ir=0; ir<network[4].veh.length; ir++){
+    if(arraysEqual(network[4].veh[ir].route, [4,1])){
+      network[4].veh[ir].LCModel=network[4].LCModelMandatoryRight;
     }
-    if(arraysEqual(network[4].veh[i].route, [4,0])){
-      network[4].veh[i].LCModel=network[4].LCModelMandatoryLeft;
+    if(arraysEqual(network[4].veh[ir].route, [4,0])){
+      network[4].veh[ir].LCModel=network[4].LCModelMandatoryLeft;
     }
   }
       
@@ -969,7 +975,8 @@ function drawSim() {
 
 
 
-  // drawSim (5): redraw changeable traffic objects 
+  // drawSim (5): redraw changeable traffic objects
+  // (zoomback is better in sim!)
 
   if(userCanDropObjects&&(!isSmartphone)){
     trafficObjs.draw(scale);
