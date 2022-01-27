@@ -2580,7 +2580,7 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
 road.prototype.connect=function(targetRoad, uSource, uTarget,
 				offsetLane, conflicts, maxspeed){
-  var connectLog=false;
+  var connectLog=false; // can be set true later if veh known
   //var connectLog=(time>75);
   if(typeof conflicts === 'undefined'){conflicts=[];}
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
@@ -2611,8 +2611,16 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   // check if there are candidates and, if so, influence them
 
   for(var iveh=0; iveh<this.veh.length; iveh++){
+    
+    //connectLog=false;
+    connectLog=(this.veh[iveh].id==212);
+    //connectLog=(this.veh[iveh].id==210)&&(targetID==3);
+    
+    var ringKO=(this.isRing)
+	&&(this.veh[iveh].u>uSource+1.5*dt*this.veh[iveh].longModel.v0);
     // veh is candidate if in anticipation regime and regular veh
-    if((this.veh[iveh].u>uSource-duAntic)&&(this.veh[iveh].isRegularVeh())){
+    if((this.veh[iveh].isRegularVeh())&&(!ringKO)
+       &&(this.veh[iveh].u>uSource-duAntic)){
  
 
       //oder arraysEqual((this.trajAlt[itr].route, this.veh[i].route))//!!!
@@ -2621,12 +2629,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       // Array.indexOf(a) gives index of the first element==a, and-1 if none
       
       var connecting=(this.veh[iveh].route.indexOf(targetID)>=0);
-      if(this.veh[iveh].id==208){
-	console.log("1: veh id=",this.veh[iveh].id,
-		    " route=",this.veh[iveh].route," targetID=",targetID,
-		    " indexOf=",this.veh[iveh].route.indexOf(targetID),
-		    " connecting=",connecting);
-      }
  
       /* 
        only further treatment if veh regular, in influence range,
@@ -2706,18 +2708,18 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
         var C3=(u>uGo);                     // final go if conflicts resolved
 
 	//console.log("duGo=",Math.max(1.1*s0,0.5*duDecision).toFixed(1));
-	if(id==208){
-	//if(connectLog){
-	  console.log("\nroad.connect: connecting veh",id,
-		      " t=",time.toFixed(1),
-		      " veh id=",id,
+
+	if(connectLog){
+	  console.log("\n\nroad.connect: veh id=",id,
+		      " route=",this.veh[iveh].route,
+		      " connecting=",connecting,
 		      " u=",u.toFixed(1),
 		      " uAntic=",uAntic.toFixed(1),
 		      " uDecide=",uDecide.toFixed(1),
 		      " uGo=",uGo.toFixed(1),
 		      " uSource=",uSource.toFixed(1),
 		      "\n              C1=",C1,
-		      " C2=",C2," C3=",C3,
+		      "  C2=",C2," C3=",C3,
 		      " laneContinues=",laneContinues,
 		      " conflictsExist=",conflictsExist,
 		      " potentialConflictsExist=",potentialConflictsExist,
@@ -2857,8 +2859,9 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var accDefault=vehConnect.longModel.calcAcc(s,speed,0,0);
 	  var accGo=accDefault;
 	  if(connectLog){
-	    console.log("(i) default: targetCanBeEntered=",targetCanBeEntered,
-			"accDefault=",accDefault);
+	    console.log("  Preparation (i): Potential acceleration if",
+			"neither conflicts nor target restrictions:",
+			"accDefault=accGo=",accDefault);
 	  }
 
 
@@ -2881,20 +2884,30 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      if(uLead-lenLead-vehConnect.len-2*s0<uOwnMax){
 		targetCanBeEntered=false; // !! influence
 	      }
+	      
 	      if(connectLog){
-		console.log("(ii) leaderExists: targetCanBeEntered=",
-			    targetCanBeEntered,
-			    "accGo=",accGo);
-		if(false){console.log("uLead=",uLead,
+		console.log("  Preparation (ii): leaderExists:",
+			    "targetCanBeEntered=",targetCanBeEntered,
+			    "s to target leader s=",s.toFixed(1),
+			    "speedLead=",speedLead.toFixed(1),
+			    "accLead=",accLead.toFixed(1),
+			    "accGo=accLongModel=",accGo.toFixed(1));
+		if(false){
+		  console.log("uLead=",uLead,
 			    "lenLead=",lenLead,
 			    "vehConnect.len=",vehConnect.len,
 			    " 2*s0=",2*s0,
-			    " uOwnMax=",uOwnMax,
-				      " targetCanBeEntered=",targetCanBeEntered);
+			      " uOwnMax=",uOwnMax,
+			      " targetCanBeEntered=",targetCanBeEntered);
 			 }
 	      }
+	      
 	    }
 	  }
+	  else if(connectLog){
+	    console.log("  Preparation (ii): no target leader exists");
+	  }
+
 
 	  // (iii) calculation whether it is safe to merge in
 	  // front of followers
@@ -2915,9 +2928,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 
 	    if(connectLog){
-		console.log("(iii) followerExists: targetCanBeEntered=",
-			    targetCanBeEntered,
-			    "accGo=",accGo);
+	      console.log(
+		"  Preparation (iii): !!!CHANGE accGo=accSlowdown target followerExists: targetCanBeEntered=",
+		targetCanBeEntered,
+		"u-uGo=",(u-uGo).toFixed(1),
+		"u-uSource=",(u-uSource).toFixed(1),
+		"accGo=",accGo);
 	    }
 	    
 	  }
@@ -2969,26 +2985,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    vehConnect.conflictsExist=conflictsExist; //!! influence
 	  }
 
-	  // Action A4: Go ahead but consider vehicles on target road
-	  // for jam propagation
 
 	  var accOld=vehConnect.acc;
 	  var conflictsAllowPassing
 	      =((!potentialConflictsExist) || ((!conflictsExist)&&(C2||C3)));
 
-	  if (conflictsAllowPassing&&targetCanBeEntered){
-	    vehConnect.acc=Math.min(accOld,accGo); // !!influence
-	    if(connectLog){
-	      console.log("  Action 4: ready to go");
-	    }
-
-	  }
-
-
 	  // Action A3: laneContinues but conflicts exist
 	  // and/or in zone C2 and/or !targetCanBeEntered
 
-	  else{
+	  if (!(conflictsAllowPassing&&targetCanBeEntered)){
 	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
 	    if(connectLog){
 	      console.log("  Action 3: decelerating to stop",
@@ -2998,23 +3003,39 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 	  }
 
-	  if(connectLog){console.log("    uSource-u=",(uSource-u).toFixed(1),
-				     "acc=",vehConnect.acc.toFixed(2));}
+
+	  // Action A4: Go ahead but consider vehicles on target road
+	  // for jam propagation
+
+	  else{
+	    vehConnect.acc=Math.min(accOld,accGo); // !!influence
+	    
+	    if(connectLog){
+	      console.log("  Action 4: ready to go",
+			  " veh id=",vehConnect.id,
+		          " route=",vehConnect.route," targetID=",targetID,
+		          " uSource-u=",(uSource-u).toFixed(1),
+		          " speed=",vehConnect.speed.toFixed(1),
+		          " acc=",vehConnect.acc.toFixed(1),
+		          "");
+            }
+	    
+
+	  }
+
 	  
 	} // laneContinues==true
 
+
+
 	// Action A5: actual transfer!!
-	if(this.veh[iveh].id==208){
-	  console.log("2: veh id=",this.veh[iveh].id,
-		    " route=",this.veh[iveh].route," targetID=",targetID,
-		    " indexOf=",this.veh[iveh].route.indexOf(targetID),
-		    " connecting=",connecting);
-        }
- 
-	
+
+      
 	if(u>uSource){
 	  if(connectLog){
-	    console.log("  Action 5: actual transfer");
+	  //if(this.veh[iveh].id==210){
+	    console.log("  Action 5: All previous actions drove the vehicle",
+			"over uSource => actual transfer");
 	  }
 
 

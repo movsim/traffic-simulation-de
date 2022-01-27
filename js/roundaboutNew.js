@@ -52,10 +52,10 @@ focusFrac=1; // in [0,1]
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
 
-qIn=500./3600;
+qIn=2000./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
-mainFrac=0;
+mainFrac=1;
 setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
 timewarp=2.5;
@@ -624,7 +624,7 @@ function updateSim(){
 
   network[8].connect(network[1], 1.75*PI*rRing+divergeOffset, // S arm
 		     0, 0, []);
-  console.log("0.25*PI*rRing+divergeOffset=",0.25*PI*rRing+divergeOffset);
+
   
   // updateSim (4d): outflow BC (if not relevant, updateBCdown does nothing)
 
