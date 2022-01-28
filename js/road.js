@@ -4307,7 +4307,7 @@ road.prototype.get_yPix=function(u,v,scale){
 road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 			     umin,umax,
 			     movingObs,uObs,xObs,yObs){
-  //console.log("road.draw: umin=",umin);
+
   var noRestriction=(typeof umin === 'undefined');
   var movingObserver=(typeof movingObs === 'undefined')
     ? false : movingObs;

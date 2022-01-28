@@ -48,6 +48,7 @@ function myStartStopFunction(){
 
 function myRestartFunction(){ 
   time=0;
+  itime=0;
   var i=0;
 
   for(var i=0; i<network.length; i++){

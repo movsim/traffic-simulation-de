@@ -27,8 +27,8 @@ timewarp=3.5;
 var mainroadLen=200;              // reference size in m
 
 var nLanes_main=3;
-var nLanes_sec=1;
-
+var nLanes_sec=2;
+var laneCount=nLanes_main+nLanes_sec; // used here in addLane(), subtractLane
 var laneWidth=3.0; 
 var car_length=5;    // car length in m (all a bit oversize for visualisation)
 var car_width=2.5;     // car width in m
@@ -37,7 +37,7 @@ var truck_width=3;
 
 // left-turning radius sufficiently high to allow for "US left-turning style"
 
-var radiusLeft=4.5*laneWidth; // atrifacts if radiusLeft-radiusRight too large
+var radiusLeft=4.5*laneWidth; // artifacts if radiusLeft-radiusRight too large
 var radiusRight=2.5*laneWidth;
 
 // ###################################################
@@ -250,8 +250,6 @@ function traj0_x(u){ // physical coordinates
 function traj0_y(u){ 
   return center_yPhys-offsetMain;
 }
-
-
 
 function traj1_x(u){ // physical coordinates
   return center_xPhys-(u-0.5*road0Len);
@@ -695,6 +693,11 @@ updateModels();
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 var trafficObjs=new TrafficObjects(canvas,4,2,0.25,0.25,2,4);
+var TL=trafficObjs.trafficObj.slice(0,4);  // last index not included
+// set two TL to green, two to red
+trafficObjs.setTrafficLight(TL[0],"green");
+trafficObjs.setTrafficLight(TL[1],"green");
+
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
@@ -719,6 +722,10 @@ function updateSim(){
   //console.log("time=",time.toFixed(2));
   //if((time>76)&&(time<76.2)){alert("crash at 81 s!");}
 
+//!!!!
+  if(itime%150==0){nextTLphase();}
+
+  
   if(false){
     for(var ir=0; ir<network.length; ir++){
       for(var i=0; i<network[ir].veh.length; i++){
@@ -1055,4 +1062,191 @@ function main_loop() {
 console.log("first main execution");
 
 var myRun=setInterval(main_loop, 1000/fps);
+
+//##################################################
+// special gui callbacks (not so general to be in control_gui.js)
+//##################################################
+
+function nextTLphase(){
+  for(var i=0; i<4; i++){
+    trafficObjs.setTrafficLight(
+      TL[i],(TL[i].value=="green") ? "red" : "green");
+  }
+}
+
+
+
+var laneCountMin=2;
+var laneCountMax=5;
+
+function addLane(){addLanesBy(1);}
+function subtractLane(){addLanesBy(-1);}
+
+function addLanesBy(incr){ 
+  if(laneCount+incr>laneCountMax){
+    console.log("addLanesBy("+incr+"): max lane number reached");
+  }
+  else if(laneCount+incr<laneCountMin){
+    console.log("addLanesBy("+incr+"): min lane number reached");
+  }
+  else{
+    laneCount+=incr;
+    userCanvasManip=true; // causes drawing background
+    nLanes_main=Math.min(laneCount-1,3);
+    nLanes_sec=laneCount-nLanes_main;
+    updateGeometry(nLanes_main,nLanes_sec);
+  }
+
+  if(laneCount===laneCountMax){
+    document.getElementById("lanePlusDiv").style.visibility="hidden";
+  }
+  if(laneCount===laneCountMin){
+    document.getElementById("laneMinusDiv").style.visibility="hidden";
+  }
+
+  if(laneCount<laneCountMax){
+    document.getElementById("lanePlusDiv").style.visibility="visible";
+  }
+  if(laneCount>laneCountMin){
+    document.getElementById("laneMinusDiv").style.visibility="visible";
+  }
+
+  myRestartFunction();  
+}
+    
+
+    
+    // update lane-dependent geometry
+    
+function updateGeometry(nLanes_main,nLanes_sec){
+  offsetMain=0.5*laneWidth*nLanes_main;
+  offsetSec=0.5*laneWidth*nLanes_sec;
+  offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
+  road2Len=0.5/fitfactor*refSizePhys - offset20Target - radiusRight;
+  road3Len=0.5/fitfactor*refSizePhys + offset20Target + radiusRight;
+
+  lenRight=0.5*Math.PI*radiusRight; // for all right-turn special traj
+  offset20Source=(nLanes_sec-0.5)*laneWidth; // dist from inters. x center
+  u20Source=1.0*road2Len;
+  u20Target=0.5*mainroadLen+offset20Source+(1-0.5*Math.PI)*radiusRight;
+  u13Source=0.5*mainroadLen-offset20Source-radiusRight;
+  u13Target=2*(offset20Target+radiusRight)-lenRight;
+
+  lenLeft=0.5*Math.PI*radiusLeft; //main-sec
+  lenLeftSecMain=lenLeft+2*offsetMain-1*(radiusLeft-radiusRight); 
+  offset21Source=0.5*laneWidth;  // dist from intersection x center
+  offset21Target=0.5*laneWidth;  // dist from intersection y center
+  u21Source=1.0*road2Len;
+  u21Target=0.5*mainroadLen-offset21Source+radiusLeft-lenLeftSecMain;
+  u03Source=0.5*mainroadLen+offset21Source-radiusLeft;
+  u03Target=-offset21Target+radiusLeft+radiusRight+offset20Target-lenLeft;
+
+  // dependent quantities due to symmetry
+  
+  road1Len=mainroadLen;
+  road4Len=road2Len;
+  road5Len=road3Len;
+
+  u41Source=u20Source;
+  u41Target=u20Target;
+  u05Source=u13Source;
+  u05Target=u13Target;
+
+  u40Source=u21Source;
+  u40Target=u21Target;
+  u15Source=u03Source;
+  u15Target=u03Target;
+
+  // update non-function road properties (these are not by reference)
+  
+  nLanes=[nLanes_main,nLanes_main,
+	    nLanes_sec,nLanes_sec,nLanes_sec,nLanes_sec];
+  for(var ir=0; ir<network.length; ir++){
+      roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
+      roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
+      network[ir].nLanes=(ir<2) ? nLanes_main : nLanes_sec;
+  }
+
+  road2.roadLen=road2Len;
+  road3.roadLen=road3Len;
+  road4.roadLen=road4Len;
+  road5.roadLen=road5Len;
+
+   
+  road0.trajAlt[0]={x: traj0_20x,
+		  y: traj0_20y,
+		  roadID: 2, // here only route 20
+		  umin:u20Target,
+		  umax:u20Target+lenRight,
+		  laneMin:nLanes_main-1, // right main lane
+		  laneMax:nLanes_main-1
+		 };
+  
+  road0.trajAlt[1]={x: traj0_40x,
+		  y: traj0_40y,
+		  roadID: 4,   // route40,
+		  umin:u40Target,
+		  umax:u40Target+lenLeftSecMain,
+		  laneMin:0, // left main lane
+		  laneMax:0
+		 };
+
+  road1.trajAlt[0]={x: traj1_41x,
+		  y: traj1_41y,
+		  roadID: 4,   // route41,
+		  umin:u41Target,
+		  umax:u41Target+lenRight,
+		  laneMin:nLanes_main-1, // right main lane
+		  laneMax:nLanes_main-1
+		 };
+  
+  road1.trajAlt[1]={x: traj1_21x,
+		  y: traj1_21y,
+		  roadID: 2,   // route21,
+		  umin:u21Target,
+		  umax:u21Target+lenLeftSecMain,
+		  laneMin:0, // left main lane
+		  laneMax:0
+		 };
+  
+
+  road3.trajAlt[0]={x: traj3_13x,
+		  y: traj3_13y,
+		  roadID: 1,    // route13,
+		  umin:u13Target,
+		  umax:u13Target+lenRight,
+		  laneMin:nLanes_sec-1, // right secondary lane
+		  laneMax:nLanes_sec-1
+		 };
+  
+  road3.trajAlt[1]={x: traj3_03x,
+		  y: traj3_03y,
+		  roadID: 0,    // route03,
+		  umin:u03Target,
+		  umax:u03Target+lenLeft,
+		  laneMin:0, // left secondary lane
+		  laneMax:0
+		 };
+  
+  road5.trajAlt[0]={x: traj5_05x,
+		  y: traj5_05y,
+		  roadID: 0,     // route05,
+		  umin:u05Target,
+		  umax:u05Target+lenRight,
+		  laneMin:nLanes_sec-1, // right secondary lane
+		  laneMax:nLanes_sec-1
+		 };
+  
+  road5.trajAlt[1]={x: traj5_15x,
+		  y: traj5_15y,
+		  roadID: 1,     //route15,
+		  umin:u15Target,
+		  umax:u15Target+lenLeft,
+		  laneMin:0, // left secondary lane
+		  laneMax:0
+		 };
+}
+
+
+    
 

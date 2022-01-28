@@ -747,7 +747,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 }
 
 //#############################################################
-// programmatic setting of a traffic light (only BaWue as of 2021-11)
+// programmatic setting of a traffic light
 //#############################################################
 
 /** 
@@ -766,7 +766,7 @@ TrafficObjects.prototype.setTrafficLight=function(obj, value){
   obj.value=value;
   obj.image=(obj.value==='red') ? this.imgTLred : this.imgTLgreen;
   if(obj.isActive){ // then, obj has a road reference
-    obj.road.changeTrafficLight(obj.id, obj.value); //(3) das macht den Fuck
+    obj.road.changeTrafficLight(obj.id, obj.value); 
   }
 
   if(false){
