@@ -1,9 +1,9 @@
 const PI=Math.PI;
 
 var userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-var drawRoadIDs=true; // debug: draw veh IDs for selected roads
-var showCoords=true;  // show logical coords of nearest road to mouse pointer
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
+var drawRoadIDs=false; // debug: draw veh IDs for selected roads
+var showCoords=false;  // show logical coords of nearest road to mouse pointer
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -15,7 +15,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // controlled by a html select elements
 
 respectRingPrio=true; 
-respectRightPrio=false; // callback: control_gui - handleChangedPriority
+//respectRightPrio=false; // callback: control_gui - handleChangedPriority
 
 
 // merging fine tuning
@@ -55,7 +55,7 @@ focusFrac=1; // in [0,1]
 qIn=2000./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
-mainFrac=1;
+mainFrac=0.6;
 setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
 timewarp=2.5;
@@ -64,7 +64,7 @@ setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
 IDM_v0=50./3.6;
 setSlider(slider_IDM_v0,slider_IDM_v0Val,3.6*IDM_v0,0," km/h");
 
-IDM_a=0.9; 
+IDM_a=1.5; 
 setSlider(slider_IDM_a,slider_IDM_aVal,IDM_a,1," m/s<sup>2</sup>");
 
 
@@ -356,6 +356,24 @@ function traj3_y(u){
 }
 
 
+// special trajectories for entering (physical entering ahead of PI/4*r etc)
+
+var ringArmOffset=lArm+rRing*stitchAngleOffset; // stitchangle=eg.-0.15*PI
+
+function trajRing_0x(u){return traj0_x(u-rRing*0.25*PI +ringArmOffset);}
+function trajRing_0y(u){return traj0_y(u-rRing*0.25*PI +ringArmOffset);}
+
+function trajRing_2x(u){return traj2_x(u-rRing*0.75*PI +ringArmOffset);}
+function trajRing_2y(u){return traj2_y(u-rRing*0.75*PI +ringArmOffset);}
+
+function trajRing_4x(u){return traj4_x(u-rRing*1.25*PI +ringArmOffset);}
+function trajRing_4y(u){return traj4_y(u-rRing*1.25*PI +ringArmOffset);}
+
+function trajRing_6x(u){return traj6_x(u-rRing*1.75*PI +ringArmOffset);}
+function trajRing_6y(u){return traj6_y(u-rRing*1.75*PI +ringArmOffset);}
+
+
+
 // #############################################################3
 // road images for the trajectories; 2 images per road/network element
 // #############################################################3
@@ -416,15 +434,22 @@ arm[5]=new road(5,lArm,laneWidth,nLanes_arm,[traj5_x,traj5_y],0,0,0,false);
 arm[6]=new road(6,lArm,laneWidth,nLanes_arm,[traj6_x,traj6_y],0,0,0,false);
 arm[7]=new road(7,lArm,laneWidth,nLanes_arm,[traj7_x,traj7_y],0,0,0,false);
 
+
 for (var ir=0; ir<arm.length; ir++){
   network[ir]=arm[ir]; // network declared in canvas_gui.js
 }
 network[8]=mainroad;  
 
-for (var ir=0; ir<network.length; ir++){
+// draw veh IDs on selected links if set true;
+// also draw alternative trajectories if wanted (not needed for roundabout)
+
+for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
-  network[ir].drawRoadIDs=drawRoadIDs;
+  network[ir].drawAlternativeTrajectories=false; // default=false; to remember
 }
+
+
+
 
 //################################################################
 // define routes
@@ -445,6 +470,35 @@ var routeWL=[4,8,3];  // inflow W-arm, left turn
 var routeSR=[6,8,1];  // inflow S-arm, right turn
 var routeSC=[6,8,3];  // inflow S-arm, straight ahead
 var routeSL=[6,8,5];  // inflow S-arm, left turn
+
+// add the special trajectories depending on the roadID of the route link
+// neighboring to the ring (roadID=8)
+
+var altOffset=-rRing*stitchAngleOffset;
+mainroad.trajAlt[0]={x: trajRing_0x,
+		     y: trajRing_0y,
+		     roadID: 0,
+		     umin:0+altOffset,
+		     umax:rRing*0.25*PI+altOffset
+		    };
+mainroad.trajAlt[1]={x: trajRing_2x,
+		     y: trajRing_2y,
+		     roadID: 2,
+		     umin:rRing*0.50*PI+altOffset,
+		     umax:rRing*0.75*PI+altOffset
+		    };
+mainroad.trajAlt[2]={x: trajRing_4x,
+		     y: trajRing_4y,
+		     roadID: 4,
+		     umin:rRing*1.00*PI+altOffset,
+		     umax:rRing*1.25*PI+altOffset
+		    };
+mainroad.trajAlt[3]={x: trajRing_6x,
+		     y: trajRing_6y,
+		     roadID: 6,
+		     umin:rRing*1.50*PI+altOffset,
+		     umax:rRing*1.75*PI+altOffset
+		    };
 
 
 
@@ -588,7 +642,8 @@ function updateSim(){
   var maxspeed_turn=7;
 
   // arms to ring
-
+  // respectRingPrio set by html choice element
+  
   var duMerge=network[1].roadLen-uMerge; // merge du before the end of the arm
   var mergeOffset  =-rRing*stitchAngleOffset - duMerge;
   var divergeOffset=-rRing*stitchAngleOffset + 0;
@@ -597,16 +652,20 @@ function updateSim(){
   
   // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
   network[0].connect(network[8], uMerge, // E arm
-		     0.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn);
+		     0.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
  
   network[2].connect(network[8], uMerge, // N arm
-		     0.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn);
+		     0.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
 
   network[4].connect(network[8], uMerge, // W arm
-		     1.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn);
+		     1.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
 
   network[6].connect(network[8], uMerge, // S arm
-		     1.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn);
+		     1.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
 
 
   
@@ -689,8 +748,13 @@ function drawSim() {
 		    scale,changedGeometry);
   }
 
-  
-    
+  if(drawRoadIDs){  
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].drawRoadID(scale);
+    }
+  }
+
+   
   // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
 
   // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,

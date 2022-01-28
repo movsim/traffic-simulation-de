@@ -1,8 +1,8 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-var drawRoadIDs=true; // debug: draw veh IDs for selected roads
-var showCoords=true;  // show logical coords of nearest road to mouse pointer
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
+var drawRoadIDs=false; // debug: draw veh IDs for selected roads
+var showCoords=false;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
 
@@ -15,10 +15,10 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=0./3600; // 1000 inflow to both directional main roads
+qIn=500./3600; // 1000 inflow to both directional main roads
 q2=300./3600;   // 300 inflow to secondary (subordinate) roads
-fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
-fracLeft=1.; // rest of q2-drivers cross straight ahead
+fracRight=0.4; // fracRight [0-1] of drivers on road 2 turn right
+fracLeft=0.2; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -27,7 +27,7 @@ timewarp=3.5;
 var mainroadLen=200;              // reference size in m
 
 var nLanes_main=3;
-var nLanes_sec=2;
+var nLanes_sec=1;
 
 var laneWidth=3.0; 
 var car_length=5;    // car length in m (all a bit oversize for visualisation)
@@ -74,9 +74,10 @@ addTouchListeners();
 console.log("after addTouchListeners()");
 
 
-// init overall scaling 
+// init overall scaling (if fitfactor>1 => road begins/ends visible)
 
-var refSizePhys=1.05*mainroadLen*canvas.height/canvas.width;
+var fitfactor=1.00;
+var refSizePhys=fitfactor*mainroadLen*canvas.height/canvas.width;
 var isSmartphone=mqSmartphone();  // from css; only influences text size
 
 
@@ -193,8 +194,10 @@ var offsetMain=0.5*laneWidth*nLanes_main;
 var offsetSec=0.5*laneWidth*nLanes_sec;
 var offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
 var road0Len=mainroadLen; 
-var road2Len=0.48*refSizePhys-offset20Target-radiusRight;
-var road3Len=0.48*refSizePhys+offset20Target+radiusRight;
+var road2Len=0.5/fitfactor*refSizePhys - offset20Target - radiusRight;
+var road3Len=0.5/fitfactor*refSizePhys + offset20Target + radiusRight;
+//var road2Len=0.48*refSizePhys - offset20Target - radiusRight;
+//var road3Len=0.48*refSizePhys + offset20Target + radiusRight;
 
 //right
 
@@ -517,62 +520,80 @@ var road5=new road(roadIDs[5],road5Len,laneWidth,nLanes_sec,
 
 
 // adding the alternative trajectories ([0]=right turn, [1]=left turn)
+// depending on the roadID of the route link neighboring to the road
+// to which the alt traj are added
 
 road0.trajAlt[0]={x: traj0_20x,
 		  y: traj0_20y,
-		  route: route20,
+		  roadID: 2, // here only route 20
 		  umin:u20Target,
-		  umax:u20Target+lenRight
+		  umax:u20Target+lenRight,
+		  laneMin:nLanes_main-1, // right main lane
+		  laneMax:nLanes_main-1
 		 };
   
 road0.trajAlt[1]={x: traj0_40x,
 		  y: traj0_40y,
-		  route: route40,
+		  roadID: 4,   // route40,
 		  umin:u40Target,
-		  umax:u40Target+lenLeftSecMain
+		  umax:u40Target+lenLeftSecMain,
+		  laneMin:0, // left main lane
+		  laneMax:0
 		 };
 
 road1.trajAlt[0]={x: traj1_41x,
 		  y: traj1_41y,
-		  route: route41,
+		  roadID: 4,   // route41,
 		  umin:u41Target,
-		  umax:u41Target+lenRight
+		  umax:u41Target+lenRight,
+		  laneMin:nLanes_main-1, // right main lane
+		  laneMax:nLanes_main-1
 		 };
   
 road1.trajAlt[1]={x: traj1_21x,
 		  y: traj1_21y,
-		  route: route21,
+		  roadID: 2,   // route21,
 		  umin:u21Target,
-		  umax:u21Target+lenLeftSecMain
+		  umax:u21Target+lenLeftSecMain,
+		  laneMin:0, // left main lane
+		  laneMax:0
 		 };
   
 
 road3.trajAlt[0]={x: traj3_13x,
 		  y: traj3_13y,
-		  route: route13,
+		  roadID: 1,    // route13,
 		  umin:u13Target,
-		  umax:u13Target+lenRight
+		  umax:u13Target+lenRight,
+		  laneMin:nLanes_sec-1, // right secondary lane
+		  laneMax:nLanes_sec-1
 		 };
   
 road3.trajAlt[1]={x: traj3_03x,
 		  y: traj3_03y,
-		  route: route03,
+		  roadID: 0,    // route03,
 		  umin:u03Target,
-		  umax:u03Target+lenLeft
+		  umax:u03Target+lenLeft,
+		  laneMin:0, // left secondary lane
+		  laneMax:0
 		 };
   
 road5.trajAlt[0]={x: traj5_05x,
 		  y: traj5_05y,
-		  route: route05,
+		  roadID: 0,     // route05,
 		  umin:u05Target,
-		  umax:u05Target+lenRight
+		  umax:u05Target+lenRight,
+		  laneMin:nLanes_sec-1, // right secondary lane
+		  laneMax:nLanes_sec-1
 		 };
   
 road5.trajAlt[1]={x: traj5_15x,
 		  y: traj5_15y,
-		  route: route15,
+		  roadID: 1,     //route15,
 		  umin:u15Target,
-		  umax:u15Target+lenLeft
+		  umax:u15Target+lenLeft,
+		  laneMin:0, // left secondary lane
+		  laneMax:0
 		 };
   
 
@@ -581,11 +602,11 @@ road5.trajAlt[1]={x: traj5_15x,
 
 network=[road0,road1,road2,road3,road4,road5];
 
-// draw veh IDs on selected links
+// draw veh IDs on selected links if set true; also draw alternative traject
 
 for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
-  network[ir].drawRoadIDs=drawRoadIDs;
+  network[ir].drawAlternativeTrajectories=true;
 }
 
 // conflicts by road0 for all Northbound OD combinations (!! distinguish
@@ -673,7 +694,7 @@ updateModels();
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.20,0.20,3,2);
+var trafficObjs=new TrafficObjects(canvas,4,2,0.25,0.25,2,4);
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
@@ -961,6 +982,11 @@ function drawSim() {
 		     scale,changedGeometry);
   }
 
+  if(drawRoadIDs){  
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].drawRoadID(scale);
+    }
+  }
   
   // drawSim (4): draw vehicles
 

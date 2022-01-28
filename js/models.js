@@ -40,7 +40,7 @@ function IDM(v0,T,s0,a,b){
 
     this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
     this.speedmax=1000; // if engine restricts speed, speedmax<speedlimit, v0
-    this.bmax=16;
+    this.bmax=18; //(2022) was=16
 }
 
 /**
@@ -173,7 +173,7 @@ function ACC(v0,T,s0,a,b){
 
   this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
   this.speedmax=1000; // if vehicle restricts speed, speedmax<speedlimit, v0
-  this.bmax=18;
+  this.bmax=10; //!!! (jan2022) was =18
 
   //console.log("in ACC cstr: this.v0=",this.v0);
 }
