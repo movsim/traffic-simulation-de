@@ -575,12 +575,19 @@ TrafficObjects.prototype.pickObject=function(xPixUser, yPixUser, distCritPix){
 }
 
 
+//######################################################################
+// position an object
+//######################################################################
+
+/*
+calculate x,y by roads's trajectory and u and apply this.dropObject
+ */
 
 //######################################################################
 // drop an object
 //######################################################################
 
-/** 
+/*
 
   * drop the selected object. 
   * If the global var isDragged=false, restore the state before picking

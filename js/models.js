@@ -168,7 +168,7 @@ function ACC(v0,T,s0,a,b){
   this.a=a;
   this.b=b;
 
-  this.cool=0.99;
+  this.cool=0.90; // !!also apply to copy constructor
   this.alpha_v0=1; // multiplicator for temporary reduction
 
   this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
@@ -196,7 +196,8 @@ ACC.prototype.copy=function(longModel){
   this.a=longModel.a;
   this.b=longModel.b;
 
-  this.cool=0.99;
+  // this.cool comes from cstr since not all longModels have .cool
+
   this.alpha_v0=1; // multiplicator for temporary reduction
 
     // possible restrictions (value 1000 => initially no restriction)
@@ -222,7 +223,7 @@ ACC acceleration function
 
 ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
-  if(s<0.001){return -this.bmax;}// particularly for s<0
+  if(s<0.5*this.s0){return -this.bmax;}// particularly for s<0
 
     // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)

@@ -29,12 +29,14 @@ function update_v_dvdt_optical(vehicle){
             : 1- 0.5*acc_v*dt*dt;
         vehicle.v= (dt_afterLC>dt_LC)
             ? laneEnd : laneStart+dv*(laneEnd-laneStart);
-
+      
         // optical lateral velocity component
 
         vehicle.dvdt=(dt_afterLC>dt_LC) ? 0 : acc_v*dt*(laneEnd-laneStart);
+
+      //if((itime==182)&&(vehicle.id==211)){
       if(false){
-        console.log("update_v_dvdt_optical: laneStart=",laneStart,
+        console.log("end update_v_dvdt_optical: laneStart=",laneStart,
 		    " laneEnd=",laneEnd," dt_LC=",dt_LC,
 		    " dt_afterLC=",dt_afterLC,
 		    " v=",vehicle.v, " dvdt=",vehicle.dvdt);

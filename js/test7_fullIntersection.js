@@ -1,8 +1,8 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=false; // debug: draw veh IDs for selected roads
-var drawRoadIDs=false; // debug: draw veh IDs for selected roads
-var showCoords=false;  // show logical coords of nearest road to mouse pointer
+var drawVehIDs=true; // debug: draw veh IDs for selected roads
+var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
 
@@ -15,10 +15,10 @@ var showCoords=false;  // show logical coords of nearest road to mouse pointer
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=500./3600; // 1000 inflow to both directional main roads
-q2=300./3600;   // 300 inflow to secondary (subordinate) roads
-fracRight=0.4; // fracRight [0-1] of drivers on road 2 turn right
-fracLeft=0.2; // rest of q2-drivers cross straight ahead
+qIn=390./3600; // 1000 inflow to both directional main roads
+q2=220./3600;   // 300 inflow to secondary (subordinate) roads
+fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
+fracLeft=0; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -27,7 +27,7 @@ timewarp=3.5;
 var mainroadLen=200;              // reference size in m
 
 var nLanes_main=3;
-var nLanes_sec=2;
+var nLanes_sec=1;
 var laneCount=nLanes_main+nLanes_sec; // used here in addLane(), subtractLane
 var laneWidth=3.0; 
 var car_length=5;    // car length in m (all a bit oversize for visualisation)
@@ -186,58 +186,7 @@ var center_yRel=-0.50;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-
-//#########################################################
-// geometry
-// (mainroadLen and refSizePhys=smaller edge define global scale)
-var offsetMain=0.5*laneWidth*nLanes_main;
-var offsetSec=0.5*laneWidth*nLanes_sec;
-var offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
-var road0Len=mainroadLen; 
-var road2Len=0.5/fitfactor*refSizePhys - offset20Target - radiusRight;
-var road3Len=0.5/fitfactor*refSizePhys + offset20Target + radiusRight;
-//var road2Len=0.48*refSizePhys - offset20Target - radiusRight;
-//var road3Len=0.48*refSizePhys + offset20Target + radiusRight;
-
-//right
-
-var lenRight=0.5*Math.PI*radiusRight; // for all right-turn special traj
-var offset20Source=(nLanes_sec-0.5)*laneWidth; // dist from inters. x center
-var u20Source=1.0*road2Len;
-var u20Target=0.5*mainroadLen+offset20Source+(1-0.5*Math.PI)*radiusRight;
-var u13Source=0.5*mainroadLen-offset20Source-radiusRight;
-var u13Target=2*(offset20Target+radiusRight)-lenRight;
-
-//left
-
-var lenLeft=0.5*Math.PI*radiusLeft; //main-sec
-var lenLeftSecMain=lenLeft+2*offsetMain-1*(radiusLeft-radiusRight); // otherwise lenLeft
-//var lenLeftSecMain=lenLeft; // otherwise lenLeft
-var offset21Source=0.5*laneWidth;  // dist from intersection x center
-var offset21Target=0.5*laneWidth;  // dist from intersection y center
-var u21Source=1.0*road2Len;
-var u21Target=0.5*mainroadLen-offset21Source+radiusLeft-lenLeftSecMain;
-var u03Source=0.5*mainroadLen+offset21Source-radiusLeft;
-var u03Target=-offset21Target+radiusLeft+radiusRight+offset20Target-lenLeft;
-
-
-// dependent quantities due to symmetry
-
-var road1Len=mainroadLen;
-var road4Len=road2Len;
-var road5Len=road3Len;
-
-var u41Source=u20Source;
-var u41Target=u20Target;
-var u05Source=u13Source;
-var u05Target=u13Target;
-
-var u40Source=u21Source;
-var u40Target=u21Target;
-var u15Source=u03Source;
-var u15Target=u03Target;
-
-//#########################################################
+defineGeometricVariables(nLanes_main,nLanes_sec);
 
 
 //#########################################################
@@ -439,26 +388,13 @@ function traj5_15y(u){return 2*center_yPhys-traj3_03y(u);}
 // road images for the trajectories; 2 images per road/network element
 // #############################################################3
 
-
-// general
-
 var roadImages=[];
 for(var ir=0; ir<traj.length; ir++){
   roadImages[ir]=[];
   for(var j=0; j<2; j++){roadImages[ir][j]=new Image();}
 }
 
-// specific
 
-var nLanes=[nLanes_main,nLanes_main,
-	    nLanes_sec,nLanes_sec,nLanes_sec,nLanes_sec];  
-
-// network not yet defined here!!
-
-for(var ir=0; ir<traj.length; ir++){
-  roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
-  roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
-}
 
 
 
@@ -517,83 +453,6 @@ var road5=new road(roadIDs[5],road5Len,laneWidth,nLanes_sec,
 		   density, speedInit,fracTruck, isRing);
 
 
-// adding the alternative trajectories ([0]=right turn, [1]=left turn)
-// depending on the roadID of the route link neighboring to the road
-// to which the alt traj are added
-
-road0.trajAlt[0]={x: traj0_20x,
-		  y: traj0_20y,
-		  roadID: 2, // here only route 20
-		  umin:u20Target,
-		  umax:u20Target+lenRight,
-		  laneMin:nLanes_main-1, // right main lane
-		  laneMax:nLanes_main-1
-		 };
-  
-road0.trajAlt[1]={x: traj0_40x,
-		  y: traj0_40y,
-		  roadID: 4,   // route40,
-		  umin:u40Target,
-		  umax:u40Target+lenLeftSecMain,
-		  laneMin:0, // left main lane
-		  laneMax:0
-		 };
-
-road1.trajAlt[0]={x: traj1_41x,
-		  y: traj1_41y,
-		  roadID: 4,   // route41,
-		  umin:u41Target,
-		  umax:u41Target+lenRight,
-		  laneMin:nLanes_main-1, // right main lane
-		  laneMax:nLanes_main-1
-		 };
-  
-road1.trajAlt[1]={x: traj1_21x,
-		  y: traj1_21y,
-		  roadID: 2,   // route21,
-		  umin:u21Target,
-		  umax:u21Target+lenLeftSecMain,
-		  laneMin:0, // left main lane
-		  laneMax:0
-		 };
-  
-
-road3.trajAlt[0]={x: traj3_13x,
-		  y: traj3_13y,
-		  roadID: 1,    // route13,
-		  umin:u13Target,
-		  umax:u13Target+lenRight,
-		  laneMin:nLanes_sec-1, // right secondary lane
-		  laneMax:nLanes_sec-1
-		 };
-  
-road3.trajAlt[1]={x: traj3_03x,
-		  y: traj3_03y,
-		  roadID: 0,    // route03,
-		  umin:u03Target,
-		  umax:u03Target+lenLeft,
-		  laneMin:0, // left secondary lane
-		  laneMax:0
-		 };
-  
-road5.trajAlt[0]={x: traj5_05x,
-		  y: traj5_05y,
-		  roadID: 0,     // route05,
-		  umin:u05Target,
-		  umax:u05Target+lenRight,
-		  laneMin:nLanes_sec-1, // right secondary lane
-		  laneMax:nLanes_sec-1
-		 };
-  
-road5.trajAlt[1]={x: traj5_15x,
-		  y: traj5_15y,
-		  roadID: 1,     //route15,
-		  umin:u15Target,
-		  umax:u15Target+lenLeft,
-		  laneMin:0, // left secondary lane
-		  laneMax:0
-		 };
-  
 
 
 // road network (network declared in canvas_gui.js)
@@ -607,54 +466,27 @@ for(var ir=0; ir<network.length; ir++){
   network[ir].drawAlternativeTrajectories=true;
 }
 
-// conflicts by road0 for all Northbound OD combinations (!! distinguish
-// to OD directions!
 
-var conflict0up=  {roadConflict: network[0], 
-		   uConflict:    0.5*network[0].roadLen+offsetSec,
-		   uOwnConflict: radiusRight+offset20Target-offsetMain};
+defineGeometricRoadproperties(nLanes_main,nLanes_sec);
 
-var conflict0down={roadConflict: network[0],
-		   uConflict:    0.5*network[0].roadLen-offsetSec,
-		   uOwnConflict: radiusRight+offset20Target+offsetMain};
+defineConflicts(nLanes_main,nLanes_sec);
 
-var conflict1up=  {roadConflict: network[1],
-		   uConflict:    0.5*network[0].roadLen-offsetSec,
-		   uOwnConflict: radiusRight+offset20Target+offsetMain};
 
-var conflict1down={roadConflict: network[1],
-		   uConflict:    0.5*network[0].roadLen+offsetSec,
-		   uOwnConflict: radiusRight+offset20Target-offsetMain};
-
-// conflicts by the secondary roads only for secondary left turners
-
-var conflict3left={roadConflict: network[3], // only for OD 40, re vor links
-		   uConflict:    offset20Target+radiusRight-offsetMain,
-		   uOwnConflict: offset20Target+radiusRight+offsetMain};
-
-var conflict5left={roadConflict: network[5], // only for OD 21, re vor links
-		   uConflict:    offset20Target+radiusRight-offsetMain,
-		   uOwnConflict: offset20Target+radiusRight+offsetMain};
-		   
-
+// set of conflicts for all subject ODs
 
 var conflicts05=[];
-//var conflicts03=[conflict1up];  //!!! incl filter ignoring left and right in conflicts
-var conflicts03=[]; //!!!!
+var conflicts03=[conflict1_03];
 
 var conflicts13=[];
-//var conflicts15=[conflict0down];  //!!!!
-var conflicts15=[]; //!!!!
+var conflicts15=[conflict0_15];
 
 var conflicts20=[];
-//var conflicts21=[conflict0up];
-var conflicts21=[conflict0up,conflict5left];
-var conflicts23=[conflict0up,conflict1up];
+var conflicts21=[conflict0_up, conflict4_21,conflict5_21];
+var conflicts23=[conflict0_up,conflict1_up];
 
-//var conflicts40=[conflict1down];
-var conflicts40=[conflict1down,conflict3left]; 
 var conflicts41=[];
-var conflicts45=[conflict0down,conflict1down];
+var conflicts40=[conflict1_down,conflict2_40,conflict3_40]; 
+var conflicts45=[conflict0_down,conflict1_down];
 
 
 
@@ -697,7 +529,22 @@ var TL=trafficObjs.trafficObj.slice(0,4);  // last index not included
 // set two TL to green, two to red
 trafficObjs.setTrafficLight(TL[0],"green");
 trafficObjs.setTrafficLight(TL[1],"green");
-
+trafficObjs.dropObject(TL[0],network,
+		       network[0].traj[0](u05Source),
+		       network[0].traj[1](u05Source),
+		       20,scale);
+trafficObjs.dropObject(TL[1],network,
+		       network[1].traj[0](u05Source),
+		       network[1].traj[1](u05Source),
+		       20,scale);
+trafficObjs.dropObject(TL[2],network,
+		       network[2].traj[0](u20Source),
+		       network[2].traj[1](u20Source),
+		       20,scale);
+trafficObjs.dropObject(TL[3],network,
+		       network[4].traj[0](u20Source),
+		       network[4].traj[1](u20Source),
+		       20,scale);
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
@@ -715,6 +562,25 @@ var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
+function debugVeh(id){
+  for(var ir=0; ir<network.length; ir++){
+    for(var i=0; i<network[ir].veh.length; i++){
+      if(network[ir].veh[i].id==id){
+	  var veh=network[ir].veh[i];
+        console.log("time=",time.toFixed(2), "itime=",itime,
+		      "status of veh id=",veh.id,
+		      " u=",veh.u.toFixed(1),
+		    " lane=",veh.lane," v=",veh.v.toFixed(2),
+		    " speed=",veh.speed.toFixed(1),
+		    " acc=",veh.acc.toFixed(1),
+		     // " veh=",veh,
+		     "");
+	}
+    }
+  }
+}
+
+  
 //#################################################################
 function updateSim(){
 //#################################################################
@@ -726,25 +592,17 @@ function updateSim(){
   if(itime%150==0){nextTLphase();}
 
   
-  if(false){
-    for(var ir=0; ir<network.length; ir++){
-      for(var i=0; i<network[ir].veh.length; i++){
-        if(network[ir].veh[i].id==208){
-	  var veh=network[ir].veh[i];
-          console.log("time=",time.toFixed(2),
-		    "test7 start updateSim: status of veh id=",veh.id,
-		      " lane=",veh.lane," v=",veh.v.toFixed(2));
-	}
-      }
-    }
-  }
-
+  //if((itime==182)||(itime==183)){console.log("0:"); debugVeh(211);}
+ 
 
   // updateSim (1): update time, global geometry, and traffic objects
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
   hasChanged=false;
+
+  //if((itime==182)||(itime==183)){console.log("1:"); debugVeh(211);}
+
   
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
@@ -823,7 +681,7 @@ function updateSim(){
   r=Math.random(); direction=(r<=fracRight) ?1:(r<fracRight+fracLeft) ?2:0;
   network[4].updateBCup(qSouthbound,dt,routes4[direction]);
 
-  
+   
   // updateSim (4b) mergeDiverge actions
 
   
@@ -833,43 +691,50 @@ function updateSim(){
 
   var maxspeed_turn=7;
   
-  // straight  ahead
-  
+
+  // straight  ahead (network[0], [1] need no
+  // straight connecting, route=only one link)
+
   network[2].connect(network[3], network[2].roadLen,
 		     0, 0, conflicts23);
   
   network[4].connect(network[5], network[4].roadLen,
 		     0, 0, conflicts45);
 
+
   // turn right
 
   network[0].connect(network[5], u05Source, u05Target,
-		     nLanes_sec-nLanes_main, conflicts05, maxspeed_turn);
+		     nLanes_sec-nLanes_main, conflicts05,
+		     maxspeed_turn, false);
 
   network[1].connect(network[3], u13Source, u13Target,
-		     nLanes_sec-nLanes_main, conflicts13, maxspeed_turn);
+		     nLanes_sec-nLanes_main, conflicts13,
+		     maxspeed_turn, false);
 
   network[2].connect(network[0], u20Source, u20Target,
-		     nLanes_main-nLanes_sec, conflicts20, maxspeed_turn);
+		     nLanes_main-nLanes_sec, conflicts20,
+		     maxspeed_turn, true);
   
   network[4].connect(network[1], u41Source, u41Target, 
-		     nLanes_main-nLanes_sec, conflicts41, maxspeed_turn);
+		     nLanes_main-nLanes_sec, conflicts41,
+		     maxspeed_turn, true);
 
-  // turn left
+  // turn left (arg after maxspeed is targetPrio)
 
   network[0].connect(network[3], u03Source, u03Target, 
-		     0, conflicts03, maxspeed_turn);
+		     0, conflicts03, maxspeed_turn, false);
 
   network[1].connect(network[5], u15Source, u15Target, 
-		     0, conflicts15, maxspeed_turn);
+		     0, conflicts15, maxspeed_turn, false);
 
  
   network[2].connect(network[1], u21Source, u21Target,
-		     0, conflicts21, maxspeed_turn);
+		     0, conflicts21, maxspeed_turn, true);
   
   network[4].connect(network[0], u40Source, u40Target,
-		     0, conflicts40, maxspeed_turn);
-  
+		     0, conflicts40, maxspeed_turn, true);
+
 
   // updateSim (4d): outflow BC (if not relevant, updateBCdown does nothing)
 
@@ -877,14 +742,11 @@ function updateSim(){
     network[ir].updateBCdown();
   }
 
-  
-  
-  // updateSim (5): move the vehicles longitudinally and laterally
-  // at the end because some special-case changes of calculated
-  // accelerations and lane changing model parameters were done before
-
+ 
+  // updateSim (5): 
   // restrict LC for inflowing road2-vehicles for route 20
-
+  // (update speed and move vehs at the end because of changed acc)
+  
   for(var ir=0; ir<network[0].veh.length; ir++){
     if(arraysEqual(network[0].veh[ir].route, [0,5])){
       network[0].veh[ir].LCModel=network[0].LCModelMandatoryRight;
@@ -920,7 +782,7 @@ function updateSim(){
       network[4].veh[ir].LCModel=network[4].LCModelMandatoryLeft;
     }
   }
-      
+
   for(var ir=0; ir<network.length; ir++){
     network[ir].changeLanes();         
     network[ir].updateLastLCtimes(dt);
@@ -939,6 +801,7 @@ function updateSim(){
   }
 
 
+  //if(itime==526){alert("stopDebug");}
 }//updateSim
 
 
@@ -948,6 +811,7 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
+  //if(itime==182){console.log("begin drawsim:"); debugVeh(211);}
 
   var movingObserver=false; // relative motion works, only start offset
   var speedObs=2;
@@ -994,6 +858,7 @@ function drawSim() {
       network[ir].drawRoadID(scale);
     }
   }
+
   
   // drawSim (4): draw vehicles
 
@@ -1005,7 +870,6 @@ function drawSim() {
     network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin_col,vmax_col);
   }
-
 
 
   // drawSim (5): redraw changeable traffic objects
@@ -1032,6 +896,7 @@ function drawSim() {
     showLogicalCoords(xPixUser,yPixUser);
   }
   
+  //if(itime==182){console.log("end drawsim:"); debugVeh(211);}
 
 } // drawSim
 
@@ -1044,8 +909,9 @@ function drawSim() {
 //##################################################
 
 function main_loop() {
-    updateSim();
-    drawSim();
+  //console.log("main_loop: time=",time," itime=",itime);
+  updateSim();
+  drawSim();
 }
  
 
@@ -1094,7 +960,12 @@ function addLanesBy(incr){
     userCanvasManip=true; // causes drawing background
     nLanes_main=Math.min(laneCount-1,3);
     nLanes_sec=laneCount-nLanes_main;
-    updateGeometry(nLanes_main,nLanes_sec);
+
+    
+    defineGeometricVariables(nLanes_main,nLanes_sec);
+    defineGeometricRoadproperties(nLanes_main,nLanes_sec);
+    defineConflicts;
+    
   }
 
   if(laneCount===laneCountMax){
@@ -1115,15 +986,23 @@ function addLanesBy(incr){
 }
     
 
-    
-    // update lane-dependent geometry
-    
-function updateGeometry(nLanes_main,nLanes_sec){
+//###############################################################
+// define or update top-level lane-dependent variables
+// (mainroadLen and refSizePhys=smaller edge define global scale
+// at the very beginning, !=f(lanes)
+// cannot define with "var" because called at the beginning and
+// after changing lane numbers
+//###############################################################
+
+function defineGeometricVariables(nLanes_main,nLanes_sec){
   offsetMain=0.5*laneWidth*nLanes_main;
   offsetSec=0.5*laneWidth*nLanes_sec;
   offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
+  road0Len=mainroadLen; 
   road2Len=0.5/fitfactor*refSizePhys - offset20Target - radiusRight;
   road3Len=0.5/fitfactor*refSizePhys + offset20Target + radiusRight;
+
+//right
 
   lenRight=0.5*Math.PI*radiusRight; // for all right-turn special traj
   offset20Source=(nLanes_sec-0.5)*laneWidth; // dist from inters. x center
@@ -1132,8 +1011,11 @@ function updateGeometry(nLanes_main,nLanes_sec){
   u13Source=0.5*mainroadLen-offset20Source-radiusRight;
   u13Target=2*(offset20Target+radiusRight)-lenRight;
 
+//left
+
   lenLeft=0.5*Math.PI*radiusLeft; //main-sec
-  lenLeftSecMain=lenLeft+2*offsetMain-1*(radiusLeft-radiusRight); 
+  lenLeftSecMain=lenLeft+2*offsetMain-1*(radiusLeft-radiusRight);
+  
   offset21Source=0.5*laneWidth;  // dist from intersection x center
   offset21Target=0.5*laneWidth;  // dist from intersection y center
   u21Source=1.0*road2Len;
@@ -1141,8 +1023,9 @@ function updateGeometry(nLanes_main,nLanes_sec){
   u03Source=0.5*mainroadLen+offset21Source-radiusLeft;
   u03Target=-offset21Target+radiusLeft+radiusRight+offset20Target-lenLeft;
 
-  // dependent quantities due to symmetry
-  
+
+// dependent quantities due to symmetry
+
   road1Len=mainroadLen;
   road4Len=road2Len;
   road5Len=road3Len;
@@ -1156,12 +1039,17 @@ function updateGeometry(nLanes_main,nLanes_sec){
   u40Target=u21Target;
   u15Source=u03Source;
   u15Target=u03Target;
+}
 
+
+ 
   // update non-function road properties (these are not by reference)
-  
-  nLanes=[nLanes_main,nLanes_main,
+
+function defineGeometricRoadproperties(nLanes_main,nLanes_sec){
+
+  var nLanes=[nLanes_main,nLanes_main,
 	    nLanes_sec,nLanes_sec,nLanes_sec,nLanes_sec];
-  for(var ir=0; ir<network.length; ir++){
+  for(var ir=0; ir<nLanes.length; ir++){
       roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
       roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
       network[ir].nLanes=(ir<2) ? nLanes_main : nLanes_sec;
@@ -1172,7 +1060,10 @@ function updateGeometry(nLanes_main,nLanes_sec){
   road4.roadLen=road4Len;
   road5.roadLen=road5Len;
 
-   
+// adding the alternative trajectories ([0]=right turn, [1]=left turn)
+// depending on the roadID of the route link neighboring to the road
+// to which the alt traj are added
+
   road0.trajAlt[0]={x: traj0_20x,
 		  y: traj0_20y,
 		  roadID: 2, // here only route 20
@@ -1244,9 +1135,95 @@ function updateGeometry(nLanes_main,nLanes_sec){
 		  umax:u15Target+lenLeft,
 		  laneMin:0, // left secondary lane
 		  laneMax:0
-		 };
+		   };
+  
 }
 
 
-    
 
+
+/* #################################################################
+Defining the conflicts in connecting one link to the next
+Conflict components:
+.roadConflict: the (external) road causing the potential conflict
+.dest:         filters destinations for the external vehicles 
+               possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
+.uConflict:    conflict point for the filtered external vehicles
+.uOwnConflict: conflict point for the vehicles on the subject road
+###################################################################
+*/
+
+function defineConflicts(nLanes_main,nLanes_sec){
+
+// conflicts by road 0 for left-turners on road 1
+
+  conflict0_15= {roadConflict: network[0],
+		   dest:         [0,5], //straight-on and left turners
+		   uConflict:    0.5*network[0].roadLen-offsetSec,
+		   uOwnConflict: radiusRight+offsetMain};
+
+// symmetry: conflicts by road 1 for left-turners on road 0
+
+  conflict1_03= {roadConflict: network[1],
+		   dest:         [1,3],
+		   uConflict:    conflict0_15.uConflict,
+		   uOwnConflict: conflict0_15.uOwnConflict};
+
+// conflicts by road 0 for applicable road 2 ODs (filtered in the simulation)
+
+	   
+  conflict0_up=  {roadConflict: network[0], 
+		    dest:         [0,3], //straight-on and left turners
+		    uConflict:    0.5*network[0].roadLen+offsetSec,
+		    uOwnConflict: radiusRight+offset20Target-offsetMain};
+
+// symmetry
+
+  conflict1_down={roadConflict: network[1],
+		    dest:         [1,5],
+		    uConflict:    conflict0_up.uConflict,
+		    uOwnConflict: conflict0_up.uOwnConflict};
+
+// conflicts by road 0 for applicable road 4 ODs (filtered in the simulation)
+
+  conflict0_down={roadConflict: network[0],
+		    dest:         [], // all
+		    uConflict:    0.5*network[0].roadLen-offsetSec,
+		    uOwnConflict: radiusRight+offset20Target+offsetMain};
+
+// symmetry
+
+  conflict1_up=  {roadConflict: network[1],
+		    dest:         [], // all
+		    uConflict:    conflict0_down.uConflict,
+		    uOwnConflict: conflict0_down.uOwnConflict};
+
+
+// conflicts by the secondary roads straight traffic
+// for secondary left turners from the other direction
+
+  conflict3_40={roadConflict: network[3], // only for OD 40
+		  dest:         [],        // road 3 is only sink road
+		  uConflict:    offset20Target+radiusRight-offsetMain,
+		  uOwnConflict: offset20Target+radiusRight+offsetMain};
+
+// anticipation needed since road 3 staarts too late; u>roadLen OK
+
+  conflict2_40={roadConflict: network[2], // only for OD 40
+		  dest:         [0,3],      // 0 right prior; !=1 USstyle left
+		  uConflict:    network[2].roadLen+conflict3_40.uConflict,
+		  uOwnConflict: conflict3_40.uOwnConflict};
+
+// symmetry
+
+  conflict5_21={roadConflict: network[5], // only for OD 40
+		  dest:         [],        // road 3 is only sink road
+		  uConflict:    conflict3_40.uConflict,
+		  uOwnConflict: conflict3_40.uOwnConflict};
+
+  conflict4_21={roadConflict: network[4], // only for OD 40
+		  dest:         [1,5],      // !=0 because leftturn USstyle
+		  uConflict:    conflict2_40.uConflict,
+		  uOwnConflict: conflict2_40.uOwnConflict};
+
+}
