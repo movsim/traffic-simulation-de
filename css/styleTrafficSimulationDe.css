@@ -259,16 +259,23 @@ which always gives correct size!!
 
 /* (2f) landscape: special buttons/elements for only some simulations */
 
-#priorityDiv{  /* roundabout */
+#priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute;
   top: 12vmin;
   left: 75vmin;
   z-index: 2; 
 }
 
-#ODDiv{  /* roundabout */
+#ODDiv{      /* origin-destination (roundabout,intersection) */
   position: absolute;
   top: 18vmin;
+  left: 75vmin;
+  z-index: 2;
+}
+
+#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+  position: absolute;
+  top: 24vmin;
   left: 75vmin;
   z-index: 2;
 }
@@ -527,16 +534,23 @@ body{
 
 /* (2e) square/portrait: special buttons/elements for only some simulations */
 
-#priorityDiv{  /* roundabout */
+#priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute; /* again needed!*/
   top: 12vmin;
   left: 52vmin;
   z-index: 2;         /* again needed!*/
 }
 
-#ODDiv{  
+#ODDiv{  /* origin-destination (roundabout,intersection) */
   position: absolute; /* again needed!*/
   top: 18vmin;
+  left: 60vmin;
+  z-index: 2;
+}
+
+#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+  position: absolute;
+  top: 24vmin;
   left: 60vmin;
   z-index: 2;
 }
@@ -798,20 +812,26 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 
 /* (2e) smartphone landscape: special buttons/elements for only some simulations */
 
-#priorityDiv{/* roundabout */
+#priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute;
   top: 15vmin;
   left: 65vmin;
   z-index: 2; 
 }
 
-#ODDiv{  
-  position: absolute; /* again needed!*/
+#ODDiv{  /* origin-destination (roundabout,intersection) */
+  position: absolute;
   top: 22vmin;
   left: 65vmin;
   z-index: 2;
 }
 
+#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+  position: absolute;
+  top: 29vmin;
+  left: 65vmin;
+  z-index: 2;
+}
 
 /* (2f) smartphone landscape */
 
@@ -895,6 +915,14 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
   left: 57vmin;
   z-index: 2;
 }
+
+#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+  position: absolute;
+  top: 29vmin;
+  left: 57vmin;
+  z-index: 2;
+}
+
 
 /* (2f) smartphone portrait */
 

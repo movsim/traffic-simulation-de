@@ -53,16 +53,69 @@
      src="figs/infoBlue.png" onclick="showInfo()"/>
 </div>
 
-
+<!--
 <div id="lanePlusDiv"><button onclick="addLane()">
     Lane<br>++</button>
 </div>
 <div id="laneMinusDiv"><button onclick="subtractLane()">
     Lane<br>--</button>
 </div>
+-->
+
+<!-- ############################################## -->
+<!-- choice boxes -->
+<!-- ############################################## -->
+
+<div id="priorityDiv">
+    <select id="changePrioritySelect"
+	    onchange="changeTrafficRules(this.selectedIndex)">
+        <option> Horizontal priority</option>
+        <option> Signalized</option>
+       <!-- <option> Right priority</option>-->
+    </select>
+</div>
+
+<div id="ODDiv">
+    <select id="ODSelect"
+	    onchange="setOD(this.selectedIndex)">
+        <option> Only Straight Ahead &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
+        <option> Only to the Right</option>
+        <option> Only to the Left</option>
+        <option> All Directions</option>
+    </select>
+</div>
+
+<!-- "title" text counts as index, so valid options start with 1-->
+<div id="Choicebox3Div">
+<select id="Choicebox3Select"
+	    onchange="setTotalLaneNumber(this.selectedIndex+1)">
+  <option value="" selected disabled hidden>Number of lanes</option>
+  <option> 1 main, 1 secondary lane </option>
+  <option> 2 main, 1 secondary lanes</option>
+  <option> 3 main, 1 secondary lanes</option>
+  <option> 3 main, 2 secondary lanes</option>
+  <option> 3 main, 3 secondary lanes</option>
+</select>
+</div>
 
 
+<!--<div id="Choicebox3Div">
+    <select id="Choicebox3Select"
+	    onchange="setTotalLaneNumber(this.selectedIndex+2)">
+      <option value="" selected disabled hidden>Number of lanes</option>
+      <option value="0"> 1 main, 1 secondary lane </option>
+      <option value="1" selected="selected">
+		  2 main, 1 secondary lanes</option>
+        <option value="2"> 3 main, 1 secondary lanes</option>
+        <option value="3"> 3 main, 2 secondary lanes</option>
+        <option value="4"> 3 main, 3 secondary lanes</option>
+    </select>
+</div>
+-->
+
+<!-- ############################################## -->
 <!-- redirects to other scenarios, defines myRedirectX -->
+<!-- ############################################## -->
 
 <script src="js/redirect.js" type="text/javascript"></script>
 

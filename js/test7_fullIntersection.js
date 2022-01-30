@@ -13,6 +13,29 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // including standard param settings from control_gui.js
 //#############################################################
 
+// button/choicebox controlled vars 
+
+// callback "changeTrafficRules needs ready roads etc->not here
+var trafficRules=0; // {priority,symmetric,traffic lights}
+var cycleTL=50; // 50 seconds
+var greenMain=33; 
+var dt_lastSwitch=0;
+
+
+var laneCountMin=2;
+var laneCountMax=5;
+var nLanes_main=2;
+var nLanes_sec=1;
+
+var laneCount=nLanes_main+nLanes_sec; // state used in addLane(.)
+  if(laneCount===laneCountMax){
+    document.getElementById("lanePlusDiv").style.visibility="hidden";
+  }
+  if(laneCount===laneCountMin){
+    document.getElementById("laneMinusDiv").style.visibility="hidden";
+  }
+
+
 // slider-controlled vars definined in control_gui.js
 
 qIn=390./3600; // 1000 inflow to both directional main roads
@@ -26,9 +49,6 @@ timewarp=3.5;
 
 var mainroadLen=200;              // reference size in m
 
-var nLanes_main=3;
-var nLanes_sec=1;
-var laneCount=nLanes_main+nLanes_sec; // used here in addLane(), subtractLane
 var laneWidth=3.0; 
 var car_length=5;    // car length in m (all a bit oversize for visualisation)
 var car_width=2.5;     // car width in m
@@ -168,6 +188,8 @@ for (var i=0; i<4; i++){
   roadImgWith_lane[i].src="figs/road"+(i+1)+"lanesCropWith.png";
   roadImgWithout_lane[i]=new Image();
   roadImgWithout_lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png";
+
+  console.log("i=",i," roadImgWith_lane[i].src=",roadImgWith_lane[i].src);
 }
 
 
@@ -469,24 +491,7 @@ for(var ir=0; ir<network.length; ir++){
 
 defineGeometricRoadproperties(nLanes_main,nLanes_sec);
 
-defineConflicts(nLanes_main,nLanes_sec);
-
-
-// set of conflicts for all subject ODs
-
-var conflicts05=[];
-var conflicts03=[conflict1_03];
-
-var conflicts13=[];
-var conflicts15=[conflict0_15];
-
-var conflicts20=[];
-var conflicts21=[conflict0_up, conflict4_21,conflict5_21];
-var conflicts23=[conflict0_up,conflict1_up];
-
-var conflicts41=[];
-var conflicts40=[conflict1_down,conflict2_40,conflict3_40]; 
-var conflicts45=[conflict0_down,conflict1_down];
+defineConflicts(nLanes_main,nLanes_sec,trafficRules);
 
 
 
@@ -527,24 +532,6 @@ updateModels();
 var trafficObjs=new TrafficObjects(canvas,4,2,0.25,0.25,2,4);
 var TL=trafficObjs.trafficObj.slice(0,4);  // last index not included
 // set two TL to green, two to red
-trafficObjs.setTrafficLight(TL[0],"green");
-trafficObjs.setTrafficLight(TL[1],"green");
-trafficObjs.dropObject(TL[0],network,
-		       network[0].traj[0](u05Source),
-		       network[0].traj[1](u05Source),
-		       20,scale);
-trafficObjs.dropObject(TL[1],network,
-		       network[1].traj[0](u05Source),
-		       network[1].traj[1](u05Source),
-		       20,scale);
-trafficObjs.dropObject(TL[2],network,
-		       network[2].traj[0](u20Source),
-		       network[2].traj[1](u20Source),
-		       20,scale);
-trafficObjs.dropObject(TL[3],network,
-		       network[4].traj[0](u20Source),
-		       network[4].traj[1](u20Source),
-		       20,scale);
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
@@ -585,23 +572,28 @@ function debugVeh(id){
 function updateSim(){
 //#################################################################
 
-  //console.log("time=",time.toFixed(2));
-  //if((time>76)&&(time<76.2)){alert("crash at 81 s!");}
+  //if((itime==182)||(itime==183)){console.log("0:"); debugVeh(211);}
 
-//!!!!
-  if(itime%150==0){nextTLphase();}
 
   
-  //if((itime==182)||(itime==183)){console.log("0:"); debugVeh(211);}
- 
-
+  
   // updateSim (1): update time, global geometry, and traffic objects
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
   hasChanged=false;
 
-  //if((itime==182)||(itime==183)){console.log("1:"); debugVeh(211);}
+   // updateSim (0): update traffic light state if signalzed intersection
+
+  dt_lastSwitch+=dt;
+  if(trafficRules==1){
+    if((TL[0].value=="green")&&(dt_lastSwitch>greenMain)
+       ||(TL[0].value=="red")&&(dt_lastSwitch>cycleTL-greenMain)){
+      nextTLphase();
+      dt_lastSwitch=0;
+    }
+  }
+
 
   
   if ((canvas.width!=simDivWindow.clientWidth)
@@ -933,58 +925,93 @@ var myRun=setInterval(main_loop, 1000/fps);
 // special gui callbacks (not so general to be in control_gui.js)
 //##################################################
 
+// address each TL individually because otherwise (just flipping state)
+// consequential errors ("all 4 red or green") not caught
+
 function nextTLphase(){
-  for(var i=0; i<4; i++){
-    trafficObjs.setTrafficLight(
-      TL[i],(TL[i].value=="green") ? "red" : "green");
+  console.log("in nextTLphase: TL[0].value=",TL[0].value);
+  if(TL[0].value=="green") for(var i=0; i<4; i++){
+    trafficObjs.setTrafficLight(TL[i], (i<2) ? "red" : "green");
+  }
+  else for(var i=0; i<4; i++){
+    trafficObjs.setTrafficLight(TL[i], (i<2) ? "green" : "red");
   }
 }
 
 
 
-var laneCountMin=2;
-var laneCountMax=5;
+function changeTrafficRules(ruleIndex){
+  trafficRules=ruleIndex;
+  defineConflicts(nLanes_main,nLanes_sec,trafficRules);
+  
+  if(trafficRules==1){ // traffic lights
+    nextTLphase(); // to bring traffic lights in defined state: 2 green/red
 
-function addLane(){addLanesBy(1);}
-function subtractLane(){addLanesBy(-1);}
 
-function addLanesBy(incr){ 
-  if(laneCount+incr>laneCountMax){
-    console.log("addLanesBy("+incr+"): max lane number reached");
-  }
-  else if(laneCount+incr<laneCountMin){
-    console.log("addLanesBy("+incr+"): min lane number reached");
+    trafficObjs.dropObject(TL[0],network,
+		       network[0].traj[0](u05Source),
+		       network[0].traj[1](u05Source),
+		       20,scale);
+    trafficObjs.dropObject(TL[1],network,
+		       network[1].traj[0](u05Source),
+		       network[1].traj[1](u05Source),
+		       20,scale);
+    trafficObjs.dropObject(TL[2],network,
+		       network[2].traj[0](u20Source),
+		       network[2].traj[1](u20Source),
+		       20,scale);
+    trafficObjs.dropObject(TL[3],network,
+		       network[4].traj[0](u20Source),
+		       network[4].traj[1](u20Source),
+			   20,scale);
+    console.log("changeTrafficRules: u05Source=",u05Source," u20Source=",u20Source);
   }
   else{
-    laneCount+=incr;
-    userCanvasManip=true; // causes drawing background
-    nLanes_main=Math.min(laneCount-1,3);
-    nLanes_sec=laneCount-nLanes_main;
-
-    
-    defineGeometricVariables(nLanes_main,nLanes_sec);
-    defineGeometricRoadproperties(nLanes_main,nLanes_sec);
-    defineConflicts;
-    
+    for(var i=0; i<4; i++){
+      trafficObjs.deactivate(TL[i]);
+      //TL[i].inDepot=true;
+    }
   }
-
-  if(laneCount===laneCountMax){
-    document.getElementById("lanePlusDiv").style.visibility="hidden";
-  }
-  if(laneCount===laneCountMin){
-    document.getElementById("laneMinusDiv").style.visibility="hidden";
-  }
-
-  if(laneCount<laneCountMax){
-    document.getElementById("lanePlusDiv").style.visibility="visible";
-  }
-  if(laneCount>laneCountMin){
-    document.getElementById("laneMinusDiv").style.visibility="visible";
-  }
-
-  myRestartFunction();  
 }
     
+
+
+
+function setTotalLaneNumber(laneCount){ 
+  userCanvasManip=true; // causes drawing background
+  nLanes_main=Math.min(laneCount-1,3);
+  nLanes_sec=laneCount-nLanes_main;
+
+    
+  defineGeometricVariables(nLanes_main,nLanes_sec);
+  defineGeometricRoadproperties(nLanes_main,nLanes_sec);
+  defineConflicts(nLanes_main,nLanes_sec,trafficRules);
+
+  
+  // sometimes ref error with active TLs on roads if the roads are redefined
+  // ("new) in myRestartFunction() and the TLs just repositioned
+  // by changeTrafficRules(rulesOld). It's safe to deactivate the TLs before
+  // and activate them again at the new positions on the new roads
+  // once constructed by myRestartFunction()
+
+  var rulesOld=trafficRules;
+  if(rulesOld==1){changeTrafficRules(0); }
+  
+  myRestartFunction();
+  
+  
+  if(rulesOld==1){
+    //changeTrafficRules(0);  
+    changeTrafficRules(rulesOld); // changes back integer trafficRules
+  }
+}
+
+function setOD(index){
+  if(index==0){fracRight=0; fracLeft=0;}
+  else if(index==1){fracRight=1; fracLeft=0;}
+  else if(index==2){fracRight=0; fracLeft=1;}
+  else{fracRight=0.3; fracLeft=0.3;}
+}
 
 //###############################################################
 // define or update top-level lane-dependent variables
@@ -1150,41 +1177,145 @@ Conflict components:
                possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
 .uConflict:    conflict point for the filtered external vehicles
 .uOwnConflict: conflict point for the vehicles on the subject road
+
+@param nLanes_main,nLanes_sec: The conflict points depend 
+                               on the number of lanes
+@param trafficRules: 0: unsignalized with East-West priority road
+                     2: unsignalized, right priority
+                     1: signalized
+Since left-turners also have conflicting paths, some conflicts remain also
+in the presence of traffic lights (just keeping the conflicts will lead to
+gridlocks since secondary road users always "fear" that the waiting 
+mainroad vehicles start off)
+
+Note: all conflicts are filtered for the ODs in the simulation, e.g.,
+var conflicts21=[conflict0_up, conflict4_21,conflict5_21];
+
+
 ###################################################################
 */
 
-function defineConflicts(nLanes_main,nLanes_sec){
+function defineConflicts(nLanes_main,nLanes_sec,trafficRules){
 
-// conflicts by road 0 for left-turners on road 1
 
-  conflict0_15= {roadConflict: network[0],
-		   dest:         [0,5], //straight-on and left turners
-		   uConflict:    0.5*network[0].roadLen-offsetSec,
-		   uOwnConflict: radiusRight+offsetMain};
+  if(trafficRules==0){defineConflictsPriorityRoad(nLanes_main,nLanes_sec);}
+  else if(trafficRules==1){
+    defineConflictsTrafficLights(nLanes_main,nLanes_sec);}
+  else{defineConflictsSymmetric(nLanes_main,nLanes_sec);}
+}
 
-// symmetry: conflicts by road 1 for left-turners on road 0
+// set of conflicts for priority/secondary roads for all subject ODs
 
-  conflict1_03= {roadConflict: network[1],
-		   dest:         [1,3],
-		   uConflict:    conflict0_15.uConflict,
-		   uOwnConflict: conflict0_15.uOwnConflict};
+//################################################################
+function defineConflictsPriorityRoad(nLanes_main,nLanes_sec){
+//################################################################
+  
+  setBasicConflicts(nLanes_main,nLanes_sec);
+  
+  // right
 
-// conflicts by road 0 for applicable road 2 ODs (filtered in the simulation)
+  conflicts05=[];  
+  conflicts13=[];
+  conflicts20=[];
+  conflicts41=[];
 
-	   
+  // straight ahead
+
+  conflicts00=[];
+  conflicts11=[];
+  conflicts23=[conflict0_up,conflict1_up];
+  conflicts45=[conflict0_down,conflict1_down];
+
+  // left
+
+  conflicts03=[conflict1_03];
+  conflicts15=[conflict0_15];
+  conflicts21=[conflict0_up, conflict4_21,conflict5_21];
+  conflicts40=[conflict1_down,conflict2_40,conflict3_40]; 
+}
+
+
+// conflicts only for the four left-turning ODs
+
+//################################################################
+function defineConflictsTrafficLights(nLanes_main,nLanes_sec){
+//################################################################
+
+  setBasicConflicts(nLanes_main,nLanes_sec);
+
+  // right
+
+  conflicts05=[];  
+  conflicts13=[];
+  conflicts20=[];
+  conflicts41=[];
+
+  // straight ahead
+
+  conflicts00=[];
+  conflicts11=[];
+  conflicts23=[];
+  conflicts45=[];
+
+  // left
+
+  conflicts03=[conflict1_03];
+  conflicts15=[conflict0_15];
+  conflicts21=[conflict4_21,conflict5_21];
+  conflicts40=[conflict2_40,conflict3_40]; 
+
+  
+}
+
+
+
+//!!!! not yet implemented
+
+//###########################################################
+function defineConflictsSymmetric(nLanes_main,nLanes_sec){
+//###########################################################
+  
+  setBasicConflicts(nLanes_main,nLanes_sec);
+  
+  // conflict2_00,conflic3_00 not yet defined, also not connect to itself
+  // in actual simulation
+
+  // right
+
+  conflicts05=[];  
+  conflicts13=[];
+  conflicts20=[];
+  conflicts41=[];
+
+  // straight ahead (symmetric right priority)
+
+  conflicts00=[conflict2_00,conflic3_00];
+  conflicts11=[conflict4_11,conflic5_11];
+  conflicts23=[conflict1_up];
+  conflicts45=[conflict0_down];
+
+  // left
+
+  conflicts03=[conflict1_03,conflict2_03];
+  conflicts15=[conflict0_15,conflict4_15];
+  conflicts21=[conflict4_21,conflict5_21];
+  conflicts40=[conflict2_40,conflict3_40]; 
+  
+}
+
+
+//################################################################
+function setBasicConflicts(nLanes_main,nLanes_sec){
+//################################################################
+
+  // (1) conflicts by mainroads for straight ahead OD from secondary roads
+  // and by opposite mainroad for secondary left-turners
+
+  
   conflict0_up=  {roadConflict: network[0], 
 		    dest:         [0,3], //straight-on and left turners
 		    uConflict:    0.5*network[0].roadLen+offsetSec,
 		    uOwnConflict: radiusRight+offset20Target-offsetMain};
-
-// symmetry
-
-  conflict1_down={roadConflict: network[1],
-		    dest:         [1,5],
-		    uConflict:    conflict0_up.uConflict,
-		    uOwnConflict: conflict0_up.uOwnConflict};
-
-// conflicts by road 0 for applicable road 4 ODs (filtered in the simulation)
 
   conflict0_down={roadConflict: network[0],
 		    dest:         [], // all
@@ -1193,37 +1324,61 @@ function defineConflicts(nLanes_main,nLanes_sec){
 
 // symmetry
 
+  conflict1_down={roadConflict: network[1],
+		    dest:         [1,5],
+		    uConflict:    conflict0_up.uConflict,
+		    uOwnConflict: conflict0_up.uOwnConflict};
+
   conflict1_up=  {roadConflict: network[1],
-		    dest:         [], // all
+		    dest:         [],
 		    uConflict:    conflict0_down.uConflict,
 		    uOwnConflict: conflict0_down.uOwnConflict};
 
+  
 
-// conflicts by the secondary roads straight traffic
-// for secondary left turners from the other direction
+  // (2) conflicts by opposite mainroad for mainroad left-turners
 
-  conflict3_40={roadConflict: network[3], // only for OD 40
+  conflict0_15= {roadConflict: network[0],  //by road 0 for OD 15
+		   dest:         [0,5], // US style: only main-straight/right
+		   uConflict:    0.5*network[0].roadLen-offsetSec,
+		   uOwnConflict: radiusRight+offsetMain};
+
+  // symmetry
+
+  conflict1_03= {roadConflict: network[1], //by road 1 for OD 03
+		   dest:         [1,3], // only main straight-on and right
+		   uConflict:    conflict0_15.uConflict,
+		   uOwnConflict: conflict0_15.uOwnConflict};
+
+	   
+
+  // (3) conflicts by the secondary roads straight traffic
+  // for secondary left turners of the other direction
+  // anticipation -> roads 2/4 needed as well since
+  //roads 3/5 starts too near the conflict (u>roadLen OK)
+
+  conflict3_40={roadConflict: network[3],  // By road 3 for OD 40
 		  dest:         [],        // road 3 is only sink road
 		  uConflict:    offset20Target+radiusRight-offsetMain,
 		  uOwnConflict: offset20Target+radiusRight+offsetMain};
 
-// anticipation needed since road 3 staarts too late; u>roadLen OK
 
-  conflict2_40={roadConflict: network[2], // only for OD 40
-		  dest:         [0,3],      // 0 right prior; !=1 USstyle left
+  conflict2_40={roadConflict: network[2],  // By road 2 for OD 40
+		  dest:         [0,3],     // right priority+US style left
 		  uConflict:    network[2].roadLen+conflict3_40.uConflict,
 		  uOwnConflict: conflict3_40.uOwnConflict};
 
-// symmetry
+  // symmetry
 
-  conflict5_21={roadConflict: network[5], // only for OD 40
-		  dest:         [],        // road 3 is only sink road
+  conflict5_21={roadConflict: network[5],  // By road 5 for OD 21
+		  dest:         [],        
 		  uConflict:    conflict3_40.uConflict,
 		  uOwnConflict: conflict3_40.uOwnConflict};
 
-  conflict4_21={roadConflict: network[4], // only for OD 40
-		  dest:         [1,5],      // !=0 because leftturn USstyle
+  conflict4_21={roadConflict: network[4], // By road 4 for OD 21
+		  dest:         [1,5],    
 		  uConflict:    conflict2_40.uConflict,
 		  uOwnConflict: conflict2_40.uOwnConflict};
 
 }
+
