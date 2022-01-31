@@ -292,11 +292,11 @@ for(var ir=0; ir<network.length; ir++){
 }
 
 var conflict0={roadConflict:network[0],
-	       uConflict: 0.5*network[0].roadLen,
-	       uOwnConflict: 0.5*mainroadWidth};
+	       ucOther: 0.5*network[0].roadLen,
+	       ducExitOwn: 0.5*mainroadWidth};
 var conflict1={roadConflict:network[1],
-	       uConflict: 0.5*network[0].roadLen,
-	       uOwnConflict: 1.5*mainroadWidth};
+	       ucOther: 0.5*network[0].roadLen,
+	       ducExitOwn: 1.5*mainroadWidth};
 var conflicts=[conflict0,conflict1];
 
 

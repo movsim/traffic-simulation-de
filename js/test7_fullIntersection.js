@@ -16,7 +16,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // button/choicebox controlled vars 
 
 // callback "changeTrafficRules needs ready roads etc->not here
-var trafficRules=0; // {priority,symmetric,traffic lights}
+var trafficRuleIndex=0; // {priority,symmetric,traffic lights}
 var cycleTL=50; // 50 seconds
 var greenMain=33; 
 var dt_lastSwitch=0;
@@ -38,10 +38,10 @@ var laneCount=nLanes_main+nLanes_sec; // state used in addLane(.)
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=390./3600; // 1000 inflow to both directional main roads
-q2=220./3600;   // 300 inflow to secondary (subordinate) roads
+qIn=390./3600; // 390 inflow to both directional main roads
+q2=0./3600;   // 220 inflow to secondary (subordinate) roads
 fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
-fracLeft=0; // rest of q2-drivers cross straight ahead
+fracLeft=0.; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -54,11 +54,6 @@ var car_length=5;    // car length in m (all a bit oversize for visualisation)
 var car_width=2.5;     // car width in m
 var truck_length=10;
 var truck_width=3; 
-
-// left-turning radius sufficiently high to allow for "US left-turning style"
-
-var radiusLeft=4.5*laneWidth; // artifacts if radiusLeft-radiusRight too large
-var radiusRight=2.5*laneWidth;
 
 // ###################################################
 commaDigits=0;
@@ -491,7 +486,7 @@ for(var ir=0; ir<network.length; ir++){
 
 defineGeometricRoadproperties(nLanes_main,nLanes_sec);
 
-defineConflicts(nLanes_main,nLanes_sec,trafficRules);
+defineConflicts(nLanes_main,nLanes_sec,trafficRuleIndex);
 
 
 
@@ -586,7 +581,7 @@ function updateSim(){
    // updateSim (0): update traffic light state if signalzed intersection
 
   dt_lastSwitch+=dt;
-  if(trafficRules==1){
+  if(trafficRuleIndex==2){
     if((TL[0].value=="green")&&(dt_lastSwitch>greenMain)
        ||(TL[0].value=="red")&&(dt_lastSwitch>cycleTL-greenMain)){
       nextTLphase();
@@ -684,9 +679,15 @@ function updateSim(){
   var maxspeed_turn=7;
   
 
-  // straight  ahead (network[0], [1] need no
-  // straight connecting, route=only one link)
-
+  // straight  ahead (network[0], [1] need 
+  // straight connecting for right prio, route=only one link)
+  
+  network[0].connect(network[0], 0.5*network[0].roadLen,
+		     0.5*network[0].roadLen, 0, conflicts00);
+  
+  network[1].connect(network[1], 0.5*network[1].roadLen,
+		     0.5*network[1].roadLen, 0, conflicts11);
+  
   network[2].connect(network[3], network[2].roadLen,
 		     0, 0, conflicts23);
   
@@ -706,19 +707,21 @@ function updateSim(){
 
   network[2].connect(network[0], u20Source, u20Target,
 		     nLanes_main-nLanes_sec, conflicts20,
-		     maxspeed_turn, true);
+		     maxspeed_turn, (trafficRuleIndex!=1)); //=1: right prio
   
   network[4].connect(network[1], u41Source, u41Target, 
 		     nLanes_main-nLanes_sec, conflicts41,
-		     maxspeed_turn, true);
+		     maxspeed_turn, (trafficRuleIndex!=1));
+		     //maxspeed_turn, (trafficRuleIndex!=1));
 
   // turn left (arg after maxspeed is targetPrio)
 
   network[0].connect(network[3], u03Source, u03Target, 
 		     0, conflicts03, maxspeed_turn, false);
+		     //0, conflicts03, maxspeed_turn, (trafficRuleIndex!=1));
 
   network[1].connect(network[5], u15Source, u15Target, 
-		     0, conflicts15, maxspeed_turn, false);
+		     0, conflicts15, maxspeed_turn, (trafficRuleIndex!=1));
 
  
   network[2].connect(network[1], u21Source, u21Target,
@@ -941,10 +944,10 @@ function nextTLphase(){
 
 
 function changeTrafficRules(ruleIndex){
-  trafficRules=ruleIndex;
-  defineConflicts(nLanes_main,nLanes_sec,trafficRules);
+  trafficRuleIndex=ruleIndex;
+  defineConflicts(nLanes_main,nLanes_sec,trafficRuleIndex);
   
-  if(trafficRules==1){ // traffic lights
+  if(trafficRuleIndex==2){ // traffic lights
     nextTLphase(); // to bring traffic lights in defined state: 2 green/red
 
 
@@ -977,7 +980,8 @@ function changeTrafficRules(ruleIndex){
 
 
 
-function setTotalLaneNumber(laneCount){ 
+function setTotalLaneNumber(laneCountIn){
+  laneCount=laneCountIn;
   userCanvasManip=true; // causes drawing background
   nLanes_main=Math.min(laneCount-1,3);
   nLanes_sec=laneCount-nLanes_main;
@@ -985,7 +989,7 @@ function setTotalLaneNumber(laneCount){
     
   defineGeometricVariables(nLanes_main,nLanes_sec);
   defineGeometricRoadproperties(nLanes_main,nLanes_sec);
-  defineConflicts(nLanes_main,nLanes_sec,trafficRules);
+  defineConflicts(nLanes_main,nLanes_sec,trafficRuleIndex);
 
   
   // sometimes ref error with active TLs on roads if the roads are redefined
@@ -994,13 +998,13 @@ function setTotalLaneNumber(laneCount){
   // and activate them again at the new positions on the new roads
   // once constructed by myRestartFunction()
 
-  var rulesOld=trafficRules;
-  if(rulesOld==1){changeTrafficRules(0); }
+  var rulesOld=trafficRuleIndex;
+  if(rulesOld==2){changeTrafficRules(0); }
   
   myRestartFunction();
   
   
-  if(rulesOld==1){
+  if(rulesOld==2){
     //changeTrafficRules(0);  
     changeTrafficRules(rulesOld); // changes back integer trafficRules
   }
@@ -1022,6 +1026,16 @@ function setOD(index){
 //###############################################################
 
 function defineGeometricVariables(nLanes_main,nLanes_sec){
+
+  // left-turning radius sufficiently high to allow for "US left-turning style"
+
+  radiusRight=(2.0+0.5*Math.max(laneCount-3,0))*laneWidth;
+  radiusLeft=1.5*radiusRight;
+
+  //radiusRight*=3;//!!!
+  //radiusLeft*=3;
+  
+
   offsetMain=0.5*laneWidth*nLanes_main;
   offsetSec=0.5*laneWidth*nLanes_sec;
   offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
@@ -1046,7 +1060,8 @@ function defineGeometricVariables(nLanes_main,nLanes_sec){
   offset21Source=0.5*laneWidth;  // dist from intersection x center
   offset21Target=0.5*laneWidth;  // dist from intersection y center
   u21Source=1.0*road2Len;
-  u21Target=0.5*mainroadLen-offset21Source+radiusLeft-lenLeftSecMain;
+  u21Target=0.5*mainroadLen-offset21Source-(lenLeftSecMain-radiusLeft);
+  //u21Target=0.5*mainroadLen-offset21Source-(lenLeft-radiusLeft);//!!!!
   u03Source=0.5*mainroadLen+offset21Source-radiusLeft;
   u03Target=-offset21Target+radiusLeft+radiusRight+offset20Target-lenLeft;
 
@@ -1175,14 +1190,14 @@ Conflict components:
 .roadConflict: the (external) road causing the potential conflict
 .dest:         filters destinations for the external vehicles 
                possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
-.uConflict:    conflict point for the filtered external vehicles
-.uOwnConflict: conflict point for the vehicles on the subject road
+.ucOther:    conflict point for the filtered external vehicles
+.ducExitOwn: conflict point for the vehicles on the subject road
 
 @param nLanes_main,nLanes_sec: The conflict points depend 
                                on the number of lanes
-@param trafficRules: 0: unsignalized with East-West priority road
-                     2: unsignalized, right priority
-                     1: signalized
+@param trafficRuleIndex: 0: unsignalized with East-West priority road
+                         1: unsignalized, right priority
+                         2: signalized
 Since left-turners also have conflicting paths, some conflicts remain also
 in the presence of traffic lights (just keeping the conflicts will lead to
 gridlocks since secondary road users always "fear" that the waiting 
@@ -1195,13 +1210,13 @@ var conflicts21=[conflict0_up, conflict4_21,conflict5_21];
 ###################################################################
 */
 
-function defineConflicts(nLanes_main,nLanes_sec,trafficRules){
+function defineConflicts(nLanes_main,nLanes_sec,trafficRuleIndex){
 
 
-  if(trafficRules==0){defineConflictsPriorityRoad(nLanes_main,nLanes_sec);}
-  else if(trafficRules==1){
-    defineConflictsTrafficLights(nLanes_main,nLanes_sec);}
-  else{defineConflictsSymmetric(nLanes_main,nLanes_sec);}
+  if(trafficRuleIndex==0){defineConflictsPriorityRoad(nLanes_main,nLanes_sec);}
+  else if(trafficRuleIndex==1){
+    defineConflictsSymmetric(nLanes_main,nLanes_sec);}
+  else{defineConflictsTrafficLights(nLanes_main,nLanes_sec);}
 }
 
 // set of conflicts for priority/secondary roads for all subject ODs
@@ -1230,8 +1245,10 @@ function defineConflictsPriorityRoad(nLanes_main,nLanes_sec){
 
   conflicts03=[conflict1_03];
   conflicts15=[conflict0_15];
-  conflicts21=[conflict0_up, conflict4_21,conflict5_21];
-  conflicts40=[conflict1_down,conflict2_40,conflict3_40]; 
+  conflicts21=[conflict0_21, conflict4_21,conflict5_21];
+  conflicts40=[conflict1_down,conflict2_40,conflict3_40];
+
+
 }
 
 
@@ -1269,7 +1286,6 @@ function defineConflictsTrafficLights(nLanes_main,nLanes_sec){
 
 
 
-//!!!! not yet implemented
 
 //###########################################################
 function defineConflictsSymmetric(nLanes_main,nLanes_sec){
@@ -1289,8 +1305,8 @@ function defineConflictsSymmetric(nLanes_main,nLanes_sec){
 
   // straight ahead (symmetric right priority)
 
-  conflicts00=[conflict2_00,conflic3_00];
-  conflicts11=[conflict4_11,conflic5_11];
+  conflicts00=[conflict2_00,conflict3_00];
+  conflicts11=[conflict4_11,conflict5_11];
   conflicts23=[conflict1_up];
   conflicts45=[conflict0_down];
 
@@ -1308,77 +1324,252 @@ function defineConflictsSymmetric(nLanes_main,nLanes_sec){
 function setBasicConflicts(nLanes_main,nLanes_sec){
 //################################################################
 
-  // (1) conflicts by mainroads for straight ahead OD from secondary roads
+
+  //(1) determine the road-axis u values of the conflicting point
+  // * component .ucOther:    absolute u value on the conflicting road
+  // * component .ducExitOwn: distance between conflict on target road
+  //   and the exit/enter point uTarget
+  // at least the half follows from symmetry
+
+  
+    // <input>
+  var conflictName=["OD 23, conflicting road 0 (conflict0_up)",
+		    "OD 23, conflicting road 1 (conflict1_up)",
+		    "OD 03, conflicting road 1 (conflict1_03)",
+		    "OD 21, conflicting road 0 (conflict0_21)",
+		    "OD 21, conflicting road 4 (conflict4_21)",
+		    "OD 21, conflicting road 5 (conflict5_21)"];
+  
+
+  var sourceIndex=[2,2,0,2,2,2];
+  var targetIndex=[3,3,3,1,1,1];
+  var conflictIndex=[0,1,1,0,4,5];
+  var trajAltIndex=[-1,-1,1,1,1,1]; // alternativ traj  on destination road
+                                      // (-1: none)
+  var xc_known=[false,false,false,false,true,true];
+  var uTarget=[0,0,u03Target,u21Target,u21Target,u21Target];
+  var uSource=[network[2].roadLen, network[2].roadLen,
+		 u03Source,u21Source,u21Source,u21Source];
+
+  //</input>
+
+ 
+  var ucOther=[];// output
+  var ducExitOwn=[];
+
+  
+    // find exact xc,yc for the conflicts and corresponding
+    // uConflict, uTargetConflict (uOwn) for all conflicts
+    // xc is known/not known  for vertical/horiz conflicting roads
+
+  for(var i=0; i<conflictName.length; i++){
+
+    var iConflict=conflictIndex[i];  // conflicting road index
+    var iSource=sourceIndex[i];      // source road index
+    var iDest=targetIndex[i];       // destination road indecx
+    var iTrajAlt=trajAltIndex[i];    
+    var valcTarget=(xc_known[i])
+	  ? network[iConflict].traj[0](0)
+	  : network[iConflict].traj[1](0);
+    var funTarget_x=(iTrajAlt>=0)
+	  ? network[iDest].trajAlt[iTrajAlt].x : network[iDest].traj[0];
+    var funTarget_y=(iTrajAlt>=0)
+	  ? network[iDest].trajAlt[iTrajAlt].y : network[iDest].traj[1];
+    var funTarget=(xc_known[i]) // the trajectory component to analyse
+	  ? funTarget_x : funTarget_y;
+    var funTarget1=(xc_known[i]) // the other traj component
+	  ? funTarget_y : funTarget_x;
+    var umin=(iTrajAlt>=0) ? network[iDest].trajAlt[iTrajAlt].umin : 0;
+    var umax=(iTrajAlt>=0) ? network[iDest].trajAlt[iTrajAlt].umax
+	  : network[iDest].roadLen; 
+    if(false){
+        console.log("valcTarget=",valcTarget," xc_known[i]=",xc_known[i]);
+        console.log("funTarget(0)=",funTarget(0),
+  		  "funTarget1(0)=",funTarget1(0));
+        console.log("funTarget(10)=",funTarget(10),
+		  "funTarget1(10)=",funTarget1(10));
+        console.log("umin=",umin," umax=",umax);
+    }
+    var resultsTarget=findArg(funTarget,valcTarget,umin,umax);
+    var ucTarget=resultsTarget[0];
+    var xc=(xc_known[i])
+	  ? valcTarget : funTarget1(ucTarget);
+    var yc=(xc_known[i])
+	  ? funTarget1(ucTarget) : valcTarget;
+
+    var valcOther=(xc_known[i]) ? yc : xc;
+    var funOther=(xc_known[i])
+	  ? network[iConflict].traj[1] : network[iConflict].traj[0];
+      
+      // !! add +100 [m] to roadLen
+      // to include possible antic downstream of road end
+    var resultsOther
+	  =findArg(funOther,valcOther,0,network[iConflict].roadLen+100);
+
+    ucOther[i]=resultsOther[0]; // output
+    ducExitOwn[i]=ucTarget-uTarget[i];
+
+    
+    console.log(
+	"results for OD ",iSource,iDest,"conflicting road",iConflict,":",
+        "\n  ucTarget=",ucTarget.toFixed(1),
+        " dist=",resultsTarget[1].toFixed(1),
+        " xc=",xc.toFixed(1),
+        " yc=",yc.toFixed(1),
+        " dist=",resultsOther[1].toFixed(1),
+        " \n  ducExitOwn[i]=",ducExitOwn[i].toFixed(1),
+        " ucOther[i]=",ucOther[i].toFixed(1),
+	"");
+  }
+
+
+
+
+
+  
+  // (2) define the independent and symmetric conflicts using above results
+  // for ducExitOwn and ucOther for curved trajectories
+
+  
+
+  
+  // (2a) conflicts by mainroads for straight ahead OD 23 (secondary road)
   // and by opposite mainroad for secondary left-turners
 
   
   conflict0_up=  {roadConflict: network[0], 
-		    dest:         [0,3], //straight-on and left turners
-		    uConflict:    0.5*network[0].roadLen+offsetSec,
-		    uOwnConflict: radiusRight+offset20Target-offsetMain};
+		  dest:         [0,3], //straight-on and left turners
+		  ucOther:    0.5*network[0].roadLen+offsetSec,
+		  ducExitOwn: radiusRight+offset20Target-offsetMain};
+		  //ucOther: ucOther[0],
+		  //ducExitOwn: ducExitOwn[0]};
+
+  conflict1_up=  {roadConflict: network[1],
+		  dest:         [],
+		  ucOther:    0.5*network[0].roadLen-offsetSec,
+		  ducExitOwn: radiusRight+offset20Target+offsetMain};
+		  //ucOther: ucOther[1],
+		  //ducExitOwn: ducExitOwn[1]};
+
+  // symmetry
+  
 
   conflict0_down={roadConflict: network[0],
 		    dest:         [], // all
-		    uConflict:    0.5*network[0].roadLen-offsetSec,
-		    uOwnConflict: radiusRight+offset20Target+offsetMain};
-
-// symmetry
+		    ucOther:    conflict1_up.ucOther,
+		    ducExitOwn: conflict1_up.ducExitOwn};
 
   conflict1_down={roadConflict: network[1],
 		    dest:         [1,5],
-		    uConflict:    conflict0_up.uConflict,
-		    uOwnConflict: conflict0_up.uOwnConflict};
+		    ucOther:    conflict0_up.ucOther,
+		    ducExitOwn: conflict0_up.ducExitOwn};
 
-  conflict1_up=  {roadConflict: network[1],
-		    dest:         [],
-		    uConflict:    conflict0_down.uConflict,
-		    uOwnConflict: conflict0_down.uOwnConflict};
 
+  // (2b) conflicts by straight-on mainroad vehicles (only for right priority
+  // where there are no longer mainroad directions)
+  //!!! road0.connect(road0, uSource, uTarget, ...) with
+  // uSource=uTarget=0.5*road0.roadLen as usual, only w/o lifting/dropping
+  // veh at step 5 (to be implemented)
   
+  conflict2_00= {roadConflict: network[2],
+		 dest:         [],
+		 ucOther:      conflict0_up.ducExitOwn+network[2].roadLen,
+		 ducExitOwn:   offsetSec};
 
-  // (2) conflicts by opposite mainroad for mainroad left-turners
-
-  conflict0_15= {roadConflict: network[0],  //by road 0 for OD 15
-		   dest:         [0,5], // US style: only main-straight/right
-		   uConflict:    0.5*network[0].roadLen-offsetSec,
-		   uOwnConflict: radiusRight+offsetMain};
+  conflict3_00= {roadConflict: network[3],
+		 dest:         [],
+		 ucOther:      conflict0_up.ducExitOwn,
+		 ducExitOwn:   offsetSec};
 
   // symmetry
 
+  conflict4_11= {roadConflict: network[4],
+		 dest:         [],
+		 ucOther:      conflict2_00.ucOther,
+		 ducExitOwn:   conflict2_00.ducExitOwn};
+
+  conflict5_11= {roadConflict: network[5],
+		 dest:         [],
+		 ucOther:      conflict3_00.ucOther,
+		 ducExitOwn:   conflict3_00.ducExitOwn};
+
+
+  
+
+  // (2c) conflicts by opposite mainroad for mainroad left-turners
+
   conflict1_03= {roadConflict: network[1], //by road 1 for OD 03
-		   dest:         [1,3], // only main straight-on and right
-		   uConflict:    conflict0_15.uConflict,
-		   uOwnConflict: conflict0_15.uOwnConflict};
+		 dest:         [1,3], // only main straight-on and right
+		 ucOther: ucOther[2],
+		 ducExitOwn: ducExitOwn[2]};
 
-	   
 
-  // (3) conflicts by the secondary roads straight traffic
+  // symmetry
+
+  conflict0_15={roadConflict: network[0],  //by road 0 for OD 15
+		dest:         [0,5], // US style: only main-straight/right
+		ucOther:      conflict1_03.ucOther,
+		ducExitOwn:   conflict1_03.ducExitOwn};
+
+
+  
+  // (2d) conflicts by right road for mainroad left-turners for
+  // right-priority rules (no 3_03 since target road)
+  //!! no precide calc ucOther, ducOwn but this is tricky and approx good
+
+  conflict2_03= {roadConflict: network[2], //by road 1 for OD 03
+		 dest:         [1,3], // only secondary straight or left
+		 ucOther:      conflict0_up.ducExitOwn+network[2].roadLen,
+		 ducExitOwn:   conflict1_03.ducExitOwn};
+  
+  // symmetry
+
+  conflict4_15= {roadConflict: network[4], //by road 1 for OD 03
+		 dest:         [0,5], // only secondary straight or left
+		 ucOther:      conflict2_03.ucOther,
+		 ducExitOwn:   conflict2_03.ducExitOwn};
+  
+
+  
+  // (2e) conflicts by the secondary roads straight traffic
   // for secondary left turners of the other direction
   // anticipation -> roads 2/4 needed as well since
   //roads 3/5 starts too near the conflict (u>roadLen OK)
 
-  conflict3_40={roadConflict: network[3],  // By road 3 for OD 40
-		  dest:         [],        // road 3 is only sink road
-		  uConflict:    offset20Target+radiusRight-offsetMain,
-		  uOwnConflict: offset20Target+radiusRight+offsetMain};
+  
+  conflict0_21= {roadConflict: network[0], 
+		 dest:         [0,3], //conflict straight-on and left turners
+		 ucOther:      ucOther[3],
+		 ducExitOwn:   ducExitOwn[3]};
 
+  conflict4_21= {roadConflict: network[4], // By road 4 for OD 21
+		 dest:         [1,5],    // right priority+US style left
+		 ucOther: ucOther[4],
+		 ducExitOwn: ducExitOwn[4]};
 
-  conflict2_40={roadConflict: network[2],  // By road 2 for OD 40
-		  dest:         [0,3],     // right priority+US style left
-		  uConflict:    network[2].roadLen+conflict3_40.uConflict,
-		  uOwnConflict: conflict3_40.uOwnConflict};
+  conflict5_21= {roadConflict: network[5],  // By road 5 for OD 21
+		 dest:         [],        // sink road
+		 ucOther: ucOther[5],
+		 ducExitOwn: ducExitOwn[5]};
+
 
   // symmetry
+  
+  conflict1_40= {roadConflict: network[1], 
+		 dest:         [1,5], //straight-on and left turners
+		 ucOther:      conflict0_21.ucOther,
+		 ducExitOwn:   conflict0_21.ducExitOwn};
+  
+  conflict2_40= {roadConflict: network[2],  // By road 2 for OD 40
+		 dest:         [0,3],     // right priority+US style left
+		 ucOther:      conflict4_21.ucOther,
+		 ducExitOwn:   conflict4_21.ducExitOwn};
 
-  conflict5_21={roadConflict: network[5],  // By road 5 for OD 21
-		  dest:         [],        
-		  uConflict:    conflict3_40.uConflict,
-		  uOwnConflict: conflict3_40.uOwnConflict};
+  conflict3_40= {roadConflict: network[3],  // By road 3 for OD 40
+		 dest:         [],        // road 3 is only sink road
+		 ucOther:      conflict5_21.ucOther,
+		 ducExitOwn:   conflict5_21.ducExitOwn};
 
-  conflict4_21={roadConflict: network[4], // By road 4 for OD 21
-		  dest:         [1,5],    
-		  uConflict:    conflict2_40.uConflict,
-		  uOwnConflict: conflict2_40.uOwnConflict};
 
 }
 

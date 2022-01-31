@@ -2586,8 +2586,8 @@ each conflict has the components
 .roadConflict: the (external) road causing the potential conflict
 .dest:         filters destinations for the external vehicles 
                possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
-.uConflict:    conflict point for the filtered external vehicles
-.uOwnConflict: conflict point for the vehicles on the subject road
+.ucOther:    conflict point for the filtered external vehicles on ext road
+.ducExitOwn: difference to conflict point from the exit of subject's old road
 
  */
 
@@ -2636,7 +2636,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // central debugging!!! also activate "var log" in determineConflicts    
     //#########################################################
 
-    connectLog=false;
+    //connectLog=false;
+    connectLog=(this.veh[iveh].id==206);
     //connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
     //connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //connectLog=(this.veh[iveh].id==210)&&(targetID==3);
@@ -2669,7 +2670,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
        virtual road lines:
          uAntic =uSource-duAntic                 "braking zone"
          uDecide=uSource-duDecision              "unconditional decision zone"
-	 uGo    =uSource-max(s0,0.5*duDecision)  "final go if conflicts"
+	 uGo    =uSource-max(1.2*s0, 0.2*duDecision)  "final go if conflicts"
+            (should be <uSource-s0, otherw too timid approaching, but works)
 
        conditions (C1-C3 disjunct and complete, u<uAntic treated above):
          C1: ((u>uAntic)&&(u<=uDecide))       "braking zone"
@@ -2720,7 +2722,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	var v=vehConnect.v;
 	var speed=vehConnect.speed;
 	var s0=vehConnect.longModel.s0;
-	var uGo=uSource-Math.max(1.1*s0,0.5*duDecision);
+	var uGo=uSource-Math.max(1.2*s0,0.2*duDecision);
+	//var uGo=uSource;
 	var sStop=uSource-u; // should stop s0 upstream of uConnect
 	var accSlowdown=vehConnect.longModel.calcAcc(sStop,speed,0,0);
 
@@ -2733,7 +2736,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
         var C2=((u>uDecide)&&(u<=uGo));     // unconditional decision zone
         var C3=(u>uGo);                     // final go if conflicts resolved
 
-	//console.log("duGo=",Math.max(1.1*s0,0.5*duDecision).toFixed(1));
 
 	if(connectLog){
 	  console.log("\n\nroad.connect: t=",time.toFixed(2),
@@ -2801,7 +2803,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  
 	  var followerInfo
 	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
-	  var followerExists=followerInfo[0];
+	  var followerExists // no follower complication if road not left!
+	      =(followerInfo[0]&&(this.roadID!=targetRoad.roadID));
 	  var iFollow=followerInfo[1];
 	  var uFollow=(followerExists)
 	      ? targetRoad.veh[iFollow].u : -1000000;
@@ -2811,7 +2814,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      ? uTarget-(uSource-u)-vehConnect.len - uFollow : 1000000;
 	  var leaderInfo
 	      = targetRoad.findLeaderAtLane(uTarget,lane+offsetLane);
-	  var leaderExists=leaderInfo[0];
+	  var leaderExists // same filter as follower
+	      =(leaderInfo[0]&&(this.roadID!=targetRoad.roadID));
 	  var iLead=leaderInfo[1];
 	  var uLead=(leaderExists)
 	      ? targetRoad.veh[iLead].u : +1000000;
@@ -2987,20 +2991,20 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 
 	    // do not enter if targetroad vehicles do not allow to pass
-	    // the conflict point uOwnConflict of any relevant conflicts
+	    // the conflict point uTarget+ducExitOwn of any relevant conflicts
 	    // (avoid congestion gridlock)
 	    
 	    if(potentialConflictsExist){ // only reference to conflicts here
-	      var uOwnMax=0; // own conflicting point on target road
+	      var ducExitMax=0; // max dist between uTarget and conflict
 	      for(var ic=0; ic<conflicts.length; ic++){
-		uOwnMax=Math.max(conflicts[ic].uOwnConflict,uOwnMax);
+		ducExitMax=Math.max(conflicts[ic].ducExitOwn,ducExitMax);
 		if(connectLog){
 		  console.log("  Preparation (iiib): ic=",ic,
 			      "conflicts[ic]=",
 			      conflicts[ic]);
 		}
 	      }
-	      if(uLead-lenLead-vehConnect.len-2*s0<uOwnMax){
+	      if(uLead-lenLead-vehConnect.len-2*s0<ducExitMax){
 		targetCanBeEntered=false; // !! influence
 	      }
 	      
@@ -3018,7 +3022,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 			      "vehConnect.len=",vehConnect.len,
 			      "2*s0=",2*s0,
 			      "uSource=",uSource,
-			      "uOwnMax=",uOwnMax,
+			      "ducExitMax=",ducExitMax,
 			      "targetCanBeEntered=",targetCanBeEntered);
 			 }
 	      }
@@ -3126,7 +3130,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	    //#################################################
 	    conflictsExist  //!! influence
-	      =this.determineConflicts(vehConnect,uSource,uTarget,conflicts);
+	      =this.determineConflicts(vehConnect,uSource,uTarget,
+				       conflicts,targetRoad);
 	    //#################################################
 	    
 	    vehConnect.conflictsExist=conflictsExist; //!! influence
@@ -3180,7 +3185,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	// Action A5: actual transfer!!
 
       
-	if(u>uSource){
+	if((u>uSource)&&(this.roadID!=targetRoad.roadID)){
 	  if(connectLog){
 	  //if(this.veh[iveh].id==210){
 	    console.log("  Action 5: All previous actions drove the vehicle",
@@ -3264,21 +3269,29 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 } // road.prototype.connect
 
 
-// #################################################################
-// The actual determination of conflicts
-// the vehConnect state vars are not changed (does calling routine)
+/* #################################################################
+ The actual determination of conflicts
+ the vehConnect state vars are not changed (does calling routine)
 
-// see above "functionality to connect two or more roads"
-// and ../README_IntersectionsVarNetworks.txt
-// #################################################################
+@param vehConnect: vehicle to determine possible conflicts
+@param uSource:    u where vehConnect leaves the origin road
+@param uTarget:    Entry point on the target road (both u's needed 
+                   for determining distance to conflict points)
+@param conflicts:  see above "functionality to connect two or more roads"
+                   and ../README_IntersectionsVarNetworks.txt
+@param targetRoad: only needed for graphical debug to visualize own 
+                   conflict point
+ #################################################################
+*/
 
 road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
-					   conflicts){
+					   conflicts, targetRoad){
 
   // see also "connectLog=" above
   //var log=((vehConnect.id==209)&&(time>20)&&(time<25));
   //var log=(vehConnect.id==225)||(vehConnect.id==226);
-  var log=false;
+  var log=(vehConnect.id==206);
+  //var log=false;
 
 
   if(conflicts.length==0){return false;}
@@ -3301,8 +3314,9 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   for(var ic=0; (ic<conflicts.length)&&noConflictDetected; ic++){
 
     // remaining distance of the subject veh to collision point
-    
-    var duOwn=(uSource-u) + conflicts[ic].uOwnConflict;
+
+    var ducExitOwn=conflicts[ic].ducExitOwn;
+    var duOwn=(uSource-u) + ducExitOwn;//OK
 
     // expected time to reach collision point
     
@@ -3316,16 +3330,17 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
     var goOnCrit=(vehsConflict.length>0);
 
     if(log){
-      console.log("  check conflict", ic,"caused by road ",
-		  conflicts[ic].roadConflict.roadID,":",
-		  "uSource-u=", (uSource-u).toFixed(1),
-		  "uOwnConflict=", conflicts[ic].uOwnConflict.toFixed(1),
-		  "duOwn=",duOwn.toFixed(1),
-		  "\n                                       speed=",
-		  speed.toFixed(1),
-		  "acc=",acc.toFixed(2),"tc=",tc.toFixed(1),
-		  "vehsConflict.length=",vehsConflict.length,
-		  "");
+      console.log(
+	"  check conflict", ic,"caused by road ",
+	conflicts[ic].roadConflict.roadID,":",
+	"uSource-u=", (uSource-u).toFixed(1),
+	"ducExitOwn=", ducExitOwn.toFixed(1),
+	"duOwn=",duOwn.toFixed(1),
+	"\n                                       speed=",
+	speed.toFixed(1),
+	"acc=",acc.toFixed(2),"tc=",tc.toFixed(1),
+	"vehsConflict.length=",vehsConflict.length,
+	"");
     }
 
      
@@ -3343,6 +3358,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
       if(vehConflict.isRegularVeh()){
 
 	//all destinations of the conflicting road conflict
+	
 	if(conflicts[ic].dest.length==0){
 	  isCandidate=true;
 	  if(log){
@@ -3364,7 +3380,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 
 	  // if no further tuern, origin=destination;
 	  // otherwise, next route element
-	  // !!!! fails in larger networks if turn after this crossing
+	  // !!!! will fail in larger networks if turn after this crossing
 	  // here, common roads as road0 and road1 must not be allowed
 
 	  var conflictDestID=(vehConflict.route.length==indexOrigin+1)
@@ -3376,8 +3392,8 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 	  }
 
 	  if(log){
-	    console.log("  in conflicting veh loop: vehConflict.id=",
-			vehConflict.id,
+	    console.log("  determineConflicts, checking candidates:",
+			"vehConflict.id=",vehConflict.id,
 			"indexOrigin=",indexOrigin,
 			"conflictDestID=",conflictDestID,
 			"conflicts[ic].dest=", conflicts[ic].dest,
@@ -3391,27 +3407,54 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
       if(isCandidate){
 	var speedConflict=vehConflict.speed;
         var speedmax=Math.max(speed, speedConflict, 0.01);
-        var duTarget=conflicts[ic].uConflict-(vehConflict.u+speedConflict*tc);
-	var subjIsLeader=(duTarget>0);
+	var ucOther=conflicts[ic].ucOther;
+        var ducOtherVeh=ucOther-(vehConflict.u+speedConflict*tc);
+	var subjIsLeader=(ducOtherVeh>0);
 	xtc=(subjIsLeader)
-	  ? duTarget-vehConnect.len  // >0 if no overlap
-	  : duTarget+vehsConflict[iveh].len; // <0 if no overlap
+	  ? ducOtherVeh-vehConnect.len  // >0 if no overlap
+	  : ducOtherVeh+vehConflict.len; // <0 if no overlap
         var ttc=xtc/speedmax;
         noConflictDetected=(Math.abs(xtc)>XTC)&&((ttc>TTCup)||(ttc<-TTCdown));
 
         if(log){
 	  console.log(
 	  "      veh ",vehConnect.id,
-	  ": conflicting veh ID:",vehsConflict[iveh].id,
-	  " u=",vehsConflict[iveh].u.toFixed(1),
-	  " uConflict=",conflicts[ic].uConflict.toFixed(1),
-	  " speed*tc=",(vehsConflict[iveh].speed*tc).toFixed(1),
-	  " duTarget=",duTarget.toFixed(1),
+	  ": conflicting veh ID:",vehConflict.id,
+	  " uOther=",vehConflict.u.toFixed(1),
+	  " ucOther=",ucOther.toFixed(1),
+	  " speedOther*tc=",(vehConflict.speed*tc).toFixed(1),
+	  " ducOther_after_tc=",ducOtherVeh.toFixed(1),
 	  "\n                                          xtc=",xtc.toFixed(1),
 	  " ttc=",ttc.toFixed(1),
 	  " noConflictDetected=",noConflictDetected,
-	  " goOnCrit=",goOnCrit,
-	  "");
+	    " goOnCrit=",goOnCrit,
+	    "");
+	}
+        if(log){
+	  var xConflictOwn=targetRoad.traj[0](uTarget+ducExitOwn);
+	  var yConflictOwn=targetRoad.traj[1](uTarget+ducExitOwn);
+	  var xConflictOther=conflicts[ic].roadConflict.traj[0](ucOther);
+	  var yConflictOther=conflicts[ic].roadConflict.traj[1](ucOther);
+	  var dist2=Math.pow(xConflictOwn-xConflictOther,2)
+	      +Math.pow(yConflictOwn-yConflictOther,2);
+	  //if(targetRoad.roadID<2){
+	  if(dist2>=16){
+	    console.log(
+	      "\nGraphics: vehConnect ",vehConnect.id,
+	      "OD ",this.roadID,targetRoad.roadID,
+	      "conflicts with road ID=",conflicts[ic].roadConflict.roadID,
+	      "veh ",vehConflict.id,"having route=",vehConflict.route,
+	      "\n    xConflictOwn (basic target traj)=",
+	      xConflictOwn.toFixed(1),
+	      "yConflictOwn=",yConflictOwn.toFixed(1),
+	      "\n    xConflictOther                  =",
+	      xConflictOther.toFixed(1),
+	      "yConflictOther=",yConflictOther.toFixed(1),
+	      "duOwn(now)=",duOwn.toFixed(1),
+	      "ducOtherVeh(now)=",(ucOther-vehConflict.u).toFixed(1),
+	      "ducOther(tConflict)=",ducOtherVeh.toFixed(1),
+	      "");
+	  }
 	}
 	// nothing if the considered veh on conflicting road
 	// has a nonconflicting route 	
@@ -4727,53 +4770,6 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
 
 
-//######################################################################
-// draw vehicles using general transitions from old to new trajectories 
-// during merging/diverging (only stationary observer)
-//######################################################################
-
-/*
-carImg, truckImg, obstacleImg, scale, speedmin,speedmax,umin,umax as above
-@param otherRoad:  another road (mandatory because of obscure js working): 
-                   use trajectory of that road instead of own
-                   if not yet completely changed lane (optically)
-                    - useful for roundabout scenario
-                    - just enter "this" if no other road desired
-@param uOffset:    opt: use traj of other road at u+uOffset (default=0)
-
-*/
-
- 
-road.prototype.drawVehiclesGenTraj=function(carImg, truckImg, obstacleImg, scale,
-					    speedmin,speedmax,umin,umax,
-					    otherRoad, uOffset){
-
-    if(this.doGridding){
-	console.log("Error: cannot use road.drawVehiclesGenTraj with active gridding"," (user-can change road geometry): ");
-	console.log("  use road.drawVehicles instead !! ");
-    }
-
-    var xOffset=0; // stationary observer
-    var yOffset=0;
-
-    for(var i=0; i<this.veh.length; i++){
-
-        // do not draw vehicles outside limits
-        //  or if it is a virtual traffic-light vehicle (if TL is red)
-
-        var filterPassed=(!this.veh[i].isTrafficLight())
-	    && ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax));
-
-	if(filterPassed){
-	    this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
-			     speedmin,speedmax,
-			     otherRoad.traj,
-			     xOffset,yOffset,uOffset);
-	}
-    }
-}
-
-
 
 
 //###############################################################
@@ -5289,8 +5285,9 @@ road.prototype.removeObstacle= function(id) {
 }
 
 
-
+//##################################################################
 // from various.js; copied here to save adding this to all the html's
+//##################################################################
 
 function arraysEqual(a, b) {
   if (a === b) return true;
@@ -5310,3 +5307,28 @@ function arraysEqual(a, b) {
 
 
 
+/* ############################################################
+finding the (last) argument u*=fun^{-1}(val)
+ of a 1d function fun(u) for the value val, fun(u*)=val,
+ and, if this does not exist, the u value for the global minimum distance
+@param fun:   function(u),
+@param val:   the given value
+@param umin:  smalles argument
+@param umax:  largest argument
+@return [ustar,dist]
+################################################################*/
+
+function findArg(fun,val,umin,umax){
+  var n=1000.;
+  var dist=1e10;
+  var ustar=umin;
+  for(var i=0; i<=n; i++){
+    var u=umin+i/n*(umax-umin);
+    var d=Math.abs(fun(u)-val);
+    if (d<dist){
+      ustar=u;
+      dist=d;
+    }
+  }
+  return[ustar,dist];
+}

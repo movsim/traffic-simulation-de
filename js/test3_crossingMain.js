@@ -391,8 +391,8 @@ function updateSim(){
   // do all the connecting stuff here
 
   conflict0={roadConflict:network[0],
-	     uConflict: 0.5*network[0].roadLen,
-	     uOwnConflict: 2*laneWidth};
+	     ucOther: 0.5*network[0].roadLen,
+	     ducExitOwn: 2*laneWidth};
   conflicts=[];
   conflicts[0]=conflict0;
 	     
