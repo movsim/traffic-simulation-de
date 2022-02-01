@@ -1,5 +1,5 @@
 
-var userCanDropObjects=true;
+const userCanDropObjects=true;
 
 //#############################################################
 // adapt standard slider settings from control_gui.js

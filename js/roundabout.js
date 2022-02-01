@@ -1,6 +1,9 @@
+const PI=Math.PI;
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDropObjects=true;
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
+var drawRoadIDs=false; // debug: draw veh IDs for selected roads
+var showCoords=false;  // show logical coords of nearest road to mouse pointer
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -12,24 +15,12 @@ var userCanDropObjects=true;
 // controlled by a html select elements
 
 respectRingPrio=true; 
-respectRightPrio=false; // callback: control_gui - handleChangedPriority
-
-// debugging switches
-
-var markVehsMerge=false; // for debugging road.mergeDiverge
-var drawVehIDs=false;    // for debugging road.mergeDiverge
-var useSsimpleOD_debug=false;
-var drawRingDirect=false; // draw ring vehicles directly instead gen Traj
+//respectRightPrio=false; // callback: control_gui - handleChangedPriority
 
 
 // merging fine tuning
-//!! fiddle to optimize de-facto anticipation of merging vehs 
-// and last stopping in order to prevent crashes while waiting
 
-var visibilityExt=30;   // merge: logical visib. ext [m] target to origin vehs
-var visibilityExtUp=20; // merge: visib. extension [m] origin to target vehs
-var mergeBeginRel=0.52; // merge begins mergeBeginRel*rRing before arm ends
-var mergeEndRel=0.32;   // merge ends mergeEndRel*rRing before arm ends
+var duMergeRel=0.40; // merge begins mergeBeginRel*rRing before arm ends
 
 
 // non-slider vehicle and traffic properties
@@ -64,16 +55,16 @@ focusFrac=1; // in [0,1]
 qIn=2000./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
-mainFrac=0.8;
+mainFrac=0.6;
 setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
-timewarp=8;
+timewarp=2.5;
 setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
 
 IDM_v0=50./3.6;
 setSlider(slider_IDM_v0,slider_IDM_v0Val,3.6*IDM_v0,0," km/h");
 
-IDM_a=0.9; 
+IDM_a=1.5; 
 setSlider(slider_IDM_a,slider_IDM_aVal,IDM_a,1," m/s<sup>2</sup>");
 
 
@@ -131,7 +122,91 @@ var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
 
 
+
+//####################################################################
+// Global graphics specification and image file settings
+//####################################################################
+
+var hasChanged=true; // window dimensions have changed (responsive design)
+
+var drawBackground=true; // if false, default unicolor background
+var drawRoad=true; // if false, only vehicles are drawn
+var userCanvasManip; // true only if user-driven geometry changes
+
+var drawColormap=false;
+var vmin_col=0; // min speed for speed colormap (drawn in red)
+var vmax_col=70/3.6; // max speed for speed colormap (drawn in blue-violet)
+
+
+//#########################################################
+// Images
+//####################################################################
+
+
+// init background image
+
+var background = new Image();
+background.src ='figs/backgroundGrass.jpg'; 
+ 
+
+// init vehicle image(s)
+
+carImg = new Image();
+carImg.src = 'figs/blackCarCropped.gif';
+truckImg = new Image();
+truckImg.src = 'figs/truck1Small.png';
+
+
+// init traffic light images
+
+traffLightRedImg = new Image();
+traffLightRedImg.src='figs/trafficLightRed_affine.png';
+traffLightGreenImg = new Image();
+traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
+
+
+//define obstacle image names
+
+obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
+obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
+for (var i=0; i<10; i++){
+  obstacleImgs[i]=new Image();
+  obstacleImgs[i].src = (i==0)
+    ? "figs/obstacleImg.png"
+    : "figs/constructionVeh"+(i)+".png";
+  obstacleImgNames[i] = obstacleImgs[i].src;
+}
+
+// init road images for 1 to 4 lanes
+
+roadImgWith_lane = []; // road with lane separating line
+roadImgWithout_lane = []; // road without lane separating line
+
+for (var i=0; i<4; i++){
+  roadImgWith_lane[i]=new Image();
+  roadImgWith_lane[i].src="figs/road"+(i+1)+"lanesCropWith.png";
+  roadImgWithout_lane[i]=new Image();
+  roadImgWithout_lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png";
+}
+
+
+
+//############################################
+// traffic objects
+//############################################
+
+// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
+//var trafficObjs=new TrafficObjects(canvas,1,3,0.20,0.20,3,2);
+var trafficObjs=new TrafficObjects(canvas,4,1,0.80,0.25,2,3);
+var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
+
+
+
+
+
+
 //##################################################################
+//<NETWORK>
 // Specification of physical road geometry and vehicle properties
 // If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
@@ -165,7 +240,7 @@ var rRing=rRingRel*refSizePhys; // roundabout radius [m]
 
 var lArm=lArmRel*refSizePhys;
 var r1=(rRing/Math.sqrt(2)-0.5*laneWidth)/(1-0.5*Math.sqrt(2));
-var uc1=lArm-0.25*Math.PI*r1;  // begin of r1 arc 
+var uc1=lArm-0.25*PI*r1;  // begin of r1 arc 
 var xc1=(rRing+r1)/Math.sqrt(2) // r1 center. > r1 since connect to
 var yc1=(rRing+r1)/Math.sqrt(2) // directional road center, not median
 var x01=xc1+uc1
@@ -178,6 +253,7 @@ var x01=xc1+uc1
 
 
 var nLanes_arm=1;  // geometry fits only for 1/1 lanes
+
 var nLanes_ring=1;
 
 
@@ -185,7 +261,8 @@ var nLanes_ring=1;
 // stitchAngleOffset brings stitch of ring
 // as far upstream of merge as possible 
 
-var stitchAngleOffset=-0.20*Math.PI; 
+var stitchAngleOffset=-0.15*PI; 
+var uMerge=lArm-duMergeRel*rRing; // logical merges to ring
 
 function trajRing_x(u){ 
     var dxPhysFromCenter=rRing*Math.cos(u/rRing+stitchAngleOffset);
@@ -222,24 +299,6 @@ function traj1_y(u){
 }
 
 
-// arms 2 and 3 (ingoing/outgoing south arms)
-
-function traj2_x(u){ 
-    return traj0_y(u)-center_yPhys+center_xPhys;
-}
-
-function traj2_y(u){ 
-    return -traj0_x(u)+center_xPhys+center_yPhys;
-}
-
-function traj3_x(u){ 
-    return traj1_y(u)-center_yPhys+center_xPhys;
-}
-
-function traj3_y(u){ 
-    return -traj1_x(u)+center_xPhys+center_yPhys;
-}
-
 
 // arms 4 and 5 (ingoing/outgoing west arms)
 
@@ -259,28 +318,86 @@ function traj5_y(u){
     return -traj1_y(u)+2*center_yPhys;
 }
 
-// arms 6 and 7 (ingoing/outgoing north arms)
+// arms 6 and 7 (ingoing/outgoing south arms)
 
 function traj6_x(u){ 
-    return -traj2_x(u)+2*center_xPhys;;
+  return traj0_y(u)-center_yPhys+center_xPhys;
 }
 
 function traj6_y(u){ 
-    return -traj2_y(u)+2*center_yPhys;
+    return -traj0_x(u)+center_xPhys+center_yPhys;
 }
 
 function traj7_x(u){ 
-    return -traj3_x(u)+2*center_xPhys;;
+    return traj1_y(u)-center_yPhys+center_xPhys;
 }
 
 function traj7_y(u){ 
-    return -traj3_y(u)+2*center_yPhys;
+    return -traj1_x(u)+center_xPhys+center_yPhys;
 }
 
 
+// arms 2 and 3 (ingoing/outgoing south arms)
 
-var mergeBegin=lArm-mergeBeginRel*rRing; // logical merges
-var mergeEnd=lArm-mergeEndRel*rRing;
+function traj2_x(u){ 
+    return -traj6_x(u)+2*center_xPhys;;
+}
+
+function traj2_y(u){ 
+    return -traj6_y(u)+2*center_yPhys;
+}
+
+function traj3_x(u){ 
+    return -traj7_x(u)+2*center_xPhys;;
+}
+
+function traj3_y(u){ 
+    return -traj7_y(u)+2*center_yPhys;
+}
+
+
+// special trajectories for entering (physical entering ahead of PI/4*r etc)
+
+var ringArmOffset=lArm+rRing*stitchAngleOffset; // stitchangle=eg.-0.15*PI
+
+function trajRing_0x(u){return traj0_x(u-rRing*0.25*PI +ringArmOffset);}
+function trajRing_0y(u){return traj0_y(u-rRing*0.25*PI +ringArmOffset);}
+
+function trajRing_2x(u){return traj2_x(u-rRing*0.75*PI +ringArmOffset);}
+function trajRing_2y(u){return traj2_y(u-rRing*0.75*PI +ringArmOffset);}
+
+function trajRing_4x(u){return traj4_x(u-rRing*1.25*PI +ringArmOffset);}
+function trajRing_4y(u){return traj4_y(u-rRing*1.25*PI +ringArmOffset);}
+
+function trajRing_6x(u){return traj6_x(u-rRing*1.75*PI +ringArmOffset);}
+function trajRing_6y(u){return traj6_y(u-rRing*1.75*PI +ringArmOffset);}
+
+
+
+// #############################################################3
+// road images for the trajectories; 2 images per road/network element
+// #############################################################3
+
+// network not yet defined
+
+var nLanes=[nLanes_ring,1,1,1,1,1,1,1,1]; // nLanes_arm=1
+
+// general
+
+var roadImages=[];
+for(var ir=0; ir<nLanes.length; ir++){
+  roadImages[ir]=[];
+  for(var j=0; j<2; j++){roadImages[ir][j]=new Image();}
+}
+
+// specific
+
+
+for(var ir=0; ir<nLanes.length; ir++){
+  roadImages[ir][0]=roadImgWith_lane[nLanes[ir]-1];
+  roadImages[ir][1]=roadImgWithout_lane[nLanes[ir]-1];
+}
+
 
 
 
@@ -291,7 +408,7 @@ var mergeEnd=lArm-mergeEndRel*rRing;
 // road with inflow/outflow: just add updateBCup/down at simulation time
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
-// road with active diverge (mainroad, more generally when routes are relevant): 
+// road with active diverge (mainroad, when routes are relevant): 
 //   road.setOfframpInfo at init time and road.mergeDiverge at sim time
 
 //##################################################################
@@ -303,40 +420,9 @@ var density=0.00;
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
 //		       density,speedInit,fracTruck,isRing,doGridding[opt]);
 
-// need addtl. road.setOfframpInfo for roads with diverges, nothing for merges
 
-
-var mainroad=new road(10,2*Math.PI*rRing,laneWidth,nLanes_ring,
+var mainroad=new road(8,2*PI*rRing-0,laneWidth,nLanes_ring,
 		  [trajRing_x,trajRing_y],0,0,0,true);
-
-mainroad.visibilityExt=visibilityExt;
-mainroad.visibilityExtUp=visibilityExtUp;
-if(markVehsMerge){mainroad.markVehsMerge=true;}
-if(drawVehIDs){mainroad.drawVehIDs=true;}
-
-// diverge length: 
-// anything above 0.15*Pi*rRing and 1/4 ring length=0.5*Pi*rRing works
-
-var divLen=0.25*Math.PI*rRing; 
-
-// uLastExits[i] such that FIRST exit at rRing*1.75*PI, rRing*1.25*PI etc
-// (+stitchAngleOffset) for optical reasons
-
-
-uLastExits=[];
-
-uLastExits[0]=rRing*(1.75*Math.PI-stitchAngleOffset)+divLen; 
-uLastExits[1]=rRing*(1.25*Math.PI-stitchAngleOffset)+divLen;
-uLastExits[2]=rRing*(0.75*Math.PI-stitchAngleOffset)+divLen;
-uLastExits[3]=rRing*(0.25*Math.PI-stitchAngleOffset)+divLen;
-
-
-// !! odd roadIDs are offramps!!
-mainroad.setOfframpInfo([1,3,5,7], uLastExits, [true,true,true,true]);
-console.log("mainroad.offrampIDs=",mainroad.offrampIDs);
-console.log("mainroad.offrampLastExits=",mainroad.offrampLastExits);
-mainroad.duTactical=divLen;
-
 
 var arm=[]; 
 arm[0]=new road(0,lArm,laneWidth,nLanes_arm,[traj0_x,traj0_y],0,0,0,false);
@@ -348,159 +434,80 @@ arm[5]=new road(5,lArm,laneWidth,nLanes_arm,[traj5_x,traj5_y],0,0,0,false);
 arm[6]=new road(6,lArm,laneWidth,nLanes_arm,[traj6_x,traj6_y],0,0,0,false);
 arm[7]=new road(7,lArm,laneWidth,nLanes_arm,[traj7_x,traj7_y],0,0,0,false);
 
-network[0]=mainroad;  // network declared in canvas_gui.js
-for (var i=0; i<arm.length; i++){
-  network[i+1]=arm[i];
+
+for (var ir=0; ir<arm.length; ir++){
+  network[ir]=arm[ir]; // network declared in canvas_gui.js
+}
+network[8]=mainroad;  
+
+// draw veh IDs on selected links if set true;
+// also draw alternative trajectories if wanted (not needed for roundabout)
+
+for(var ir=0; ir<network.length; ir++){
+  network[ir].drawVehIDs=drawVehIDs;
+  network[ir].drawAlternativeTrajectories=false; // default=false; to remember
 }
 
 
-for (var i=0; i<arm.length; i++){
-    arm[i].visibilityExt=visibilityExt;
-    arm[i].visibilityExtUp=visibilityExtUp;
-    if(markVehsMerge){arm[i].markVehsMerge=true;}
-    if(drawVehIDs){arm[i].drawVehIDs=true;}
-}
+
 
 //################################################################
 // define routes
-// 1=E-arm, ingoing, 3=S-arm, ingoing,  5=W-arm, ingoing, 7=N-arm, ingoing
-// 2=E-arm, outgoing, 4=S-arm, outgoing,  6=W-arm, outgoing, 8=N-arm, outgoing
+// 0=E-arm, ingoing,  2=N-arm, ingoing,  4=W-arm, ingoing,  6=S-arm, ingoing
+// 1=E-arm, outgoing, 3=N-arm, outgoing, 5=W-arm, outgoing, 7=S-arm, outgoing
 //################################################################
 
-var route1L=[0,10,3];  // inflow E-arm, left turn
-var route1C=[0,10,5];  // inflow E-arm, straight ahead
-var route1R=[0,10,7];  // inflow E-arm, right turn
-var route1U=[0,10,1];  // inflow E-arm, U-tern
-var route3L=[2,10,5];  // inflow S-arm, left turn
-var route3C=[2,10,7];  // inflow S-arm, straight ahead
-var route3R=[2,10,1];  // inflow S-arm, right turn
-var route5L=[4,10,7];  // inflow W-arm, left turn
-var route5C=[4,10,1];  // inflow W-arm, straight ahead
-var route5R=[4,10,3];  // inflow W-arm, right turn
-var route7L=[6,10,1];  // inflow N-arm, left turn
-var route7C=[6,10,3];  // inflow N-arm, straight ahead
-var route7R=[6,10,5];  // inflow N-arm, right turn
+var routeER=[0,8,3];  // inflow E-arm, right turn
+var routeEC=[0,8,5];  // inflow E-arm, straight ahead
+var routeEL=[0,8,7];  // inflow E-arm, left turn
+var routeEU=[0,8,1];  // inflow E-arm, U-tern
+var routeNR=[2,8,5];  // inflow N-arm, right turn
+var routeNC=[2,8,7];  // inflow N-arm, straight ahead
+var routeNL=[2,8,1];  // inflow N-arm, left turn
+var routeWR=[4,8,7];  // inflow W-arm, right turn
+var routeWC=[4,8,1];  // inflow W-arm, straight ahead
+var routeWL=[4,8,3];  // inflow W-arm, left turn
+var routeSR=[6,8,1];  // inflow S-arm, right turn
+var routeSC=[6,8,3];  // inflow S-arm, straight ahead
+var routeSL=[6,8,5];  // inflow S-arm, left turn
 
+// add the special trajectories depending on the roadID of the route link
+// neighboring to the ring (roadID=8)
 
+var altOffset=-rRing*stitchAngleOffset;
+mainroad.trajAlt[0]={x: trajRing_0x,
+		     y: trajRing_0y,
+		     roadID: 0,
+		     umin:0+altOffset,
+		     umax:rRing*0.25*PI+altOffset
+		    };
+mainroad.trajAlt[1]={x: trajRing_2x,
+		     y: trajRing_2y,
+		     roadID: 2,
+		     umin:rRing*0.50*PI+altOffset,
+		     umax:rRing*0.75*PI+altOffset
+		    };
+mainroad.trajAlt[2]={x: trajRing_4x,
+		     y: trajRing_4y,
+		     roadID: 4,
+		     umin:rRing*1.00*PI+altOffset,
+		     umax:rRing*1.25*PI+altOffset
+		    };
+mainroad.trajAlt[3]={x: trajRing_6x,
+		     y: trajRing_6y,
+		     roadID: 6,
+		     umin:rRing*1.50*PI+altOffset,
+		     umax:rRing*1.75*PI+altOffset
+		    };
 
-//############################################################
-// add standing virtual vehicle at the end of the merging arms
-// new vehicle (length, width, u, lane, speed, type)
-// prepending=unshift; 
-//############################################################
-
-for(var i=0; i<8; i+=2){
-    arm[i].veh.unshift(new vehicle(0.0, laneWidth, mergeEnd, 0, 0, "obstacle"));//!!!
-}
 
 
 //#########################################################
 // model initialization (models and methods defined in control_gui.js)
 //#########################################################
 	
-updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
-
-
-// behavior if driving through ring and merge/diverges (car and trucks)
-// |lateral accel| <= comf deceleration b
-
-//!!! not yet implemented
-var v0CarRing=Math.min(IDM_v0, Math.sqrt(longModelCar.b*rRing));
-var v0TruckRing=Math.min(factor_v0_truck*IDM_v0, Math.sqrt(longModelTruck.b*rRing));
-var longModelCarRing=new ACC(v0CarRing,IDM_T,IDM_s0,IDM_a,IDM_b); 
-var longModelTruckRing=new ACC(v0TruckRing,factor_T_truck*IDM_T,
-			       IDM_s0,factor_a_truck*IDM_a,IDM_b); 
-
-
-
-//####################################################################
-// Global graphics specification and image file settings
-//####################################################################
-
-var hasChanged=true; // window dimensions have changed (responsive design)
-
-var drawBackground=true; // if false, default unicolor background
-var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip; // true only if user-driven geometry changes
-
-var drawColormap=false;
-var vmin_col=0; // min speed for speed colormap (drawn in red)
-var vmax_col=70/3.6; // max speed for speed colormap (drawn in blue-violet)
-
-
-//#########################################################
-// The images
-//#########################################################
-
-
-// init background image
-
-var background = new Image();
-background.src ='figs/backgroundGrass.jpg'; 
- 
-
-// init vehicle image(s)
-
-carImg = new Image();
-carImg.src = 'figs/blackCarCropped.gif';
-truckImg = new Image();
-truckImg.src = 'figs/truck1Small.png';
-
-
-// init traffic light images
-
-traffLightRedImg = new Image();
-traffLightRedImg.src='figs/trafficLightRed_affine.png';
-traffLightGreenImg = new Image();
-traffLightGreenImg.src='figs/trafficLightGreen_affine.png';
-
-
-// define obstacle images
-
-obstacleImgNames = []; // srcFiles[0]='figs/obstacleImg.png'
-obstacleImgs = []; // srcFiles[0]='figs/obstacleImg.png'
-for (var i=0; i<10; i++){
-  obstacleImgs[i]=new Image();
-  obstacleImgs[i].src = (i==0)
-    ? "figs/obstacleImg.png"
-    : "figs/constructionVeh"+(i)+".png";
-  obstacleImgNames[i] = obstacleImgs[i].src;
-}
-
-
-// init road images
-
-roadImgs1 = []; // road with lane separating line
-roadImgs2 = []; // road without lane separating line
-
-for (var i=0; i<4; i++){
-    roadImgs1[i]=new Image();
-    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
-    roadImgs2[i]=new Image();
-    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
-}
-
-ringImg1 = new Image();
-ringImg1=roadImgs1[nLanes_ring-1];
-ringImg2 = new Image();
-ringImg2=roadImgs2[nLanes_ring-1];
-
-armImg1 = new Image();
-armImg1=roadImgs1[nLanes_arm-1];
-
-armImg2 = new Image();
-armImg2=roadImgs2[nLanes_arm-1];
-
-console.log("ringImg1=",ringImg1);
-
-
-//############################################
-// traffic objects
-//############################################
-
-// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,4,0,0.80,0.25,2,2);
-var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
+// ok 2021. Defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+updateModels(); 
 
 
 
@@ -514,251 +521,191 @@ var fps=30; // frames per second
 var dt=timewarp/fps;
 
 
-
-
 //#################################################################
 function updateSim(){
 //#################################################################
 
-    // (0) update times and revert vehicle markings if applicable
+    // (1) update time, global geometry, and traffic objects
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    isSmartphone=mqSmartphone(); // defined in media.js
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+  isSmartphone=mqSmartphone(); // defined in media.js
+  hasChanged=false;
 
-    if(markVehsMerge){
-	for (var i=0; i<arm.length; i++){arm[i].revertVehMarkings();}
-	mainroad.revertVehMarkings();
+
+  if ((canvas.width!=simDivWindow.clientWidth)
+      ||(canvas.height != simDivWindow.clientHeight)){
+    hasChanged=true; // only pixel; physical changes in updateSim
+    canvas.width  = simDivWindow.clientWidth;
+    canvas.height  = simDivWindow.clientHeight;
+    aspectRatio=canvas.width/canvas.height;
+    refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);;
+
+    scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
+        //updateDimensions(); // not defined for roundabout
+
+    trafficObjs.calcDepotPositions(canvas);
+    if(true){
+        console.log("haschanged=true: new canvas dimension: ",
+		    canvas.width," X ",canvas.height);
     }
+  }
 
+   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack(); // here more responsive than in drawSim
+  }
+
+
+
+  // updateSim (2): integrate all the GUI actions (sliders, TrafficObjects)
+  // as long as not done independently (clicks on vehicles)
+  // check that global var deepCopying=true (in road.js)
+  // (needed for updateModelsOfAllVehicles)
  
- 
+  // LCModelMandatory in control_gui.js;
+  // road.updateM... makes road.LCModelMandatoryLeft, -Right out of this
 
-    //##############################################################
-    // (1) transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models:
-    // also initialize models for new cars entering at inflow points
-    //##############################################################
 
- 
-    // updateModelsOfAllVehicles also selectively sets LCModelMandatory
-    // to offramp vehs based on their routes!
-    // !! needed even for single-lane roads to trigger diverge actions!
-
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck,
-				       LCModelMandatory);
-    for(var i=0; i<arm.length; i++){
-        arm[i].updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
 					 LCModelCar,LCModelTruck,
 					 LCModelMandatory);
-    }
+    network[ir].updateSpeedlimits(trafficObjs); // if some exist
+  }
 
 
 
-    //##############################################################
-    // (2) do central simulation update of vehicles
-    //##############################################################
+  // updateSim (3): do central acc calculation of vehicles
+  // (may be later overridden by special actions before speed and pos update)
+  
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].calcAccelerations(); 
+  }
 
+  
+  // updateSim (4): !!! do all the network actions
+  // (inflow, outflow, merging and connecting)
 
-    //acceleration (no interaction between roads at this point)
-    // !! (motion at the end!)
+  
+  // (4a) inflow BC
 
-    mainroad.calcAccelerations();
-    //mainroad.updateSpeedPositions();
-    for(var i=0; i<arm.length; i++){
-      arm[i].calcAccelerations(); 
-      //arm[i].updateSpeedPositions();
-    } 
+  // route fractions depend on 
+  // mainFrac, focusFrac  and leftTurnBias
+  // (focusFrac counterintuitive for |leftTurnBias|>=2/3)
+  
+  // main routes: routeEC (=[1,8,6], inflow E-arm, straight ahead) 
+  //              routeWC (=[5,8,2], inflow W-arm, opposite direction)
+  // road label 1=inflow E-arm
+  // road label 2=outflow E-arm
+  // road label 3=inflow S-arm etc
 
-
-    // inflow BC
-
-    // route fractions depend on 
-    // mainFrac, focusFrac  and leftTurnBias
-    // main routes: route1C (=[1,10,6], inflow E-arm, straight ahead) 
-    //              route5C (=[5,10,2], inflow W-arm, opposite direction)
-    // road label 1=inflow E-arm
-    // road label 2=outflow E-arm
-    // road label 3=inflow S-arm etc
-
-    var q1=0.5*mainFrac*qIn;
-    var q5=q1;
-    var q3=0.5*(1-mainFrac)*qIn;
-    var q7=q3;
+    var q0=0.5*mainFrac*qIn;
+    var q4=q0;
+    var q2=0.5*(1-mainFrac)*qIn;
+    var q6=q2;
 
     var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
     var lFrac=(1-cFrac)/2.*(1+leftTurnBias);
     var rFrac=(1-cFrac)/2.*(1-leftTurnBias); // cFrac+lFrac+rFrac=1
     var clFrac=cFrac+lFrac;
 
-    //console.log("roundabout:updateSim: cFrac=",cFrac," lFrac=",lFrac," rFrac=",rFrac);
-
     var ran=Math.random();
 
-
-    var route1In=(ran<cFrac) ? route1C : (ran<clFrac) ? route1L : route1R;
-    var route3In=(ran<cFrac) ? route3C : (ran<clFrac) ? route3L : route3R;
-    var route5In=(ran<cFrac) ? route5C : (ran<clFrac) ? route5L : route5R;
-    var route7In=(ran<cFrac) ? route7C : (ran<clFrac) ? route7L : route7R;
-
-    // override for debugging
-
-    if(useSsimpleOD_debug){
-        q1=0.2*qIn; q7=0.5*qIn; q5=q3=0;
-        route1In=route1C;route7In=route7C;
-    }
-
-    arm[0].updateBCup(q1,dt,route1In);
-    arm[2].updateBCup(q3,dt,route3In);
-    arm[4].updateBCup(q5,dt,route5In);
-    arm[6].updateBCup(q7,dt,route7In);
-
-    // outflow BC
-
-    for(var i=1; i<8; i+=2){
-	arm[i].updateBCdown();
-    }
+    var routeEIn=(ran<cFrac) ? routeEC : (ran<clFrac) ? routeEL : routeER;
+    var routeSIn=(ran<cFrac) ? routeSC : (ran<clFrac) ? routeSL : routeSR;
+    var routeWIn=(ran<cFrac) ? routeWC : (ran<clFrac) ? routeWL : routeWR;
+    var routeNIn=(ran<cFrac) ? routeNC : (ran<clFrac) ? routeNL : routeNR;
 
 
-    //##############################################################
-    // merges into the roundabout ring (respecting prio)
-    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,
-    //                             toRight,[ignoreRoute,
-    //                             respectPrioOther,respectPrioOwn])
-    //##############################################################
-
-    mainroad.updateLastLCtimes(dt); // needed on target road for graphical merging
-    //mainroad.changeLanes(); // only if multilane;  not needed for diverge
+    arm[0].updateBCup(q0,dt,routeEIn); // reference to network[1]
+    arm[2].updateBCup(q2,dt,routeNIn);
+    arm[4].updateBCup(q4,dt,routeWIn);
+    arm[6].updateBCup(q6,dt,routeSIn);
 
 
-    arm[0].mergeDiverge(mainroad, (0.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, mergeEnd, true, false, false, 
-			respectRingPrio, respectRightPrio);
-
-    arm[2].mergeDiverge(mainroad, (1.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, mergeEnd, true, false, false, 
-			respectRingPrio, respectRightPrio);
-
-    arm[6].mergeDiverge(mainroad, (0.75*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, mergeEnd, true, false, false, 
-			respectRingPrio, respectRightPrio);
-
-    arm[4].mergeDiverge(mainroad, (1.25*Math.PI-stitchAngleOffset)*rRing-lArm, 
-			mergeBegin, mergeEnd, true, false, false, 
-			respectRingPrio, respectRightPrio);
-
- 
-
-    //##############################################################
-    // diverges out of the  roundabout ring
-    // template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,
-    //                             toRight,[ignoreRoute,respectPrio])
-    //##############################################################
-
-    // Besides targetRoad.updateLastLCtimes(dt) as in merge case, 
-    // addtl provisions necessary:
-
-    // (1) origRoad.setOfframpInfo(...) needs to be added, 
-    //     best at road cstr time. Iincludes setting origRoad.duTactical>0!
-    // (2) origRoad.updateModelsOfAllVehicles(...) needed to trigger diverge, 
-    //     even for single lane
-
-    for(var i=1; i<8; i+=2){arm[i].updateLastLCtimes(dt);} // needed for graph LC
-
- 
-
-    mainroad.mergeDiverge(arm[1], -uLastExits[0]+divLen, 
-		      uLastExits[0]-divLen, uLastExits[0], false, true);
-    mainroad.mergeDiverge(arm[3], -uLastExits[1]+divLen, 
-		      uLastExits[1]-divLen, uLastExits[1], false, true);
-    mainroad.mergeDiverge(arm[5], -uLastExits[2]+divLen, 
-		      uLastExits[2]-divLen, uLastExits[2], false, true);
-    mainroad.mergeDiverge(arm[7], -uLastExits[3]+divLen, 
-		      uLastExits[3]-divLen, uLastExits[3], false, true);
-
-
-     // !! motion at the end
-
-    mainroad.updateSpeedPositions();
-    for(var i=0; i<arm.length; i++){
-      arm[i].updateSpeedPositions();
-
-      // !!! forcibly move vehicles behind virtual obstacle vehicle 0
-      // if they cross it (may happen for very low a, T, high timewarp)
-      // to avoid bugs (otherwise, the vehicle will orbit perpetually
-      // on (traj_x,traj_y) instead of merging)
-      // also at least partially undo swapping of vehicle properties
-      // in roadsection.update routines veh<->obstacle
-      // by at least resetting veh[0] as obstacle of length 0
-      // the true veh may be lost but this is an extremely unrealistic
-      // situation with many crashes anyway
-      // (swap only as consequence of crash) => see roundabout_debug.js,-html
-
-      if(true){
-	if(arm[i].veh.length>=2){
-	  if(arm[i].veh[1].u>arm[i].veh[0].u-0.5){
-	    //console.log("veh.id=", arm[i].veh[1].id,
-	//		"veh.u=", arm[i].veh[1].u.toFixed(2),
-	//		"veh[0].type=", arm[i].veh[0].type,
-	//		"veh[0].u=", arm[i].veh[0].u.toFixed(2));
-	    arm[i].veh[1].u=arm[i].veh[0].u-0.5;
-	    arm[i].veh[0].type="obstacle"; // for some f... reason swap
-	    arm[i].veh[0].len=0;
-	    console.log("forcibly moved veh ",arm[i].veh[1].id,
-			" behind obstacle",
-			"veh.u=", arm[i].veh[1].u.toFixed(2),
-			"veh[0].u=", arm[i].veh[0].u.toFixed(2));
-			
-	  }
-	}
-      }
-    } 
-
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack();
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateBCdown();
   }
+
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].changeLanes();         
+    network[ir].updateLastLCtimes(dt);
+  }
+
+
+  // updateSim (4b) mergeDiverge actions
+
+  
+  // updateSim (4c): direct connecting stuff
+  // connectors selected by the route of the vehicles
+
+  var maxspeed_turn=7;
+
+  // arms to ring
+  // respectRingPrio set by html choice element
+  
+  var duMerge=network[1].roadLen-uMerge; // merge du before the end of the arm
+  var mergeOffset  =-rRing*stitchAngleOffset - duMerge;
+  var divergeOffset=-rRing*stitchAngleOffset + 0;
+  
+  //console.log("0.25*PI+mergeOffset/rRing=",0.25*PI+mergeOffset/rRing);
+  
+  // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
+  network[0].connect(network[8], uMerge, // E arm
+		     0.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
+ 
+  network[2].connect(network[8], uMerge, // N arm
+		     0.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
+
+  network[4].connect(network[8], uMerge, // W arm
+		     1.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
+
+  network[6].connect(network[8], uMerge, // S arm
+		     1.75*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
+		     respectRingPrio);
+
+
+  
+  // ring to arms (vehicles know by their routes on which arm to leave)
+
+  // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
+  network[8].connect(network[3], 0.25*PI*rRing+divergeOffset, // E arm
+		     0, 0, []);
+
+  network[8].connect(network[5], 0.75*PI*rRing+divergeOffset, // N arm
+		     0, 0, []);
+
+  network[8].connect(network[7], 1.25*PI*rRing+divergeOffset, // W arm
+		     0, 0, []);
+
+  network[8].connect(network[1], 1.75*PI*rRing+divergeOffset, // S arm
+		     0, 0, []);
+
+  
+  // updateSim (4d): outflow BC (if not relevant, updateBCdown does nothing)
+
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateBCdown();
+  }
+
+  
+
+  // updateSim (5): move the vehicles longitudinally and laterally
+  // synchronously at the end because some special-case changes of calculated
+  // accelerations and lane changing model parameters were done before
+
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateSpeedPositions();
+  }
+
 
 
     //##############################################################
     // debug output
     //##############################################################
-
-    if(false){
-      var idTest=812;
-      for(var iArm=0; iArm<8; iArm++){
-	for(var iveh=0; iveh<arm[iArm].veh.length; iveh++){
-	    if(arm[iArm].veh[iveh].id==idTest){
-		console.log("time=",time," itime=",itime, " vehID=",idTest,
-			    " road=arm",iArm, "iveh=",iveh,
-			    " u=",arm[iArm].veh[iveh].u,
-			    " veh0.u=",arm[iArm].veh[0].u
-			   );
-	    }
-	}
-      }
-      for(var iveh=0; iveh<mainroad.veh.length; iveh++){
-	if(mainroad.veh[iveh].id==idTest){
-		console.log("time=",time," itime=",itime, " vehID=",idTest,
-			    " road=mainroad, iveh=",iveh,
-			    " u=",mainroad.veh[iveh].u
-			   );
-	}
-      }
-
-
-
-      //if((itime>=165)&&(itime<=168)){
-      if(false){
-	console.log("\nDebug updateSim: Simulation time=",time,
-		    " itime=",itime);
-	mainroad.writeVehiclesSimple();
-	//console.log("\nonramp vehicles, simulation time=",time,":");
-	arm[6].writeVehiclesSimple();
-	arm[7].writeVehiclesSimple();
-      }
-    }//debug
-
 
 }//updateSim
 
@@ -774,41 +721,11 @@ function drawSim() {
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
-    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
-    var textsize=relTextsize_vmin*Math.min(window.innerWidth,window.innerHeight);
+  var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+  var textsize=relTextsize_vmin
+      *Math.min(window.innerWidth,window.innerHeight);
 
 
-    if(false){
-        console.log(" new total inner window dimension: ",
-		window.innerWidth," X ",window.innerHeight,
-		" (full hd 16:9 e.g., 1120:630)",
-		    " canvas: ",canvas.width," X ",canvas.height);
-	console.log("isSmartphone=",isSmartphone);
-
-    }
-
-
-    // (1) define global properties;
-    // gridTrajectories only needed if roads can be distorted by mouse
-
-    if ((canvas.width!=simDivWindow.clientWidth)
-	||(canvas.height != simDivWindow.clientHeight)){
-	hasChanged=true; // only pixel; physical changes in updateSim
-	canvas.width  = simDivWindow.clientWidth;
-        canvas.height  = simDivWindow.clientHeight;
-	aspectRatio=canvas.width/canvas.height;
-	refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
-
-	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
-        //updateDimensions(); // not defined for roundabout
-
-      trafficObjs.calcDepotPositions(canvas);
-      if(true){
-        console.log("haschanged=true: new canvas dimension: ",
-		    canvas.width," X ",canvas.height);
-      }
- 
-    }
 
   // (2) reset transform matrix and draw background
   // (only needed if changes, plus "reminders" for lazy browsers)
@@ -823,126 +740,55 @@ function drawSim() {
 
  
 
-    // (3) draw mainroad and arms 
+    // (3) draw mainroad and arms (arms before mainroad)
+
+  var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].draw(roadImages[ir][0],roadImages[ir][1],
+		    scale,changedGeometry);
+  }
+
+  if(drawRoadIDs){  
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].drawRoadID(scale);
+    }
+  }
+
+   
+  // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
+
+  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
+  // second arg line optional, only for moving observer
+
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+			    vmin_col,vmax_col);
+  }
 
     
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-    for(var i=0; i<arm.length; i++){
-	//console.log("draw: i=",i," arm[i].roadLen=",arm[i].roadLen);
-	arm[i].draw(armImg1,armImg2,scale,changedGeometry);
-    }
-    mainroad.draw(ringImg1,ringImg2,scale,changedGeometry);
-
-    
-    // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
-
-    for(var iveh=0; iveh<mainroad.veh.length; iveh++){
-	mainroad.veh[iveh].fracLaneOptical=0; // lower than default 1 [lane]
-	mainroad.veh[iveh].dt_LC=10; // sufftly long for special traj road.drawVehGen
-    }
-
-    for(var i=1; i<arm.length; i+=2){
-	for(var iveh=0; iveh<arm[i].veh.length; iveh++){
-	    arm[i].veh[iveh].fracLaneOptical=0;
-	    arm[i].veh[iveh].dt_LC=2;
-	}
-    }
-
-    // actual drawing
-
-    for(var i=0; i<arm.length; i++){
-        arm[i].drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
-    }
-
- 
-    if(drawRingDirect){
-	mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
-			  vmin_col,vmax_col);
-    }
-
-    else{
-
-       // draw ring vehicles in 8 sectors: 
-       // sectors 0,2,4,6: merging vehs on otherRoad=arm[sector]
-       // sectors 1,3,5,7: no mergings (otherRoad=actualRoad=ring
-       // end arm 0 attached at 0.25*Math.PI*rRing
-
-	var uOffset0_merge=lArm-(0.25*Math.PI-stitchAngleOffset)*rRing; 
-	var du=-stitchAngleOffset*rRing;
-
-      //!!!!
-      //uOffset0_merge=0; du=0;
-    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     0, 1./8*mainroad.roadLen+du, // between stitch
-			     arm[0], uOffset0_merge);
-    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     du+mainroad.roadLen, mainroad.roadLen, // between stitch
-			     arm[0], uOffset0_merge);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     1./8*mainroad.roadLen+du, 2./8*mainroad.roadLen+du);
-
-    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     2./8*mainroad.roadLen+du, 3./8*mainroad.roadLen+du,
-			     arm[6], uOffset0_merge-0.25*mainroad.roadLen);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     3./8*mainroad.roadLen+du, 4./8*mainroad.roadLen+du);
-
-    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     4./8*mainroad.roadLen+du, 5./8*mainroad.roadLen+du,
-			     arm[4], uOffset0_merge-0.50*mainroad.roadLen);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     5./8*mainroad.roadLen+du, 6./8*mainroad.roadLen+du);
-
-    mainroad.drawVehiclesGenTraj(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     6./8*mainroad.roadLen+du, 7./8*mainroad.roadLen+du,
-			     arm[2], uOffset0_merge-0.75*mainroad.roadLen);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col,
-			     7./8*mainroad.roadLen+du, 8./8*mainroad.roadLen+du);
-    }
-
-    if(false){
-        mainroad.writeVehiclesIDrange(1610, 1630);
-        for(var i=0; i<arm.length; i++){
-  	    arm[i].writeVehiclesIDrange(1610, 1630);
-	}
-    }
-    
-  // (5a) draw traffic objects 
+  // drawSim (5): redraw changeable traffic objects 
+  // (zoomback is better in sim!)
 
   if(userCanDropObjects&&(!isSmartphone)){
     trafficObjs.draw(scale);
   }
 
-  // (5b) draw speedlimit-change select box
-
-  ctx.setTransform(1,0,0,1,0,0); 
+  ctx.setTransform(1,0,0,1,0,0); // speedlimit-change select box
   drawSpeedlBox();
- 
-    // (6) draw simulated time
 
-    displayTime(time,textsize);
+  
+  // drawSim (6): show simulation time and detector displays
+
+  displayTime(time,textsize);
     //displayMediaProperties(canvas,Math.max(10,textsize));
 
-     // (7) draw the speed colormap
+  // drawSim (7): show logical coordinates if activated
 
-    if(drawColormap){ 
-	displayColormap(0.22*refSizePix,
-			0.43*refSizePix,
-			0.1*refSizePix, 0.2*refSizePix,
-			vmin_col,vmax_col,0,100/3.6);
-    }
-
-
-  // (8) xxxNew draw TL editor panel
-
-  if(trafficLightControl.isActive){
-    trafficLightControl.showEditPanel();
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
   }
-
-  // may be set to true in next step if changed canvas 
-  // or old sign should be wiped away 
-  hasChanged=false;
-
+ 
   // revert to neutral transformation at the end!
   ctx.setTransform(1,0,0,1,0,0); 
 

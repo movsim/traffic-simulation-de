@@ -1,6 +1,6 @@
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDistortRoads=false;
+const userCanDropObjects=true;
 
 nLanesMin=2;
 nLanesMax=4; 

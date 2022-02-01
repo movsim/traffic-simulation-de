@@ -537,7 +537,7 @@ body{
 #priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute; /* again needed!*/
   top: 12vmin;
-  left: 52vmin;
+  left: 60vmin;
   z-index: 2;         /* again needed!*/
 }
 

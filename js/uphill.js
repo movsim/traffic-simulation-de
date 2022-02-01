@@ -1,8 +1,8 @@
 // !!!! userCanDistortRoads not possible in new version
 // because var functions cannot be passed if manipulated inside
-var userCanDistortRoads=false; //!!! Not possible in new version; f... 
+const userCanDistortRoads=false; //!!! Not possible in new version; f... 
 
-var userCanDropObjects=true;
+const userCanDropObjects=true;
 
 //#############################################################
 // override standard param settings from control_gui.js

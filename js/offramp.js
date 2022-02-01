@@ -1,6 +1,6 @@
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDistortRoads=false;
+const userCanDropObjects=true;
 
 //#############################################################
 // adapt standard param settings from control_gui.js

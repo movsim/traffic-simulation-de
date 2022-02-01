@@ -18,8 +18,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 // remove localStorage items by hand (the " " are crucial!)
 // localStorage.removeItem("storageName");
 
-var userCanDropObjects=true;
-var userCanDistortRoads=false; // only if true, road.gridTrajectories after
+const userCanDropObjects=true;
+const userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 

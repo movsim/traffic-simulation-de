@@ -16,8 +16,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDistortRoads=false;
+const userCanDropObjects=true;
 
 
 // override standard dettings control_gui.js or introduce non-slider vars

@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Test 7: full intersection</title> 
+    <title>Kreuzung</title> 
 </head>
 
 
@@ -24,7 +24,6 @@
 <!-- outer container                                -->
 <!-- ############################################## -->
 
-<div id="container">
 
 
 <!-- ############################################## -->
@@ -66,67 +65,74 @@
 <!-- choice boxes -->
 <!-- ############################################## -->
 
+<!-- "title" text counts as index, so valid options start with 1-->
 <div id="priorityDiv">
     <select id="changePrioritySelect"
-	    onchange="changeTrafficRules(this.selectedIndex)">
-        <option> Horizontal priority</option>
-        <option> Right priority</option>
-        <option> Signalized</option>
+	    onchange="changeTrafficRules(this.selectedIndex-1)">
+        <option value="" selected disabled hidden>Verkehrsregeln</option>
+        <option> Haupt/Nebenstra&szlig;e</option>
+        <option> Rechts vor Links</option>
+        <option> Ampelsteuerung</option>
     </select>
 </div>
 
-<div id="ODDiv">
-    <select id="ODSelect"
-	    onchange="setOD(this.selectedIndex)">
-        <option> Only Straight Ahead &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
-        <option> Only to the Right</option>
-        <option> Only to the Left</option>
-        <option> All Directions</option>
-    </select>
-</div>
 
 <!-- "title" text counts as index, so valid options start with 1-->
-<div id="Choicebox3Div">
-<select id="Choicebox3Select"
-	    onchange="setTotalLaneNumber(this.selectedIndex+1)">
-  <option value="" selected disabled hidden>Number of lanes</option>
-  <option> 1 main, 1 secondary lane </option>
-  <option> 2 main, 1 secondary lanes</option>
-  <option> 3 main, 1 secondary lanes</option>
-  <option> 3 main, 2 secondary lanes</option>
-  <option> 3 main, 3 secondary lanes</option>
+<div id="ODDiv">
+    <select id="ODSelect"
+<	    onchange="setTotalLaneNumber(this.selectedIndex+1)">
+  <option value="" selected disabled hidden>Zahl der Spuren</option>
+  <option> Haupt/Nebenstra&szlig;e je eine Spur </option>
+  <option> Haupt/Nebenstra&szlig;e 2/1 Spuren</option>
+  <option> Haupt/Nebenstra&szlig;e 3/1 Spuren</option>
+  <option> Haupt/Nebenstra&szlig;e 3/2 Spuren</option>
+  <option> Haupt/Nebenstra&szlig;e 3/3 Spuren</option>
 </select>
 </div>
 
-
-<!--<div id="Choicebox3Div">
-    <select id="Choicebox3Select"
-	    onchange="setTotalLaneNumber(this.selectedIndex+2)">
-      <option value="" selected disabled hidden>Number of lanes</option>
-      <option value="0"> 1 main, 1 secondary lane </option>
-      <option value="1" selected="selected">
-		  2 main, 1 secondary lanes</option>
-        <option value="2"> 3 main, 1 secondary lanes</option>
-        <option value="3"> 3 main, 2 secondary lanes</option>
-        <option value="4"> 3 main, 3 secondary lanes</option>
+<!--
+div id="Choicebox3Div">
+  <select id="Choicebox3Select"
+	    onchange="setOD(this.selectedIndex)">
+        <option> nur geradeaus &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
+        <option> nur Rechtsabbieger</option>
+        <option> nur Linksabbieger</option>
+        <option> alle Richtungen</option>
     </select>
 </div>
 -->
+
+
 
 <!-- ############################################## -->
 <!-- redirects to other scenarios, defines myRedirectX -->
 <!-- ############################################## -->
 
-<script src="js/redirect.js" type="text/javascript"></script>
+<script src="js/redirect_ger.js" type="text/javascript"></script>
 
 <div id="scenarios">
-  <br>
-  <a href="./test5_crossingAndRightturn.html">
-    test5: crossing and right turns</a><br>
-  <a href="./test6_crossingLeftRight.html">
-    test6: crossing left and right</a><br>
-  <a href="./test7_fullIntersection.html">
-    test7: full intersection</a><br>
+<center>
+ <br>
+<img width="17%" src="figs/iconRing_small.jpg" 
+                 onclick="myRedirectRing()"/>
+<img width="19%" src="figs/iconOnrampFig_small.jpg" 
+                 onclick="myRedirectOnramp()"/>
+<img width="19%" src="figs/iconOfframpFig_small.jpg" 
+                 onclick="myRedirectOfframp()"/>
+<img width="19%" src="figs/iconRoadworksFig_small.jpg" 
+                 onclick="myRedirectRoadworks()"/>
+<img width="19%" src="figs/iconUphillFig_small.jpg" 
+                 onclick="myRedirectUphill()"/>
+<img width="20%" src="figs/iconRoutingFig_small.jpg" 
+                 onclick="myRedirectRouting()"/>
+<img width="22%" src="figs/iconRoundabout_small.jpg" 
+                 onclick="myRedirectRoundabout()"/>
+<img width="19%" src="figs/iconIntersection_small.jpg" 
+                 onclick="myRedirectIntersection()"/>
+<img width="20%" src="figs/iconRampmeterFig_small.jpg" 
+                 onclick="myRedirectOnrampBaWue()"/>
+</center>
+
 </div> 
 
 
@@ -170,6 +176,30 @@
 </div>
 
 
+<!-- ############################################## -->
+<!-- General link list
+<!-- ############################################## -->
+     
+
+
+<div id="linkDiv">
+  <table class="infoTable"> <TR>
+    <TD> <a href="https://www.movsim.org"> MovSim &nbsp; </a> </TD>
+    <TD>
+      <table>
+	<tr><td><a href = "http://traffic-flow-dynamics.org/" > 
+              Book "Traffic Flow Dynamics" </a></td></tr>
+        <tr><td> <a href = "https://www.verkehrsdynamik.de" >
+	      Buch "Verkehrsdynamik"</a></td></tr>
+      </table>
+    </td>
+  </TR></table>
+ </div>
+
+
+
+
+
 <!-- ################################################# -->
 <!-- Sliders: The whole right-hand or bottom part
 <!-- ################################################# -->
@@ -177,33 +207,33 @@
 <div id="sliders">
 <center>
 
-<h3>Traffic Flow and General</h3>
+<h3>Verkehrsfl&uuml;sse und Allgemeines</h3>
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Main Inflow</td>
+  <td>Hauptzufluss</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="2400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Secondary Inflow</td>
+  <td>Nebenzufluss</td>
   <td> <input id="slider_q2" type="range" 
               min="0" max="1200" step="10"></td>
   <td> <div id="slider_q2Val"></div> </td>
 </tr>
 
 <tr>
-  <td>Percentage Right</td>
+  <td>Rechtsabbieger</td>
   <td> <input id="slider_fracRight" type="range" 
               min="0" max="100" step="1"></td>
   <td> <div id="slider_fracRightVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Percentage Left</td>
+  <td>Linksabbieger</td>
   <td> <input id="slider_fracLeft" type="range" 
               min="0" max="100" step="1"></td>
   <td> <div id="slider_fracLeftVal"></div> </td>
@@ -211,7 +241,7 @@
 
 
 <tr>
-  <td>Timewarp</td>
+  <td>Zeitraffer</td>
   <td> <input id="slider_timewarp" type="range" 
               min="0.2" max="20" step="0.1"></td>
   <td> <div id="slider_timewarpVal"></div> </td>
@@ -219,75 +249,130 @@
 </table>
 
 
-<h3>Car-Following Behavior</h3>
+<h3>Fahrzeugfolge-Verhalten</h3>
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Max Speed v</sub>0</td>
+  <td>Wunschgeschw. v</sub>0</td>
   <td> <input id="slider_IDM_v0" type="range" 
               min="20" max="160" step="1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
 
 <tr>
-  <td>Time Gap T</td>
+  <td>Zeitl&uuml;cke T</td>
   <td> <input id="slider_IDM_T" type="range" 
               min="0.6" max="3" step="0.1"></td>
   <td> <div id="slider_IDM_TVal"></div> </td>
 </tr>
 
 <tr>
-  <td class="important">Max Accel a</td>
+  <td class="important">Max Beschl a</td>
   <td> <input id="slider_IDM_a" type="range" 
               min="0.3" max="4" step="0.1"></td>
   <td> <div id="slider_IDM_aVal"></div> </td>
 </tr>
 </table>
 
-<h3>Lane-Changing Behavior</h3>
+<!--
+<h3>Spurwechsel-Verhalten</h3>
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Politeness</td>
+  <td>H&ouml;flichkeitsfaktor</td>
   <td> <input id="slider_MOBIL_p" type="range" 
               min="-0.2" max="1" step="0.1"></td>
   <td> <div id="slider_MOBIL_pVal"></div> </td>
 </tr>
 
 <tr>
-  <td>LC Threshold</td>
+  <td>Wechselschwelle</td>
   <td> <input id="slider_MOBIL_bThr" type="range" 
               min="-0.1" max="1" step="0.1"></td>
   <td> <div id="slider_MOBIL_bThrVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Right Bias Cars</td>
+  <td>Rechtsfahren PKW</td>
   <td> <input id="slider_MOBIL_bBiasRight_car" type="range" 
               min="-1" max="2" step="0.1"></td>
   <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Right Bias Trucks</td>
+  <td>Rechtsfahren LKW</td>
   <td> <input id="slider_MOBIL_bBiasRight_truck" type="range" 
               min="-1" max="2" step="0.1"></td>
   <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
 </tr>
 </table>
+-->
 
+
+<!-- ############################################## -->
+<!-- info-text inside sliders-div (can be filled by showInfo())
+<!-- ############################################## -->
+
+<br>
+<div id="infotext">
+<h2>Kreuzung</h2>
+<ul>
+  <li>Standard scenario: not signalized priority and secondary road,
+  only straight-ahead traffic</li>
+
+  <li>Change the traffic rules and the number of lanes with the pulldown
+    menus</li>
+
+  <li>Change the size of the intersecting roads with the second menu</li>
+
+  <li>Change the traffic and the origin-destination relations with
+    the sliders</li>
+    
+  <li>Observe that, with Rechts vor Links, traffic gets in a gridlock
+  unless demand is very light. Resolve it by changing the traffic
+  rules (right priority only makes sense for single-lane directional
+    roads)</li>
+
+  <li> In the mainroad and signalized scenarios, any remaining
+  ambiguities (left-turning mainroad vehicles encounter mainroad
+  vehicles in the 
+  opposite drection, left turns if there are traffic lights) is
+  resolved by the Rechts vor Links rule
+</ul>  
+</div>
 
 </center>
 </div>   <!-- id="sliders">-->
 
 
+<!-- ############################################## -->
+<!-- Download
+<!-- ############################################## -->
+
+<div id="downloadDiv">
+  <img id="download" src="figs/iconDownloadStart_small.png" width="100%"
+       onclick="downloadCallback()"/>
+</div>
 
 
 
 
-</div> <!-- end outer container -->
+<!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags">
+<a href = "intersection.html">
+ <img src="figs/flagUSA.png" width="45%" />
+</a>
+
+<a href = "intersection_ger.html">
+ <img src="figs/flagGerman.png" width="45%" />
+</a>
+</div>
+
 
 
 <!-- ########################################################## -->
@@ -296,10 +381,10 @@
 
 <script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
 
-<script src="js/timeView.js" type="text/javascript"></script>
+<script src="js/timeView_ger.js" type="text/javascript"></script>
 <script src="js/media.js" type="text/javascript"></script>
 
-<script src="js/control_gui.js"></script> 
+<script src="js/control_gui_ger.js"></script> 
 <script src="js/canvas_gui.js"></script> 
 <script src="js/TrafficObjects.js"></script> 
 <script src="js/TrafficLightControlEditor.js"></script> 
@@ -310,9 +395,9 @@
 
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
-<script src="js/stationaryDetector.js"></script> 
+<script src="js/stationaryDetector_ger.js"></script> 
 
-<!-- PROJ--> <script src="js/test7_fullIntersection.js"></script> 
+<!-- PROJ--> <script src="js/intersection_ger.js"></script> 
 
 </body>
 </html>

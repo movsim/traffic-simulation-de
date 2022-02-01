@@ -1,7 +1,7 @@
 
 const userCanDistortRoads=false;
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
+var drawVehIDs=false; // debug: draw veh IDs for selected roads
 
 //#############################################################
 // adapt/override standard param settings from control_gui.js

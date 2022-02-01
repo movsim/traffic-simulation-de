@@ -19,8 +19,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 //function formd0(x){return parseFloat(x).toFixed(0);}
 //function formd(x){return parseFloat(x).toFixed(2);}
 
-var userCanDistortRoads=false;
-var userCanDropObjects=true;
+const userCanDropObjects=true;
 
 nLanesMin=1;
 nLanesMax=4; 
@@ -319,9 +318,9 @@ var drampLen=rampLen/(nArrRamp-1);
 var xRamp=[];
 var yRamp=[];
 
-// updates array variables if new geometry, changed viewport size etc
+// defines array input for analytic onramp geometry
 
-function updateRampGeometry(){
+function defineRampGeometry(){
 
   // crucial: correct x/y attachment at begin of merge 
   // (assume heading=0 @ merge for the moment)
@@ -336,12 +335,6 @@ function updateRampGeometry(){
     yRamp[i]=yRamp[i+1]-drampLen*Math.sin(headingRamp(u));
   }
 
-  //!!! necessary, since roads internal tables!
-
-  ramp.gridTrajectories([trajRamp_x,trajRamp_y]); 
-  //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
-//	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
-//	     );
 
 }
 
@@ -377,15 +370,15 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density,speedInit,fracTruck,isRing,userCanDistortRoads);
+		      density,speedInit,fracTruck,isRing,false);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    [trajRamp_x,trajRamp_y],
-		  density, speedInit, fracTruck,isRing,userCanDistortRoads);
+		  density, speedInit, fracTruck,isRing,false);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 
-updateRampGeometry(); //!! needed since ramp geometry depends on mainroad
+defineRampGeometry(); //!! needed since ramp geometry depends on mainroad
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
@@ -522,8 +515,6 @@ function updateSim(){
     // (2) transfer effects from slider interaction and mandatory regions
     // to the vehicles and models
 
-  updateRampGeometry();
-
   mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
@@ -533,7 +524,7 @@ function updateSim(){
   ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
-
+ 
 
   // (2a) update moveable speed limits
 
@@ -561,6 +552,7 @@ function updateSim(){
 
 
     // (3) do central simulation update of vehicles
+
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -594,6 +586,7 @@ function updateSim(){
     for(var iDet=0; iDet<nDet; iDet++){
 	detectors[iDet].update(time,dt);
     }
+ 
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road

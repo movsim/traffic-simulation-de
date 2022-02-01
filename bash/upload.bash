@@ -17,7 +17,7 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
 cd $startDir
@@ -79,7 +79,7 @@ cp $js_files $targetDir/js
 
 cd $startDir/figs
 # see uploadBaWue.bash for how to obtain the actually used images
-img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png trafficLight_green.png trafficLight_red.png trafficLight_yellow.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png obstacle_[56][0-9].png road*Crop*png speedLimit_*.svg Tempo*.png infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif flagUSA.png flagGerman.png icon*Fig_small.jpg iconRing_small.jpg iconRoundabout_small.jpg sign_free_282_small.png Zeichen_Steigung4_small.png truckOvertakingBan_small.gif knobYellow.png buttonDone.png iconDownloadStart_small.png iconDownloadFinish_small.png"
+img_files="backgroundGrass.jpg buttonStop3_small.png buttonGo_small.png buttonRestart_small.png trafficLightRed_affine.png trafficLightGreen_affine.png trafficLight_green.png trafficLight_red.png trafficLight_yellow.png truck1Small.png obstacleImg.png constructionVeh*[0-9].png obstacle_[56][0-9].png road*Crop*png speedLimit_*.svg Tempo*.png infoBlue.png autobahn_plus.png autobahn_minus.png colormap_grass.png blackCarCropped.gif flagUSA.png flagGerman.png icon*Fig_small.jpg iconRing_small.jpg iconRoundabout_small.jpg iconIntersection_small.jpg sign_free_282_small.png Zeichen_Steigung4_small.png truckOvertakingBan_small.gif knobYellow.png buttonDone.png iconDownloadStart_small.png iconDownloadFinish_small.png"
 cp $img_files $targetDir/figs
 
 cd $startDir

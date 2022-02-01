@@ -57,15 +57,13 @@
 onclick="showHideTLeditPanel()">
 Open traffic-light control panel </button> </div>
 
-<!-- ############################################## -->
-<!-- choice boxes -->
-<!-- ############################################## -->
 
 <div id="priorityDiv">
     <select id="changePrioritySelect"
 	    onchange="handleChangedPriority(this.selectedIndex)">
         <option> Ring has Priority</option>
         <option> Arms have Priority</option>
+        <option> First Come First Served</option>
     </select>
 </div>
 
@@ -100,10 +98,7 @@ Open traffic-light control panel </button> </div>
 -->
 
 
-<!-- ############################################## -->
 <!-- redirects to other scenarios, defines myRedirectX -->
-<!-- ############################################## -->
-
 <script src="js/redirect.js" type="text/javascript"></script>
 
 <div id="scenarios">
@@ -214,7 +209,7 @@ Open traffic-light control panel </button> </div>
 <tr>
   <td >Mainroad Perc</td>
   <td> <input id="slider_mainFrac" type="range" 
-              min="0" max="100" step="1"></td>
+              min="50" max="100" step="1"></td>
   <td> <div id="slider_mainFracVal"></div> </td>
 </tr>
 
@@ -305,11 +300,11 @@ Open traffic-light control panel </button> </div>
 <!-- ############################################## -->
 
 <div id="infoFlags">
-<a href = "roundaboutNew.html">
+<a href = "roundabout.html">
  <img src="figs/flagUSA.png" width="45%" />
 </a>
 
-<a href = "roundaboutNew_ger.html">
+<a href = "roundabout_ger.html">
  <img src="figs/flagGerman.png" width="45%" />
 </a>
 </div>
@@ -342,7 +337,7 @@ Open traffic-light control panel </button> </div>
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/roundaboutNew.js"></script> 
+<!-- PROJ--> <script src="js/roundabout.js"></script> 
 
 </body>
 </html>

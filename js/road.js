@@ -163,7 +163,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.trajAlt=[];
   
 
-
+  this.randomValBCup=1; // for stochastic inflow timing
 
   
   //########################################################
@@ -187,8 +187,8 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
     //  and then re-samples them (the error by resampling is OK 
     // since initialization with smooth curves)
 
+  console.log("this.doGridding=",this.doGridding);
   if(this.doGridding){
-
 
         // defines the variables for user-driven change in road geometry
 
@@ -210,6 +210,8 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
     this.kernel=[];
     this.createKernel();
+    
+
     this.gridTrajectories(this.traj); 
     this.update_nSegm_tabxy();
 
@@ -302,15 +304,18 @@ road.prototype.gridTrajectories=function(traj_Ext){
   if(true){console.log("in road.gridTrajectories: roadID=",this.roadID,
 		       " this.nLanes=",this.nLanes,
 		       " traj_Ext=",traj_Ext,
-		       " this.roadLen=",this.roadLen);
+		       " this.roadLen=",this.roadLen,
+		      "this.doGridding=",this.doGridding);
 	  }
+
+  if(itime==1){alert("stop");}
   for(var i=0; i<=this.nSegm; i++){ // nSegm+1 elements
     this.xtabOld[i]=traj_Ext[0](i*this.roadLen/this.nSegm);
  	this.ytabOld[i]=traj_Ext[1](i*this.roadLen/this.nSegm);
 	this.xtab[i]=this.xtabOld[i];
 	this.ytab[i]=this.ytabOld[i];
   }
-  console.log("Hier: this.roadLen=",this.roadLen);
+
   // redefine this.traj_xy by internally defined
   // piecewise linear analytic traj functions
   // this.traj_xy as approx of traj_xy
@@ -2636,8 +2641,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // central debugging!!! also activate "var log" in determineConflicts    
     //#########################################################
 
-    //connectLog=false;
-    connectLog=(this.veh[iveh].id==206);
+    connectLog=false;
+    //connectLog=(this.veh[iveh].id==206);
     //connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
     //connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //connectLog=(this.veh[iveh].id==210)&&(targetID==3);
@@ -3290,8 +3295,8 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   // see also "connectLog=" above
   //var log=((vehConnect.id==209)&&(time>20)&&(time<25));
   //var log=(vehConnect.id==225)||(vehConnect.id==226);
-  var log=(vehConnect.id==206);
-  //var log=false;
+  //var log=(vehConnect.id==206);
+  var log=false;
 
 
   if(conflicts.length==0){return false;}
@@ -4028,9 +4033,13 @@ road.prototype.updateBCdown=function(){
 // route is optional parameter (default: route=[])
 //######################################################################
 
+
+this.randomValBCup=1;
 road.prototype.updateBCup=function(Qin,dt,route){
 
   var emptyOverfullBuffer=true; //!!
+  var randomAmplitude=0.2; //this.randomValBCup between 1 +/-randomAmplitude
+
 
   this.route=(typeof route === 'undefined') ? [] : route; // handle opt. args
 
@@ -4043,11 +4052,11 @@ road.prototype.updateBCup=function(Qin,dt,route){
   }
 
   if((emptyOverfullBuffer)&&(this.inVehBuffer>2)){this.inVehBuffer--;}
-  //console.log("road.inVehBuffer=",this.inVehBuffer);
 
-
+		    
   
-  if(this.inVehBuffer>=1){
+  if(this.inVehBuffer>=this.randomValBCup){
+    this.randomValBCup=1+2*randomAmplitude*(Math.random()-0.5);
     // get new vehicle characteristics
     var vehType=(Math.random()<fracTruck) ? "truck" : "car";
     var vehLength=(vehType==="car") ? car_length:truck_length;

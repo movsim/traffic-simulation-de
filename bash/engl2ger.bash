@@ -15,7 +15,7 @@ indexProject="onramp" # !!!  sets the current main simulation
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout"
+projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
 #projects="ring"
 
 cd $startDir
@@ -93,8 +93,10 @@ for file in $htmlfilesGer; do
   perl -i -p -e "s/timeView\.js/timeView_ger.js/g" $file
   perl -i -p -e "s/stationaryDetector\.js/stationaryDetector_ger.js/g" $file
 
-  # change text
+  # change <title>Titeltext</title> and slider <td>tittle</td>
+  
 
+  perl -i -p -e 's/Intersection\</Kreuzung</g' $file
   perl -i -p -e 's/Roundabout\</Kreisverkehr</g' $file
   perl -i -p -e 's/de\: Roundabout/de: Kreisverkehr/g' $file
   perl -i -p -e 's/\>Ringroad\</>Ringstrasse</g' $file
@@ -136,6 +138,30 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/Car-Following_Behavior\.png\" width=\"60\%\"/Fahrstil-Parameter\.png\" width=\"55\%\"/g' $file
   perl -i -p -e 's/Lane-Changing_Behavior\.png\" width=\"60\%\"/Spurwechsel-Parameter\.png\" width=\"65\%\"/g' $file
 
+
+
+  # change further text in html
+
+  perl -i -p -e 's/Traffic Rules/Verkehrsregeln/g' $file
+  perl -i -p -e 's/Horizontal Priority/Haupt\/Nebenstra&szlig;e/g' $file
+  perl -i -p -e 's/Right Priority/Rechts vor Links/g' $file
+  perl -i -p -e 's/Signalized/Ampelsteuerung/g' $file
+  perl -i -p -e 's/Number of Lanes/Zahl der Spuren/g' $file
+  perl -i -p -e 's/1 main\, 1 secondary lane/Haupt\/Nebenstra&szlig;e je eine Spur/g' $file
+  perl -i -p -e 's/2 main\, 1 secondary lanes/Haupt\/Nebenstra&szlig;e 2\/1 Spuren/g' $file
+  perl -i -p -e 's/3 main\, 1 secondary lanes/Haupt\/Nebenstra&szlig;e 3\/1 Spuren/g' $file
+  perl -i -p -e 's/3 main\, 2 secondary lanes/Haupt\/Nebenstra&szlig;e 3\/2 Spuren/g' $file
+  perl -i -p -e 's/3 main\, 3 secondary lanes/Haupt\/Nebenstra&szlig;e 3\/3 Spuren/g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  perl -i -p -e 's///g' $file
+  
   perl -i -p -e 's/Truck Fraction/LKW-Anteil/g' $file
   perl -i -p -e 's/Truck Perc/LKW-Anteil/g' $file
   perl -i -p -e 's/Politeness/H&ouml;flichkeitsfaktor/g' $file
@@ -144,6 +170,10 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/Right Bias Trucks/Rechtsfahren LKW/g' $file
   perl -i -p -e 's/Total Inflow/Gesamtnachfrage/g' $file
   perl -i -p -e 's/Mainroad Perc/Hauptstra&szlig;enanteil/g' $file
+  perl -i -p -e 's/Percentage Right/Rechtsabbieger/g' $file
+  perl -i -p -e 's/Percentage Left/Linksabbieger/g' $file
+  perl -i -p -e 's/Secondary Inflow/Nebenzufluss/g' $file 
+  perl -i -p -e 's/Main Inflow/Hauptzufluss/g' $file 
   perl -i -p -e 's/Inflow/Hauptzufluss/g' $file 
   perl -i -p -e 's/Onramp Flow/Rampenzufluss/g' $file
   perl -i -p -e 's/Offramp Use/Anteil abfahrend/g' $file
@@ -161,6 +191,8 @@ for file in $htmlfilesGer; do
   perl -i -p -e 's/Comfort Decel/Komfort Verz\./g' $file
   perl -i -p -e 's/Comf Decel/Komfort Verz\./g' $file
   perl -i -p -e 's/veh\/h/Fz\/h/g' $file
+  perl -i -p -e 's/\"times\"/\"-fach\"/g' $file
+
 done
 
 perl -i -p -e 's/Enforce Truck Overtaking Ban/Aktiviere LKW &Uuml;berholverbot/g' uphill_ger.html js/control_gui_ger.js
