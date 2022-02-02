@@ -1,8 +1,8 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=false; // debug: draw veh IDs for selected roads
-var drawRoadIDs=false; // debug: draw veh IDs for selected roads
-var showCoords=false;  // show logical coords of nearest road to mouse pointer
+var drawVehIDs=true; // debug: draw veh IDs for selected roads
+var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
 
@@ -18,7 +18,7 @@ var showCoords=false;  // show logical coords of nearest road to mouse pointer
 // callback "changeTrafficRules needs ready roads etc->not here
 var trafficRuleIndex=0; // {priority,symmetric,traffic lights}
 var cycleTL=50; // 50 seconds
-var greenMain=33; 
+var greenMain=33; //33
 var dt_lastSwitch=0;
 
 
@@ -28,17 +28,11 @@ var nLanes_main=2;
 var nLanes_sec=1;
 
 var laneCount=nLanes_main+nLanes_sec; // state used in addLane(.)
-  if(laneCount===laneCountMax){
-    document.getElementById("lanePlusDiv").style.visibility="hidden";
-  }
-  if(laneCount===laneCountMin){
-    document.getElementById("laneMinusDiv").style.visibility="hidden";
-  }
 
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=450./3600; // 390 inflow to both directional main roads
+qIn=390./3600; // 390 inflow to both directional main roads
 q2=250./3600;   // 220 inflow to secondary (subordinate) roads
 fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
 fracLeft=0.; // rest of q2-drivers cross straight ahead
@@ -75,8 +69,8 @@ fracTruck=0.15;
   document.getElementById("contents").clientWidth; .clientHeight;
 ######################################################*/
 
+var scenarioString="Intersection"; //!!! no maintext yet
 
-console.log("\n\nstart main: test1_straight");
 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
@@ -538,11 +532,6 @@ var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 // run-time specification and functions
 //############################################
 
-var time=0;
-var itime=0;
-var fps=30; // frames per second (unchanged during runtime)
-var dt=timewarp/fps;
-
 
 function debugVeh(id){
   for(var ir=0; ir<network.length; ir++){
@@ -562,15 +551,36 @@ function debugVeh(id){
   }
 }
 
+var time=0;
+var itime=0;
+var fps=30; // frames per second (unchanged during runtime)
+var dt=timewarp/fps;
+changeTrafficRules(trafficRuleIndex);
   
 //#################################################################
 function updateSim(){
 //#################################################################
 
-  //if((itime==182)||(itime==183)){console.log("0:"); debugVeh(211);}
+  // general debug filter to find out properties
 
+  if(false){
+    var vehID=101;
+    for (var ir=0; ir<network.length; ir++){
+      for(var i=0; i<network[ir].veh.length; i++){
+	if(network[ir].veh[i].id==vehID){
+	  var veh=network[ir].veh[i];
+	  console.log("veh=",veh);
+	  console.log("veh.id= ",veh.id,
+		      "veh.type=",veh.type,
+		     // "veh.isObstacle=",veh.isObstacle,
+		     // "veh.isObstacle()=",veh.isObstacle(),
+		      "veh.isTrafficLight()=",veh.isTrafficLight(),
+		     );
+	}
+      }
+    }
+  }
 
-  
   
   // updateSim (1): update time, global geometry, and traffic objects
 
@@ -678,15 +688,35 @@ function updateSim(){
 
   var maxspeed_turn=7;
   
+  // resolve gridlocks in right-priority rules
 
+  if(trafficRuleIndex==1){
+    var dtWait=10;
+    var dtResolve=1.5;
+    var itimeCycle=Math.round((dtWait+dtResolve)/dt);
+    var itimeResolve=Math.round(dtResolve/dt);
+    if((itime%itimeCycle)<itimeResolve){
+      console.log("Resolving Gridlock");
+      resolveGridlock();
+    }
+    else{
+      defineConflictsSymmetric(nLanes_main,nLanes_sec);
+    }
+  }
+
+  
   // straight  ahead (network[0], [1] need 
   // straight connecting for right prio, route=only one link)
   
-  network[0].connect(network[0], 0.5*network[0].roadLen,
-		     0.5*network[0].roadLen, 0, conflicts00);
+  network[0].connect(network[0],
+		     0.5*network[0].roadLen-(2*offsetSec+laneWidth),
+		     0.5*network[0].roadLen-(2*offsetSec+laneWidth),
+		     0, conflicts00);
   
-  network[1].connect(network[1], 0.5*network[1].roadLen,
-		     0.5*network[1].roadLen, 0, conflicts11);
+  network[1].connect(network[1],
+		     0.5*network[1].roadLen-(2*offsetSec+laneWidth),
+		     0.5*network[1].roadLen-(2*offsetSec+laneWidth),
+		     0, conflicts11);
   
   network[2].connect(network[3], network[2].roadLen,
 		     0, 0, conflicts23);
@@ -950,7 +980,8 @@ function changeTrafficRules(ruleIndex){
   // for right priority, too much traffic leads to grid lock;
   // furthermore, only 1/1 lane sensible 
   
-  if(trafficRuleIndex==1){ 
+  if(false){ 
+  //if(trafficRuleIndex==1){ 
     setTotalLaneNumber(2);
     qIn=180./3600;
     q2=110./3600;
@@ -1285,7 +1316,7 @@ function defineConflictsTrafficLights(nLanes_main,nLanes_sec){
   conflicts23=[];
   conflicts45=[];
 
-  // left
+  // traffic lights, left
 
   conflicts03=[conflict1_03];
   conflicts15=[conflict0_15];
@@ -1328,6 +1359,27 @@ function defineConflictsSymmetric(nLanes_main,nLanes_sec){
   conflicts21=[conflict4_21,conflict5_21];
   conflicts40=[conflict2_40,conflict3_40]; 
   
+}
+
+
+// give one or two mainroad directions temporarily the "mainroad" rights
+// to resolve gridlocks in "right-priority" rules if all four
+// arms have waiting vehicles
+
+//###########################################################
+function resolveGridlock(){
+//###########################################################
+  
+  // straight ahead
+
+  conflicts00=[];
+  conflicts11=[];
+
+  // left
+
+  conflicts03=[conflict1_03];
+  conflicts15=[conflict0_15];
+
 }
 
 
@@ -1420,8 +1472,8 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
     ucOther[i]=resultsOther[0]; // output
     ducExitOwn[i]=ucTarget-uTarget[i];
 
-    
-    console.log(
+    if(false){
+      console.log(
 	"results for OD ",iSource,iDest,"conflicting road",iConflict,":",
         "\n  ucTarget=",ucTarget.toFixed(1),
         " dist=",resultsTarget[1].toFixed(1),
@@ -1431,6 +1483,7 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
         " \n  ducExitOwn[i]=",ducExitOwn[i].toFixed(1),
         " ucOther[i]=",ucOther[i].toFixed(1),
 	"");
+    }
   }
 
 
@@ -1481,16 +1534,20 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
   //!!! road0.connect(road0, uSource, uTarget, ...) with
   // uSource=uTarget=0.5*road0.roadLen as usual, only w/o lifting/dropping
   // veh at step 5 (to be implemented)
+
+  // 2*offsetSec+laneWidth: wait one laneWidth upstream of sec road boundary
+  // offsetSec: distance of sec road axis to center
+  // must be consistent with network[0/1].connect(network[0/1],...)
   
   conflict2_00= {roadConflict: network[2],
 		 dest:         [],
 		 ucOther:      conflict0_up.ducExitOwn+network[2].roadLen,
-		 ducExitOwn:   offsetSec};
+		 ducExitOwn:   2*offsetSec+laneWidth+offsetSec};
 
   conflict3_00= {roadConflict: network[3],
 		 dest:         [],
 		 ucOther:      conflict0_up.ducExitOwn,
-		 ducExitOwn:   offsetSec};
+		 ducExitOwn:   2*offsetSec+laneWidth+offsetSec};
 
   // symmetry
 

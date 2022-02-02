@@ -122,7 +122,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
   this.draw_curvMax=0.05; // maximum assmued curvature !!
   this.markVehsMerge=false; // for debugging
-  this.drawVehIDs=false;// for debugging
+  this.drawVehIDs=false;// for debugging, activated in main program
 
   this.draw_x=[];  // arrays defined in the draw(..) method
   this.draw_y=[];
@@ -2601,8 +2601,7 @@ each conflict has the components
 road.prototype.connect=function(targetRoad, uSource, uTarget,
 				offsetLane, conflicts, maxspeed,
 			       targetPrio){
-  var connectLog=false; // can be set true later if veh known
-  //var connectLog=(time>75);
+
   if(typeof conflicts === 'undefined'){conflicts=[];}
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
   var targetHasPiority=(typeof targetPrio === 'undefined')
@@ -2638,15 +2637,16 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   for(var iveh=0; iveh<this.veh.length; iveh++){
 
     //#########################################################
-    // central debugging!!! also activate "var log" in determineConflicts    
+    // central debugging!!! also is copied to
+    // "var log" in determineConflicts    
     //#########################################################
 
     connectLog=false;
-    //connectLog=(this.veh[iveh].id==206);
-    //connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
-    //connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
-    //connectLog=(this.veh[iveh].id==210)&&(targetID==3);
-    //connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
+    //this.connectLog=(this.veh[iveh].id==213);
+    //this.connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
+    //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
+    //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
+    //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
     
     var ringKO=(this.isRing)
 	&&(this.veh[iveh].u>uSource+1.5*dt*this.veh[iveh].longModel.v0);
@@ -2742,7 +2742,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
         var C3=(u>uGo);                     // final go if conflicts resolved
 
 
-	if(connectLog){
+	if(this.connectLog){
 	  console.log("\n\nroad.connect: t=",time.toFixed(2),
 		      " veh id=",id,
 		      " route=",this.veh[iveh].route,
@@ -2779,7 +2779,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var accOld=vehConnect.acc;
 	  vehConnect.LCModel.bBiasRight=bBiasRight;     // !! influence
 	  vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
-	  if(connectLog){
+	  if(this.connectLog){
 	    console.log("  Action A1:",
 			" setting LC bias of ",bBiasRight, " to veh ",id,
 			"\n  Action A3: decelerate with accel ",
@@ -2800,16 +2800,19 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  // determine if, in this case, the target road can be entered
 	  // follower need not brake more than bsafe)
 	  // and if so, at which acceleration accGo
-
-
 	  
 	  //targetLeaderInfo and targetFollowerInfo=[success,index]
 	  // if no success, index=-1
-	  
+	  // !! since TL is always obstacle
+	  // (type=="obstacle" lowercase, no function!!),
+	  // check for TL not needed
 	  var followerInfo
 	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
 	  var followerExists // no follower complication if road not left!
-	      =(followerInfo[0]&&(this.roadID!=targetRoad.roadID));
+	      =followerInfo[0]&&(this.roadID!=targetRoad.roadID)
+	      &&(!(targetRoad.veh[followerInfo[1]].type=="obstacle"));
+	  //&&(!(targetRoad.veh[followerInfo[1]].isTrafficLight()));
+	  if(this.connectLog){console.log("\n\nFollowerExists=",followerExists,"\n\n\n");}
 	  var iFollow=followerInfo[1];
 	  var uFollow=(followerExists)
 	      ? targetRoad.veh[iFollow].u : -1000000;
@@ -2820,7 +2823,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var leaderInfo
 	      = targetRoad.findLeaderAtLane(uTarget,lane+offsetLane);
 	  var leaderExists // same filter as follower
-	      =(leaderInfo[0]&&(this.roadID!=targetRoad.roadID));
+	      =leaderInfo[0]&&(this.roadID!=targetRoad.roadID)
+	      &&(!(targetRoad.veh[leaderInfo[1]].type=="obstacle"));
 	  var iLead=leaderInfo[1];
 	  var uLead=(leaderExists)
 	      ? targetRoad.veh[iLead].u : +1000000;
@@ -2830,7 +2834,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var sLead=(leaderExists) 
 	      ? uLead-uTarget+(uSource-u)-lenLead : 100000;
 
-	  if(connectLog){
+	  if(this.connectLog){
 	    console.log("  Preparation (i): id=",vehConnect.id,
 			" uTarget=",uTarget.toFixed(1),
 		        " lane+offsetLane=",lane+offsetLane,
@@ -2867,7 +2871,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      // see comments at "update_iLead" no follower if iLag<=iFollow
 	      var iLag=targetRoad.veh[iFollow].iLag;
 
-	      if(connectLog){
+	      if(this.connectLog){
 		console.log(
 	      "  (1a): in C2||C3 and target follower exists: before checking",
 		"anticipated follower: old idFollow=",
@@ -2889,10 +2893,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		speedFollow=targetRoad.veh[iFollow].speed;
 		anticipatedFollowerExists=(uFollow+speedFollow*tc<uTarget);
 		iLag=targetRoad.veh[iFollow].iLag;
-		if(connectLog)console.log("iFollow=",iFollow,
+		if(this.connectLog)console.log("iFollow=",iFollow,
 			    " idFollow=",targetRoad.veh[iFollow].id);
 	      }
-	      if(connectLog){
+	      if(this.connectLog){
 		console.log(
 		  "  (1b): in C2||C3 and target follower exists:",
 		  "after checking",
@@ -2935,7 +2939,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		sLead=uLead-uTarget+(uSource-u)-lenLead
 		+ speedLead*tc; // !! antic
 	      }
-	      if(connectLog){
+	      if(this.connectLog){
 		console.log(
 		  "  (1c): in C2||C3,",
 		  "new anticipated follower != present follower exists!",
@@ -2971,7 +2975,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  }
 	  var accDefault=vehConnect.longModel.calcAcc(s,speed,0,0);
 	  var accGo=accDefault;
-	  if(connectLog){
+	  if(this.connectLog){
 	    console.log("  Preparation (ii): Potential acceleration if",
 			"neither conflicts nor target restrictions:",
 			"accDefault=accGo=",accDefault);
@@ -2989,7 +2993,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	    accGo=Math.min(accDefault, vehConnect.longModel.calcAcc(
 	      sLead,speed,speedLead,accLead)); // !! influence
-	    if(connectLog){
+	    if(this.connectLog){
 	      console.log("  Preparation (iiia): leaderExists: leader id=",
 			  targetRoad.veh[iLead].id," s=",s," accGo=",
 			  accGo," = min(free acc, target leader acc)");}
@@ -3003,7 +3007,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      var ducExitMax=0; // max dist between uTarget and conflict
 	      for(var ic=0; ic<conflicts.length; ic++){
 		ducExitMax=Math.max(conflicts[ic].ducExitOwn,ducExitMax);
-		if(connectLog){
+		if(this.connectLog){
 		  console.log("  Preparation (iiib): ic=",ic,
 			      "conflicts[ic]=",
 			      conflicts[ic]);
@@ -3013,7 +3017,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		targetCanBeEntered=false; // !! influence
 	      }
 	      
-	      if(connectLog){
+	      if(this.connectLog){
 		console.log("  Preparation (iiib): leader and",
 			    "potential conflicts exist:",
 			    "targetCanBeEntered=",targetCanBeEntered,
@@ -3034,7 +3038,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      
 	    }
 	  }
-	  else if(connectLog){
+	  else if(this.connectLog){
 	    console.log("  Preparation (iii): no target leader exists");
 	  }
 
@@ -3055,7 +3059,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	        targetCanBeEntered=false; // !! influence
 		accGo=-vehConnect.longModel.bmax; //!!
 	      }
-	      if(connectLog){
+	      if(this.connectLog){
 	        console.log(
 		  "  Preparation (iv): (C2||C3) and target follower exists:",
 		  "targetCanBeEntered=",targetCanBeEntered,
@@ -3082,7 +3086,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    
 	    else{
 	      accGo=accSlowdown; // !! influence
-	      if(connectLog){
+	      if(this.connectLog){
 	        console.log(
 		  "  Preparation (iv): outside (C2||C3) and target follower",
 		  "exists: accGo=",accGo);
@@ -3094,7 +3098,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    
 
 	  
-	  if(connectLog){
+	  if(this.connectLog){
 	    console.log("  Prepare Action A4 assuming no conflicts",
 			" and check entrance to target",
 			" id=",vehConnect.id,
@@ -3126,7 +3130,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  
 	  else if (C2||(C3&&conflictsExist)){ 
 	  //else if (targetCanBeEntered && (C2||(C3&&conflictsExist)) ){ 
-	    if(connectLog){
+	    if(this.connectLog){
 	      console.log("  Action A2: potential conflicts possible",
 			  //" C2=",C2," C3=",C3,
 			  //" conflictsExist=",conflictsExist,
@@ -3152,7 +3156,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	  if (!(conflictsAllowPassing&&targetCanBeEntered)){
 	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
-	    if(connectLog){
+	    if(this.connectLog){
 	      console.log("  Action 3: decelerating to stop",
 			  " accOld=",accOld.toFixed(1),
 			  " accSlowdown=",accSlowdown.toFixed(1),
@@ -3167,7 +3171,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  else{
 	    vehConnect.acc=Math.min(accOld,accGo); // !!influence
 	    
-	    if(connectLog){
+	    if(this.connectLog){
 	      console.log("  Action 4: ready to go",
 			  " veh id=",vehConnect.id,
 		          " route=",vehConnect.route," targetID=",targetID,
@@ -3191,7 +3195,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
       
 	if((u>uSource)&&(this.roadID!=targetRoad.roadID)){
-	  if(connectLog){
+	  if(this.connectLog){
 	  //if(this.veh[iveh].id==210){
 	    console.log("  Action 5: All previous actions drove the vehicle",
 			"over uSource => actual transfer");
@@ -3230,7 +3234,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    transferredVeh.dt_afterLC=0; // otherwise, veh may change at once
 	    transferredVeh.laneOld=transferredVeh.lane;
 	  }
-	  if(connectLog){
+	  if(this.connectLog){
 	  //if(true){
 	    console.log(
 	    "  \n=========================================================",
@@ -3261,9 +3265,13 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  
 	}// if(u>uSource) => Action A5
 	
-	if(connectLog){console.log("exiting road.connect: itime=",itime,
-				   " vehConnect.acc=",
-				   vehConnect.acc);}
+	if(this.connectLog){
+	  console.log("exiting road.connect: itime=",itime,
+		      "vehConnect.id=",vehConnect.id,
+		      "speed=",vehConnect.speed.toFixed(1),
+		      "acc=",vehConnect.acc.toFixed(1),
+		      "");
+	}
       } // if(connecting)
     } // veh in anticipation regime and regular veh
 
@@ -3293,10 +3301,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 					   conflicts, targetRoad){
 
   // see also "connectLog=" above
-  //var log=((vehConnect.id==209)&&(time>20)&&(time<25));
-  //var log=(vehConnect.id==225)||(vehConnect.id==226);
-  //var log=(vehConnect.id==206);
-  var log=false;
+  var log=this.connectLog;
 
 
   if(conflicts.length==0){return false;}
@@ -4689,10 +4694,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
   for(var i=0; i<this.veh.length; i++){
 
-        // do not draw vehicles outside limits
-        //  or if it is a virtual traffic-light vehicle (if TL is red)
+    // do not draw vehicles outside limits
+    // or if it is a virtual traffic-light vehicle (if TL is red)
+    // unless debugging switch this.drawVehIDs is on
 
-    var filterPassed=(!this.veh[i].isTrafficLight())
+    var filterPassed=(true)  // for debugging thisif also TL IDs are shown
+    var filterPassed=((!this.veh[i].isTrafficLight())||this.drawVehIDs)
 	&& (noRestriction // default: noRestriction=true
 	    || ((this.veh[i].u>=umin)&&(this.veh[i].u<=umax)));
 
