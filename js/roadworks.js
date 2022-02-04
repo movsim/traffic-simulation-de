@@ -1,5 +1,4 @@
 
-const userCanDistortRoads=false;
 const userCanDropObjects=true;
 var drawVehIDs=false; // debug: draw veh IDs for selected roads
 
@@ -169,8 +168,7 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density, speedInit,fracTruck, isRing,
-		      userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 // network declared in canvas_gui.js
 network[0]=mainroad;  

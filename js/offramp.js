@@ -1,5 +1,4 @@
 
-const userCanDistortRoads=false;
 const userCanDropObjects=true;
 
 //#############################################################
@@ -190,10 +189,10 @@ var speedInit=20; // IC for speed
 duTactical=250; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj,
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp,
-		     0.1*density,speedInit,fracTruck,isRing,userCanDistortRoads);
+		     0.1*density,speedInit,fracTruck,isRing);
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 

@@ -1,6 +1,4 @@
 
-//const userCanDistortRoads=false; // only if true, road.gridTrajectories after
-const userCanDistortRoads=false; 
 const userCanDropObjects=true;
 
 //#############################################################
@@ -601,9 +599,7 @@ function updateSim(){
 
     var du_antic=20; //shift anticipation decision point upstream by du_antic
 
-    // umainDiverge, umainMerge updated in canvas_gui.handleDependencies
     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
-
 
     mainroad.mergeDiverge(ramp,-umainDiverge,
 			  umainDiverge+taperLen,
@@ -674,9 +670,6 @@ function drawSim() {
 
       updateDimensions();
       trafficObjs.calcDepotPositions(canvas); 
-
-        mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
-        ramp.gridTrajectories(trajRamp_x,trajRamp_y);
     }
 
  

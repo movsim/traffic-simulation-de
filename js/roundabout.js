@@ -1,9 +1,9 @@
 const PI=Math.PI;
 
 const userCanDropObjects=true;
-var drawVehIDs=false; // debug: draw veh IDs for selected roads
-var drawRoadIDs=false; // debug: draw veh IDs for selected roads
-var showCoords=false;  // show logical coords of nearest road to mouse pointer
+var drawVehIDs=true; // debug: draw veh IDs for selected roads
+var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -403,8 +403,7 @@ for(var ir=0; ir<nLanes.length; ir++){
 
 //##################################################################
 // Specification of logical road network
-// template new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		     density,speedInit,fracTruck,isRing,doGridding[opt]);
+
 // road with inflow/outflow: just add updateBCup/down at simulation time
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
@@ -418,7 +417,7 @@ var speedInit=20; // m/s
 var density=0.00;
 
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,
-//		       density,speedInit,fracTruck,isRing,doGridding[opt]);
+//		       density,speedInit,fracTruck,isRing);
 
 
 var mainroad=new road(8,2*PI*rRing-0,laneWidth,nLanes_ring,

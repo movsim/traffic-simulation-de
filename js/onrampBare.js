@@ -3,7 +3,6 @@
 
 density=0.02; 
 
-const userCanDistortRoads=false;
 const userCanDropObjects=true;
 
 
@@ -196,11 +195,11 @@ var speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    [trajRamp_x,trajRamp_y],
-		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing);
 
 
 // add standing virtual vehicle at the end of ramp (1 lane)

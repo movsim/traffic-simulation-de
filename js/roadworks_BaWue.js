@@ -1,5 +1,4 @@
 
-const userCanDistortRoads=false;
 const userCanDropObjects=true;
 
 nLanesMin=2;
@@ -191,8 +190,7 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density, speedInit,fracTruck, isRing,
-		      userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 network[0]=mainroad;  // network declared in canvas_gui.js
 
 mainroad.uminLC=0; // allow lane changing right at the beginning

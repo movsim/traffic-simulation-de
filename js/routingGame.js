@@ -1,6 +1,5 @@
 
 const userCanDropObjects=false;
-const userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 /*#########################################################
@@ -638,8 +637,7 @@ function updateSim(){
 
     var du_antic=20; //shift anticipation decision point upstream by du_antic
 
-    // umainDiverge, umainMerge updated in canvas_gui.handleDependencies
-    //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+     //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
 
     mainroad.mergeDiverge(ramp,-umainDiverge,
@@ -706,10 +704,7 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
       updateDimensions();
-      //trafficObjs.calcDepotPositions(canvas);
-        mainroad.gridTrajectories(traj_x,traj_y); //!!! necessary? check others!
-        ramp.gridTrajectories(trajRamp_x,trajRamp_y);
-    }
+     }
 
  
     // (1) update heading of all vehicles rel. to road axis

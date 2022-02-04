@@ -329,12 +329,6 @@ function addOneLane(){
 	roadImg1=roadImgs1[mainroad.nLanes-1];
 	roadImg2=roadImgs2[mainroad.nLanes-1];
 
-    // only ramp adapts to nLanes; only needed if ramp!==undefined 
-    // onramp=network[1]
-    if((typeof ramp!=="undefined")&&userCanDistortRoads){
-      iramp=1;
-      network[iramp].gridTrajectories(trajNet_x[iramp], trajNet_y[iramp]);
-    }
   }
 
 
@@ -362,12 +356,6 @@ function subtractOneLane(){
 	roadImg1=roadImgs1[mainroad.nLanes-1];
 	roadImg2=roadImgs2[mainroad.nLanes-1];
 
-     // only ramp adapts to nLanes; only needed if ramp!==undefined 
-
-    if((typeof ramp!=="undefined")&&userCanDistortRoads){
-      iramp=1;
-      network[iramp].gridTrajectories(trajNet_x[iramp], trajNet_y[iramp]);
-    }
   }
 
 

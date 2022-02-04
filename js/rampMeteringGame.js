@@ -19,7 +19,6 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 // localStorage.removeItem("storageName");
 
 const userCanDropObjects=true;
-const userCanDistortRoads=false; // only if true, road.gridTrajectories after
 
 
 
@@ -243,14 +242,6 @@ function updateDimensions(){ // if viewport or sizePhys changed
     taperLen=0.3*arcRadius; // !! also make consistent with init def
     rampRadius=5*arcRadius; // !! also make consistent with init def
 
-    // xxxnew bring traj to roads 
-    // not needed if doGridding is false since then external traj reference
-  
-    if(userCanDistortRoads){
-      for(var i=0; i<network.length; i++){
-	network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]);
-      }
-    }
   
     // update positions of fixed obstacles to new road lengths/geometry
     // (e.g. onramp: ramp via the ref virtualStandingVeh)
@@ -284,13 +275,6 @@ function updateRampGeometry(){
     yRamp[i]=yRamp[i+1]-drampLen*Math.sin(headingRamp(u));
   }
 
-  //!!! necessary, since roads internal tables!
-
-  ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
-  //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
-//	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
-//	     );
-
 }
 
 
@@ -320,11 +304,6 @@ function taperMerge(u,taperLen,laneWidth,rampLen){
 
 
 // def trajectories
-// if(doGridding=true on constructing road, 
-// road elements are gridded and internal
-// road.traj_xy(u) are generated. Then, outer traj_xy*(u) obsolete
-// and network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]) called
-// after a physical change
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -427,16 +406,13 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
-// last arg = doGridding (true: user can change road geometry)
-
-  //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    [trajRamp_x,trajRamp_y],
-		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing);
 
 // road network 
 

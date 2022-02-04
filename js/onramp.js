@@ -16,7 +16,9 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-const userCanDistortRoads=false; // only if true, road.gridTrajectories after
+
+
+//const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
 var drawVehIDs=false; // debug: draw veh IDs for selected roads
 // (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
@@ -71,8 +73,7 @@ var nLanes_rmp=1;
 
 // scenarioString needed in
 // (1) showInfo (control_gui) if info panels are shown
-// (2) handleDependencies (canvas_gui) if userCanDistortRoads=true
-// (3) road: handle some exceptional behavior in the "*BaWue*" scenarios
+// (2) road: handle some exceptional behavior in the "*BaWue*" scenarios
 // otherwise not needed
 
 var scenarioString="OnRamp"; 
@@ -171,14 +172,6 @@ function updateDimensions(){ // if viewport or sizePhys changed
     taperLen=0.2*rampLen;
     rampRadius=4*arcRadius;
 
-    // bring traj to roads 
-    // not needed if doGridding is false since then external traj reference
-  
-    if(userCanDistortRoads){
-      for(var i=0; i<network.length; i++){
-	network[i].gridTrajectories(trajNet[i]);
-      }
-    }
   
     // update positions of fixed obstacles to new road lengths/geometry
     // (e.g. onramp: ramp via the ref virtualStandingVeh)
@@ -212,12 +205,6 @@ function updateRampGeometry(){
     yRamp[i]=yRamp[i+1]-drampLen*Math.sin(headingRamp(u));
   }
 
-  //!!! necessary, since roads internal tables!
-
-  ramp.gridTrajectories(trajRamp_x,trajRamp_y); 
-  //console.log("in updateRampGeometry: nLanes_main=",nLanes_main,
-//	      " trajRamp_y(rampLen-50)=",formd(trajRamp_y(rampLen-50))
-//	     );
 
 }
 
@@ -248,11 +235,6 @@ function taperMerge(u,taperLen,laneWidth,rampLen){
 
 
 // def trajectories
-// if(doGridding=true on constructing road, 
-// road elements are gridded and internal
-// road.traj_xy(u) are generated. Then, outer traj_xy*(u) obsolete
-// and network[i].gridTrajectories(trajNet_x[i], trajNet_y[i]) called
-// after a physical change
 
 function traj_x(u){ // physical coordinates
         var dxPhysFromCenter= // left side (median), phys coordinates
@@ -334,16 +316,13 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
-// last arg = doGridding (true: user can change road geometry)
-
-  //userCanDistortRoads=true; //!! test  
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj,
-		      density, speedInit,fracTruck, isRing,userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp,
-		  0*density, speedInit, fracTruck, isRing,userCanDistortRoads);
+		  0*density, speedInit, fracTruck, isRing);
 
 // road network (network declared in canvas_gui.js)
 

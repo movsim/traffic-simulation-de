@@ -1,6 +1,3 @@
-// !!!! userCanDistortRoads not possible in new version
-// because var functions cannot be passed if manipulated inside
-const userCanDistortRoads=false; //!!! Not possible in new version; f... 
 
 const userCanDropObjects=true;
 
@@ -195,8 +192,7 @@ var speedInit=20; // m/s
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
-		      density, speedInit,fracTruck, isRing, 
-		      userCanDistortRoads);
+		      density, speedInit,fracTruck, isRing);
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 

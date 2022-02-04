@@ -281,13 +281,12 @@ function deactivateCoordDisplay(event){
 
 function pickRoadOrObject(xUser,yUser){
 
-  if(typeof userCanDistortRoads==='undefined'){userCanDistortRoads=false;}
+
   //console.log("itime=",itime," in pickRoadOrObject(canvas_gui):");
   
   /* priorities (at most one action initiated at a given time):
 
     (1) pick/drag trafficObject on a road or to the depot. 
-    (2) test for a road section nearby
 
     later stages not here but at onmousemove or onmouseup (onclick) callbacks
     (3) drag on road less than crit and then mouse up => click: slow down road
@@ -327,49 +326,6 @@ function pickRoadOrObject(xUser,yUser){
     //else console.log("  pickRoadOrObject (1): no trafficObject found");
   }
 
-  //==============================================================
-  // (2) test for a road section nearby
-  // road.testCRG returns [success,distmin_m,dx_m, dy_m]
-  // success only given if distmin_m < some road-internally defined distCrit_m
-  //==============================================================
-
-  if(userCanDistortRoads){
-    var distmin_m=1e6;
-    var success=false;
-    var iRoadNearest=-1;
-    draggedRoad="null";
-
-    for(var i=0; i<network.length; i++){
-      var pickResults=network[i].testCRG(xUser, yUser);
-      if(pickResults[0]){
-	success=true;
-	if(pickResults[1]<distmin_m){
-	  iRoadNearest=i;
-	  distmin_m=pickResults[1];
-	}
-      }
-    }
-
-    if(success){
-      draggedRoad=network[iRoadNearest];
-      console.log("  pickRoadOrObject (2): success!",
-		  " picked road with roadID=",draggedRoad.roadID,
-		  "  for dragging as soon as distDrag>distDragCrit");
-      trafficObjPicked=false;
-      roadPicked=true;
-    }
-    else{
-      console.log("  pickRoadOrObject (2): no nearby road found");
-    }
-  }
-  else{
-    console.log("  pickRoadOrObject (2): user cannot distort roads, so n.a.");
-    if(false){
-      console.log("  end pickRoadOrObject: found no suitable action!",
-	        " [notice: clicking callback is separate from this]");
-    }
-  }
-
 
 
 } // canvas onmousedown or touchStart: pickRoadOrObject
@@ -407,9 +363,6 @@ function doDragging(xUser,yUser,xUserDown,yUserDown){
 	      trafficObject.isDragged=true;
 	      trafficObject.xPix=xPixUser;
 	      trafficObject.yPix=yPixUser;
-	    }
-	    if(roadPicked){
-	        dragRoad(xUser,yUser);
 	    }
 
 	}
@@ -496,7 +449,6 @@ function finishDistortOrDropObject(xUser, yUser){
     roadPicked=false;
     //console.log(" before draggedRoad.finishCRG()");
     draggedRoad.finishCRG();
-    handleDependencies(); // !! needed if road length changed by road distort
     console.log("  end finishDistortOrDropObject: distorted road");
   }
 
@@ -527,7 +479,6 @@ function finishDistortOrDropObject(xUser, yUser){
 //#####################################################
 
 function handleClick(event){
-  if(typeof userCanDistortRoads==='undefined'){userCanDistortRoads=false;}
   getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
   var isDragged=(distDrag>distDragCrit);
 
@@ -536,7 +487,6 @@ function handleClick(event){
 		formd0(xPixUser)," yPixUser=",formd0(yPixUser),
 		" xUser=",formd(xUser),
 		" yUser=",formd(yUser)," distDrag=",formd(distDrag));
-    console.log("  userCanDistortRoads=",userCanDistortRoads);
     console.log(" isDragged=",isDragged,
 		" speedlBoxActive=",speedlBoxActive);
   }
@@ -813,77 +763,6 @@ function cancelActivities(event){
 
 
 
-
-// the dragging changes road lengths and ramp merging positions
-// => the "network" scenarios "OnRamp", "OffRamp", and "Deviation"
-// need corresponding network corrections
-// !!! attention: only non-generic function not using network array
-// is not worth the effort to change
-
-function handleDependencies(){
-    //console.log("handleDependencies: scenarioString=",scenarioString);
-
-  if(scenarioString==="OnRamp"){
-
-        // update end-ramp obstacle and ramp->main offset
-
-    ramp.veh[0].u=ramp.roadLen-0.6*taperLen; // shift end-obstacle
-
-        // search mainroad u-point nearest to merging point of onramp
-
-    var uMainNearest=ramp.getNearestUof(mainroad,ramp.roadLen-mergeLen);
-    mainRampOffset=uMainNearest-(ramp.roadLen-mergeLen);
-    if(true){
-      console.log("after handleDependencies: onramp: ",
-		  " ramp.veh[0].u=",ramp.veh[0].u,
-		  " mainRampOffset=",mainRampOffset);
-    }
-  }
-
-  else if(scenarioString==="OffRamp"){
-
-        // search mainroad u-point nearest to diverging point of onramp
-        // and update offrampInfo
-    var uMainNearest=ramp.getNearestUof(mainroad,divergeLen);
-    mainRampOffset=uMainNearest-divergeLen;
-    rampLastExits=[mainRampOffset+divergeLen];
-    mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
-    console.log("after handleDependencies: offramp: offrampLastExits=",offrampLastExits);
-  }
-
-  else if(scenarioString==="Deviation"){
-	if(false){
-	  console.log("before canvas_gui.handleDependencies for \"Deviation\"",
-		    "\n   umainMerge=",umainMerge,
-		    "\n   umainDiverge=",umainDiverge
-		   );
-	}
-
-       // update (i)  the two offsets, (ii) offrampinfo (see routing.js), 
-       // (iii) end-deviation obstacle at onramp 
-       // described by umainDiverge,umainMerge
-
-	umainDiverge=ramp.getNearestUof(mainroad,lrampDev)-lrampDev;
-	umainMerge=ramp.getNearestUof(mainroad,
-					   ramp.roadLen-lrampDev);
-	offrampLastExits=[umainDiverge+lrampDev];
-	mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
-
-	ramp.veh[0].u=ramp.roadLen-0.6*taperLen;
-
-	if(false){
-	console.log("after canvas_gui.handleDependencies for \"Deviation\"",
-		    "\n   umainMerge=",umainMerge,
-		    "\n   umainDiverge=",umainDiverge
-		   );
-	}
-  }
-
-}// handleDependencies 
-
-
-
-
 //##############################################################
 // helper function for drag (onmousemove if onmousedown) events
 //##############################################################
@@ -895,20 +774,6 @@ function dragDepotObject(xPixUser,yPixUser){
   depotObject.yPix=yPixUser;
 }
 
-
-function dragRoad(xUser,yUser){
-
-    //console.log("in canvas_gui: dragRoad");
-
-  userCanvasManip=true; // if true, new backgr, new road drawn
-
-
-  // do not care of mergings although junk results happen if 
-  // dragged near them 
-
-  draggedRoad.doCRG(xUser,yUser); 
-
-}
 
 
 
