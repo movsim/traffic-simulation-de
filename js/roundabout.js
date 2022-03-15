@@ -1,8 +1,8 @@
 const PI=Math.PI;
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+//var drawVehIDs=true; // defined in control_gui.js
+//var drawRoadIDs=true; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 //#############################################################

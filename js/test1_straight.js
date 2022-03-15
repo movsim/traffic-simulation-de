@@ -1,7 +1,6 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // draw veh IDs for selected roads
-// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+drawVehIDs=true; // defined in control_gui.js
 
 var nLanes_main=2;
 

@@ -1,7 +1,7 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+drawVehIDs=true; // defined in control_gui.js
+drawRoadIDs=true; 
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
@@ -289,9 +289,11 @@ for(var ir=0; ir<network.length; ir++){
 }
 
 var conflict0={roadConflict:network[0],
+	       dest:         [],       //all destinations (only 0=straight)
 	       ucOther: 0.5*network[0].roadLen,
 	       ducExitOwn: 0.5*mainroadWidth};
 var conflict1={roadConflict:network[1],
+	       dest:         [],       //all destinations (only 0=straight)
 	       ucOther: 0.5*network[0].roadLen,
 	       ducExitOwn: 1.5*mainroadWidth};
 var conflicts=[];

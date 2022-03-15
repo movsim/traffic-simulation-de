@@ -2348,7 +2348,7 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 
 @param targetRoad: where traffic flows to (source is the calling road)
                    only a single target for each connector
-@param uSource:    Logical long coordinate where vehicles transit to the
+@param uSource:    Logical long coordinate where vehicles transit/exit to the
                    target road (often the downstream end)
 @param uTarget:    connected coordinate of the target (often upstream end)
 @param offsetLane: lanes are connected 1:1 offsetLane=-1 

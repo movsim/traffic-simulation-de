@@ -1,0 +1,53 @@
+
+Rural overtaking and single-track bottlenecks
+
+* single-track bottlenecks = virtual overtaking of a standing virtual vehicle of bottleneck length (in each direction, the virtual overtaking is on the virtual "other" road) 
+
+* overtaking safety
+  managed by road.prototype.determineOvertakingConflicts function:
+
+  road.prototype.determineOvertakingConflicts
+  =function(veh,vehOvertaken,roadConflict){
+   (1) determine uOvertaken, speedOvertaken, lenOvertaken
+   (2) determine dtOvertaking  assuming constant speedOvertaken and
+       max acceleration and from this uExit (own coords)
+       where overtaking is finished and the corresponding coord uConflictExit
+       for the conflicting road
+   (3) determine nearest upstream veh vehConflict on roadConflict
+       in roadConflict coords, check if it does not overtake itself
+       (new vehicle attribute)
+   (4) if it does not overtake itself, assume constant speed and
+       initiate overtaking (set veh.isOvertaking flag and change acc) if
+
+       vehConflict.u+vehConflict.speed*dtOvertaking<uConflictExit
+
+   (5) In all other cases, do not overtake
+
+* check overtaking possibilities every 5 time steps or so, as MOBIL
+
+* If overtaking is safe and desired, set the veh.isOvertaking flag
+  and acc to the desired overtaking speed
+
+* If overtaking is over (actual overtaking, not the estimation dtOvertaking),
+  reset the veh.isOvertaking flag 
+
+* In all other cases, follow vehOvertaken
+  
+* for single-track bottlenecks, we have a virtual vehOvertaken
+  vehOvertaken.u=uEnd;
+  vehOvertaken.len=uEnd-uBegin;
+  vehOvertaken.speed=0;
+  (will be an additional optional virtual veh=obstacle array of road)
+
+
+
+Hi Nick,
+
+now I understand your background: Mainly single-track with passing places instead of mainly two-lane road with one or more single-lane bottlenecks. I know such roads from a recent alpine trip: clearly, traffic lights are not feasible for this situation and one needs to directly model oppositely moving traffic. Depending on the situation, some additional cooperation is needed if the road has few passing places and limited visibility: One driver has to drive backwards to the next passing spot when two vehicles encounter unexpectedly on a single-track section.
+
+This would be a special case of a general scenario "rural road" with no physical barriers to the lane(s) of opposite traffic which can be used for overtaking. I add this interesting scenario to my todo list but, at present, it is not possible to simulate it with my simulator
+
+In fact, a critical threshold of traffic volume is expected that, if exceeded, leads to a breakdown. It is reached if one of the passing spots gets filled up with waiting vehicles in either direction leading to a gridlock. 
+
+Best,
+Martin

@@ -11,6 +11,39 @@
 function formd(x){return parseFloat(x).toFixed(2);}
 function formd0(x){return parseFloat(x).toFixed(0);}
 
+//################################################################
+// Toggles for the display of road and vehicle IDs (triggered by "onclick")
+//#################################################################
+
+var drawRoadIDs=false;
+var drawVehIDs=false;
+
+function toggleRoadID(){
+  if(drawRoadIDs){
+    drawRoadIDs=false;
+    document.getElementById("buttonRoadID").innerHTML="Show road IDs";
+  }
+  else{
+    drawRoadIDs=true;
+    document.getElementById("buttonRoadID").innerHTML="Do not show road IDs";
+  }
+}
+
+function toggleVehID(){
+  if(drawVehIDs){
+    drawVehIDs=false;
+    for(var ir=0; ir<network.length; ir++){network[ir].drawVehIDs=drawVehIDs;}
+
+    document.getElementById("buttonVehID").innerHTML="Show vehicle IDs";
+  }
+  else{
+    drawVehIDs=true;
+    for(var ir=0; ir<network.length; ir++){network[ir].drawVehIDs=drawVehIDs;}
+    document.getElementById("buttonVehID").innerHTML="Do not show vehicle IDs";
+  }
+}
+
+
 
 //################################################################
 // Start/Stop button action (triggered by "onclick" callback in html file)

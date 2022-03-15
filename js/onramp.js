@@ -20,8 +20,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 //const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
-var drawVehIDs=false; // debug: draw veh IDs for selected roads
-// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+//var drawVehIDs=false; // defined in control_gui.js
+//var drawRoadIDs=false; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 

@@ -1,7 +1,7 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-// (must propagate to network, e.g. network[0].drawVehIDs=drawVehIDs; )
+drawVehIDs=true; // debug: draw veh IDs for selected roads
+
 
 var nLanes_main=2;
 

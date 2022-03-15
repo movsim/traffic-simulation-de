@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Kreuzung</title> 
+    <title>Intersection</title> 
 </head>
 
 
@@ -61,6 +61,14 @@
 </div>
 -->
 
+<div id="roadIDDiv"><button id="buttonRoadID" onclick="toggleRoadID()"/>
+Show road IDs</div>
+
+<div id="vehIDDiv"><button id="buttonVehID" onclick="toggleVehID()"/>
+Show vehicle IDs</div>
+
+
+
 <!-- ############################################## -->
 <!-- choice boxes -->
 <!-- ############################################## -->
@@ -89,19 +97,6 @@
   <option> 3 main, 3 secondary lanes</option>
 </select>
 </div>
-
-<!--
-div id="Choicebox3Div">
-  <select id="Choicebox3Select"
-	    onchange="setOD(this.selectedIndex)">
-        <option> Only Straight Ahead &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
-        <option> Only to the Right</option>
-        <option> Only to the Left</option>
-        <option> All Directions</option>
-    </select>
-</div>
--->
-
 
 
 <!-- ############################################## -->

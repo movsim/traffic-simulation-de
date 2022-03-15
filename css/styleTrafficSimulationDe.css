@@ -28,6 +28,10 @@ body{
   background-color: #FFFFFF;
 }
 
+button,select{
+     font-size: 2.2vmin; 
+}
+
 /* text layout of sliders: tables override general text spec) */
 
 th{                    /* only used in infotext */
@@ -77,9 +81,6 @@ td.important{
      padding-top:0px;
  }
 
-button,select{
-     font-size: 2.2vmin; 
-}
 
  #gameSliderTitle{
      font-size: 2.5vmin; 
@@ -236,6 +237,21 @@ which always gives correct size!!
   z-index: 2; /* the higher the integer, the more on top */
 }
 
+#roadIDDiv{      /* toggle display road IDs normal landscape*/
+  position: absolute;
+  top: 12vmin;
+  left: 2vmin;
+  font-size:1.8vmin;  /* DOS -> button */
+  z-index: 2;
+}
+
+#vehIDDiv{      /* toggle display veh IDs normal landscape */
+  position: absolute;
+  top: 17vmin;
+  left: 2vmin;
+  font-size:1.8vmin;
+  z-index: 2;
+}
 
 /* (2a) landscape: add/subtract one lane */
 
@@ -268,17 +284,11 @@ which always gives correct size!!
 
 #ODDiv{      /* origin-destination (roundabout,intersection) */
   position: absolute;
-  top: 18vmin;
+  top: 17vmin;
   left: 75vmin;
   z-index: 2;
 }
 
-#Choicebox3Div{      /* divers (e.g. lane number combinations) */
-  position: absolute;
-  top: 24vmin;
-  left: 75vmin;
-  z-index: 2;
-}
 
 #gameDiv{ /* button text inside button environment */
   position: absolute;
@@ -446,6 +456,11 @@ body{
   overflow-x: hidden;   /* remove useless horiz scrollbars */
 }
 
+button,select{
+     font-size: 2.2vmin; 
+}
+
+
 /* (1) portrait:  the title */
 
 #header{
@@ -543,17 +558,27 @@ body{
 
 #ODDiv{  /* origin-destination (roundabout,intersection) */
   position: absolute; /* again needed!*/
-  top: 18vmin;
+  top: 17vmin;
   left: 60vmin;
   z-index: 2;
 }
 
-#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+#roadIDDiv{      /* toggle display road IDs square/portrait */
   position: absolute;
-  top: 24vmin;
-  left: 60vmin;
+  top: 12vmin;
+  left: 2vmin;
+  font-size:1.8vmin;
   z-index: 2;
 }
+
+#vehIDDiv{      /* toggle display veh IDs square/portrait*/
+  position: absolute;
+  top: 17vmin;
+  left: 2vmin;
+  font-size:1.8vmin;
+  z-index: 2;
+}
+
 
 #gameDiv{
   position: absolute;
@@ -750,13 +775,10 @@ body{
   font-size: 3vmin;
 }
 
-button{
-  font-size: 3vmin; 
+button,select{
+  font-size: 2.6vmin; 
 }
 
-select{
-  font-size: 3vmin; 
-}
 
 h3{ 
   font-size: 3vmin; 
@@ -821,17 +843,26 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 
 #ODDiv{  /* origin-destination (roundabout,intersection) */
   position: absolute;
-  top: 22vmin;
+  top: 21vmin;
   left: 65vmin;
   z-index: 2;
 }
 
-#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+#roadIDDiv{      /* toggle display road IDs smartphone landscape */
   position: absolute;
-  top: 29vmin;
-  left: 65vmin;
+  top: 15vmin;
+  left: 2vmin;
   z-index: 2;
 }
+
+#vehIDDiv{      /* toggle display veh IDs smartphone landscape*/
+  position: absolute;
+  top: 21vmin;
+  left: 2vmin;
+  z-index: 2;
+}
+
+
 
 /* (2f) smartphone landscape */
 
@@ -911,17 +942,25 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 
 #ODDiv{  
   position: absolute; /* again needed!*/
-  top: 22vmin;
+  top: 21vmin;
   left: 57vmin;
   z-index: 2;
 }
 
-#Choicebox3Div{      /* divers (e.g. lane number combinations) */
+#roadIDDiv{      /* toggle display road IDs */
   position: absolute;
-  top: 29vmin;
-  left: 57vmin;
+  top: 15vmin;
+  left: 2vmin;
   z-index: 2;
 }
+
+#vehIDDiv{      /* toggle display veh IDs */
+  position: absolute;
+  top: 21vmin;
+  left: 2vmin;
+  z-index: 2;
+}
+
 
 
 /* (2f) smartphone portrait */

@@ -1,6 +1,6 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=false; // debug: draw veh IDs for selected roads
+//var drawVehIDs=false; // defined in control_gui.js
 
 //#############################################################
 // adapt/override standard param settings from control_gui.js

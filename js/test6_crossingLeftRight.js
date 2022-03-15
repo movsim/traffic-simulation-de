@@ -1,7 +1,7 @@
 
 const userCanDropObjects=true;
-var drawVehIDs=true; // debug: draw veh IDs for selected roads
-var drawRoadIDs=true; // debug: draw veh IDs for selected roads
+drawVehIDs=true; // defined in control_gui.js
+drawRoadIDs=true; 
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
@@ -291,14 +291,15 @@ network[2]=road2;
 network[3]=road3;
 for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
-  network[ir].drawRoadIDs=drawVehIDs;
 }
 
-var conflict0={roadConflict:network[0],
-	       ucOther: 0.5*network[0].roadLen,
-	       ducExitOwn: 0.5*mainroadWidth};
+var conflict0={roadConflict:network[0], // road causing the potential conflict
+	       dest:    [], // filters conflicting dest of ext vehicles []=all
+	       ucOther: 0.5*network[0].roadLen, // ext confl point ext vehs
+	       ducExitOwn: 0.5*mainroadWidth}; // confl point - exit old road
 var conflict1={roadConflict:network[1],
 	       ucOther: 0.5*network[0].roadLen,
+	       dest:    [],
 	       ducExitOwn: 1.5*mainroadWidth};
 var conflictsAhead=[conflict0,conflict1];
 var conflictsLeft=[conflict0];
@@ -533,6 +534,13 @@ function drawSim() {
     network[ir].draw(roadImages[ir][0],roadImages[ir][1],
 		     scale,changedGeometry);
   }
+  
+  if(drawRoadIDs){  
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].drawRoadID(scale);
+    }
+  }
+
 
   
   // drawSim (4): draw vehicles
