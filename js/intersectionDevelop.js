@@ -1,7 +1,7 @@
 
 const userCanDropObjects=true;
-//var drawVehIDs=true; // defined in control_gui.js
-//var drawRoadIDs=true; // defined in control_gui.js
+drawVehIDs=true; // defined in control_gui.js
+drawRoadIDs=true; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
@@ -54,7 +54,7 @@ setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 setSlider(slider_fracRight, slider_fracRightVal, 100*fracRight, 0, " %");
-//setSlider(slider_fracLeft, slider_fracLeftVal, 100*fracLeft, 0, " %");
+setSlider(slider_fracLeft, slider_fracLeftVal, 100*fracLeft, 0, " %");
 
 fracTruck=0.15;
 
@@ -577,8 +577,8 @@ function updateSim(){
     }
   }
 
-
-  // checkForCrashes(); //!!!! deactivate for production; many false alarms!!
+  
+  checkForCrashes(); //!!!! deactivate for production; many false alarms!!
   
   // updateSim (1): update time, global geometry, and traffic objects
 

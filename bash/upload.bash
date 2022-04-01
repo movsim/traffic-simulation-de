@@ -17,7 +17,7 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection intersectionDevelop"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
 cd $startDir
