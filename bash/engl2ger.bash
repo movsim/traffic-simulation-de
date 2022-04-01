@@ -15,7 +15,7 @@ indexProject="onramp" # !!!  sets the current main simulation
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
+projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection intersectionDevelop"
 #projects="ring"
 
 cd $startDir
