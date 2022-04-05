@@ -1,0 +1,47 @@
+
+figs/magicRoundabout.png
+
+Hello Elias,
+
+I just googled that roundabout. I must confess that it looks (to put it mildly) "very British" to me (the romans would say "delirant isti angli").
+
+Still, it should be accessible to simulation because, in most cases, each lane has its prescribed direction and few lane changes are involved. In fact, locally, it is actually a pretty simple single-lane design with merges and diverges. However, unlike normal roundabouts, this roundabout has also some elements of "yield"  intersections (the positions where drivers cross a dashed line at a nearly rectangular angle) and some intermediate geometries (where drivers cross these lines at an oblique angle). So you need also elements of the not signalized "yield" intersection scenario, although in a simple setting (only one conflicting direction).  Moreover, unlike a normal roundabout, this design could possibly lead to a gridlock because of the many "yield" situations inside the roundabout (probably, the asymmetric design reflecting the asymmetric OD matrix prevents this, for all practical purposes).
+
+Since I cannot speak Python sufficiently fluently for such a complex task, I can only help you at the conceptional level. 
+
+Irrespective of the used language, the first step is to specify the layout and the traffic characteristics 
+
+In my simulator (and in nearly every other), the layout is specified as a directed network where the links denote directed road segments and the nodes the allowed merges, diverges, or transitions (intersections) from one link to the allowed connected links, including who has to yield. Unlike some other simulators, a link can have several lanes and lane closings/openings would be simulated by a node with only one target link specified by a transition condition
+
+In addition to this logical side of the network, we have a physical side: The length of the link and its geometry which is given in my simulator in parameter form by the functions traj_x(u) and traj_y(u). (x,y: the horizontal (WE) and vertical (SN) physical coordinates; u: arc length of the link) The geometry is only used for the graphics and has nothing to do with the actual simulation.
+
+The traffic characteristics is specified by an OD (origin-destination) matrix. If you have five arms and do not allow U-turns, you have 5*4=20 OD matrix elements (including U-turns, you would have 25). Each OD element indicates how many vehicles per time unit want to pass the roundabout from a given source link to a given destination link
+
+To connect traffic to the infrastructure, my simulator has routes. A route is a sequence of connected links from the origin to the destination. For example, a route can have following links: Origin-outer connector-small roundabout-outer connector-destination. Depending on the OD element, you may also enter the roundabout with  a small roundabout followed by an inner connector, or a series or inner connectors (inner connectors: elements of the reverse-turning inner big roundabout; outer connectors: elements of the correctly turning outer big roundabout). In this special roundabout, a given (British) right-turn OD element can even have two routes (around the outer big circle or using the inner-circle shortcut)
+
+The actual simulation is best started with an empty roundabout. Vehicles are inserted at the five source links (origins) and leave the system after having reached the end of a sink (destination) link. At insertion time, a route is associated to the new vehicle according to the OD matrix Q_ij. Vehicles are inserted at time intervals 1/Q where Q=sum_i sum_j Q_ij is the overall demand. The vehicle is inserted at the source i with a probability sum_j Q_ij/Q (row sum divided by demand). The destination of that vehicle is sink j with a probability Q_ij/sum_kQ_ik (OD element divided by the row sum). If a given OD element has two routes, you can associated one according to certain criteria.
+
+The above is valid for any simulator in any programming language. 
+Best,
+
+
+
+Martin
+
+=================================================================
+
+Elias Laroussi <eliasamawalaroussi@gmail.com> hat am 05.04.2022 14:30 geschrieben:
+
+
+Hello, I am a college student in France.
+For my project, I want to use your code from :
+Microsimulation of Traffic Flow: Roundabout (traffic-simulation.de)
+especially the roundabout section as I work on traffic flow in a special roundabout which is the Magic Roundabout in Swindon (UK).
+Indeed, this is composed of 5 roundabouts in 1 where the sense is the opposite of the 5 others.
+I want to compare its traffic flow (that is supposed to be better than the classic one) to a normal roundabout one.
+However, I need to code the simulation in Python.
+Therefore : 
+Would you help me for my project by translating your code in Python or by helping me to understand it so that I can make one for The Magic Roundabout please ?
+
+Thank you very much, your simulation is awesome
+Have a nice day
