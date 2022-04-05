@@ -331,19 +331,26 @@ which always gives correct size!!
   z-index: 1; /* the higher the integer, the more on top landscape */
 }
 
-/* (2g) landscape: position of the general link list  (table.infoTable top-level)*/
+/* (2g) landscape: position of the general link list  
+   (table.infoTable top-level)*/
 
-/* %units viewpot taking into account space by scrollbars, vw/vh/vmin not*/
 
-#linkDiv{
+#link1Div{
   position: absolute;
-  top:   92%; /* bottom attribute error in Safari */ 
-  left:   40vmin;
-  /*width:  40vmin;*/
+  top:   96%; /* bottom attribute error in Safari */ 
+  left:   38vmin;
   z-index: 2;
 } 
 
-/* (3) landscape: position of the flags for language selection: right top of simCanvas */
+#link2Div{
+  position: absolute;
+  top:   93.5%;
+  left:   48vmin;
+  z-index: 2;
+} 
+
+/* (3) landscape: position of the flags for language selection: 
+right top of simCanvas */
 
 #infoFlags{
   position: absolute;
@@ -405,17 +412,17 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
     padding-right: 0px;
 }
 
-#infotext{
-  border:0px solid black; /* 1px with frame */
-  width: 49vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 31vmin;
-  left: 4vmin;
+#infotext{ /* inside #sliders, hence no positional info*/
+  border:1px solid black; /* 1px with frame */
+  width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
+  height: 27vmin;
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
   padding-right: 2vmin;
   background-color: rgba(0,40,255,0.0);
   overflow:auto;
+  z-index: 2;
 }
 
 #infotextGame{
@@ -619,10 +626,18 @@ button,select{
 
 /* (2f) square/portrait: position of the general link list */
 
-#linkDiv{
+#link1Div{
   position: absolute;
   top:   81vmin;
   left:   65vmin;
+  width:  32vmin;
+  z-index: 2;
+} 
+
+#link2Div{
+  position: absolute;
+  top:   81vmin;
+  left:   73vmin;
   width:  32vmin;
   z-index: 2;
 } 
@@ -872,7 +887,15 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 
 /* (2g) smartphone landscape: hide link list by setting z-index: 0*/
 
-#linkDiv{
+#link1Div{
+  position: absolute;
+  top:   50vmin; /* bottom attribute error in Safari */
+  left:   20vmin;
+  width:  50vmin; /* no height */
+  z-index: 0;
+}
+
+#link2Div{
   position: absolute;
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;
@@ -974,7 +997,14 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 
 /* (2g) smartphone portrait: hide link list by z-index: 0 */
 
-#linkDiv{
+#link1Div{
+  position: absolute;
+  top:   50vmin; /* bottom attribute error in Safari */
+  left:   20vmin;
+  width:  50vmin; /* no height */
+  z-index: 0;
+} 
+#link2Div{
   position: absolute;
   top:   50vmin; /* bottom attribute error in Safari */
   left:   20vmin;

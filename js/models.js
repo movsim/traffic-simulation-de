@@ -35,6 +35,9 @@ function IDM(v0,T,s0,a,b){
     this.a=a;
     this.b=b;
     this.alpha_v0=1; // multiplicator for temporary reduction
+    this.noiseAcc=0.3; // ad-hoc accel noise per step to avoid some artifacts
+                       //!!! no random walk noiseAcc propto sqrt(Qacc*dt)
+                       // implemented!!
 
     // possible restrictions (value 1000 => initially no restriction)
 
@@ -62,8 +65,7 @@ IDM.prototype.copy=function(longModel){
   this.b=longModel.b;
 
   this.alpha_v0=1; // multiplicator for temporary reduction
-
-    // possible restrictions (value 1000 => initially no restriction)
+  this.noiseAcc=longModel.noiseAcc;
 
   this.speedlimit=longModel.speedlimit; 
   this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
@@ -86,10 +88,9 @@ IDM acceleration function
 
 IDM.prototype.calcAcc=function(s,v,vl,al){ 
 
-        //MT 2016: noise to avoid some artifacts
+        //MT 2016,2022: noise to avoid some artifacts
 
-    var noiseAcc=0.3; // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
-    var accRnd=noiseAcc*(Math.random()-0.5); //if acceleration noise
+    var accRnd=this.noiseAcc*(Math.random()-0.5); //if acceleration noise
 
         // determine valid local v0
 
@@ -169,6 +170,9 @@ function ACC(v0,T,s0,a,b){
   this.b=b;
 
   this.cool=0.90; // !!also apply to copy constructor
+  this.noiseAcc=0.3; // ad-hoc accel noise per step to avoid some artifacts
+                       //!!! no random walk noiseAcc propto sqrt(Qacc*dt)
+                       // implemented!!
   this.alpha_v0=1; // multiplicator for temporary reduction
 
   this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
@@ -199,6 +203,7 @@ ACC.prototype.copy=function(longModel){
   // this.cool comes from cstr since not all longModels have .cool
 
   this.alpha_v0=1; // multiplicator for temporary reduction
+  this.noiseAcc=longModel.noiseAcc;
 
     // possible restrictions (value 1000 => initially no restriction)
   this.speedlimit=longModel.speedlimit; 
@@ -228,8 +233,7 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
     // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAcc*sqrt(t*dt/12)
 
-  var noiseAcc=(s<this.s0) ? 0 : 0.3;    // ? 0 : 0.3; 
-  var accRnd= noiseAcc*(Math.random()-0.5);
+  var accRnd= (s<this.s0) ? 0 : this.noiseAcc*(Math.random()-0.5);
 
         // determine valid local v0
 

@@ -117,7 +117,6 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   this.draw_scaleOld=0;
   this.nSegm=100;   //!! number of road segm=nSegm+1, not only drawing
-  this.draw_curvMax=0.05; // maximum assmued curvature !!
   this.markVehsMerge=false; // for debugging
   this.drawVehIDs=false;// for debugging, activated in main program
 
@@ -4263,6 +4262,10 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 			     umin,umax,
 			     movingObs,uObs,xObs,yObs){
 
+  var lSegm=this.roadLen/this.nSegm;
+
+  //console.log("road.draw: lSegm=",lSegm);
+
   var noRestriction=(typeof umin === 'undefined');
   var movingObserver=(typeof movingObs === 'undefined')
     ? false : movingObs;
@@ -4274,9 +4277,10 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
   var smallVal=0.0000001;
   var boundaryStripWidth=0.3*this.laneWidth;
 
-  var factor=1+this.nLanes*this.laneWidth*this.draw_curvMax; // " stitch factor"
-  var lSegm=this.roadLen/this.nSegm;
-
+  var draw_curvMax=0.04; // curvature radius 25 m
+  var factor=Math.min(1.5, // " stitch factor" for drawing
+		      1+this.nLanes*this.laneWidth*draw_curvMax); 
+  
   // lookup table only at beginning or after rescaling => 
   // now condition in calling program
 
@@ -4296,7 +4300,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 
     // actual drawing routine
 
-    var duLine=15; // distance between two middle-lane lines
+  var duLine=15; // distance between two middle-lane lines
   var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
   nSegmLine=Math.max(2, nSegmLine);
 
@@ -4322,14 +4326,14 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
       ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 
-      if(false){
+      if(itime==1){
       //if((this.roadID==2)&&(iSegm==this.nSegm-4)){
         console.log(
 	  "road.draw: ID=",this.roadID," iSegm=",iSegm,
 	  " this.draw_y[iSegm]=",formd(this.draw_y[iSegm]),
 	  " this.traj[1](this.roadLen-50)=",formd(this.traj[1](this.roadLen-50)),
-	  //" lSegmPix=",formd(lSegmPix)," wSegmPix=",formd(wSegmPix),
-	  //" xCenterPix=",formd(xCenterPix),
+	  " lSegmPix=",formd(lSegmPix)," wSegmPix=",formd(wSegmPix),
+	  " xCenterPix=",formd(xCenterPix),
 	  " yCenterPix=",formd(yCenterPix)
 	);
       }
