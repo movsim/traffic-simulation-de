@@ -1,6 +1,10 @@
 # traffic-simulation.de
 Source code for the interactive Javascript simulation at  [traffic-simulation.de](https://traffic-simulation.de)
 
+## General Concept
+
+TODO: integrate README_magicRoundabout
+
 ## Running the Simulation
 
 This simulation uses JavaScript together with html5.
