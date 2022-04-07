@@ -104,7 +104,7 @@ vehicle.prototype.isSpecialVeh=function(){
 } 
 
 //######################################################################
-// check if vehicle vehObject is a regular vehicle (car or truck)
+// check if vehicle vehObject is a regular/normal vehicle (car or truck)
 //######################################################################
 
 vehicle.prototype.isRegularVeh=function(){

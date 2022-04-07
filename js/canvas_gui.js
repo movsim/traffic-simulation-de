@@ -191,6 +191,9 @@ function handleMouseDown(event){
     pickRoadOrObject(xUser,yUser);
 }
 
+function handleMouseDown_golfCourse(event){
+  ; //nothing; but needed since click does not work, otherwise}
+}
 
 // get physical and pixel coordinates for all mouse events
 // for touch events: getTouchCoordinates(event)
@@ -538,6 +541,34 @@ function handleClick(event){
     }
   }
 
+}//handleClick
+
+
+//##################################################
+// handleClick in golfCourse scenario
+//##################################################
+
+function handleClick_golfCourse(event){
+  
+  var distMax=0.10*refSizePhys; // 0.05*smaller side in meters
+  
+  getMouseCoordinates(event); //=> xPixUser, yPixUser, xUser, yUser;
+
+  if(true){
+    console.log("\n\nitime=",itime," in handleClick_golfCourse: xPixUser=",
+		formd0(xPixUser)," yPixUser=",formd0(yPixUser),
+		" xUser=",formd(xUser),
+		" yUser=",formd(yUser));
+  }
+
+  // [success, vehReturn, distMin_m, ivehReturn]
+  var findResults=mainroad.findNearestVehTo(xUser,yUser); 
+  if(findResults[0]){
+    if(findResults[2]<distMax){
+      vehPerturbed=findResults[1];
+      console.log("allow golfer group id ",vehPerturbed.id," to overtake");
+    }
+  }
 }
 
 
@@ -790,7 +821,7 @@ function slowdownVehNearestTo(xUser,yUser,distCrit_m){
   var iRoad=-1;
   for (var i=0; i<network.length; i++){
 
-    // [success,vehReturn,distMin_m, ivehReturn];
+    // [success, vehReturn, distMin_m, ivehReturn];
     var findResults=network[i].findNearestVehTo(xUser,yUser);
 
     if(findResults[0]){

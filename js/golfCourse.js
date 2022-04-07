@@ -20,8 +20,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 //const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
-//var drawVehIDs=false; // defined in control_gui.js
-//var drawRoadIDs=false; // defined in control_gui.js
+drawVehIDs=true; // defined in control_gui.js
+//drawRoadIDs=false; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 
@@ -30,25 +30,41 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-qIn=20./3600; // inverse time headway
+qIn=10./3600; // inverse time headway
 fracTruck=0;
 
-timewarp=120;
+timewarp=240;
 
 IDM_v0=1;
 IDM_a=0.05; // a*dt=a*timewarp/fps<=a*300/30=4a must be <v0/2=1;
 IDM_b=0.1;
 IDM_T=30;
+
+speedVar=0.5;
 density=0; 
+
+MOBIL_bBiasRight_car=20;
 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "groups/h");
+setSlider(slider_speedVar, slider_speedVarVal, speedVar, 1,
+	  "(m/s)<sup>2</sup>");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
 
 setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
 setSlider(slider_IDM_T, slider_IDM_TVal, IDM_T, 0, "s");
 
-var nLanes_main=2;
+//#########################################################
+// random initialization: do not want dynamically add
+// individual ouProcess to each vehicle, so just set up an array of 100
+// and associate the same process to each vehicle with id%100 the same
+//#########################################################
+
+var ouProcess=[];
+for (var i=0; i<100 ; i++){
+  ouProcess[i]=new OUProcess(0,IDM_a,300); // accel mu, amplitude,corrtime
+}
+
 
 
 /*######################################################
@@ -131,6 +147,8 @@ var hasChangedPhys=true; // physical road dimensions have changed
 // If viewport or refSizePhys changes => updateDimensions();
 //##################################################################
 
+var nLanes_main=2;
+
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
 var center_xRel=0.43;
@@ -147,7 +165,8 @@ var center_yPhys=center_yRel*refSizePhys;
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
-var straightLen=refSizePhys*critAspectRatio-center_xPhys;
+var hideFirst_m=100; // hide first hideFirst_m meters of road
+var straightLen=refSizePhys*critAspectRatio-center_xPhys+hideFirst_m;
 var mainroadLen=arcLen+2*straightLen;
 
 // !! slightdouble-coding necessary unless big changes, 
@@ -168,7 +187,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
   if(hasChangedPhys){
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
+    straightLen=refSizePhys*critAspectRatio-center_xPhys+hideFirst_m;
     mainroadLen=mainroad.roadLen=arcLen+2*straightLen; 
     rampLen=ramp.roadLen=rampLenRel*refSizePhys; 
     mergeLen=0.5*rampLen;
@@ -224,11 +243,11 @@ trajNet[0]=traj;
 //###################################################
 
 
-var laneWidth=40; // remains constant => road becomes more compact for smaller
+var laneWidth=70; // remains constant => road becomes more compact for smaller
 
 
 var car_length=50; // car length in m
-var car_width=30; // car width in m
+var car_width=90; // car width in m
 var truck_length=90; // irrelevant but needed in road.js
 var truck_width=30; // irrelevant but needed in road.js
 
@@ -246,7 +265,7 @@ var speedInit=1; // IC for speed
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj,
 		      density, speedInit,fracTruck, isRing);
-
+mainroad.nSegm=40;
 // road network (network declared in canvas_gui.js)
 
 network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
@@ -273,7 +292,8 @@ var userCanvasManip; // true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
-var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
+//var vmax_col=4/3.6; // max speed for speed colormap (drawn in blue-violet)
+var vmax_col=0; // 0,0 => no semitransp speed indicator drawn
 
 
 //####################################################################
@@ -290,7 +310,8 @@ background.src ='figs/backgroundGrass.jpg';
 // init vehicle image(s)
 
 carImg = new Image();
-carImg.src = 'figs/blackCarCropped.gif';
+//carImg.src = 'figs/blackCarCropped.gif';
+carImg.src = 'figs/golfer2.png';
 truckImg = new Image();
 truckImg.src = 'figs/truck1Small.png';
 
@@ -328,25 +349,17 @@ for (var i=0; i<4; i++){
 }
 
 roadImg1 = new Image();
-roadImg1=roadImgs1[nLanes_main-1];
+//roadImg1=roadImgs1[nLanes_main-1];
+roadImg1.src="figs/roadGolf1.png";
+//roadImg1.src="figs/roadGolf2.png";
 roadImg2 = new Image();
-roadImg2=roadImgs2[nLanes_main-1];
+//roadImg2=roadImgs2[nLanes_main-1];
+roadImg2.src="figs/roadGolf2.png";
 
 
 //############################################
 // traffic objects and traffic-light control editor
 //############################################
-
-// need to define canvas prior to calling cstr: e.g.,
-// TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-//var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
-var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
-
-// also needed to just switch the traffic lights
-// (then args xRelEditor,yRelEditor not relevant)
-//var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
-var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
-
 
 
 //############################################
@@ -366,8 +379,26 @@ function updateSim(){
   // (1) update times and, if canvas change, 
   // scale and, if smartphone<->no-smartphone change, physical geometry
 
+  
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
+
+  if(false){// test random.js
+  //if(itime==1){// test random.js
+    var wiener=new Wiener(dt);
+    var ou=new OUProcess(20,5,100); // mu, amplitude,corrtime
+    for(var its=0; its<200; its++){
+      console.log("t=",its*dt,
+		  " wiener.y=",wiener.y,
+		  " ou.y=",ou.y,
+		  "");
+      wiener.update(dt);
+      ou.update(dt);      
+    }
+    alert("stop for test");
+  }
+
+  
 
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
@@ -382,7 +413,6 @@ function updateSim(){
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
  
-    trafficObjs.calcDepotPositions(canvas);
     if(true){
       console.log("updateSim: haschanged=true: new canvas dimension: ",
 		  canvas.width," X ",canvas.height);
@@ -402,42 +432,55 @@ function updateSim(){
   //console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
 
    // (2a) update moveable speed limits
-
-  for(var i=0; i<network.length; i++){
-    network[i].updateSpeedlimits(trafficObjs);
-  }
-  
+ 
   //  (2b) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
   // (here more responsive than in drawSim)
-
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack();
- }
-
 
 
 
     // (3) do central simulation update of vehicles
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
-    mainroad.updateSpeedPositions();
-    mainroad.updateBCdown();
-    mainroad.updateBCup(qIn,dt); // argument=total inflow
+  mainroad.updateLastLCtimes(dt);
+  mainroad.calcAccelerations();
 
-    for (var i=0; i<mainroad.nveh; i++){
+  // add accel fluctuations
+
+  for(var i=0; i<ouProcess.length; i++){
+    ouProcess[i].update(dt);
+  }
+  
+  for(var i=0; i<mainroad.veh.length; i++){
+    if(mainroad.veh[i].isRegularVeh()){
+      var ouIndex=(mainroad.veh[i].id)%100;
+      var accFluct=ouProcess[ouIndex].y;
+      if((accFluct>0)&&(mainroad.veh[i].speed>IDM_v0)){accFluct=0;}
+      if(mainroad.veh[i].u>0.1*mainroad.roadLen){
+        mainroad.veh[i].acc+=accFluct;
+      }
+    }
+  }
+  
+  mainroad.changeLanes();         
+  mainroad.updateSpeedPositions();
+  mainroad.updateBCdown();
+  mainroad.updateBCup(qIn,dt); // argument=total inflow
+  // adapt LC time to new time frame of golf course
+  for (var i=0; i<mainroad.veh.length; i++){
+    mainroad.veh[i].dt_LC=120;
+  }
+  
+  for (var i=0; i<mainroad.veh.length; i++){
 	if(mainroad.veh[i].speed<0){
 	    console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
 	}
-    }
+  }
 
 
- 
-
+  
+  
     // (4) update detector readings
 
 
@@ -446,7 +489,7 @@ function updateSim(){
 
     //if((itime>=125)&&(itime<=128)){
   if(false){
-    console.log("\n\ntime=",time," itime=",itime,": end of updateSim loop");
+    console.log("\ntime=",time," itime=",itime,": end of updateSim loop");
 
 
     if(true){
@@ -527,17 +570,14 @@ function drawSim() {
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
   // here only example for complete args (only in coffeemeterGame relevant
 
- 
+  var upright=true; // golfers shout not be upside down
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			vmin_col,vmax_col,
 			0,mainroad.roadLen,
-			movingObserver,uObs,center_xPhys,center_yPhys);
+			movingObserver,uObs,center_xPhys,center_yPhys,upright);
 
   // (5a) draw traffic objects 
 
-  if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
-  }
 
   // (5b) draw speedlimit-change select box
 

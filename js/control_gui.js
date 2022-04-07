@@ -799,6 +799,26 @@ if(document.getElementById("slider_speedL")!==null){
 }
 
 
+// speed variance slider (various applications, e.g. acceleration noise
+// or intermittent stops at the golf course)
+
+var speedVar=0; // default; will be overridden if used
+var slider_speedVar, slider_speedVarVal;
+if(document.getElementById("slider_speedVar")!==null){
+  slider_speedVar = document.getElementById("slider_speedVar");
+  slider_speedVarVal = document.getElementById("slider_speedVarVal");
+  slider_speedVar.value=speedVar;
+  slider_speedVarVal.innerHTML=speedVar+ " (m/s)<sup>2</sup>";
+
+  slider_speedVar.oninput = function() {
+    slider_speedVarVal.innerHTML=this.value+" (m/s)<sup>2</sup>";
+    speedVar=parseFloat(this.value);
+    for (var i=0; i<ouProcess.length ; i++){
+      ouProcess[i].A=IDM_a*Math.sqrt(speedVar)/IDM_v0;
+    }
+  }
+}
+
 
 // truck uphill steady-state maxSpeed slider
 

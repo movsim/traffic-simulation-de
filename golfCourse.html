@@ -98,7 +98,7 @@
   <canvas id="canvas" 
           onmouseenter="handleMouseEnter(event)"
           onmousemove="handleMouseMove(event)"
-          onmousedown="handleMouseDown(event)"
+          onmousedown="handleMouseDown_golfCourse(event)"
           onmouseup="handleMouseUp(event)" 
           onclick="handleClick_golfCourse(event)"
           onmouseout="cancelActivities(event)"
@@ -161,15 +161,22 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td class="important">Inflow</td>
+  <td>Traffic</td>
   <td> <input id="slider_qIn" type="range" 
-              min="0" max="30" step="1"></td>
+              min="0" max="20" step="1"></td>
   <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Speed Variance</td>
+  <td> <input id="slider_speedVar" type="range" 
+              min="0" max="2" step="0.1"></td>
+  <td> <div id="slider_speedVarVal"></div> </td>
 </tr>
 
 
 <tr>
-  <td>Timewarp</td>
+  <td>Timelapse</td>
   <td> <input id="slider_timewarp" type="range" 
               min="30" max="300" step="1"></td>
   <td> <div id="slider_timewarpVal"></div> </td>
@@ -261,6 +268,7 @@
 <!-- ########################################################## -->
 
 <script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
+<script src="js/random.js"></script> <!-- own stochastic vars/processes-->
 
 <script src="js/timeView.js" type="text/javascript"></script>
 <script src="js/media.js" type="text/javascript"></script>

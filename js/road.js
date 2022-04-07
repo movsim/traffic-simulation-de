@@ -4438,6 +4438,7 @@ have special appearance according to
                   !Need to define (xObs,yObs) separately since other links
                   such as onramps may be drawn relatively to the position
                   of the actual link (e.g. mainroad)
+@param upright:   (optional) if image moves to the left, turned by PI
 
 @return draw into graphics context ctx (defined in calling routine)
 */
@@ -4447,7 +4448,8 @@ have special appearance according to
 
 road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 				     speedmin,speedmax,umin,umax,
-				     movingObs, uObs, xObs, yObs){
+				     movingObs, uObs, xObs, yObs,
+				     upright){
 
   // select trajectories (non-default only if turning left or right or
   // in roundabout)
@@ -4491,7 +4493,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
       var testTraj=this.getTraj(this.veh[i]); 
       this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
 			 speedmin,speedmax,[this.usedTraj_x,this.usedTraj_y],
-			 xOffset,yOffset,0);
+			 xOffset,yOffset,upright);
 
       if(false){
 	//if(this.veh[i].id==209){
@@ -4517,12 +4519,6 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 /*
 @param i:           Vehicle index to be drawn
 @param carImg, etc: see above at drawVehicles
-@param otherRoad:  another road (mandatory because of obscure js working): 
-                   use trajectory of that road instead of own
-                   if not yet completely changed lane (optically)
-                    - useful for roundabout scenario
-                    - just enter "this" if no other road desired
-@param uOffset:    opt: use traj of other road at u+uOffset (default=0)
 @class level:      If attribute this.drawVehIDs==true, 
                    draw veh IDs to the right of the vehicle
 */
@@ -4531,7 +4527,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 
 road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 				    speedmin,speedmax,traj,
-				    xOffset,yOffset,uOffset){
+				    xOffset,yOffset,upright){
 
   var drawID=(typeof(displayIDs)==='undefined') ? false : displayIDs; 
   var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
@@ -4571,7 +4567,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
   var obstacleImgIndex=(this.veh[i].isSpecialVeh())
     ? (this.veh[i].id-49) % obstacleImgs.length : 0;
     
-  if(type==="obstacle"){
+  if((type==="obstacle")||(upright==true)){
 	    if((phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){
 		  phiVeh-=Math.PI;}
 	    if(obstacleImgIndex!=0){ // index 0: black bar for ramp ends, OK
@@ -4602,25 +4598,30 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 
     // (4) draw vehicle as image
 
-    var obstacleImg;
-    if(type==="obstacle"){
+  var obstacleImg;
+  if(type==="obstacle"){
 	      obstacleImg=obstacleImgs[obstacleImgIndex];
-    }
+  }
 				
-    vehImg=(type==="car")
+  vehImg=(type==="car")
 	      ? carImg : (type==="truck")
 	      ? truckImg : obstacleImg;
-    ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
-			   xCenterPix, yCenterPix);
-    ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
-			vehLenPix,vehWidthPix);
+  ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
+		   xCenterPix, yCenterPix);
+  if(upright&&(phiRoad>0.5*Math.PI)&&(phiRoad<1.5*Math.PI)){
+    ctx.setTransform(-cphiVeh, +sphiVeh, +sphiVeh, cphiVeh,
+		     xCenterPix, yCenterPix);
+  }
+    
+  ctx.drawImage(vehImg, -0.5*vehLenPix, -0.5*vehWidthPix,
+		vehLenPix,vehWidthPix);
 
 
     // (5) draw semi-transp box of speed-dependent color 
     //     over the images
     //     (different size of box because of mirrors of veh images)
 
-    if(type!="obstacle"){
+  if((type!="obstacle")&&(speedmax>1e-10)){ // no box if speedmin=speedmax=0
         var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
         var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
         var speed=this.veh[i].speed;
