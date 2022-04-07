@@ -526,8 +526,8 @@ function updateSim(){
     // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
+    mainroad.calcAccelerations(); 
+    mainroad.changeLanes();       //!!! ideally do MOBIL with determ accel
     mainroad.updateSpeedPositions();
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow

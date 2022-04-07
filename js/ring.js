@@ -277,7 +277,7 @@ function updateSim(){
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
+    mainroad.changeLanes();      //!!! ideally do MOBIL with determ accel    
     mainroad.updateSpeedPositions();
 
     //if(itime<2){mainroad.writeVehicleLongModels();}

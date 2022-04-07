@@ -566,7 +566,11 @@ function handleClick_golfCourse(event){
   if(findResults[0]){
     if(findResults[2]<distMax){
       vehPerturbed=findResults[1];
-      console.log("allow golfer group id ",vehPerturbed.id," to overtake");
+      vehPerturbed.canOvertakeGolf=!(vehPerturbed.canOvertakeGolf); // toggle
+      vehPerturbed.dt_overtakeGolf=0;
+      console.log("golfer group id ",vehPerturbed.id,
+		  ((vehPerturbed.canOvertakeGolf) ? "can" : "cannot"),
+		  " overtake");
     }
   }
 }

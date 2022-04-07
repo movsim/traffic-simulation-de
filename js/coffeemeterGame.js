@@ -663,7 +663,7 @@ function update(){
 	for (var iveh=0; iveh<mainroad.veh.length; iveh++){
 	    if(mainroad.veh[iveh].type==="truck"){
 		console.log("iveh=",iveh,
-			    " LCmodel=",mainroad.veh[iveh].LCModel);
+			    " LCModel=",mainroad.veh[iveh].LCModel);
 	    }
 	}
     }

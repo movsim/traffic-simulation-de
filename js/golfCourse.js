@@ -20,7 +20,7 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 //const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
-drawVehIDs=true; // defined in control_gui.js
+drawVehIDs=false; // defined in control_gui.js
 //drawRoadIDs=false; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
@@ -39,11 +39,19 @@ IDM_v0=1;
 IDM_a=0.05; // a*dt=a*timewarp/fps<=a*300/30=4a must be <v0/2=1;
 IDM_b=0.1;
 IDM_T=30;
-
+IDM_s0=30;
 speedVar=0.5;
 density=0; 
 
-MOBIL_bBiasRight_car=20;
+// LCModelCar constructed in control_gui.js out of this and set as standard
+// in mainroad.veh[i].LCModel for all cars (=all vehicles) by deep copy
+
+var testLongModel=new ACC(IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b); // to get bmax
+MOBIL_bBiasRight_car=2*testLongModel.bmax;
+MOBIL_bSafe=2*IDM_a;
+MOBIL_bSafeMax=20*IDM_a;
+MOBIL_p=0;
+MOBIL_bThr=0.1*IDM_a;
 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "groups/h");
@@ -425,6 +433,13 @@ function updateSim(){
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
 
+  // because longModelCar is set to standard value  when changing
+  // a parameter slider ("updateModels()") I have to revert to
+  // zero setting used here
+  // !!!! change concept, introduce explicitly in ACC model
+  // and provide calcAccDet function for use in MOBIL
+  
+  longModelCar.noiseAcc=0; 
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
@@ -438,13 +453,60 @@ function updateSim(){
   // (here more responsive than in drawSim)
 
 
+  
+  // (2 golf special) allow overtaking for some cars/golf groups: 
+  // test for attributes incepted in canvas_gui->handleClick_golfCourse
+  //!!! BEFORE calcAccelerations because models reset every timestep
+
+  var dtmax_overtakeGolf=600;  // after 600 s, overtaking ability revoked
+
+  for(var i=0; i<mainroad.veh.length; i++){
+    subject=mainroad.veh[i];
+
+    if(subject.canOvertakeGolf){
+      subject.dt_overtakeGolf+=dt; 
+      if(subject.dt_overtakeGolf>dtmax_overtakeGolf){
+	subject.canOvertakeGolf=false;
+	subject.dt_overtakeGolf=0;
+      }
+    }
+    
+    subject.LCModel.bBiasRight=(subject.canOvertakeGolf)
+      ? -10*MOBIL_bThr : MOBIL_bBiasRight_car;
+
+    // longitudinally boost overtaking Golf group
+    
+    subject.longModel.a=(subject.canOvertakeGolf)
+      ? 2*IDM_a : IDM_a;
+    subject.longModel.v0=(subject.canOvertakeGolf)
+      ? 1.5*IDM_v0 : IDM_v0;
+
+    if(false){
+      console.log(
+	"vehicle ",subject.id,
+	" t=",time,
+	" canOvertakeGolf=",subject.canOvertakeGolf,
+	" dt_overtakeGolf=",subject.dt_overtakeGolf,
+	" LCModel.bBiasRight=",subject.LCModel.bBiasRight.toFixed(2));
+    }
+  }
+
+  
 
     // (3) do central simulation update of vehicles
 
   mainroad.updateLastLCtimes(dt);
   mainroad.calcAccelerations();
 
-  // add accel fluctuations
+  console.log("After calcAcc:"); mainroad.writeVehicleLongModels();
+  
+
+  mainroad.changeLanes();
+
+  // (3 golf special)
+  // add accel fluctuations (Golf special) AFTER lane change because
+  // otherwise fluctated acc is compared with
+  // non-fluctuated acc for target acc
 
   for(var i=0; i<ouProcess.length; i++){
     ouProcess[i].update(dt);
@@ -461,7 +523,6 @@ function updateSim(){
     }
   }
   
-  mainroad.changeLanes();         
   mainroad.updateSpeedPositions();
   mainroad.updateBCdown();
   mainroad.updateBCup(qIn,dt); // argument=total inflow

@@ -38,6 +38,17 @@ function vehicle(length, width, u, lane, speed, type){
     this.dt_lastPassiveLC=10;
   this.acc=0;
 
+  // only for golfCourse simulation (cannot incept new attribute from outside)
+  // if it will be needed for more applications (such as this.dt_LC etc)
+  // generalize it to
+  // this.stateActive=[]; (this.canOvertakeGolf would be this.stateActive[0])
+  // this.dt_stateActive=[]; (active time can be triggered to reset it)
+  // of course, other events (e.g., reaching a certain lain)
+  // can also be used to revert
+  
+  this.canOvertakeGolf=false; // only for golfCourse simulation
+  this.dt_overtakeGolf=0;     // cannot incept new attribute from outside
+
   this.conflictsExist=false; // for intersections: road.connect
     this.iLead=-100;
     this.iLag=-100;

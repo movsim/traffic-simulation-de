@@ -170,9 +170,13 @@ function ACC(v0,T,s0,a,b){
   this.b=b;
 
   this.cool=0.90; // !!also apply to copy constructor
-  this.noiseAcc=0.3; // ad-hoc accel noise per step to avoid some artifacts
-                       //!!! no random walk noiseAcc propto sqrt(Qacc*dt)
-                       // implemented!!
+
+  // ad-hoc accel noise per step to avoid some artifacts
+  // !!! no random walk noiseAcc propto sqrt(Qacc*dt) implemented!!
+  // !!!! can interfere with MOBIL!
+  // consider implementing calcAccDet for MOBIL use
+  this.noiseAcc=0.3;
+  
   this.alpha_v0=1; // multiplicator for temporary reduction
 
   this.speedlimit=1000; // if effective speed limits, speedlimit<v0  
@@ -190,6 +194,8 @@ reference-side effects
 
 @param already defined longModel (at the moment, IDM or ACC)
 @return:      IDM instance (constructor)
+
+usage: ACC2=new ACC(); ACC2.copy(ACC1);
 
 */
 
@@ -443,9 +449,14 @@ the criterion here is a rather small critical acceleration *change*
                   the changing by more than a very small amount
 */
 
-MOBIL.prototype.respectPriority=function(accLag,accLagNew){
+// to be used in connection with new, e.g., at inflow:
+// LCModel2=new MOBIL(); LCModel2.copy(LCModel1)
 
-    if(this.targetLanePrio){
-	return(accLag-accLagNew>0.1);
-    }
+MOBIL.prototype.copy=function(LCModel){
+  this.bSafe=LCModel.bSafe;
+  this.bSafeMax=LCModel.bSafeMax; 
+  this.p=LCModel.p;
+  this.bThr=LCModel.bThr;
+  this.bBiasRight=LCModel.bBiasRight;
 }
+

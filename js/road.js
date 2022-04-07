@@ -543,11 +543,15 @@ road.prototype.writeVehicleLongModels= function(umin,umax) {
 		    +"  id="+this.veh[i].id
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
-		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
-		    +"  v0="+parseFloat(this.veh[i].longModel.v0).toFixed(1)
+		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(3)
+		    +"  v0="+parseFloat(this.veh[i].longModel.v0).toFixed(3)
 		    +"  T="+parseFloat(this.veh[i].longModel.T).toFixed(1)
-		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(1)
-		    +"  acc="+parseFloat(this.veh[i].acc).toFixed(1)
+		    +"  s0="+parseFloat(this.veh[i].longModel.s0).toFixed(3)
+		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(3)
+		    +"  b="+parseFloat(this.veh[i].longModel.b).toFixed(3)
+		    +"  noiseAcc="
+		    +parseFloat(this.veh[i].longModel.noiseAcc).toFixed(3)
+		    +"  acc="+parseFloat(this.veh[i].acc).toFixed(3)
 		    +"");
       }
   }
@@ -569,9 +573,9 @@ road.prototype.writeVehicleLCModels= function() {
 		    +" u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		    +" v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		    +" speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
-		    +" LCmodel.bBiasRight="
+		    +" LCModel.bBiasRight="
 		    +parseFloat(this.veh[i].LCModel.bBiasRight).toFixed(1));
-                   // +" LCmodel=",this.veh[i].LCModel); //DOS console
+                   // +" LCModel=",this.veh[i].LCModel); //DOS console
     }
 }
 
@@ -591,7 +595,7 @@ road.prototype.writeTrucksLC= function() {
 		    +"  lane="+this.veh[i].lane
 		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(1)
 		    +"  acc="+parseFloat(this.veh[i].acc,10).toFixed(1)
-		    +"  LCmodel.bBiasRight="
+		    +"  LCModel.bBiasRight="
 		    +parseFloat(this.veh[i].LCModel.bBiasRight).toFixed(1)
 		    +"");
     }}
@@ -2104,8 +2108,9 @@ road.prototype.doChangesInDirection=function(toRight){
   var log=false;
 
 
-if(log&&toRight){console.log("changeLanes: before changes to the right");}
-if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
+  if(false){console.log("\nchangeLanes: before changes to the ",
+		       ((toRight) ? "right" : "left"));
+	  }
 
 // outer loop over all vehicles of a road; filter for regular vehicles
 
@@ -2208,17 +2213,21 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
          // only test output
 
          //if(MOBILOK&&(this.veh[i].id===107)){
-        if(false){
+        //if(true){
+	if(false){
+        //if(MOBILOK){
         //if(this.veh[i].id==206){
 
-	  console.log("determining MOBILOK by LCmodel.realizeLaneChange:",
-		      " acc=",acc.toFixed(1)," accNew=",accNew.toFixed(1),
-		      " accLagNew=",accLagNew.toFixed(1)," toRight=",toRight,
-		      " bBiasRight=",
-		      this.veh[i].LCModel.bBiasRight.toFixed(1),
-		      " MOBILOK=",MOBILOK);
+	  console.log(
+	    "vehicle id",this.veh[i].id,
+	    " LCModel.realizeLaneChange:",
+	    " acc=",acc.toFixed(3)," accNew=",accNew.toFixed(3),
+	    " accLagNew=",accLagNew.toFixed(3)," toRight=",toRight,
+	    " bThr=",this.veh[i].LCModel.bThr.toFixed(3),
+	    " bBiasRight=",this.veh[i].LCModel.bBiasRight.toFixed(3),
+	    " MOBILOK=",MOBILOK);
 
-	  if(false){
+	  if(true){
 	     var s=this.veh[iLead].u-this.veh[iLead].len-this.veh[i].u;
 	     var accLead=this.veh[iLead].acc;
 	     var speed=this.veh[i].speed;
@@ -2226,27 +2235,27 @@ if(log&&(!toRight)){console.log("changeLanes: before changes to the left");}
 	     var accCalc=this.veh[i].longModel.calcAcc(
 		 s,speed,speedLead,accLead);
 	     console.log(
-		 "\n  change lanes: vehicle id",this.veh[i].id,
-		 " type ",this.veh[i].type,
-		 " from lane ",this.veh[i].lane,
-	       " to lane",newLane,
-	       " \n  leadOld id: ",this.veh[iLead].id,
+	       "details t=",time.toFixed(1),
+	       " this.veh[i].longModel.noiseAcc=",
+	       this.veh[i].longModel.noiseAcc.toFixed(3),
+	       ":\n",
+	       "  leadOld id: ",this.veh[iLead].id,
 	       " leadNew:",this.veh[iLeadNew].id,
 	       " lagNew:",this.veh[iLagNew].id,
-		 "\n  u=",parseFloat(this.veh[i].u).toFixed(1),
-		 " s=",parseFloat(s).toFixed(1),
-		 " speed=",parseFloat(speed).toFixed(1),
-		 " speedLead=",parseFloat(speedLead).toFixed(1),
-		 " accLead=",parseFloat(accLead).toFixed(1),
-		 " acc=",parseFloat(this.veh[i].acc).toFixed(1),
-		 " accNew=",parseFloat(accNew).toFixed(1),
-		 //" accCalc=",parseFloat(accCalc).toFixed(1),
-		 "\n  longModel=",this.veh[i].longModel,
-	       "\n  veh[iLead]=",this.veh[iLead],
+		 "\n  u=",parseFloat(this.veh[i].u).toFixed(3),
+		 "  s=",parseFloat(s).toFixed(3),
+		 " speed=",parseFloat(speed).toFixed(3),
+		 " speedLead=",parseFloat(speedLead).toFixed(3),
+		 " accLead=",parseFloat(accLead).toFixed(3),
+		 " acc=",parseFloat(this.veh[i].acc).toFixed(3),
+		 " accNew=",parseFloat(accNew).toFixed(3),
+		 //" accCalc=",parseFloat(accCalc).toFixed(3),
+		 //"\n  longModel=",this.veh[i].longModel,
+	       //"\n  veh[iLead]=",this.veh[iLead],
 	       " MOBILOK=",MOBILOK,
 		 ""
 	     );
-	    this.writeVehicles();
+	    //this.writeVehicles();
 	  }
 
 	}
@@ -3896,6 +3905,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
     if(success){
       var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
+      var LCModelNew=(vehType==="car") ? LCModelCar : LCModelTruck;
       var uNew=0;
 
       //!!! MT 2019-09 hack since otherwise veh enter too fast 
@@ -3907,6 +3917,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
  
       if(deepCopying){
         vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+        vehNew.LCModel=new MOBIL(); vehNew.LCModel.copy(LCModelNew);
       }
       else{vehNew.longModel=longModelNew;}
 
@@ -4035,8 +4046,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
       if(this.veh[i].isRegularVeh()){
         this.veh[i].longModel.copy((this.veh[i].type === "car")
 				   ? longModelCar : longModelTruck);
-        this.veh[i].LCModel=(this.veh[i].type === "car")
-	  ? LCModelCar : LCModelTruck;
+        this.veh[i].LCModel.copy((this.veh[i].type === "car")
+				 ? LCModelCar : LCModelTruck);
       }
       if(false){
         console.log("updateModelsOfAllVehicles: type=",this.veh[i].type,
@@ -4326,7 +4337,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       var roadImg=(iSegm%nSegmLine<nSegmLine/2) ? roadImg1 : roadImg2;
       ctx.drawImage(roadImg, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 
-      if(itime==1){
+      if(false){
+      //if(itime==1){
       //if((this.roadID==2)&&(iSegm==this.nSegm-4)){
         console.log(
 	  "road.draw: ID=",this.roadID," iSegm=",iSegm,
