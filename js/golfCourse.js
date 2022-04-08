@@ -384,13 +384,37 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  // (1) update times and, if canvas change, 
-  // scale and, if smartphone<->no-smartphone change, physical geometry
-
-  
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
+  
+  // (0) do some tests during development
 
+  //if(false){
+  if(itime==1){
+    // tests u-shape with new generic algorithm
+    var r=200;
+    var x0=1000;
+    var y0=r;
+    var phi0=Math.PI;
+    var du=[x0-r,Math.PI*r,x0-r]; 
+    var curv=[0,1./r,0];
+
+    var curvePoints=traj_precalc(x0,y0,phi0,du,curv);
+    console.log("itime=",itime," time=",time," after traj_precalc:",
+	       "\ncurvePoints=",curvePoints,
+	       "");
+    
+    for(var i=0; i<50; i++){
+      var u=50*i;
+      console.log("u=",u," trajFromPoints(u,curvePoints)=",
+		  trajFromPoints(u,curvePoints));
+    }
+  }
+
+  
+
+  
+  //console.log("time=",time);
   if(false){// test random.js
   //if(itime==1){// test random.js
     var wiener=new Wiener(dt);
@@ -406,7 +430,9 @@ function updateSim(){
     alert("stop for test");
   }
 
-  
+
+  // (1) update scales
+
 
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
