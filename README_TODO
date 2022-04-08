@@ -1,3 +1,7 @@
+(2022-04) General: all "!!!" or "!!!!" are TODOs
+
+(2022-04)
+//!!!! showInfo change to showInfoString() plus strings defined inline or as extra .js scripts to be included: works also locally. See golfCourse.js. Also the command "showInfoString should be placed in control_gui.js;
 
 (2019-10) neue version ok, nur Info-Texte updaten!
 

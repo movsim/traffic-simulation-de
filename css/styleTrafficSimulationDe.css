@@ -413,9 +413,9 @@ ul.noindent {   /* then in html <ul class="noindent">...</ul>*/
 }
 
 #infotext{ /* inside #sliders, hence no positional info*/
-  border:1px solid black; /* 1px with frame */
+  border:0px solid black; /* 1px with frame */
   width: 44vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-  height: 27vmin;
+  /*height: 27vmin;*/
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -718,12 +718,12 @@ td.important{
 
 
 #infotext{
-  border:1px solid black;
+  border:0px solid black;
   position: absolute;  
   left: 51vmin;
   width: 42vmin; 
   top: -8vmin;
-  height: 27vmin;
+  /*height: 27vmin;*/
   text-align: left;
   padding-top: 0vmin;
   padding-left: 2vmin;
@@ -927,7 +927,7 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 /* (6) smartphone landscape: infotext */
 #infotext{
     width: 80vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-    height: 60vmin;
+    /*height: 60vmin;*/
     padding-left: 7vmin;
     overflow:auto;
 }
@@ -1043,7 +1043,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
   top:     0vmin; /* relative to sliders etc */
   left:     2vmin;
     width: 80vmin; /* DOS with calc(98.0vw-121.0vmin);*/
-    height: 60vmin;
+    /*height: 60vmin;*/
     padding-left: 7vmin;
     overflow:auto;
 }

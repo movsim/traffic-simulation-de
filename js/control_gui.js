@@ -343,9 +343,9 @@ function showInfo(){
 
 // w/o scrollTo, the page is not shown at top, even with html#name mechanism!
 
-function showHTMLfile(htmlfile){
-    $("#infotext").load(htmlfile);$("#infotext").scrollTop(0);
-}
+//function showHTMLfile(htmlfile){
+//    $("#infotext").load(htmlfile);$("#infotext").scrollTop(0);
+//}
 
 /*#########################################################
  lane add/subtract callbacks

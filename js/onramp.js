@@ -782,7 +782,9 @@ function main_loop() {
 //############################################
 
 console.log("first main execution");
-showInfo();
+
+showInfo();//!!!! change to showInfoString() plus strings defined inline or as extra .js scripts to be included: works also locally. See golfCourse.js. Also the command "showInfoString should be placed in control_gui.js;
+
 
 var myRun=setInterval(main_loop, 1000/fps);
 

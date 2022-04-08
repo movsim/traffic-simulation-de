@@ -50,7 +50,7 @@
 </div>
 
 <div id="infoDiv"><img width="100%" 
-     src="figs/infoBlue.png" onclick="showInfo()"/>
+		       src="figs/infoBlue.png" onclick="showInfoString()"/>
 </div>
 
 
@@ -157,7 +157,7 @@
 
 <!-- ######################################################## -->
 <!--<img src="figs/Traffic_Flow_and_General.png" width="65%"/>-->
-<h3>Traffic Flow and General</h3>
+<h3>Traffic Control</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
@@ -170,14 +170,6 @@
 </tr>
 
 <tr>
-  <td>Speed Variance</td>
-  <td> <input id="slider_speedVar" type="range" 
-              min="0" max="2" step="0.1"></td>
-  <td> <div id="slider_speedVarVal"></div> </td>
-</tr>
-
-
-<tr>
   <td>Timelapse</td>
   <td> <input id="slider_timewarp" type="range" 
               min="30" max="300" step="1"></td>
@@ -188,7 +180,7 @@
 
 <!-- ######################################################## -->
 <!--<img src="figs/Car-Following_Behavior.png" width="60%"/>-->
-<h3>Car-Following Behavior</h3>
+<h3>Behavior Control</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
@@ -199,6 +191,14 @@
               min="1" max="4" step="0.1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
+
+<tr>
+  <td>Speed Variance</td>
+  <td> <input id="slider_speedVar" type="range" 
+              min="0" max="2" step="0.1"></td>
+  <td> <div id="slider_speedVarVal"></div> </td>
+</tr>
+
 
 <tr>
   <td>Time Gap T</td>
@@ -243,6 +243,7 @@
 <!-- language switching
 <!-- ############################################## -->
 
+<!--
 <div id="infoFlags">
 <a href = "golfCourse.html">
  <img src="figs/flagUSA.png" width="45%" />
@@ -252,7 +253,7 @@
  <img src="figs/flagGerman.png" width="45%" />
 </a>
 </div>
-
+-->
 
 
 <!-- ############################################## -->

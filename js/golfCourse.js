@@ -133,7 +133,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 1000 : 1400; // also adapt in updateDimensions
+var refSizePhys=(isSmartphone) ? 1200 : 2000; // also adapt in updateDimensions
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
                               // the higher, the longer sim window
@@ -182,7 +182,7 @@ var mainroadLen=arcLen+2*straightLen;
 
 function updateDimensions(){ // if viewport or sizePhys changed
   console.log("in updateDimensions");
-  refSizePhys=(isSmartphone) ? 1000 : 1400; // also adapt in definition above
+  refSizePhys=(isSmartphone) ? 1200 : 2000; // also adapt in definition above
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
@@ -251,11 +251,11 @@ trajNet[0]=traj;
 //###################################################
 
 
-var laneWidth=70; // remains constant => road becomes more compact for smaller
+var laneWidth=100; // remains constant => road becomes more compact for smaller
 
 
-var car_length=50; // car length in m
-var car_width=90; // car width in m
+var car_length=100; // car length in m
+var car_width=100; // car width in m
 var truck_length=90; // irrelevant but needed in road.js
 var truck_width=30; // irrelevant but needed in road.js
 
@@ -498,7 +498,7 @@ function updateSim(){
   mainroad.updateLastLCtimes(dt);
   mainroad.calcAccelerations();
 
-  console.log("After calcAcc:"); mainroad.writeVehicleLongModels();
+  //console.log("After calcAcc:"); mainroad.writeVehicleLongModels();
   
 
   mainroad.changeLanes();
@@ -702,6 +702,29 @@ function drawSim() {
 } // drawSim
 
  
+//############################################
+// dynamic infotext
+// since jquery stuff does not work locally, fill directly
+// strings with innerHTML
+// newlines not allowed in infoString but can escape them\ for readability
+//############################################
+
+var infoString=[];
+infoString[0]=
+  "<h1>Golf Course</h1>\
+<ul>\
+<li>The light green area symbolizes an about 5500 m long Golf course (mouse position indicated)</li>\
+<li>Groups of players (one symbol) start at an rate (groups per hour) adjustable by the top slider</li>\
+<li>When not interrupted, the golfers advance at a maximum speed adjustable by the first \"Behaviour\" slider</li>\
+<li>Some groups intermittently slow down or stop for reasons such as searching off-terrain Golf balls. This delay can be controlled with the second behavioural slide</li>\
+<li>The minimum distance the teams keep from each other can be controlled by the \"T\" slider</li>\
+Depending on the traffic, other Golfers pile up</li>\
+<li>Normally, Golfers are not allowed to overtake. However, by clicking on a team symbol waiting behind a sluggish team, you allow to override this rule!</li>\
+</ul>"
+
+function showInfoString(){
+  document.getElementById("infotext").innerHTML=infoString[0];
+}
 
 
 
@@ -727,7 +750,10 @@ function main_loop() {
 //############################################
 
 console.log("first main execution");
-showInfo();
+
+showInfoString();
 
 var myRun=setInterval(main_loop, 1000/fps);
+
+
 
