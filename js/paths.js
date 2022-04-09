@@ -59,6 +59,16 @@ function update_v_dvdt_optical(vehicle){
 
 
 function traj_precalc(x0,y0,phi0,du,curv){
+
+  var debug=false;
+  if(debug){
+    console.log(
+      "in traj_precalc: x0=",x0," y0=",y0," phi0=",phi0,
+      "\n  du=",du,
+      "\n  curv=",curv);
+  }
+
+  
   var up=[]; // arc length at the stitching points (always lower-u end)
   var phip=[];
   var xp=[]; // stitching point coordinates
@@ -71,10 +81,11 @@ function traj_precalc(x0,y0,phi0,du,curv){
   for (var i=0; i<du.length; i++){
     up[i+1]=up[i]+du[i];
     phip[i+1]=phip[i]+curv[i]*du[i];
-
-    // straight line
+    var x=0;
+    var straightSegm=(Math.abs(curv[i])<1e-6); // straight segment
+    var r=(straightSegm) ? 1e6 : 1./curv[i];
     
-    if(Math.abs(curv[i]<1e-6)){
+    if(straightSegm){
       xp[i+1]=xp[i]+du[i]*Math.cos(phip[i]);
       yp[i+1]=yp[i]+du[i]*Math.sin(phip[i]);
       xc[i]=1e6; // not used
@@ -84,25 +95,40 @@ function traj_precalc(x0,y0,phi0,du,curv){
     // arc segment
     
     else{
-      var r=1./curv[i]; // can be positive (left turning) or negative
       xc[i]=xp[i]   - r*Math.sin(phip[i]);
-      yc[i]=xp[i]   + r*Math.cos(phip[i]);
+      yc[i]=yp[i]   + r*Math.cos(phip[i]);
       xp[i+1]=xc[i] + r*Math.sin(phip[i+1]);
       yp[i+1]=yc[i] - r*Math.cos(phip[i+1]);
     }
+
+    if(debug){
+      console.log("i=",i,
+		  " straightSegm=",straightSegm,
+		  " r=",r.toFixed(0),
+		  " up[i+1]=",up[i+1].toFixed(0),
+		  " phip[i+1]=",phip[i+1].toFixed(2),
+		  " xp[i+1]=",xp[i+1].toFixed(0),
+		  " yp[i+1]=",yp[i+1].toFixed(0),
+		  " xc[i]=",xc[i].toFixed(0),
+		  " yc[i]=",yc[i].toFixed(0),
+		  "");
+    }
+		  
+
   }
   
-  var trajPoints={u: up, phi: phip, x: xp, y: yp, xCenter: xc, yCenter: yc};
-  return trajPoints;
+  var trajSpec={u: up, phi: phip, x: xp, y: yp, xCenter: xc, yCenter: yc};
+  return trajSpec;
 }
   
-//function fuck1(u,trajP){console.log("fuck");}
+// new format called, e.g.,
+// coords=trajFromSpec(u,trajP); xPhys=coords[0], ...
 
-function trajFromPoints(u,trajP){
+function trajFromSpec(u,trajP){
   
   // find segment iSegm
   // circle centers xc,yc have as many elements as du and curv from input
-  // xp,yp,up,phip one more => take xc or yc as limiter!
+  // xp,yp,up,phip one more => take xc or yc as array upper bound
   
   var iSegm=0;
   while((u>trajP.u[iSegm+1])&&(iSegm+1<trajP.xCenter.length)){iSegm++;} 
@@ -121,6 +147,48 @@ function trajFromPoints(u,trajP){
       - r*Math.cos(trajP.phi[iSegm]+curv*(u-trajP.u[iSegm]));
 
   return [x,y];
+}
+
+
+
+// old format called, e.g.,
+// coords=[trajFromSpec_x(u,trajP),trajFromSpec_y(u,trajP)]
+// or xPhys=trajFromSpec_x(u,trajP)
+
+function trajFromSpec_x(u,trajP){
+  
+  var iSegm=0;
+  while((u>trajP.u[iSegm+1])&&(iSegm+1<trajP.xCenter.length)){iSegm++;} 
+
+  var curv=(trajP.phi[iSegm+1]-trajP.phi[iSegm])
+    /(trajP.u[iSegm+1]-trajP.u[iSegm]);
+  var straightSegm=(Math.abs(curv)<1e-6);
+  var r=(straightSegm) ? 1e6 : 1./curv; // with sign
+
+  var x=(straightSegm)
+      ? trajP.x[iSegm] + (u-trajP.u[iSegm])*Math.cos(trajP.phi[iSegm])
+      : trajP.xCenter[iSegm]
+      + r*Math.sin(trajP.phi[iSegm]+curv*(u-trajP.u[iSegm]));
+
+  return x;
+}
+
+function trajFromSpec_y(u,trajP){
+  
+  var iSegm=0;
+  while((u>trajP.u[iSegm+1])&&(iSegm+1<trajP.xCenter.length)){iSegm++;} 
+
+  var curv=(trajP.phi[iSegm+1]-trajP.phi[iSegm])
+    /(trajP.u[iSegm+1]-trajP.u[iSegm]);
+  var straightSegm=(Math.abs(curv)<1e-6);
+  var r=(straightSegm) ? 1e6 : 1./curv; // with sign
+
+  var y=(straightSegm)
+      ? trajP.y[iSegm] + (u-trajP.u[iSegm])*Math.sin(trajP.phi[iSegm])
+      : trajP.yCenter[iSegm]
+      - r*Math.cos(trajP.phi[iSegm]+curv*(u-trajP.u[iSegm]));
+
+  return y;
 }
 
 			       

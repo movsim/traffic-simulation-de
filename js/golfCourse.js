@@ -39,7 +39,7 @@ IDM_v0=1;
 IDM_a=0.05; // a*dt=a*timewarp/fps<=a*300/30=4a must be <v0/2=1;
 IDM_b=0.1;
 IDM_T=30;
-IDM_s0=30;
+IDM_s0=20;
 speedVar=0.5;
 density=0; 
 
@@ -60,7 +60,7 @@ setSlider(slider_speedVar, slider_speedVarVal, speedVar, 1,
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
 
 setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
-setSlider(slider_IDM_T, slider_IDM_TVal, IDM_T, 0, "s");
+//setSlider(slider_IDM_T, slider_IDM_TVal, IDM_T, 0, "s");
 
 //#########################################################
 // random initialization: do not want dynamically add
@@ -133,7 +133,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 1200 : 2000; // also adapt in updateDimensions
+var refSizePhys=(isSmartphone) ? 1200 : 1800; // also adapt in updateDimensions
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
                               // the higher, the longer sim window
@@ -151,7 +151,7 @@ var hasChangedPhys=true; // physical road dimensions have changed
 
 //<NETWORK>
 //##################################################################
-// init Specification of physical road network geometry
+// Specification of PHYSICAL road network geometry
 // If viewport or refSizePhys changes => updateDimensions();
 //##################################################################
 
@@ -163,26 +163,45 @@ var center_xRel=0.43;
 var center_yRel=-0.54;
 var arcRadiusRel=0.35;
 
+// all the following initialized/redefined in updateDimensions();
 
-// !!slight double-coding with updateDimensions unavoidable since
-// updateDimensions needs roads (mainroad.roadLen ...) 
-// which are not yet defined here
+var center_xPhys;
+var center_yPhys;
 
-var center_xPhys=center_xRel*refSizePhys; //[m]
-var center_yPhys=center_yRel*refSizePhys;
+var arcRadius; 
+var arcLen;
+var hideFirst_m=100; 
+var straightLen;
+var mainroadLen;
 
-var arcRadius=arcRadiusRel*refSizePhys;
-var arcLen=arcRadius*Math.PI;
-var hideFirst_m=100; // hide first hideFirst_m meters of road
-var straightLen=refSizePhys*critAspectRatio-center_xPhys+hideFirst_m;
-var mainroadLen=arcLen+2*straightLen;
+// input for trajSpec=traj_precalc(x0,y0,phi0,du,curv)
+// all defined/redefined in updateDimensions()
 
-// !! slightdouble-coding necessary unless big changes, 
-// I have checked this...
+var x0;
+var y0;
+var phi0;
+var du;
+var curv;
+var trajSpec;
+
+// def trajectories
+
+function traj_x(u){return trajFromSpec_x(u,trajSpec);}
+function traj_y(u){return trajFromSpec_y(u,trajSpec);}
+
+var traj=[traj_x,traj_y];
+
+var trajNet=[];
+trajNet[0]=traj;
+
+// define/redefine geometry, trajectories
+
+hasChangedPhys=true;
+updateDimensions();
 
 function updateDimensions(){ // if viewport or sizePhys changed
   console.log("in updateDimensions");
-  refSizePhys=(isSmartphone) ? 1200 : 2000; // also adapt in definition above
+  refSizePhys=(isSmartphone) ? 1200 : 1800; // also adapt in definition above
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
@@ -196,20 +215,20 @@ function updateDimensions(){ // if viewport or sizePhys changed
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys+hideFirst_m;
-    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; 
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; 
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
 
-  
-    // update positions of fixed obstacles to new road lengths/geometry
-    // (e.g. onramp: ramp via the ref virtualStandingVeh)
-    // see "Specification of logical road network" below
+    x0=center_xPhys+straightLen;
+    y0=center_yPhys+arcRadius;
+    phi0=Math.PI;
 
-    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen;
+    du=[0.20*straightLen,0.25*straightLen,0.50*straightLen,0.25*straightLen,
+	Math.PI*arcRadius,0.46*straightLen,
+	0.5*Math.PI*arcRadius,0.25*straightLen];
+    curv=[0,1.8/arcRadius,-1.8/arcRadius,1.8/arcRadius,
+	  1/arcRadius,0,1/arcRadius,0];
+    trajSpec=traj_precalc(x0,y0,phi0,du,curv);
 
+    mainroadLen=0;
+    for(var i=0; i<du.length; i++){mainroadLen+=du[i];}
   }
   
   if(true){
@@ -220,41 +239,12 @@ function updateDimensions(){ // if viewport or sizePhys changed
 }
 
 
-// def trajectories
 
-function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
-}
-
-function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
-}
-
-var traj=[traj_x,traj_y];
-
-
-var trajNet=[];
-trajNet[0]=traj;
-
-
-//###################################################
 // specification of road width and vehicle sizes
 // remains constant => road becomes more compact for smaller screens
-//###################################################
 
-
-var laneWidth=100; // remains constant => road becomes more compact for smaller
-
-
-var car_length=100; // car length in m
+var laneWidth=100;
+var car_length=80; // car length in m
 var car_width=100; // car width in m
 var truck_length=90; // irrelevant but needed in road.js
 var truck_width=30; // irrelevant but needed in road.js
@@ -262,7 +252,7 @@ var truck_width=30; // irrelevant but needed in road.js
 
 
 //##################################################################
-// Specification of logical road network
+// Specification of LOGICAL road network
 //##################################################################
 
 var isRing=false;  // 0: false; 1: true
@@ -273,7 +263,7 @@ var speedInit=1; // IC for speed
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj,
 		      density, speedInit,fracTruck, isRing);
-mainroad.nSegm=40;
+mainroad.nSegm=60;
 // road network (network declared in canvas_gui.js)
 
 network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
@@ -389,25 +379,30 @@ function updateSim(){
   
   // (0) do some tests during development
 
-  //if(false){
-  if(itime==1){
+  if(false){
+  //if(itime==1){
     // tests u-shape with new generic algorithm
-    var r=200;
-    var x0=1000;
-    var y0=r;
-    var phi0=Math.PI;
-    var du=[x0-r,Math.PI*r,x0-r]; 
-    var curv=[0,1./r,0];
 
-    var curvePoints=traj_precalc(x0,y0,phi0,du,curv);
+    var x0=1000;//center_xPhys+straightLen; // 1000;
+    var y0=-200; //center_yPhys+arcRadius; //r
+    var phi0=Math.PI;
+    var du=[x0-200,Math.PI*200,x0-200]; 
+    var curv=[0,1./200,0];
+
+    var trajSpecTest=traj_precalc(x0,y0,phi0,du,curv);
     console.log("itime=",itime," time=",time," after traj_precalc:",
-	       "\ncurvePoints=",curvePoints,
+	       "\ntrajSpecTest=",trajSpecTest,
 	       "");
     
-    for(var i=0; i<50; i++){
-      var u=50*i;
-      console.log("u=",u," trajFromPoints(u,curvePoints)=",
-		  trajFromPoints(u,curvePoints));
+    for(var i=0; i<20; i++){
+      var u=200*i;
+      console.log("u=",u," trajFromSpec(u,trajSpecTest)=",
+		  trajFromSpec(u,trajSpecTest),
+		  "\n  x=trajFromSpec_x(u,trajSpecTest)=",
+		  trajFromSpec_x(u,trajSpecTest),
+		  " y=trajFromSpec_y(u,trajSpecTest)=",
+		  trajFromSpec_y(u,trajSpecTest),
+		  "");
     }
   }
 
@@ -430,9 +425,9 @@ function updateSim(){
     alert("stop for test");
   }
 
+  
 
   // (1) update scales
-
 
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
@@ -484,7 +479,7 @@ function updateSim(){
   // test for attributes incepted in canvas_gui->handleClick_golfCourse
   //!!! BEFORE calcAccelerations because models reset every timestep
 
-  var dtmax_overtakeGolf=600;  // after 600 s, overtaking ability revoked
+  var dtmax_overtakeGolf=300;  // after 600 s, overtaking ability revoked
 
   for(var i=0; i<mainroad.veh.length; i++){
     subject=mainroad.veh[i];
@@ -630,12 +625,9 @@ function drawSim() {
   }
   
 
-  // (3) draw mainroad and ramp
+  // (3) draw mainroad
   // (always drawn; changedGeometry only triggers making a new lookup table)
 
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-  // here only example for complete args (only in coffeemeterGame relevant
-  // !!! DOS in road.draw, OK in road.drawVehicles
   
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
@@ -654,8 +646,9 @@ function drawSim() {
   }
  
   // (4) draw vehicles
-  //!! all args at and after umin,umax=0,ramp.roadLen are optional
-  // here only example for complete args (only in coffeemeterGame relevant
+  //!! all args at and after umax are optional
+  // but if I want one such as "upright", I must give the others
+  // (relevant in coffeemeterGame, only), too
 
   var upright=true; // golfers shout not be upside down
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
@@ -739,13 +732,12 @@ var infoString=[];
 infoString[0]=
   "<h1>Golf Course</h1>\
 <ul>\
-<li>The light green area symbolizes an about 5500 m long Golf course (mouse position indicated)</li>\
-<li>Groups of players (one symbol) start at an rate (groups per hour) adjustable by the top slider</li>\
-<li>When not interrupted, the golfers advance at a maximum speed adjustable by the first \"Behaviour\" slider</li>\
-<li>Some groups intermittently slow down or stop for reasons such as searching off-terrain Golf balls. This delay can be controlled with the second behavioural slide</li>\
-<li>The minimum distance the teams keep from each other can be controlled by the \"T\" slider</li>\
-Depending on the traffic, other Golfers pile up</li>\
-<li>Normally, Golfers are not allowed to overtake. However, by clicking on a team symbol waiting behind a sluggish team, you allow to override this rule!</li>\
+<li>The light green area symbolizes an about 6000 m long Golf course (mouse position indicated)</li><br>\
+<li>Groups of players (one symbol) start at an rate (groups per hour) adjustable by the top slider</li><br>\
+<li>When not interrupted, the golfers advance at a maximum speed adjustable by the first \"Behaviour\" slider</li><br>\
+<li>Some groups intermittently slow down or stop for reasons such as searching off-terrain Golf balls. This delay can be controlled with the second behavioural slide</li><br>\
+<li> Depending on the traffic, other Golfers pile up</li><br>\
+<li>Normally, Golfers are not allowed to overtake. However, by clicking on a team symbol waiting behind a sluggish team, you allow to override this rule!</li><br>\
 </ul>"
 
 function showInfoString(){
