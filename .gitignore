@@ -16,20 +16,12 @@
 
 
 ## generated files (not info/info_*.html, not *BaWue_ger.html !)
-
-index_ger.html
-offramp_ger.html
-onramp_ger.html
-ring_ger.html
-roadworks_ger.html
-roundabout_ger.html
-routing_ger.html
-uphill_ger.html
+# no longer since otherwise no complete offline package
 
 testOffline
 imgfileList
 
-*_ger.js
+# *_ger.js otherwise, no complete package for offline use (BaWue and german versions)
 *~
 int
 *.bak
