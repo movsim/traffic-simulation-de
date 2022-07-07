@@ -1,7 +1,7 @@
 
 const userCanDropObjects=true;
-//var drawVehIDs=true; // defined in control_gui.js
-//var drawRoadIDs=true; // defined in control_gui.js
+var drawVehIDs=true; // defined in control_gui.js
+var drawRoadIDs=true; // defined in control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
 
@@ -22,7 +22,7 @@ var greenMain=33; //33
 var dt_lastSwitch=0;
 
 
-var nLanes_main=2;
+var nLanes_main=1;
 var nLanes_sec=1;
 var laneCount=nLanes_main+nLanes_sec;
 
@@ -30,8 +30,8 @@ var laneCount=nLanes_main+nLanes_sec;
 
 qIn=390./3600; // 390 inflow to both directional main roads
 q2=250./3600;   // 220 inflow to secondary (subordinate) roads
-fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
-fracLeft=0.; // rest of q2-drivers cross straight ahead
+fracRight=0.1; // fracRight [0-1] of drivers on road 2 turn right
+fracLeft=0.6; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
@@ -54,7 +54,9 @@ setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 setSlider(slider_fracRight, slider_fracRightVal, 100*fracRight, 0, " %");
-//setSlider(slider_fracLeft, slider_fracLeftVal, 100*fracLeft, 0, " %");
+if(typeof(slider_fracLeft) != "undefined"){
+  setSlider(slider_fracLeft, slider_fracLeftVal, 100*fracLeft, 0, " %");
+}
 
 fracTruck=0.15;
 
@@ -578,7 +580,7 @@ function updateSim(){
   }
 
 
-  // checkForCrashes(); //!!!! deactivate for production; many false alarms!!
+  checkForCrashes(); //!!!! deactivate for production; many false alarms!!
   
   // updateSim (1): update time, global geometry, and traffic objects
 
@@ -1651,6 +1653,7 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
 // ####################################################################
 
 function checkForCrashes(){
+  var phimin=0.2;
   //console.log("\nCheck for crashes, time=",time.toFixed(2),":");
   for(var ir1=0; ir1<network.length; ir1++){
     var road1=network[ir1];
@@ -1662,8 +1665,8 @@ function checkForCrashes(){
 	var uc1Phys=veh1.u-0.5*veh1.len;
 	var vc1Phys=road1.laneWidth*(veh1.v-0.5*(road1.nLanes-1));
 	var phi1=road1.get_phi(uc1Phys,traj1);
-	var x1=traj1[0](uc1Phys+ vc1Phys*Math.sin(phi1));
-	var y1=traj1[1](uc1Phys- vc1Phys*Math.cos(phi1));
+	var xc1=traj1[0](uc1Phys) + vc1Phys*Math.sin(phi1); // center
+	var yc1=traj1[1](uc1Phys) - vc1Phys*Math.cos(phi1);
         for(var ir2=0; ir2<network.length; ir2++){
 	  var road2=network[ir2];
 	  for(var i2=0; i2<network[ir2].veh.length; i2++){
@@ -1675,29 +1678,57 @@ function checkForCrashes(){
 	      uc2Phys=veh2.u-0.5*veh2.len;
 	      vc2Phys=road2.laneWidth*(veh2.v-0.5*(road2.nLanes-1));
 	      phi2=road2.get_phi(uc2Phys,traj2);
-	      var x2=traj2[0](uc2Phys+ vc2Phys*Math.sin(phi2));
-	      var y2=traj2[1](uc2Phys- vc2Phys*Math.cos(phi2));
+	      var abscdphi=Math.abs(Math.cos(phi1-phi2));
+	      var abssdphi=Math.abs(Math.sin(phi1-phi2));
+	      var cphi1=Math.cos(phi1);
+	      var sphi1=Math.sin(phi1);
+	      var xc2=traj2[0](uc2Phys) + vc2Phys*Math.sin(phi2);//center
+	      var yc2=traj2[1](uc2Phys) - vc2Phys*Math.cos(phi2);
 	    
+	      var rc21par =Math.abs( (xc2-xc1)*cphi1+(yc2-yc1)*sphi1 );
+	      var rc21perp=Math.abs( (xc2-xc1)*sphi1-(yc2-yc1)*cphi1 );
 
-	      var dist2=Math.pow(x1-x2,2)+Math.pow(y1-y2,2);
-	      
-	      if((dist2<2.25)&&(Math.abs(phi1-phi2)>0.2)){
-	      //if((veh1.id==208)&&(veh2.id==209)){
+	      var intersect_par
+		  =0.5*(veh1.len   + veh2.len*abscdphi+veh2.width*abssdphi);
+	      var intersect_perp
+		  =0.5*(veh1.width + veh2.len*abssdphi+veh2.width*abscdphi);
+
+	      var crashFactor=0.8; // <1=> some grazing accidents ignored
+	      var crit_par=(rc21par<crashFactor*intersect_par);
+	      var crit_perp=(rc21perp<crashFactor*crashFactor*intersect_perp);
+	      var crash=crit_par&&crit_perp;
+
+	      //if((veh1.id==217)&&(veh2.id==220)){// always veh1.id<veh2.id?
+              if(crash||((veh1.id==224)&&(veh2.id==225))){
 		console.log(" t=",time.toFixed(2),
 			    "vehs",veh1.id," and",veh2.id,":",
-			   // "uc1Phys=",uc1Phys.toFixed(1),
-			   // "uc2Phys=",uc2Phys.toFixed(1),
-			    "x1=",x1.toFixed(1),
-			    "x2=",x2.toFixed(1),
-			    "y1=",y1.toFixed(1),
-			    "y2=",y2.toFixed(1),
+			    "uc1Phys=",uc1Phys.toFixed(1),
+			    "uc2Phys=",uc2Phys.toFixed(1),
+			    "vc1Phys=",vc1Phys.toFixed(1),
+			    "vc2Phys=",vc2Phys.toFixed(1),
+			   // "lane1=",veh1.lane,
+			   // "lane2=",veh2.lane,
+			    "xc1=",xc1.toFixed(1),
+			    "xc2=",xc2.toFixed(1),
+			    "yc1=",yc1.toFixed(1),
+			    "yc2=",yc2.toFixed(1),
 			    "phi1=",phi1.toFixed(1),
 			    "phi2=",phi2.toFixed(1),
-			    "dist=",(Math.sqrt(dist2)).toFixed(1),
+			    "rc21par=",rc21par.toFixed(1),
+			    "intersect_par=",intersect_par.toFixed(1),
+			    "rc21perp=",rc21perp.toFixed(1),
+			    "intersect_perp=",intersect_perp.toFixed(1),
+			    "crit_par=",crit_par,
+			    "crit_perp=",crit_perp,
+			   // " phimin=",phimin,
+			    " crash=",crash,
 			   // "road1=",road1.roadID,
 			   // "road2=",road2.roadID,
 			    //"traj2=",traj2,
 			    "");
+	      }
+	      
+	      if(crash){
 		alert("crash of vehs "+veh1.id+" and "+veh2.id);
 	      }
 	    }

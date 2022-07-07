@@ -71,7 +71,7 @@ function playRampMeteringGame(infotextID){ // only called in html
   }
 }
 
-function clearHighscores(){
+function clearHighscores_rampMeteringGame(){
   deleteHighscores("rampMeteringGame_Highscores");
   time=10000;
   nick="The Worst Controller"

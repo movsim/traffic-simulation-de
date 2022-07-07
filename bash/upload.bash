@@ -39,7 +39,7 @@ mkdir $targetDir/figs
 #############################################
 
 
-html_files="impressum.html"  #just start
+html_files="impressum.html clearHighscores.html"  #just start
 
 for proj in $projects; do
   htmlfile="${proj}.html"
