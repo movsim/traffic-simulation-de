@@ -1,6 +1,6 @@
 
-//const userCanDistortRoads=false; //legacy 
-const userCanDropObjects=true;
+const userCanDistortRoads=false; //legacy 
+//const userCanDropObjects=true;
 
 /*######################################################
  Global overall scenario settings and graphics objects
