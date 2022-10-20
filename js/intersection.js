@@ -1,11 +1,19 @@
 
+//#############################################################
+// general ui settings
+//#############################################################
+
 const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
 var drawVehIDs=true; // defined in control_gui.js
 var drawRoadIDs=true; // defined in control_gui.js
-var showCoords=true;  // show logical coords of nearest road to mouse pointer
-                  // definition => showLogicalCoords(.) in canvas_gui.js
-
-
+var debug=false;
 
 
 //#############################################################
@@ -22,19 +30,20 @@ var greenMain=33; //33
 var dt_lastSwitch=0;
 
 
-var nLanes_main=1;
+var nLanes_main=2;
 var nLanes_sec=1;
 var laneCount=nLanes_main+nLanes_sec;
 
 // slider-controlled vars definined in control_gui.js
 
-qIn=390./3600; // 390 inflow to both directional main roads
-q2=250./3600;   // 220 inflow to secondary (subordinate) roads
-fracRight=0.1; // fracRight [0-1] of drivers on road 2 turn right
-fracLeft=0.6; // rest of q2-drivers cross straight ahead
+qIn=600./3600; // 390 inflow to both directional main roads
+q2=400./3600;   // 220 inflow to secondary (subordinate) roads
+fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
+fracLeft=0.; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
 IDM_a=2.0;
+IDM_T=1.0;
 timewarp=3.5;
 
 var mainroadLen=200;              // reference size in m
@@ -52,6 +61,7 @@ setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 setSlider(slider_q2, slider_q2Val, 3600*q2, commaDigits, "veh/h");
 setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+setSlider(slider_IDM_T, slider_IDM_TVal, IDM_T, 1, "s");
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 setSlider(slider_fracRight, slider_fracRightVal, 100*fracRight, 0, " %");
 if(typeof(slider_fracLeft) != "undefined"){
@@ -67,7 +77,7 @@ fracTruck=0.15;
   document.getElementById("contents").clientWidth; .clientHeight;
 ######################################################*/
 
-var scenarioString="Intersection"; //!!! no maintext yet
+var scenarioString="Intersection";
 
 
 var simDivWindow=document.getElementById("contents");
@@ -531,56 +541,27 @@ var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 //############################################
 
 
-function debugVeh(id){
-  for(var ir=0; ir<network.length; ir++){
-    for(var i=0; i<network[ir].veh.length; i++){
-      if(network[ir].veh[i].id==id){
-	  var veh=network[ir].veh[i];
-        console.log("time=",time.toFixed(2), "itime=",itime,
-		      "status of veh id=",veh.id,
-		      " u=",veh.u.toFixed(1),
-		    " lane=",veh.lane," v=",veh.v.toFixed(2),
-		    " speed=",veh.speed.toFixed(1),
-		    " acc=",veh.acc.toFixed(1),
-		     // " veh=",veh,
-		     "");
-	}
-    }
-  }
-}
 
 var time=0;
 var itime=0;
 var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 changeTrafficRules(trafficRuleIndex);
-  
+
+
+var crashinfo=new CrashInfo();
+
 //#################################################################
 function updateSim(){
 //#################################################################
 
-  // general debug filter to find out properties
 
   if(false){
-    var vehID=101;
-    for (var ir=0; ir<network.length; ir++){
-      for(var i=0; i<network[ir].veh.length; i++){
-	if(network[ir].veh[i].id==vehID){
-	  var veh=network[ir].veh[i];
-	  console.log("veh=",veh);
-	  console.log("veh.id= ",veh.id,
-		      "veh.type=",veh.type,
-		     // "veh.isObstacle=",veh.isObstacle,
-		     // "veh.isObstacle()=",veh.isObstacle(),
-		      "veh.isTrafficLight()=",veh.isTrafficLight(),
-		     );
-	}
-      }
-    }
+    debugVeh(211,network);
+    debugVeh(212,network);
   }
-
-
-  checkForCrashes(); //!!!! deactivate for production; many false alarms!!
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
   
   // updateSim (1): update time, global geometry, and traffic objects
 
@@ -648,7 +629,7 @@ function updateSim(){
   }
 
 
-  // updateSim (4): !!! do all the network actions
+  // updateSim (4): do all the network actions
   // (inflow, outflow, merging and connecting)
 
 
@@ -708,6 +689,8 @@ function updateSim(){
   
   // straight  ahead (network[0], [1] need 
   // straight connecting for right prio, route=only one link)
+  // road.connect(targetRoad, uSource, uTarget,
+  // offsetLane, conflicts, opt_maxspeed, opt_targetPrio)
   
   network[0].connect(network[0],
 		     0.5*network[0].roadLen-(2*offsetSec+laneWidth),
@@ -727,6 +710,8 @@ function updateSim(){
 
 
   // turn right
+  // road.connect(targetRoad, uSource, uTarget,
+  // offsetLane, conflicts, opt_maxspeed, opt_targetPrio)//!!! chck targetPrio
 
   network[0].connect(network[5], u05Source, u05Target,
 		     nLanes_sec-nLanes_main, conflicts05,
@@ -743,16 +728,18 @@ function updateSim(){
   network[4].connect(network[1], u41Source, u41Target, 
 		     nLanes_main-nLanes_sec, conflicts41,
 		     maxspeed_turn, (trafficRuleIndex!=1));
-		     //maxspeed_turn, (trafficRuleIndex!=1));
 
-  // turn left (arg after maxspeed is targetPrio)
+  // turn left
+  // road.connect(targetRoad, uSource, uTarget,
+  // offsetLane, conflicts, opt_maxspeed, opt_targetPrio)//!!! chck targetPrio
 
   network[0].connect(network[3], u03Source, u03Target, 
 		     0, conflicts03, maxspeed_turn, false);
 		     //0, conflicts03, maxspeed_turn, (trafficRuleIndex!=1));
 
   network[1].connect(network[5], u15Source, u15Target, 
-		     0, conflicts15, maxspeed_turn, (trafficRuleIndex!=1));
+		     0, conflicts15, maxspeed_turn, false);
+		     //0, conflicts03, maxspeed_turn, (trafficRuleIndex!=1));
 
  
   network[2].connect(network[1], u21Source, u21Target,
@@ -837,7 +824,7 @@ function updateSim(){
 function drawSim() {
 //##################################################
 
-  //if(itime==182){console.log("begin drawsim:"); debugVeh(211);}
+  //if(itime==182){console.log("begin drawsim:"); debugVeh(211,network);}
 
   var movingObserver=false; // relative motion works, only start offset
   var speedObs=2;
@@ -922,7 +909,7 @@ function drawSim() {
     showLogicalCoords(xPixUser,yPixUser);
   }
   
-  //if(itime==182){console.log("end drawsim:"); debugVeh(211);}
+  //if(itime==182){console.log("end drawsim:"); debugVeh(211,network);}
 
 } // drawSim
 
@@ -1076,10 +1063,6 @@ function defineGeometricVariables(nLanes_main,nLanes_sec){
   radiusRight=(2.0+0.5*Math.max(laneCount-3,0))*laneWidth;
   radiusLeft=1.5*radiusRight;
 
-  //radiusRight*=3;//!!!
-  //radiusLeft*=3;
-  
-
   offsetMain=0.5*laneWidth*nLanes_main;
   offsetSec=0.5*laneWidth*nLanes_sec;
   offset20Target=(nLanes_main-0.5)*laneWidth; // dist from inters. y center
@@ -1105,7 +1088,7 @@ function defineGeometricVariables(nLanes_main,nLanes_sec){
   offset21Target=0.5*laneWidth;  // dist from intersection y center
   u21Source=1.0*road2Len;
   u21Target=0.5*mainroadLen-offset21Source-(lenLeftSecMain-radiusLeft);
-  //u21Target=0.5*mainroadLen-offset21Source-(lenLeft-radiusLeft);//!!!!
+  //u21Target=0.5*mainroadLen-offset21Source-(lenLeft-radiusLeft);//!!
   u03Source=0.5*mainroadLen+offset21Source-radiusLeft;
   u03Target=-offset21Target+radiusLeft+radiusRight+offset20Target-lenLeft;
 
@@ -1229,13 +1212,6 @@ function defineGeometricRoadproperties(nLanes_main,nLanes_sec){
 
 
 /* #################################################################
-Defining the conflicts in connecting one link to the next
-Conflict components:
-.roadConflict: the (external) road causing the potential conflict
-.dest:         filters destinations for the external vehicles 
-               possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
-.ucOther:    conflict point for the filtered external vehicles
-.ducExitOwn: conflict point for the vehicles on the subject road
 
 @param nLanes_main,nLanes_sec: The conflict points depend 
                                on the number of lanes
@@ -1245,11 +1221,13 @@ Conflict components:
 Since left-turners also have conflicting paths, some conflicts remain also
 in the presence of traffic lights (just keeping the conflicts will lead to
 gridlocks since secondary road users always "fear" that the waiting 
-mainroad vehicles start off)
+mainroad vehicles may start off)
 
 Note: all conflicts are filtered for the ODs in the simulation, e.g.,
-var conflicts21=[conflict0_up, conflict4_21,conflict5_21];
+var conflicts21=[conflict0_up, conflict4_21, conflict5_21];
 
+See "Defining the basic conflicts" of how the conflict variable (struct-type)
+is defined
 
 ###################################################################
 */
@@ -1385,9 +1363,35 @@ function resolveGridlock(){
 }
 
 
-//################################################################
-function setBasicConflicts(nLanes_main,nLanes_sec){
-//################################################################
+/* #################################################################
+
+Defining the basic conflicts in connecting one link to the next
+as a struct-like variable
+
+The actual conflicts for a given OD and a given intersection control 
+(PriorityRoad, Symmetric, TrafficLights) are subsets of the basic conflicts
+and their symmetric counterparts. They are defined in 
+defineConflicts(.) => defineConflictsPriorityRoad(.) etc
+
+Conflict components:
+.roadConflict: the crossing road causing the potential conflict
+               (merging is handled as pointwise onramp
+.dest:         filters destination links for the vehicles on the 
+               conflicting road possibly leading to a conflict ([]=all)
+.ucOther:      absolute longit (u) conflict position on the conflicting road
+.ducExitOwn:   distance between the conflict point in target-road coords
+               and the entering point on the target road
+               (distinguish between source-road, target-road and 
+                conflicting-road coordinates; source road coords not used
+                for specifying conflict points)
+
+Example for conflicts for OD 21 (left turn northwards->westwards)
+caused by road 0 (straight road eastwards):
+
+  conflict0_21= {roadConflict: network[0], 
+		 dest:         [0,3], //conflict straight-on and left turners
+		 ucOther:      ucOther[3], // about half the road-0 length
+		 ducExitOwn:   ducExitOwn[3]};  // near zero (can be <0)
 
 
   //(1) determine the road-axis u values of the conflicting point
@@ -1396,9 +1400,13 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
   //   and the exit/enter point uTarget
   // at least the half follows from symmetry
 
+//################################################################*/
+
+
+function setBasicConflicts(nLanes_main,nLanes_sec){
   
     // <input>
-  var conflictName=["OD 23, conflicting road 0 (conflict0_up)",
+  var conflictName=["OD 23, conflicting road 0 (conflict0_up)", // up=OD 23
 		    "OD 23, conflicting road 1 (conflict1_up)",
 		    "OD 03, conflicting road 1 (conflict1_03)",
 		    "OD 21, conflicting road 0 (conflict0_21)",
@@ -1533,10 +1541,7 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
 
   // (2b) conflicts by straight-on mainroad vehicles (only for right priority
   // where there are no longer mainroad directions)
-  //!!! road0.connect(road0, uSource, uTarget, ...) with
-  // uSource=uTarget=0.5*road0.roadLen as usual, only w/o lifting/dropping
-  // veh at step 5 (to be implemented)
-
+ 
   // 2*offsetSec+laneWidth: wait one laneWidth upstream of sec road boundary
   // offsetSec: distance of sec road axis to center
   // must be consistent with network[0/1].connect(network[0/1],...)
@@ -1646,97 +1651,3 @@ function setBasicConflicts(nLanes_main,nLanes_sec){
 
 
 
-
-// ####################################################################
-// helper function  using the appropriate trajectory: "true" physical location
-//(!! later from project js in road.js or other central js file)
-// ####################################################################
-
-function checkForCrashes(){
-  var phimin=0.2;
-  //console.log("\nCheck for crashes, time=",time.toFixed(2),":");
-  for(var ir1=0; ir1<network.length; ir1++){
-    var road1=network[ir1];
-    for(var i1=0; i1<network[ir1].veh.length; i1++){
-      var veh1=network[ir1].veh[i1];
-      if(veh1.isRegularVeh()){
-	
-        var traj1=road1.getTraj(veh1);
-	var uc1Phys=veh1.u-0.5*veh1.len;
-	var vc1Phys=road1.laneWidth*(veh1.v-0.5*(road1.nLanes-1));
-	var phi1=road1.get_phi(uc1Phys,traj1);
-	var xc1=traj1[0](uc1Phys) + vc1Phys*Math.sin(phi1); // center
-	var yc1=traj1[1](uc1Phys) - vc1Phys*Math.cos(phi1);
-        for(var ir2=0; ir2<network.length; ir2++){
-	  var road2=network[ir2];
-	  for(var i2=0; i2<network[ir2].veh.length; i2++){
-	    var veh2=network[ir2].veh[i2];
-	  
-	    if((veh2.isRegularVeh())&&(veh1.id<veh2.id)){
-	    
-              var traj2=road2.getTraj(veh2);
-	      uc2Phys=veh2.u-0.5*veh2.len;
-	      vc2Phys=road2.laneWidth*(veh2.v-0.5*(road2.nLanes-1));
-	      phi2=road2.get_phi(uc2Phys,traj2);
-	      var abscdphi=Math.abs(Math.cos(phi1-phi2));
-	      var abssdphi=Math.abs(Math.sin(phi1-phi2));
-	      var cphi1=Math.cos(phi1);
-	      var sphi1=Math.sin(phi1);
-	      var xc2=traj2[0](uc2Phys) + vc2Phys*Math.sin(phi2);//center
-	      var yc2=traj2[1](uc2Phys) - vc2Phys*Math.cos(phi2);
-	    
-	      var rc21par =Math.abs( (xc2-xc1)*cphi1+(yc2-yc1)*sphi1 );
-	      var rc21perp=Math.abs( (xc2-xc1)*sphi1-(yc2-yc1)*cphi1 );
-
-	      var intersect_par
-		  =0.5*(veh1.len   + veh2.len*abscdphi+veh2.width*abssdphi);
-	      var intersect_perp
-		  =0.5*(veh1.width + veh2.len*abssdphi+veh2.width*abscdphi);
-
-	      var crashFactor=0.8; // <1=> some grazing accidents ignored
-	      var crit_par=(rc21par<crashFactor*intersect_par);
-	      var crit_perp=(rc21perp<crashFactor*crashFactor*intersect_perp);
-	      var crash=crit_par&&crit_perp;
-
-	      //if((veh1.id==217)&&(veh2.id==220)){// always veh1.id<veh2.id?
-              if(crash||((veh1.id==224)&&(veh2.id==225))){
-		console.log(" t=",time.toFixed(2),
-			    "vehs",veh1.id," and",veh2.id,":",
-			    "uc1Phys=",uc1Phys.toFixed(1),
-			    "uc2Phys=",uc2Phys.toFixed(1),
-			    "vc1Phys=",vc1Phys.toFixed(1),
-			    "vc2Phys=",vc2Phys.toFixed(1),
-			   // "lane1=",veh1.lane,
-			   // "lane2=",veh2.lane,
-			    "xc1=",xc1.toFixed(1),
-			    "xc2=",xc2.toFixed(1),
-			    "yc1=",yc1.toFixed(1),
-			    "yc2=",yc2.toFixed(1),
-			    "phi1=",phi1.toFixed(1),
-			    "phi2=",phi2.toFixed(1),
-			    "rc21par=",rc21par.toFixed(1),
-			    "intersect_par=",intersect_par.toFixed(1),
-			    "rc21perp=",rc21perp.toFixed(1),
-			    "intersect_perp=",intersect_perp.toFixed(1),
-			    "crit_par=",crit_par,
-			    "crit_perp=",crit_perp,
-			   // " phimin=",phimin,
-			    " crash=",crash,
-			   // "road1=",road1.roadID,
-			   // "road2=",road2.roadID,
-			    //"traj2=",traj2,
-			    "");
-	      }
-	      
-	      if(crash){
-		alert("crash of vehs "+veh1.id+" and "+veh2.id);
-	      }
-	    }
-	  }
-	}
-	  
-	  
-      }
-    }
-  }
-}

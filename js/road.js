@@ -2371,11 +2371,11 @@ road.prototype.doChangesInDirection=function(toRight){
                          back vehicles (bsafe)
 
 each conflict has the components
-.roadConflict: the (external) road causing the potential conflict
-.dest:         filters destinations for the external vehicles 
-               possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
-.ucOther:    conflict point for the filtered external vehicles on ext road
-.ducExitOwn: difference to conflict point from the exit of subject's old road
+.roadConflict: the other road causing the potential conflict
+.dest:       filters destinations for the external vehicles 
+             possibly leading to a conflict. []=all, [0,3]: dest 0 and 3
+.ucOther:    conflict point for the filtered external vehicles on other road
+.ducExitOwn: difference to conflict point from entry in target-rd coords
 
  */
 
