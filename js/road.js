@@ -102,7 +102,10 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
                        //similar value as default vehicle.dt_LC at cstr
   this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
                            // for mandat. LC
-  this.uminLC=20;     // only allow lane changes for long coord u>uminLC 
+  this.uminLC=20;      // only allow lane changes for long coord u>uminLC 
+  this.LCbanStart=1e6; // another LC ban (e.g. before intersections)
+  this.LCbanEnd=1e6;   // anllow LC again (>uEndLC, after the intersection)
+
   this.setTrucksAlwaysRight=true; //!! relates to trucks at inflow
   this.padding=20;    // this.mergeDiverge: visibility extension
                         // for origin drivers to target vehs
@@ -2112,89 +2115,109 @@ road.prototype.doChangesInDirection=function(toRight){
 		       ((toRight) ? "right" : "left"));
 	  }
 
-// outer loop over all vehicles of a road; filter for regular vehicles
+  // outer loop over all vehicles of a road;
+  // filter for regular vehicles and no LC bans
 
-  for(var i=0; i<this.veh.length; i++)
-  if((this.veh[i].u>this.uminLC)&&(this.veh[i].isRegularVeh())){
+  for(var i=0; i<this.veh.length; i++){
+    var beyondStart=(this.veh[i].u>this.uminLC);
+    var outsideLCban=((this.veh[i].u<this.LCbanStart)
+		      ||(this.veh[i].u>this.LCbanEnd));
+
+    //if(this.roadID==2){
+    if(false){
+      console.log("roadID=",this.roadID,
+		  " u=",this.veh[i].u.toFixed(2),
+		  " roadLen=",this.roadLen.toFixed(2),
+		  " LCbanStart=",this.LCbanStart,
+		  " LCbanEnd=",this.LCbanEnd,
+		  " beyondStart=",(beyondStart) ? "true" : "false",
+		  " outsideLCban=",(outsideLCban) ? "true" : "false",
+		  " regularVeh=",(this.veh[i].isRegularVeh())
+		  ? "true" : "false",
+		  "");
+    }
+		  
+    if(beyondStart && outsideLCban && (this.veh[i].isRegularVeh())){
+    //if(beyondStart  && (this.veh[i].isRegularVeh())){
 
 
 
-    // test if there is a target lane 
-    // and if last change is sufficiently long ago
+      // test if there is a target lane 
+      // and if last change is sufficiently long ago
 
-    var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
-    var targetLaneExists=(newLane>=0)&&(newLane<this.nLanes);
-    var lastChangeSufficTimeAgo=(this.veh[i].dt_afterLC>this.waitTime)
-	&&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime);
+      var newLane=(toRight) ? this.veh[i].lane+1 : this.veh[i].lane-1;
+      var targetLaneExists=(newLane>=0)&&(newLane<this.nLanes);
+      var lastChangeSufficTimeAgo=(this.veh[i].dt_afterLC>this.waitTime)
+	  &&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime);
 
-    if(false){ //!!!
+      if(false){ //!!!
     //if(itime==100){
     //if(this.veh[i].id==207){
-      console.log("road.doChangesInDirection: vehID= ",this.veh[i].id,
+        console.log("road.doChangesInDirection: vehID= ",this.veh[i].id,
 		 " time=",time," i=",i,
 		  " targetLaneExists=",targetLaneExists,
 		  " lastChangeSufficTimeAgo=",lastChangeSufficTimeAgo);
-    }
+      }
 
 
-    if(targetLaneExists && lastChangeSufficTimeAgo){
+      if(targetLaneExists && lastChangeSufficTimeAgo){
 
-      var iLead=this.veh[i].iLead;
-      var iLag=this.veh[i].iLag; // actually not used
-      var iLeadNew=(toRight) ? this.veh[i].iLeadRight : this.veh[i].iLeadLeft;
-      var iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
+        var iLead=this.veh[i].iLead;
+        var iLag=this.veh[i].iLag; // actually not used
+        var iLeadNew=(toRight) ?this.veh[i].iLeadRight :this.veh[i].iLeadLeft;
+        var iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
 
       // check if also the new leader/follower did not change recently
 
 	//console.log("iLeadNew=",iLeadNew," dt_afterLC_iLeadNew=",this.veh[iLeadNew].dt_afterLC," dt_afterLC_iLagNew=",this.veh[iLag].dt_afterLC); 
 
-      if((this.veh[i].id!=1) // not an ego-vehicle
+        if((this.veh[i].id!=1) // not an ego-vehicle
 	 &&(iLeadNew>=0)       // target lane allowed (otherwise iLeadNew=-10)
 	 &&(this.veh[iLeadNew].dt_afterLC>this.waitTime)  // lower time limit
 	 &&(this.veh[iLagNew].dt_afterLC>this.waitTime)){ // for serial LC
       
          //console.log("changeLanes: i=",i," cond 2 passed");
-        var acc=this.veh[i].acc;
-        var accLead=this.veh[iLead].acc;
-        var accLeadNew=this.veh[iLeadNew].acc; // leaders: exogen. for MOBIL
-	var speed=this.veh[i].speed;
-	var speedLeadNew=this.veh[iLeadNew].speed;
-	var sNew=this.veh[iLeadNew].u - this.veh[iLeadNew].len - this.veh[i].u;
-	var sLagNew= this.veh[i].u - this.veh[i].len - this.veh[iLagNew].u;
+          var acc=this.veh[i].acc;
+          var accLead=this.veh[iLead].acc;
+          var accLeadNew=this.veh[iLeadNew].acc; // leaders: exogen. for MOBIL
+	  var speed=this.veh[i].speed;
+	  var speedLeadNew=this.veh[iLeadNew].speed;
+	  var sNew=this.veh[iLeadNew].u -this.veh[iLeadNew].len-this.veh[i].u;
+	  var sLagNew= this.veh[i].u - this.veh[i].len - this.veh[iLagNew].u;
       
         // treat case that no leader/no veh at all on target lane
         // notice: if no target vehicle iLagNew=i set in updateEnvironment()
         //    => update_iLagLeft, update_iLagRight
       
-	if(iLeadNew>=i){ // if iLeadNew=i => laneNew is empty
+	  if(iLeadNew>=i){ // if iLeadNew=i => laneNew is empty
 	     if(this.isRing){sNew+=this.roadLen;} // periodic BC
 	     else{sNew=10000;}
-	}
+	  }
       
          // treat case that no follower/no veh at all on target lane
 
-	if(iLagNew<=i){// if iLagNew=i => laneNew is empty
+	  if(iLagNew<=i){// if iLagNew=i => laneNew is empty
 	     if(this.isRing){sLagNew+=this.roadLen;} // periodic BC
 	     else{sLagNew=10000;}
-	}
+	  }
       
       
-         // calculate MOBIL input
+          // calculate MOBIL input
 
-	var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
-	var accNew=this.veh[i].longModel.calcAcc(
-	  sNew,speed,speedLeadNew,accLeadNew);
+	  var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
+	  var accNew=this.veh[i].longModel.calcAcc(
+	    sNew,speed,speedLeadNew,accLeadNew);
 
-         // reactions of new follower if LC performed
-         // it assumes new acceleration of changing veh
+          // reactions of new follower if LC performed
+          // it assumes new acceleration of changing veh
 
-	var speedLagNew=this.veh[iLagNew].speed;
-	if(this.veh[iLagNew].longModel===undefined){
-	  console.log("vehicle ",iLagNew,
+	  var speedLagNew=this.veh[iLagNew].speed;
+	 if(this.veh[iLagNew].longModel===undefined){
+	    console.log("vehicle ",iLagNew,
 		      " has no longModel! vehicle=",this.veh[iLagNew]);
 	      this.writeNonregularVehicles(0,this.roadLen);
-	  } 
- 	var accLagNew 
+	 }
+ 	 var accLagNew 
 	    =this.veh[iLagNew].longModel.calcAcc(
 	      sLagNew,speedLagNew,speed,accNew); 
       
@@ -2203,20 +2226,20 @@ road.prototype.doChangesInDirection=function(toRight){
 
 
 	 //var log=(this.veh[i].type==="truck");
-	 var log=false;
-	//var log=true;
+	  var log=false;
+	 //var log=true;
 
-	var MOBILOK=this.veh[i].LCModel.realizeLaneChange(
-	  vrel,acc,accNew,accLagNew,toRight,log);
+	  var MOBILOK=this.veh[i].LCModel.realizeLaneChange(
+	    vrel,acc,accNew,accLagNew,toRight,log);
     
 
          // only test output
 
-         //if(MOBILOK&&(this.veh[i].id===107)){
-        //if(true){
-	if(false){
-        //if(MOBILOK){
-        //if(this.veh[i].id==206){
+          //if(MOBILOK&&(this.veh[i].id===107)){
+          //if(true){
+	  if(false){
+          //if(MOBILOK){
+          //if(this.veh[i].id==206){
 
 	  console.log(
 	    "vehicle id",this.veh[i].id,
@@ -2227,14 +2250,14 @@ road.prototype.doChangesInDirection=function(toRight){
 	    " bBiasRight=",this.veh[i].LCModel.bBiasRight.toFixed(3),
 	    " MOBILOK=",MOBILOK);
 
-	  if(true){
-	     var s=this.veh[iLead].u-this.veh[iLead].len-this.veh[i].u;
-	     var accLead=this.veh[iLead].acc;
-	     var speed=this.veh[i].speed;
-	     var speedLead=this.veh[iLead].speed;
-	     var accCalc=this.veh[i].longModel.calcAcc(
+	    if(true){
+	      var s=this.veh[iLead].u-this.veh[iLead].len-this.veh[i].u;
+	      var accLead=this.veh[iLead].acc;
+	      var speed=this.veh[i].speed;
+	      var speedLead=this.veh[iLead].speed;
+	      var accCalc=this.veh[i].longModel.calcAcc(
 		 s,speed,speedLead,accLead);
-	     console.log(
+	      console.log(
 	       "details t=",time.toFixed(1),
 	       " this.veh[i].longModel.noiseAcc=",
 	       this.veh[i].longModel.noiseAcc.toFixed(3),
@@ -2254,16 +2277,17 @@ road.prototype.doChangesInDirection=function(toRight){
 	       //"\n  veh[iLead]=",this.veh[iLead],
 	       " MOBILOK=",MOBILOK,
 		 ""
-	     );
-	    //this.writeVehicles();
+	      );
+	      //this.writeVehicles();
+	    }
 	  }
 
 	}
     
     
 
-	 changeSuccessful=(this.veh[i].isRegularVeh())
-	      &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
+	changeSuccessful=(this.veh[i].isRegularVeh())
+	  &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 
         //!!! MT 2019-09: prevent trucks to change to the left by force
 
@@ -2278,7 +2302,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	}
 
 
-	 if(changeSuccessful){
+	if(changeSuccessful){
 	 
              // do lane change in the direction toRight (left if toRight=0)
 	     //!! only regular lane changes within road; merging/diverging separately!
@@ -2299,7 +2323,7 @@ road.prototype.doChangesInDirection=function(toRight){
            // better simply to update all ...
 	 
 	   this.updateEnvironment(); //includes this.sortVehicles();
-	 }
+	}
       }
     }
   }
@@ -2404,13 +2428,22 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		"");
     if(false){this.writeVehiclesSimple();}
   }
+
+
+
+  // !!! Subtle bug: vehicle vanishes if driven in one timestep
+  // beyond roadLen, so road transfer must be before that to prevent
+  // that. However, it must not be prior to the final Go zone u>uGo
+  // because than collisions may happen!
+	
+  var distBeforeEnd=1.0; // !! 
   
-  var duAntic=60;
-  var duDecision=10;
-  // uGo defined later once longModel.s0 is known
+  var duAntic=60+distBeforeEnd;
+  var duDecision=10+distBeforeEnd;
 
   var uAntic=uSource-duAntic;
   var uDecide=uSource-duDecision;
+  // uGo defined later once longModel.s0 is known
 
   var targetID=targetRoad.roadID;
   var potentialConflictsExist=(conflicts.length>0);
@@ -2424,8 +2457,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // "var log" in determineConflicts    
     //#########################################################
 
-    connectLog=false;
-    //this.connectLog=(this.veh[iveh].id==213);
+    //connectLog=false;
+    this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
     //this.connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
@@ -2510,8 +2543,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	var v=vehConnect.v;
 	var speed=vehConnect.speed;
 	var s0=vehConnect.longModel.s0;
-	var uGo=uSource-Math.max(1.2*s0,0.2*duDecision);
-	//var uGo=uSource;
+
+	// distBeforeEnd>0 to prevent going over end w/o connecting=>vanish
+	var uGo=uSource
+	  -(distBeforeEnd+Math.max(1.2*s0,0.2*(duDecision-distBeforeEnd)));
 	var sStop=uSource-u; // should stop s0 upstream of uConnect
 	var accSlowdown=vehConnect.longModel.calcAcc(sStop,speed,0,0);
 
@@ -2977,7 +3012,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	// Action A5: actual transfer!!
 
       
-	if((u>uSource)&&(this.roadID!=targetRoad.roadID)){
+	if((u>uSource-distBeforeEnd)&&(this.roadID!=targetRoad.roadID)){
 	  if(this.connectLog){
 	  //if(this.veh[iveh].id==210){
 	    console.log("  Action 5: All previous actions drove the vehicle",

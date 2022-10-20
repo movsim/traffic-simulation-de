@@ -9,9 +9,12 @@ function debugVeh(id,network){
       if(network[ir].veh[i].id==id){
 	  var veh=network[ir].veh[i];
         console.log("time=",time.toFixed(2), "itime=",itime,
-		    "status of veh id=",veh.id,
+		    " veh id=",veh.id,
+		    " road id=",network[ir].roadID,
 		    " type=",veh.type,
+		    " route=",veh.route,
 		    " u=",veh.u.toFixed(1),
+		    " roadLen-u=",(network[ir].roadLen-veh.u).toFixed(1),
 		    " lane=",veh.lane," v=",veh.v.toFixed(2),
 		    " speed=",veh.speed.toFixed(1),
 		    " acc=",veh.acc.toFixed(1),

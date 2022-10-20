@@ -32,7 +32,7 @@ var dt_lastSwitch=0;
 
 
 var nLanes_main=2;
-var nLanes_sec=1;
+var nLanes_sec=2;
 var laneCount=nLanes_main+nLanes_sec;
 
 // slider-controlled vars definined in control_gui.js
@@ -479,6 +479,21 @@ var road5=new road(roadIDs[5],road5Len,laneWidth,nLanes_sec,
 
 network=[road0,road1,road2,road3,road4,road5];
 
+// !!! no lane changes when approaching intersections
+// for some reason, nonsense LC when slowing down there
+
+var distLCban=20;
+for(var ir=0; ir<2; ir++){
+  network[ir].LCbanStart=0.5*network[ir].roadLen-distLCban;
+  network[ir].LCbanEnd=0.5*network[ir].roadLen;
+}
+
+for(var ir=2; ir<=4; ir+=2){
+  network[ir].LCbanStart=network[ir].roadLen-distLCban;
+  // .LCbanEnd remains at default 1e6
+}
+
+
 // draw veh IDs on selected links if set true; also draw alternative traject
 
 for(var ir=0; ir<network.length; ir++){
@@ -788,8 +803,10 @@ function updateSim(){
     }
   }
 
+  
   for(var ir=0; ir<network.length; ir++){
-    network[ir].changeLanes();         
+    // at road construction, no-lane-change zones defined (road.LCbanStart)
+    network[ir].changeLanes();      
     network[ir].updateLastLCtimes(dt);
   }
 
@@ -809,9 +826,9 @@ function updateSim(){
   // debug output
   //##############################################################
 
-  if(false){
-    debugVeh(211,network);
-    debugVeh(212,network);
+  if(true){
+    debugVeh(219,network);
+    debugVeh(224,network);
   }
   
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
