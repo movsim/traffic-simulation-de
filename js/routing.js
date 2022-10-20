@@ -1,5 +1,21 @@
 
+//#############################################################
+// general ui settings
+//#############################################################
+
 const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawVehIDs=true; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
+var debug=false;
+var crashinfo=new CrashInfo();
+
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -347,6 +363,9 @@ var ramp=new road(2,lDev,laneWidthRamp,nLanes_rmp,
 
 network[0]=mainroad;
 network[1]=ramp;
+for(var ir=0; ir<network.length; ir++){
+  network[ir].drawVehIDs=drawVehIDs;
+}
 
 // offramp specification; controlled by mainroad
 
@@ -396,7 +415,7 @@ mainroad.updateEnvironment();
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
@@ -691,20 +710,21 @@ function drawSim() {
 
 
  
-    // (3) draw mainroad and ramps (deviation "bridge" => draw last)
-    // and vehicles (directly after frawing resp road or separately, depends)
-    // (always drawn; changedGeometry only triggers building a new lookup table)
-    //!!! sometimes road elements are moved as though they were vehicles
-    // check/debug with omitting drawing of the road (changedGeometry=false)!
+  // drawSim (3)(4)
+  // draw mainroad and ramps (deviation "bridge" => draw last)
+  // and vehicles (directly after frawing resp road or separately, depends)
+  // (always drawn; changedGeometry only triggers building a new lookup table)
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
-    ramp.draw(rampImg,rampImg,scale,changedGeometry);
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  ramp.draw(rampImg,rampImg,scale,changedGeometry);
+  if(drawRoadIDs){ramp.drawRoadID(scale);}
+  ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+  if(drawRoadIDs){mainroad.drawRoadID(scale);}
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
  

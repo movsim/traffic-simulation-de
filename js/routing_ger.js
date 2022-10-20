@@ -396,7 +396,7 @@ mainroad.updateEnvironment();
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory

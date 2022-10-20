@@ -1,6 +1,24 @@
 
-const userCanDistortRoads=false; //legacy 
-//const userCanDropObjects=true;
+
+//#############################################################
+// general ui settings
+//#############################################################
+
+const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawVehIDs=false; // override control_gui.js
+drawRoadIDs=false; // override control_gui.js
+var debug=false;
+var crashinfo=new CrashInfo();
+
+
+
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -128,7 +146,7 @@ var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing);
 network[0]=mainroad;  // network declared in canvas_gui.js
-
+network[0].drawVehIDs=drawVehIDs;
 
 
 //  introduce stationary detectors
@@ -142,7 +160,7 @@ for(var idet=0; idet<4; idet++){
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
@@ -293,7 +311,16 @@ function updateSim(){
   }
 
 
-  // (6) debug output
+  //##############################################################
+  // debug output
+  //##############################################################
+
+  if(false){
+    debugVeh(211,network);
+    debugVeh(212,network);
+  }
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
   
   if(false){
     mainroad.writeTrucksLC();
@@ -301,7 +328,7 @@ function updateSim(){
 
   }
 
-}  // updateSim
+}// updateSim
 
 
 
@@ -363,7 +390,7 @@ function drawSim() {
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
     if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+      || (!drawRoad)||drawVehIDs){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }
@@ -372,7 +399,8 @@ function drawSim() {
  
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-
+  if(drawRoadIDs){mainroad.drawRoadID(scale);}
+  
     // (4) draw vehicles
 
   mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);

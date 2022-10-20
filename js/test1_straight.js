@@ -1,6 +1,6 @@
 
 const userCanDropObjects=true;
-drawVehIDs=true; // defined in control_gui.js
+drawVehIDs=true; // override control_gui.js
 
 var nLanes_main=2;
 
@@ -174,7 +174,7 @@ detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory

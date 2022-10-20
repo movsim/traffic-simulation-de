@@ -15,7 +15,7 @@ function formd0(x){return parseFloat(x).toFixed(0);}
 // Toggles for the display of road and vehicle IDs (triggered by "onclick")
 //#################################################################
 
-var drawRoadIDs=false;
+var drawRoadIDs=false; // default; possibly overwritten in the scenarios
 var drawVehIDs=false;
 
 function toggleRoadID(){

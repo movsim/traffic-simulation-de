@@ -1,8 +1,8 @@
 const PI=Math.PI;
 
 const userCanDropObjects=true;
-//var drawVehIDs=true; // defined in control_gui.js
-//var drawRoadIDs=true; // defined in control_gui.js
+//drawVehIDs=true; // override control_gui.js
+//drawRoadIDs=true; // override control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 //#############################################################
@@ -11,7 +11,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // and define variables w/o sliders in this scenario
 //#############################################################
 
-// following flags defined in control_gui.js
+// following flags override control_gui.js
 // controlled by a html select elements
 
 respectRingPrio=true; 
@@ -502,7 +502,7 @@ mainroad.trajAlt[3]={x: trajRing_6x,
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 // ok 2021. Defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory

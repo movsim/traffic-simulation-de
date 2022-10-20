@@ -1,6 +1,6 @@
 
 const userCanDropObjects=true;
-drawVehIDs=true; // defined in control_gui.js
+drawVehIDs=true; // override control_gui.js
 drawRoadIDs=true; 
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                   // definition => showLogicalCoords(.) in canvas_gui.js
@@ -322,7 +322,7 @@ detectors[1]=new stationaryDetector(road0,0.80*road0Len,10);
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory

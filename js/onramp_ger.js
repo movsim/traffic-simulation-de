@@ -20,8 +20,8 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 
 //const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
-//var drawVehIDs=false; // defined in control_gui.js
-//var drawRoadIDs=false; // defined in control_gui.js
+//drawVehIDs=false; // override control_gui.js
+//drawRoadIDs=false; // override control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 
@@ -347,7 +347,7 @@ detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory

@@ -11,9 +11,10 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-var drawVehIDs=true; // defined in control_gui.js
-var drawRoadIDs=true; // defined in control_gui.js
+drawVehIDs=true; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
 var debug=false;
+var crashinfo=new CrashInfo();
 
 
 //#############################################################
@@ -512,7 +513,7 @@ var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 // ok 2021. Defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
@@ -549,19 +550,10 @@ var dt=timewarp/fps;
 changeTrafficRules(trafficRuleIndex);
 
 
-var crashinfo=new CrashInfo();
-
 //#################################################################
 function updateSim(){
 //#################################################################
 
-
-  if(false){
-    debugVeh(211,network);
-    debugVeh(212,network);
-  }
-  
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
   
   // updateSim (1): update time, global geometry, and traffic objects
 
@@ -813,8 +805,17 @@ function updateSim(){
     detectors[iDet].update(time,dt);
   }
 
+  //##############################################################
+  // debug output
+  //##############################################################
 
-  //if(itime==526){alert("stopDebug");}
+  if(false){
+    debugVeh(211,network);
+    debugVeh(212,network);
+  }
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+
 }//updateSim
 
 

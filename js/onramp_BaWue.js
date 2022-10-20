@@ -51,7 +51,7 @@ MOBIL_bSafeMax=17;
 
 //#############################################################
 // initialize sliders differently from standard
-//  (qIn etc defined in control_gui.js)
+//  (qIn etc override control_gui.js)
 //#############################################################
 
 density=0.02; // density per lane (0.02)
@@ -397,7 +397,7 @@ detectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,10);
 
 
 //#########################################################
-// model initialization (models and methods defined in control_gui.js)
+// model initialization (models and methods override control_gui.js)
 //#########################################################
 	
 updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
