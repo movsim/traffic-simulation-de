@@ -38,7 +38,7 @@ the ressources
 
 
 
-## Programm Files and Structure
+## Program Files and Structure
 
 The javascript code uses pseudo objects in appropriately named files, particularly
 
