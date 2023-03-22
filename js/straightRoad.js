@@ -80,15 +80,15 @@ var scale=refSizePix/refSizePhys;
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-var center_xRel=0.43; // manipulae relative viewport by traj_x
-var center_yRel=-0.55;
-var arcRadiusRel=0.35;
+var center_xRel=0; // manipulae relative viewport by traj_x
+var center_yRel=-0.88;
+var arcRadiusRel=0;
 
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-var arcRadius=arcRadiusRel*refSizePhys;
-var arcLen=arcRadius*Math.PI;
+var arcRadius=0;
+var arcLen=0;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 
@@ -119,19 +119,14 @@ var truck_width=7;
 
 
 function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter+6; //!!! quick hack
+  var dxPhysFromCenter = u * Math.cos(Math.PI / 4); // angle of 45 degrees
+  return center_xPhys + dxPhysFromCenter;
 }
 
+
 function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
+  var dyPhysFromCenter = u * Math.sin(Math.PI / 11); // angle of 45 degrees
+  return center_yPhys + dyPhysFromCenter;
 }
 
 
