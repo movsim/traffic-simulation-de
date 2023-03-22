@@ -132,7 +132,7 @@ function traj_x(u){ // physical coordinates
 	    (u<straightLen) ? straightLen-u
 	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
 	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return center_xPhys+dxPhysFromCenter;
+	return traj_x(u) = refSizePhys / 2;
 }
 
 
@@ -320,7 +320,7 @@ function updateSim(){
   // debug output
 
   if(false){
-    console.log("mainroadLen=",formd(mainroadLen),
+    console.log("mainroadLen=",formd(mainroadLen), 
 		" mainroad.roadLen=",formd(mainroad.roadLen),
 		" mainroad.offrampLastExits=",
 		formd(mainroad.offrampLastExits),
