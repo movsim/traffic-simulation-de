@@ -1,9 +1,22 @@
 const PI=Math.PI;
 
+//#############################################################
+// general ui settings
+//#############################################################
+
 const userCanDropObjects=true;
-//drawVehIDs=true; // override control_gui.js
-//drawRoadIDs=true; // override control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawVehIDs=true; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
+var debug=false;
+var crashinfo=new CrashInfo();
+
 
 //#############################################################
 // adapt standard slider settings from control_gui.js
@@ -702,10 +715,17 @@ function updateSim(){
 
 
 
-    //##############################################################
-    // debug output
-    //##############################################################
+  //##############################################################
+  // debug output
+  //##############################################################
 
+  if(false){
+    debugVeh(211,network);
+    debugVeh(212,network);
+  }
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  
 }//updateSim
 
 

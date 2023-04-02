@@ -703,6 +703,8 @@ function activateSpeedlBox(xPixUser,yPixUser){
 
 function changeSpeedl(xPixUser,yPixUser){
 
+  // free: >=130, image filename figs/speedLimit_00.svg
+
   console.log("\n\nitime=",itime," in changeSpeedl (canvas_gui):",
 	      " speedlBoxActive=",speedlBoxActive);
   if(speedlBoxActive){
@@ -723,8 +725,8 @@ function changeSpeedl(xPixUser,yPixUser){
       var fileIndex=(0.1*obj.value<13)
 	? Math.round(0.1*obj.value) : 0;
       obj.image.src = "figs/speedLimit_"+(fileIndex)+"0.svg";
-      //console.log("  traffic object of id=",obj.id,
-//		  " has new speed limit ",obj.value);
+      console.log("  traffic object of id=",obj.id,
+		  " has new speed limit ",obj.value);
     }
   }
   speedlBoxActive=false; // apply only once

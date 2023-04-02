@@ -16,13 +16,23 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
+//#############################################################
+// general ui settings
+//#############################################################
 
-
-//const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
-//drawVehIDs=false; // override control_gui.js
-//drawRoadIDs=false; // override control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawVehIDs=true; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
+var debug=false;
+var crashinfo=new CrashInfo();
+
 
 
 
@@ -560,7 +570,18 @@ function updateSim(){
 
 
 
-// (6) debug output
+ 
+  //##############################################################
+  // debug output
+  //##############################################################
+
+  if(false){
+    debugVeh(211,network);
+    debugVeh(212,network);
+  }
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+
 
     //if((itime>=125)&&(itime<=128)){
   if(false){
@@ -628,7 +649,7 @@ function drawSim() {
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
     if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+      || (!drawRoad)||drawVehIDs){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
 
       if(false){
@@ -661,15 +682,12 @@ function drawSim() {
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
-  if(false){
-    console.log("road.draw w/ full parameter set:",
-		" mainroad.roadLen=",mainroad.roadLen,
-		" movingObserver=",movingObserver,
-		" uObs=",uObs,
-		" center_xPhys=",center_xPhys,
- 		" center_yPhys=",center_yPhys);
+  if(drawRoadIDs){
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].drawRoadID(scale);
+    }
   }
- 
+
   // (4) draw vehicles
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
   // here only example for complete args (only in coffeemeterGame relevant

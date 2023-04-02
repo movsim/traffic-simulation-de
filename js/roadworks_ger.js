@@ -2,30 +2,11 @@
 const userCanDropObjects=true;
 //drawVehIDs=false; // override control_gui.js
 
-//#############################################################
-// adapt/override standard param settings from control_gui.js
-//#############################################################
 
-MOBIL_mandat_bSafe=18;
-MOBIL_mandat_bThr=0.5;   // >0
-MOBIL_mandat_bias=1.5;
-
-MOBIL_bSafe=5;
-MOBIL_bSafeMax=17;
-
-density=0;
-
-qIn=1850/3600; //1850
-commaDigits=0;
-setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
-
-IDM_a=2.05;
-setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
-
-//speedlimit now in trafficObjects
-
-fracTruck=0.25;
-setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
+const refSizeSmartphone=180;
+const refSizeRegular=250;
+const qInRegular=1850/3600; //1850
+const qInSmartphone=1910/3600;
 
 
 /*######################################################
@@ -60,22 +41,62 @@ console.log("before addTouchListeners()");
 addTouchListeners();
 console.log("after addTouchListeners()");
 
-
-
 //##################################################################
-// overall scaling (critAspectRatio should be consistent with 
+// overall physical scaling refSizePhys only depends on
+// INITIAL smartphone flag;
+// refSizePhys no longer changed if size changes afterwards
+// (critAspectRatio should be consistent with 
 // width/height in css.#contents)
 //##################################################################
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 150 : 250;  // constant
+// constant if commented out at updateDimensions() which is recommended
 
+var refSizePhys=(isSmartphone) ? refSizeSmartphone : refSizeRegular; 
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
 var refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
 var scale=refSizePix/refSizePhys;
+
+
+//#############################################################
+// adapt/override standard param settings from control_gui.js
+//#############################################################
+
+MOBIL_mandat_bSafe=18;
+MOBIL_mandat_bThr=0.5;   // >0
+MOBIL_mandat_bias=1.5;
+
+MOBIL_bSafe=5;
+MOBIL_bSafeMax=17;
+
+density=0;
+
+qIn=(isSmartphone) ? qInSmartphone : qInRegular;
+
+commaDigits=0;
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+
+IDM_a=2.05;
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
+
+
+fracTruck=0.25;
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
+
+// speedlimit has two gui controls: slider and trafficObject
+// (because trafficObj not visible in mobile). Therefore need to
+// overwrite corresponding other gui if one is changed by user
+// need to know which was changed latest to synchronize
+// see updateSim() at (1)
+
+var speedlold_fromSlider=80;    // km/h
+var speedlold_fromLimitSign=80; // km/h
+
+
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
@@ -102,6 +123,7 @@ var uStartLCMandatory=0.1*uBeginRoadworks; // uStart>u>uBeginR => mandat LC
 
 
 function updateDimensions(){ // if viewport or sizePhys changed
+  //refSizePhys=(isSmartphone) ? refSizeSmartphone : refSizeRegular; //!!
     center_xPhys=center_xRel*refSizePhys; //[m]
     center_yPhys=center_yRel*refSizePhys;
 
@@ -293,21 +315,8 @@ roadImg2=roadImgs2[nLanes_main-1];
 
 
 
-//speedlimit images 
+//speedlimit images (now as .svg images)
 
-var speedL_srcFileIndexOld=8; //  start with index8 = 80 km/h
-var speedL_srcFileIndex=8;
-var speedL_srcFiles = [];
-for (var i=0; i<13; i++){
-    speedL_srcFiles[i]="figs/Tempo"+i+"0.png";
-}
-speedL_srcFiles[13]='figs/sign_free_282_small.png'; 
-var speedlimitImgs = [];
-for (var i=0; i<=13; i++){
-    speedlimitImgs[i]=new Image();
-    speedlimitImgs[i].src=speedL_srcFiles[i];
-}
-var speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
 
 //############################################
 // traffic objects
@@ -321,10 +330,17 @@ var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 // the selected trafficObj needs to be of type speedlimit! not checked!
 // default/init values 60,80,100; select the second object trafficObj[1]
 
-var speedl=trafficObjs.trafficObj[1]; 
+var speedl=trafficObjs.trafficObj[1]; // .value => speedlimit 80 in km/h
 //activate(trafficObject,road,u) or activate(trafficObject,road)
 trafficObjs.activate(speedl,mainroad,30);
 trafficObjs.active_drawTopSign=false; // false=>only bottom sign drawn
+
+// distribute speedlimit info to slider (needed for touch screens, otherwise
+// redundant
+
+
+setSlider(slider_speedL, slider_speedLVal, speedl.value, 0, "km/h");
+console.log("TrafficObj: speedl.value=",speedl.value," slider: slider_speedL.value=",slider_speedL.value);
 
 //############################################
 // run-time specification and functions
@@ -341,28 +357,57 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
+mainroadLen
+  // (1) update times
 
-    // (1) update times
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+  isSmartphone=mqSmartphone();
+  console.log("updateSim: isSmartphone=",isSmartphone,
+	      " mainroadLen=",mainroadLen);
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    isSmartphone=mqSmartphone();
+  // (2a) synchronize speed-limit slider and speedlimit traffic object
+  // MT 2023-02
+  // synchronize slider
+  
+  if(speedl.value != speedlold_fromLimitSign){// speedL is TrafficObj[1]
+    setSlider(slider_speedL, slider_speedLVal, speedl.value, 0, "km/h");
+    speedlold_fromLimitSign=speedl.value;
+    speedlold_fromSlider=speedl.value;
+  }
+  
+  // synchronize traffic object
 
-    // (2) transfer effects from slider interaction and mandatory regions
-    // to the vehicles and models
+  if(slider_speedL.value != speedlold_fromSlider){
+    speedl.value=slider_speedL.value;
+    imgname="figs/speedLimit_"+slider_speedL.value+".svg";
+    if(slider_speedL.value>120){
+      slider_speedL.value=1000;
+      imgname="figs/speedLimit_00.svg"; // fname for no speedlimit with pole
+    }
+    speedl.image.src=imgname;
+    speedlold_fromSlider=slider_speedL.value;
+    speedlold_fromLimitSign=slider_speedL.value;
+  }
 
-    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  
+  // (2b) transfer effects from slider interaction and mandatory regions
+  // to the vehicles and models
+
+  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
 
-  // (2a) update moveable speed limits
+  // (2c) update moveable speed limits
 
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
   }
 
 
+
+  
     // (2b) externally impose mandatory LC behaviour
     // all left-lane vehicles must change lanes to the right
     // starting at 0 up to the position uBeginRoadworks
@@ -432,7 +477,7 @@ function drawSim() {
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
-    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; 
     var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
     if(false){
@@ -498,32 +543,7 @@ function drawSim() {
 
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
 			  vmin_col, vmax_col);
-    
-    // (4a) implement varying speed-limit signs! -> uphill as template
 
-  /*
-    var speedlimit_kmh=10*Math.round(3.6*longModelCar.speedlimit/10.);
-    var speedL_srcFileIndex=Math.min(speedlimit_kmh/10,13);
-    if( (speedL_srcFileIndex !=speedL_srcFileIndexOld)||hasChanged
-	||userCanvasManip || (itime<=1) ){
-
-	speedL_srcFileIndexOld=speedL_srcFileIndex;
-	speedlimitImg=speedlimitImgs[speedL_srcFileIndex];
-	//console.log("speedlimitImg.src=",speedlimitImg.src);
-
-	var sizeSignPix=0.12*refSizePix;
-	var vOffset=-1.8*nLanes_main*laneWidth; // in v direction, pos if right
-
-	var xPix=mainroad.get_xPix(0.16*mainroadLen,vOffset,scale);
-	var yPix=mainroad.get_yPix(0.16*mainroadLen,vOffset,scale);
-	xPix -= 0.5*sizeSignPix; // center of sign
-	yPix -= 0.5*sizeSignPix;
-	ctx.setTransform(1,0,0,1,0,0); 
-	//console.log("roadworks.draw: before drawing speedlimitImg");
-	ctx.drawImage(speedlimitImg,xPix,yPix,sizeSignPix,sizeSignPix);
-    }
-  */
-  
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
