@@ -29,7 +29,9 @@ trafficSimulationLocalVersion*
 *screenshot*
 
 ## other files
+nytimes_query
 save
+*save.*
 uml_savedFiles
 info_links_old.html
 README_Responsinator
@@ -48,7 +50,6 @@ js/save
 testfile
 documentation
 competition/2017_10_18_notWon
-*save.*
 
 # eclipse settings
 /.settings/
