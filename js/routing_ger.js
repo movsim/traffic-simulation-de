@@ -11,8 +11,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawVehIDs=true; // override control_gui.js
-drawRoadIDs=true; // override control_gui.js
+drawVehIDs=false; // override control_gui.js
+drawRoadIDs=false; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
 

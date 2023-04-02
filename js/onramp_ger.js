@@ -14,7 +14,7 @@ console.log(Math.random());          // Always 0.0016341939679719736 with 42
 console.log(Math.random());          // Always 0.9364577392619949 with 42
  Math.seedrandom(42);                // undo side effects of console commands 
 */
-
+ 
 
 //#############################################################
 // general ui settings
@@ -28,8 +28,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawVehIDs=true; // override control_gui.js
-drawRoadIDs=true; // override control_gui.js
+drawVehIDs=false; // override control_gui.js
+drawRoadIDs=false; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
 
