@@ -12,7 +12,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawVehIDs=false; // override control_gui.js
+drawVehIDs=true; // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
@@ -38,7 +38,11 @@ var crashinfo=new CrashInfo();
 ######################################################*
 */
 
-// override standard dettings control_gui.js
+// override vehicle and model settings
+
+var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
+// override standard settings control_gui.js
 
 density=0.03;  // default 0.03
 setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
@@ -142,9 +146,11 @@ var isRing=true;  // 0: false; 1: true
 var roadID=1;
 var speedInit=20; // IC for speed
 var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
-
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing);
+
+mainroad.setDriverVariation(driver_varcoeff); //!!!
+
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[0].drawVehIDs=drawVehIDs;
 
@@ -156,7 +162,6 @@ for(var idet=0; idet<4; idet++){
   detectors[idet]=new stationaryDetector(mainroad,
 					  (0.125+idet*0.25)*mainroadLen,10);
 }
-
 
 
 //#########################################################
@@ -177,7 +182,7 @@ var hasChanged=true; // window dimensions have changed (responsive design)
 
 var drawBackground=true; // if false, default unicolor background
 var drawRoad=true; // if false, only vehicles are drawn
-var userCanvasManip=false; //!!! true only if user-driven geometry changes
+var userCanvasManip=false; //!! true only if user-driven geometry changes
 
 var drawColormap=false;
 var vmin_col=0; // min speed for speed colormap (drawn in red)
@@ -271,40 +276,76 @@ function updateSim(){
 
   // (1) update times
 
-    time +=dt; // dt depends on timewarp slider (fps=const)
-    itime++;
-    isSmartphone=mqSmartphone();
+  time +=dt; // dt depends on timewarp slider (fps=const)
+  itime++;
+  isSmartphone=mqSmartphone();
 
 
+  // (1a) Test code introduce red TL
+
+  if(true){//!!
+    //!! in different road operations (setSpeedlimit) order of
+    // trafficObjs.trafficObj array changed in increasing u
+    // can only select unique trafficObj at initialization or, as here,
+    // when filtering for attributes
+
+    var TL;
+    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
+      if(trafficObjs.trafficObj[iobj].id==100){// first TL
+	TL=trafficObjs.trafficObj[iobj];
+      }
+    }
+    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
+
+    // drop red traffic light
+
+    if(itime==1){
+      var udrop=0.25*network[0].roadLen;
+      trafficObjs.setTrafficLight(TL,"red");
+      trafficObjs.dropObject(TL,network,
+			     network[0].traj[0](udrop),
+			     network[0].traj[1](udrop),
+			     20,scale);
+    }
+
+    // switch TL to greem
+
+    if(itime==100){
+      console.log("set first TL to green");
+      trafficObjs.setTrafficLight(TL,"green");
+    }
+  }
+
+  
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
 
 
-    mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-    mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
-    mainroad.updateDensity(density);
+  mainroad.updateDensity(density);
 
+  
   // (2a) update moveable speed limits
 
   mainroad.updateSpeedlimits(trafficObjs); 
 
 
-    // do central simulation update of vehicles
+    // (2b) do central simulation update of vehicles
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();      //!!! ideally do MOBIL with determ accel    
-    mainroad.updateSpeedPositions();
+  mainroad.updateLastLCtimes(dt);
+  mainroad.calcAccelerations();  
+  mainroad.changeLanes();      //!!! ideally do MOBIL with determ accel    
+  mainroad.updateSpeedPositions();
 
     //if(itime<2){mainroad.writeVehicleLongModels();}
     //if(itime<2){mainroad.writeVehicleLCModels();}
 
-    for(var iDet=0; iDet<detectors.length; iDet++){
+  for(var iDet=0; iDet<detectors.length; iDet++){
 	detectors[iDet].update(time,dt);
-    }
-
+  }
   
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
@@ -327,6 +368,7 @@ function updateSim(){
     //mainroad.writeVehicleLCModels();
 
   }
+
 
 }// updateSim
 
@@ -424,9 +466,13 @@ function drawSim() {
 	detectors[iDet].display(textsize);
   }
 
+  // (6a) show scale info
+  // get from onramp.js if needed
+  
 
 
-  // (7) draw the speed colormap (text size propto widthPix
+  // (6b) draw the speed colormap
+  //!! Now always false; drawn statically by html file!
 
   if(drawColormap){
     displayColormap(scale*(center_xPhys-0.03*roadRadius),
@@ -435,6 +481,13 @@ function drawSim() {
 		    vmin_col,vmax_col,0,100/3.6);
   }
 
+  // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+
+  
   // (8) xxxNew draw TL editor panel
 
   if(trafficLightControl.isActive){

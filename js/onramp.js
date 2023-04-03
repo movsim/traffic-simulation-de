@@ -37,9 +37,11 @@ var crashinfo=new CrashInfo();
 
 
 //#############################################################
-// adapt/override standard param settings from control_gui.js
+// adapt/override standard param settings (mainly from control_gui.js)
 //#############################################################
 
+var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
 qIn=4500./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
@@ -339,6 +341,9 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
 network[1]=ramp; network[1].drawVehIDs=drawVehIDs;
 
+for(var ir=0; ir<network.length; ir++){
+  network[ir].setDriverVariation(driver_varcoeff);//!!!
+}
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)

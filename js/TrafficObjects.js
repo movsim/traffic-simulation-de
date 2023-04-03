@@ -608,6 +608,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 	      ," in TrafficObjects.dropObject: obj.id=",obj.id,
 	      " obj.xPix=",obj.xPix,
 	      " network[0].roadID=",network[0].roadID);
+  console.log("inside dropObject begin: this.trafficObj[0]=",this.trafficObj[0]);
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
   
@@ -680,11 +681,14 @@ TrafficObjects.prototype.dropObject=function(obj, network,
     console.log("  end TrafficObjects.dropObject: success=",success,
 		" nearest roadID=",road.roadID,
 	        " road.roadLen=",formd(road.roadLen),
-	        " obj.id=",obj.id,
-	        " obj.u=",formd(obj.u),
-	        " obj.xPix=",formd0(obj.xPix),
+		" obj=",obj,
+	        //" obj.id=",obj.id,
+	        //" obj.u=",formd(obj.u),
+	        //" obj.xPix=",formd0(obj.xPix),
 		"");
   }
+
+  console.log("inside dropObject end: this.trafficObj[0]=",this.trafficObj[0]);
 
 } // dropObject
 
@@ -765,6 +769,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 
 TrafficObjects.prototype.setTrafficLight=function(obj, value){
 
+  console.log("in TrafficObjects.setTrafficLight, obj=",obj," value=",value);
   if(!(obj.type==='trafficLight')){
     console.log("TrafficObjects.setTrafficLight: error:",
 		" object not of type trafficLight");

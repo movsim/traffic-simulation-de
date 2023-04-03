@@ -76,6 +76,9 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.nLanes=nLanes;
   this.exportString="";
 
+  // driver v0 and a coeff of variation ("agility")
+
+  this.driver_varcoeff=0.2; //!! default; can be overridden
   
   // network related properties
 
@@ -142,7 +145,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
     // in this.updateEgoVeh(externalEgoVeh), later on.
 
 
-  this.egoVeh=new vehicle(0,0,0,0,0,"car");
+  this.egoVeh=new vehicle(0,0,0,0,0,"car"); // driver_varcoeff=0 per default
 
 
   this.traj=trajIn; 
@@ -173,6 +176,22 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
 } // cstr
 
+
+//######################################################################
+// reset driver agility variation from default;
+// need also to draw new realisations for all the regular vehicles
+//######################################################################
+
+road.prototype.setDriverVariation=function(driver_varcoeff){
+  this.driver_varcoeff=driver_varcoeff;
+  for(var i=0; i<this.veh.length; i++){
+    if(this.veh[i].isRegularVeh()){
+      this.veh[i].setDriverVariation(driver_varcoeff);
+    }
+  }
+}
+
+  
 //######################################################################
 // initialize road with prescribed density per lane and truck fraction
 // all special vehicles (obstacles, traffic lights...) are retained, if
@@ -211,8 +230,9 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
 
     if((sLead>2)&&(sFollow>2)){ 
       vehPlus[iveh]=new vehicle(vehLength, vehWidth,u,lane,
-			    0.8*speedInit,vehType); // IC
-      iveh++;
+				0.8*speedInit,vehType,
+				this.driver_varcoeff); // IC
+     iveh++;
     }
   }
 
@@ -314,9 +334,10 @@ road.prototype.writeVehicles= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeVehiclesSimple= function(umin,umax) {
-    console.log("  in road.writeVehiclesSimple(): roadID=",this.roadID,
+    console.log("\n\nIn road.writeVehiclesSimple(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
-		" nLanes=",this.nLanes," itime=",itime);
+		" nLanes=",this.nLanes," itime=",itime,
+		" time=",time.toFixed(2));
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -446,7 +467,7 @@ road.prototype.writeVehiclesIDrange= function(idmin,idmax) {
 //######################################################################
 
 road.prototype.writeVehicleRoutes= function(umin,umax) {
-    console.log("\nin road.writeVehicleRoutes: ID=",this.roadID,
+    console.log("\nin road.writeVehicleRoutes: roadID=",this.roadID,
 		" length=",parseFloat(this.roadLen).toFixed(1),
 		" nveh=",this.veh.length,
 		" itime=",itime, "\n",
@@ -507,7 +528,7 @@ road.prototype.writeDepotVehObjects= function(umin,umax){
 road.prototype.writeTrafficLights= function(umin,umax) {
   console.log("itime=",itime," in road.writeTrafficLights:",
 	      " writing the road's operational TL objects",
-	      " roaroadID=",this.roadID,
+	      " roadID=",this.roadID,
 	      " nTL=",this.trafficLights.length);
 
   var uminLoc=(typeof umin!=='undefined') ? umin : -1000;
@@ -533,7 +554,7 @@ road.prototype.writeTrafficLights= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeVehicleLongModels= function(umin,umax) {
-    console.log("\nin road.writeVehicleLongModels(): ID=",this.roadID,
+    console.log("\nin road.writeVehicleLongModels(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" itime="+itime);
 
@@ -542,19 +563,25 @@ road.prototype.writeVehicleLongModels= function(umin,umax) {
 
     for(var i=0; i<this.veh.length; i++){
       if((this.veh[i].u>=uminLoc)&&(this.veh[i].u<=umaxLoc)){
+	//if(this.veh[i].id==210)
 	console.log(" veh["+i+"].type="+this.veh[i].type
 		    +"  id="+this.veh[i].id
+		    +"  type="+this.veh[i].type
 		    +"  u="+parseFloat(this.veh[i].u,10).toFixed(1)
 		    +"  v="+parseFloat(this.veh[i].v,10).toFixed(1)
 		    +"  speed="+parseFloat(this.veh[i].speed,10).toFixed(3)
 		    +"  v0="+parseFloat(this.veh[i].longModel.v0).toFixed(3)
-		    +"  T="+parseFloat(this.veh[i].longModel.T).toFixed(1)
-		    +"  s0="+parseFloat(this.veh[i].longModel.s0).toFixed(3)
-		    +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(3)
-		    +"  b="+parseFloat(this.veh[i].longModel.b).toFixed(3)
-		    +"  noiseAcc="
-		    +parseFloat(this.veh[i].longModel.noiseAcc).toFixed(3)
-		    +"  acc="+parseFloat(this.veh[i].acc).toFixed(3)
+		   // +"  T="+parseFloat(this.veh[i].longModel.T).toFixed(1)
+		   // +"  s0="+parseFloat(this.veh[i].longModel.s0).toFixed(3)
+		  //  +"  a="+parseFloat(this.veh[i].longModel.a).toFixed(3)
+		  //  +"  b="+parseFloat(this.veh[i].longModel.b).toFixed(3)
+		    +"  QnoiseAccel="
+		    +parseFloat(this.veh[i].longModel.QnoiseAccel).toFixed(3)
+		    +"  vehicle-driverfactor="
+		    +parseFloat(this.veh[i].driverfactor).toFixed(3)
+		    +"  longmodel-driverfactor="
+		    +parseFloat(this.veh[i].longModel.driverfactor).toFixed(3)
+		   // +"  acc="+parseFloat(this.veh[i].acc).toFixed(3)
 		    +"");
       }
   }
@@ -567,7 +594,7 @@ road.prototype.writeVehicleLongModels= function(umin,umax) {
 //######################################################################
 
 road.prototype.writeVehicleLCModels= function() {
-    console.log("\nin road.writeVehicleLCModels(): ID=",this.roadID,
+    console.log("\nin road.writeVehicleLCModels(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){
@@ -762,7 +789,7 @@ road.prototype.findLeaderAt=function(u){
     //console.log("in road.findLeaderAt");
 
 
-    // initialize for "no success"
+    // initialize virt veh for "no success"
 
     var vehLead=new vehicle(0,0,0,0,0,"car"); // new necessary here![];
     vehLead.id=-1;
@@ -796,7 +823,7 @@ road.prototype.findFollowerAt=function(u){
     //console.log("in road.findFollowerAt");
 
 
-    // initialize for "no success"
+    // initialize virt veh for "no success"
 
     var vehFollow=new vehicle(0,0,0,0,0,"car"); // new necessary here!
 
@@ -931,188 +958,6 @@ road.prototype.findNearestDistanceTo=function(xUser,yUser){
 }
 
 
-/**
-#############################################################
-(jun17) test whether user initiated a change of road geometry (CRG)
-#############################################################
-
-triggered by a mousedown or touchdown (first touch)
-event with corresp phys coordinates 
-at or near a road element 
-
-@param   xUser,yUser: phys. coordinates corresp to mousedown/touchdown event
-@return  array [success,Deltax,Deltay]
-         Deltax/y gives distance vecto trigger point - nearest road element,
-         dist_min=sqrt(Deltax^2+Deltay^2)
-@internally set: iPivot=index of this element, xPivot=xUser, yPivot=yUser
-*/
-
-road.prototype.testCRG=function(xUser,yUser){
-    var distCrit=0.8*this.nLanes*this.laneWidth; // 0.5 => only inside road
-    var dist2_min=1e9;
-    for(var i=0; i<=this.nSegm; i++){
-	var dist2=Math.pow(xUser-this.xtab[i],2) + Math.pow(yUser-this.ytab[i],2);
-	if(dist2<dist2_min){
-	    dist2_min=dist2;
-	    this.iPivot=i;
-	    this.xPivot=xUser;
-	    this.yPivot=yUser;
-	}
-    }
-    var dist_min=Math.sqrt(dist2_min);
-    var success=(dist_min<=distCrit);
-
-    //console.log("road.testCRG: dist_min=",dist_min," distCrit=",distCrit);
-
-    if(success){
-	console.log("road.testCRG: new CRG event initiated!",
-		    " dist_min=",Math.round(dist_min),
-		    " iPivot=",this.iPivot,
-		    " xPivot=",Math.round(this.xPivot),
-		    " yPivot=",Math.round(this.yPivot)
-		   )
-    }
-    return[success,dist_min,
-	   this.xPivot-this.xtab[this.iPivot],
-	   this.yPivot-this.ytab[this.iPivot]];
-}
-
-
-
-/**
-#############################################################
-(jun17) "drag" road at pivot according to user interaction
-#############################################################
-
-called as long as mouse is down/screen touched and this.testCRG(..)[1]=true
-width of the affected region=>this.kernelWidth
-
-if called with 5 parameters, a change of road geometry near the common 
-section of the other road "otherRoad" 
-(where it is parallel for merging/diverging) 
-is only possible parallel to the "otherRoad"
-
-@param  xUser,yUser: phys. coordinates corresp 
-        to mousedown/touchdown event
-@param  otherRoad (optional):  other road with common merge/diverge
-@param  uBegin (optional): position (own road) of beginning merge or diverge 
-        before the change
-@param  commonLen: length of common merge/diverge section 
-@return void; road segments are moved acording to changes in xtab, ytab
-*/
-
-road.prototype.doCRG=function(xUser,yUser,otherRoad,uBegin,commonLen){
-
-    var considerMergeRoad=!(typeof otherRoad === 'undefined');
-
-    var iPiv=this.iPivot; // making code easier to read/write
-    var ic=this.icKernel; 
-    var imin=(this.isRing) ? iPiv-ic : Math.max(iPiv-ic, 0);
-    var imax=(this.isRing) ? iPiv+ic : Math.min(iPiv+ic, this.nSegm);
-    var deltaXmax=xUser-this.xtabOld[iPiv];
-    var deltaYmax=yUser-this.ytabOld[iPiv];
-    var deltaX=[];
-    var deltaY=[];
-    for (var i=imin; i<=imax; i++){ 
-	deltaX[i]=deltaXmax*this.kernel[i-iPiv+ic];
-	deltaY[i]=deltaYmax*this.kernel[i-iPiv+ic];
-    }
-
-
-    // block for considering otherRoad (never ring road)
-
-    var inflLen=40; // max distance from merge for influence
-
-    if(considerMergeRoad){
-
-	for (var i=imin; i<=imax; i++){
-
-	    var u=i*this.roadLen/this.nSegm;
-
-            // test for influence and influence acordingly
-
-	    if((u>uBegin-inflLen)&&(u<uBegin+commonLen+inflLen)){
-		var urelBeg=(uBegin-u)/inflLen;
-		var urelEnd=(u-uBegin-commonLen)/inflLen;
-		var approachFact=(u<uBegin)
-		    ? Math.pow(Math.sin(0.5*Math.PI*urelBeg),2)
-		    : (u>uBegin+commonLen)
-		    ? Math.pow(Math.sin(0.5*Math.PI*urelEnd),2) : 0;
-
-                // find nearest target point and determine 
-                // tangential and normal unit vectors
-
-		var uOther=this.getNearestUof(otherRoad,u);
-		var phiOther=otherRoad.get_phi(uOther,this.traj);
-		var e=[]; // tangential target unit vector
-		e[0]=Math.cos(phiOther); 
-		e[1]=Math.sin(phiOther); 
-
-		var deltaXold=deltaX[i];
-		var deltaYold=deltaY[i];
-
-                // correction deltaR_corr=approachFact*deltaR
-                // +(1-approachFact)*(deltaR.e)*e
-
-		var deltaR_dot_e=deltaXold*e[0]+deltaYold*e[1];
-		deltaX[i] = approachFact * deltaXold
-		       +(1-approachFact) * deltaR_dot_e * e[0];
-		deltaY[i] = approachFact * deltaYold
-		       +(1-approachFact) * deltaR_dot_e * e[1];
-	    }
-	}
-    }
-
-    // special case if the influence region is near the end => onramp
-    // shift merging region
-
-    if(considerMergeRoad&&(this.nSegm-imax<0.05*this.nSegm)){
-	console.log("doCRG: in special case !");
-	var iminOn=Math.round(this.nSegm*uBegin/this.roadLen);
-	imin=Math.min(imin, iminOn);
-	imax=this.nSegm;
-	for (var i=iminOn; i<=this.nSegm; i++){
-
-	    var u=i*this.roadLen/this.nSegm;
-	    var uOther=this.getNearestUof(otherRoad,u);
-	    var phiOther=otherRoad.get_phi(uOther,this.traj);
-	    var e=[];
-	    e[0]=Math.cos(phiOther);
-	    e[1]=Math.sin(phiOther);
-	    var deltaR_dot_e=deltaXmax*e[0]+deltaYmax*e[1];
-	    deltaX[i] =deltaR_dot_e * e[0];
-	    deltaY[i] =deltaR_dot_e * e[1];
-	}
-    }
-
-
-    for (var i=imin; i<=imax; i++){
-	var itab=i;
-	if(isRing){
-	    if(i<0){itab+=this.nSegm+1;}
-	    if(i>this.nSegm){itab-=(this.nSegm+1);}
-	}
-
-	//console.log("end of road.doCRG: i=",i," itab=",itab,
-	//	    " imax=",imax," nSegm=",this.nSegm,
-	//	    " deltaX[i]=",deltaX[i]," deltaY[i]=",deltaY[i]);
-	this.xtab[itab]=this.xtabOld[itab]+deltaX[i];
-	this.ytab[itab]=this.ytabOld[itab]+deltaY[i];
-    }
-
-  if(false){
-    console.log("\nend doCRG: this.xtab.length=",this.xtab.length);
-    for(var j=0; j<20; j++){
-      var u=j*this.roadLen/20;
-      console.log("u=",u,
-		  " this.traj[0](u)=",this.traj[0](u),
-		  " this.trajGrid_x(u)=",this.trajGrid_x(u),
-		  " this.trajGrid_y(u)=",this.trajGrid_y(u)
-		 );
-    }
-  }
-} // end doCRG
-
 
 
 
@@ -1128,279 +973,6 @@ road.prototype.testForNaN=function(){ // detect the fucking NaN's
 }
 
 
-// helper function for the kernel
-
-road.prototype.createKernel=function(){
-    var dphi=0.5*Math.PI/this.icKernel;
-    this.kernel[this.icKernel]=1;
-    for (var di=1; di<=this.icKernel; di++){
-	this.kernel[this.icKernel+di]=Math.pow(Math.cos(di*dphi),4);//!!
-	this.kernel[this.icKernel-di]=this.kernel[this.icKernel+di];
-    }
-}
-
-/**
-#############################################################
-(jun17) do final cleanup after dragging interaction has finished
-#############################################################
-
-by doCRG,  xtab[], ytab[] are changed according to user action
-but no longer equidistant => scale is distorted and traj_xy(u) no longer 
-correct. finishCRG resamples the tabs to make them equidistant and also
-changes the number of segments if new curvature is added/removed
-*/
-
-road.prototype.finishCRG=function(){
-    console.log("in finishCRG()");
-
-    // first smooth locally since afterwards (after resampling)
-    // this.iPivot no longer valid
-
-
-
-    // calculate new road length and changed u-coordinate waypoints
-    // based on present xtab[],ytab[]
-
-    var chdUPoints=[];
-    chdUPoints[0]=0;
-    for (var i=1; i<=this.nSegm; i++){
-	chdUPoints[i]=chdUPoints[i-1]
-	    + Math.sqrt(
-		Math.pow(this.xtab[i]-this.xtab[i-1],2)
-		    + Math.pow(this.ytab[i]-this.ytab[i-1],2)
-	    );
-    }
-    this.roadLen=chdUPoints[this.nSegm];
-
-
-    // re-segmentate the road to equal-length road segments
-    // (no in-line change of xtab,ytab since traj_xy depends on them)
- 
-    var xtabNew=[];
-    var ytabNew=[];
-    var iUpper=1;
-
-    // first and last point: iNew=i
-
-    xtabNew[0]=this.xtab[0];
-    ytabNew[0]=this.ytab[0];
-    xtabNew[this.nSegm]=this.xtab[this.nSegm];
-    ytabNew[this.nSegm]=this.ytab[this.nSegm];
-
-    for (var inew=1; inew<this.nSegm; inew++){
-	var unew=inew*this.roadLen/this.nSegm;
-	while(chdUPoints[iUpper]<unew){iUpper++;}
-	var du=chdUPoints[iUpper]-chdUPoints[iUpper-1];
-	var rest=(unew-chdUPoints[iUpper-1])/du; // in [0,1]
-	xtabNew[inew]=(1-rest)*this.xtab[iUpper-1]+rest*this.xtab[iUpper];
-	ytabNew[inew]=(1-rest)*this.ytab[iUpper-1]+rest*this.ytab[iUpper];
-
- 	if(false){
-	    var drnew=Math.sqrt(Math.pow(xtabNew[inew]-xtabNew[inew-1],2)
-				+ Math.pow(ytabNew[inew]-ytabNew[inew-1],2));
-	    console.log("inew=",inew," iUpper=",iUpper,
-			" rest=",rest,
-			" xtabNew[inew]=",xtabNew[inew],
-			" ytabNew[inew]=",ytabNew[inew],
-			" \nTest: drnew=dunew=sqrt(...)=",drnew
-		       )
-	}
-    }
-
-    // transfer to xtab,ytab => local functions this.traj_xy redefined
-
-    for (var i=0; i<=this.nSegm; i++){
-
-	this.xtab[i]=xtabNew[i];
-	this.ytab[i]=ytabNew[i];
-	this.xtabOld[i]=xtabNew[i];
-	this.ytabOld[i]=ytabNew[i];
-    }
-
-    // change number of segments and re-sample again 
-    // (this also makes road smoother)
-
-    this.update_nSegm_tabxy(); // needs updated this.xytab for traj_xy!! 
-
-  //this.traj=[this.trajGrid_x,this.trajGrid_y];
-    // test output
-
-    if(false){
-	console.log("in road.finishCRG() before resetting xytab, xytabOld:");
-	console.log(" xytabOld: before drag")
-	console.log(" xytab: after dragging action, distorted");
-	console.log(" xytabnew: after dragging action, corrected");
-	console.log("new roadLen=this.roadLen=",this.roadLen);
-	for (var i=0; i<=this.nSegm; i++){
-	    console.log("i=",i,
-			" xytabOld=",Math.round(this.xtabOld[i]),
-			"",Math.round(this.ytabOld[i]),
-			" xytab=",Math.round(this.xtab[i]),
-			"",Math.round(this.ytab[i]),
-			" xytabNew=",Math.round(xtabNew[i]),
-			"",Math.round(ytabNew[i]),
-			" du=",parseFloat(chdUPoints[i]-chdUPoints[Math.max(i-1,0)]).toFixed(2),
-			" duNew=",parseFloat(this.roadLen/this.nSegm).toFixed(2)
-		       );
-	}
-    }
-
-
-} // road.prototype.finishCRG
-
-
-/**
-#############################################################
-(jun17) locally smooth road
-#############################################################
-needed when user brought in too much sharp/abrupt curves
-smoothes with maxiumum half-width iWidth 
-(total number of points 2*iWidth+1) centered at index iCenter
-*/
-
-road.prototype.smoothLocally=function(iCenter, iWidth){
-    //console.log("in road.smoothLocally: iCenter=",iCenter," iWidth=",iWidth);
-    var xtabNew=[];
-    var ytabNew=[];
-    for (var i=0; i<=this.nSegm; i++){
-	xtabNew[i]=0;
-	ytabNew[i]=0;
-    }
-
-    var imin=Math.max(1, iCenter-iWidth);
-    var imax=Math.min(this.nSegm-1, iCenter+iWidth);
-    var iw=Math.min(iCenter-imin, imax-iCenter); // <=iWidth
-
-    // apply smoothing to xytabNew
-
-    for (var i=iCenter-iw; i<=iCenter+iw; i++){
-	var distCenter=Math.abs((i-iCenter));
-
-        //var iwLoc=Math.max(0, iw-distCenter);
-	var iwLoc=iw;
-
-	var iwLimit=Math.min(i, this.nSegm-i);
-	iwLoc=Math.min(iwLoc, iwLimit);
-
-        // smooth with moving averages
-
-	var nSmooth=2*iwLoc+1;
-	//console.log("smoothLocally: i=",i," iCenter=",iCenter," iWidth=",iWidth,
-	//	    " iw=",iw," iwLoc=",iwLoc," nSmooth=",nSmooth);
-
-
-        // generate triang kernel
-
-	var kern=[];
-	var norm=0;
-	for(var j=0; j<=2*iwLoc; j++){
-	    norm += 1 - Math.abs(j+0.-iwLoc)/iwLoc;
-	}
-	for(var j=0; j<=2*iwLoc; j++){
-	    kern[j]=(1-Math.abs(j+0.-iwLoc)/iwLoc)/norm;
-	}
-	if(iwLoc===0){
-	    xtabNew[i]=this.xtab[i];
-	    ytabNew[i]=this.ytab[i];
-	}
-	else{
-	    for(var j=-iwLoc; j<=iwLoc; j++){
-	        xtabNew[i] += this.xtab[i+j] * kern[iwLoc+j];
-	        ytabNew[i] += this.ytab[i+j] * kern[iwLoc+j];
-	    }
-	}
-	if(false){console.log("smoothLocally: i=",i,
-		    " xtabNew[i]=",xtabNew[i],
-		    " this.xtab[i]=",this.xtab[i]);
-		 }
-    }
-
-    // test if successful
-
-    for (var i=iCenter-iw; i<=iCenter+iw; i++){
-	if(isNaN(xtabNew[i]) || isNaN(ytabNew[i])){
-	    console.log("road.SmoothLocally: i=",i," iCenter=",iCenter, 
-			"iw=",iw,": xtabNew[i] or ytabNew[i] are NaN's!"
-			+"\ndoing nothing");
-	    return;
-	}
-    }
-
-
-    // copy to this.xytab
-
-    for (var i=iCenter-iw; i<=iCenter+iw; i++){
-	this.xtab[i]=xtabNew[i];
-	this.ytab[i]=ytabNew[i];
-    }
-
-} // road.smoothLocally
-
-
-/**
-#############################################################
-(jun17) Smooth road
-#############################################################
-needed when user brought in too much sharp/abrupt curves
-*/
-
-road.prototype.smooth=function(){
-    var n=this.nSegm;
-    var xtabNew=[];
-    var ytabNew=[];
-    for (var i=0; i<=n; i++){
-	xtabNew[i]=0;
-	ytabNew[i]=0;
-    }
-
-
-    // middle points: full kernel
-
-    var ic=this.icKernel;
-    var norm=0;
-    for (var j=-(ic-1); j<ic-1; j++){
-	norm += this.kernel[ic+j];
-    }
-    //console.log("center smoothing: ic=",ic," norm=",norm);
-
-    for(var i=ic-1; i<=n-(ic-1); i++){
-	for(var j=-(ic-1); j<ic-1; j++){
-	    xtabNew[i]+=this.kernel[ic+j]/norm * this.xtab[i+j];
-	    ytabNew[i]+=this.kernel[ic+j]/norm * this.ytab[i+j];
-	}
-    }
-
-
-    // boundary points: only center part of kernel
-
-    for(var i=0; i<ic-1; i++){
-	norm=0;
-	for (var j=-i; j<=i; j++){norm+= this.kernel[ic+j];}
-	//console.log("boundary points: i=",i," norm=",norm);
-	for (var j=-i; j<=i; j++){
-	    xtabNew[i]+=this.kernel[ic+j]/norm * this.xtab[i+j];
-	    xtabNew[n-i]+=this.kernel[ic+j]/norm * this.xtab[n-i+j];
-	    ytabNew[i]+=this.kernel[ic+j]/norm * this.ytab[i+j];
-	    ytabNew[n-i]+=this.kernel[ic+j]/norm * this.ytab[n-i+j];
-
-	}
-    }
-
-    // bring smoothed info into xytab
-    if(false){
-        console.log("leaving road.smooth: n=this.nSegm=",n);
-        for(var i=0; i<=n; i++){
-	    console.log("i=",i," xtabOld=",this.xtab[i]," xtabNew=",xtabNew[i]);
-	}
-    }
-
-
-    for (var i=0; i<n; i++){
-	this.xtab[i]=xtabNew[i];
-	this.ytab[i]=ytabNew[i];
-    }
-
-} // road.smooth()
 
 /**
 #############################################################
@@ -1447,7 +1019,8 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 	    (types[i]===1) ? "truck" : "obstacle";
 	var lane=Math.round(lanesReal[i]);
         var vehNew=new vehicle(lengths[i],widths[i], 
-			       longPos[i],lane, speeds[i], type);
+			       longPos[i],lane, speeds[i],
+			       type, this.driver_varcoeff); // ICsingle
 	vehNew.v=lanesReal[i]; // since vehicle cstr initializes veh.v=veh.lane
 	if(i===iEgo){
             vehNew.id=1;
@@ -1554,6 +1127,7 @@ road.prototype.updateTruckFrac=function(fracTruck, mismatchTolerated){
 	    this.veh[k].longModel=newLongModel;
 	  }
 
+	  this.veh[k].longModel.driverfactor=this.veh[k].driverfactor; //!!
 	}
     }
   }
@@ -1637,6 +1211,8 @@ road.prototype.setCFModelsInRange=function(umin,umax,
         if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
         if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
       }
+      
+      this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;//!!
 
     }
   }
@@ -2059,7 +1635,7 @@ road.prototype.updateSpeedPositions=function(){
       // faster than right ones: "push on right
 
       if((this.veh[i].lane==this.nLanes-1)&&(this.veh[i].speed>1.5)){
-	this.veh[i].speed+=0.05*dt;
+	this.veh[i].speed+=0.00*dt;
       }
 
     }
@@ -2110,8 +1686,11 @@ road.prototype.doChangesInDirection=function(toRight){
   // this.updateEnvironment(); //!!!DOS, bisher auch n noetig
   var log=false;
 
+  var testTime=(time>51.7)&&(time<52.3)&&(!toRight);//!!!
+  //if((!toRight)&&testTime){this.writeVehiclesSimple(300,500);}//!!!
 
-  if(false){console.log("\nchangeLanes: before changes to the ",
+  
+  if(testTime){console.log("\nchangeLanes: before changes to the ",
 		       ((toRight) ? "right" : "left"));
 	  }
 
@@ -2119,6 +1698,15 @@ road.prototype.doChangesInDirection=function(toRight){
   // filter for regular vehicles and no LC bans
 
   for(var i=0; i<this.veh.length; i++){
+
+    //!! (MT apr2023)
+    // HEINEOUS ERROR: Defined MOBILOK twice; allowed LC w/o MOBIL
+    // depending on history!!!
+    // now for safety reset MOBILOK=false for each candidate anew
+    
+    
+    var MOBILOK=false; 
+
     var beyondStart=(this.veh[i].u>this.uminLC);
     var outsideLCban=((this.veh[i].u<this.LCbanStart)
 		      ||(this.veh[i].u>this.LCbanEnd));
@@ -2141,7 +1729,6 @@ road.prototype.doChangesInDirection=function(toRight){
     //if(beyondStart  && (this.veh[i].isRegularVeh())){
 
 
-
       // test if there is a target lane 
       // and if last change is sufficiently long ago
 
@@ -2150,9 +1737,7 @@ road.prototype.doChangesInDirection=function(toRight){
       var lastChangeSufficTimeAgo=(this.veh[i].dt_afterLC>this.waitTime)
 	  &&(this.veh[i].dt_lastPassiveLC>0.2*this.waitTime);
 
-      if(false){ //!!!
-    //if(itime==100){
-    //if(this.veh[i].id==207){
+      if(false){ 
         console.log("road.doChangesInDirection: vehID= ",this.veh[i].id,
 		 " time=",time," i=",i,
 		  " targetLaneExists=",targetLaneExists,
@@ -2201,7 +1786,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	     else{sLagNew=10000;}
 	  }
       
-      
+     
           // calculate MOBIL input
 
 	  var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
@@ -2229,20 +1814,21 @@ road.prototype.doChangesInDirection=function(toRight){
 	  var log=false;
 	 //var log=true;
 
-	  var MOBILOK=this.veh[i].LCModel.realizeLaneChange(
+	  MOBILOK=this.veh[i].LCModel.realizeLaneChange(
 	    vrel,acc,accNew,accLagNew,toRight,log);
-    
+	  
+ 
 
-         // only test output
+          // only test output
 
-          //if(MOBILOK&&(this.veh[i].id===107)){
-          //if(true){
 	  if(false){
-          //if(MOBILOK){
-          //if(this.veh[i].id==206){
+          // if(testTime&&(this.veh[i].id==257)){//!!!
 
-	  console.log(
-	    "vehicle id",this.veh[i].id,
+	    console.log(
+	      "!!!b time=",time.toFixed(2),
+	      " this.veh.length=",this.veh.length,
+	      " vehicle id",this.veh[i].id,
+	    " u",this.veh[i].u,
 	    " LCModel.realizeLaneChange:",
 	    " acc=",acc.toFixed(3)," accNew=",accNew.toFixed(3),
 	    " accLagNew=",accLagNew.toFixed(3)," toRight=",toRight,
@@ -2250,7 +1836,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	    " bBiasRight=",this.veh[i].LCModel.bBiasRight.toFixed(3),
 	    " MOBILOK=",MOBILOK);
 
-	    if(true){
+	    if(false){
 	      var s=this.veh[iLead].u-this.veh[iLead].len-this.veh[i].u;
 	      var accLead=this.veh[iLead].acc;
 	      var speed=this.veh[i].speed;
@@ -2258,13 +1844,13 @@ road.prototype.doChangesInDirection=function(toRight){
 	      var accCalc=this.veh[i].longModel.calcAcc(
 		 s,speed,speedLead,accLead);
 	      console.log(
-	       "details t=",time.toFixed(1),
-	       " this.veh[i].longModel.noiseAcc=",
-	       this.veh[i].longModel.noiseAcc.toFixed(3),
-	       ":\n",
-	       "  leadOld id: ",this.veh[iLead].id,
-	       " leadNew:",this.veh[iLeadNew].id,
-	       " lagNew:",this.veh[iLagNew].id,
+	         "details t=",time.toFixed(1),
+	         " this.veh[i].longModel.noiseAcc=",
+	         this.veh[i].longModel.noiseAcc.toFixed(3),
+	         ":\n",
+	         "  leadOld id: ",this.veh[iLead].id,
+	         " leadNew:",this.veh[iLeadNew].id,
+	         " lagNew:",this.veh[iLagNew].id,
 		 "\n  u=",parseFloat(this.veh[i].u).toFixed(3),
 		 "  s=",parseFloat(s).toFixed(3),
 		 " speed=",parseFloat(speed).toFixed(3),
@@ -2274,14 +1860,13 @@ road.prototype.doChangesInDirection=function(toRight){
 		 " accNew=",parseFloat(accNew).toFixed(3),
 		 //" accCalc=",parseFloat(accCalc).toFixed(3),
 		 //"\n  longModel=",this.veh[i].longModel,
-	       //"\n  veh[iLead]=",this.veh[iLead],
-	       " MOBILOK=",MOBILOK,
-		 ""
+	         //"\n  veh[iLead]=",this.veh[iLead],
+	         " MOBILOK=",MOBILOK,
+		   ""
 	      );
-	      //this.writeVehicles();
+		//this.writeVehicles();
 	    }
 	  }
-
 	}
     
     
@@ -2289,7 +1874,8 @@ road.prototype.doChangesInDirection=function(toRight){
 	changeSuccessful=(this.veh[i].isRegularVeh())
 	  &&(sNew>0)&&(sLagNew>0)&&MOBILOK;
 
-        //!!! MT 2019-09: prevent trucks to change to the left by force
+
+        //!! MT 2019-09: prevent trucks to change to the left by force
 
 	if(!(typeof scenarioString === 'undefined')){
 	  if((scenarioString=="OnRamp_BaWue")
@@ -2301,7 +1887,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	  }
 	}
 
-
+ 	
 	if(changeSuccessful){
 	 
              // do lane change in the direction toRight (left if toRight=0)
@@ -2326,8 +1912,10 @@ road.prototype.doChangesInDirection=function(toRight){
 	}
       }
     }
-  }
-  //return changeSuccessful;
+     
+  }// outer iveh loop
+
+
 }
 
 
@@ -3539,7 +3127,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var prio_OK=(!loc_prioOther)||loc_prioOwn
 		  ||(!LCModel.respectPriority(accLag,accLagNew));
 
-	      var MOBILOK=LCModel.realizeLaneChange(
+	      MOBILOK=LCModel.realizeLaneChange(
 		  vrel,acc,accNew,accLagNew,toRight,false);
 
 	      success=prio_OK && inChangeRegion && MOBILOK 
@@ -3822,7 +3410,8 @@ road.prototype.updateDensity=function(density){
 	    }
 
 	    var vehNew=new vehicle(vehLength,vehWidth,uNew,laneNew,
-				    speedNew,vehType); //updateDensity
+				   speedNew,vehType,
+				   this.driver_varcoeff); //updateDensity
 
 	    if(emptyLanes){vehNew.speed=longModelTruck.v0;}
 	    this.veh.splice(k,0,vehNew); // add vehicle at position k  (k=0 ... n-1)
@@ -3948,13 +3537,16 @@ road.prototype.updateBCup=function(Qin,dt,route){
       var v0New=0.9*Math.min(longModelNew.v0, longModelTruck.v0);
       var speedNew=Math.min(v0New, longModelNew.speedlimit,
 				space/longModelNew.T);
-      var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType);
+      var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType,
+			    this.driver_varcoeff); //updateBCup
  
       if(deepCopying){
         vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
         vehNew.LCModel=new MOBIL(); vehNew.LCModel.copy(LCModelNew);
       }
       else{vehNew.longModel=longModelNew;}
+      
+      vehNew.longModel.driverfactor=vehNew.driverfactor; //!!
 
       vehNew.route=this.route;
 
@@ -3968,18 +3560,6 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.veh.push(vehNew); // add vehicle after pos nveh-1
       this.updateEnvironment();
       this.inVehBuffer -=1;
-
-      //if((lane!=this.nLanes-1)&&(vehType==="truck")){
-      if(false){
-	console.log("road.updateBCup: ID=",this.roadID,
-			  " new vehicle at pos u=0, lane=",lane,
-			  " type=",vehType," s=",space," speed=",speedNew);
-	console.log(this.veh.length);
-      }
-      if(false){
-	console.log("road.updateBCup: road",this.roadID,
-		    "veh ",vehNew.id,"route ",vehNew.route);
-      }
 		   
     }
   }
@@ -4083,7 +3663,11 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 				   ? longModelCar : longModelTruck);
         this.veh[i].LCModel.copy((this.veh[i].type === "car")
 				 ? LCModelCar : LCModelTruck);
+
+	this.veh[i].longModel.driverfactor=this.veh[i].driverfactor; //!!
       }
+
+      
       if(false){
         console.log("updateModelsOfAllVehicles: type=",this.veh[i].type,
 		  " speedl=",this.veh[i].longModel.speedlimit,
@@ -4099,6 +3683,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	  ? longModelCar : longModelTruck;
         this.veh[i].LCModel=(this.veh[i].type === "car")
 	  ? LCModelCar : LCModelTruck;
+	this.veh[i].longModel.driverfactor=this.veh[i].driverfactor; //!!
       }
     }
   }
@@ -4753,8 +4338,9 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
   // sort trafficObj array by decreasing u values (mixing of different roads
   // and object types OK since filtered in loop)
+  // !!! but side effect: trafficObjects.trafficObj[i] not static!
 
-  trafficObjects.trafficObj.sort(function(a,b){
+  trafficObjects.trafficObj.sort(function(a,b){ 
 	    return a.u - b.u;
   })
 
