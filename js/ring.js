@@ -12,12 +12,28 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawVehIDs=true; // override control_gui.js
+drawVehIDs=false; // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
 
 
+//#############################################################
+// stochasticity settings (acceleration noise spec at top of models.js)
+//#############################################################
+
+var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
+
+//#############################################################
+// override standard settings control_gui.js
+//#############################################################
+
+density=0.03;  // default 0.03
+setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
+
+fracTruck=0.1; // default 0.1 
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 
 /*######################################################
@@ -33,22 +49,9 @@ var crashinfo=new CrashInfo();
 
  (2) refSizePhys smaller  => all phys roadlengths smaller
   => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
-
+  => chose smaller for mobile
 ######################################################*
 */
-
-// override vehicle and model settings
-
-var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
-                          // need later call road.setDriverVariation(.); 
-// override standard settings control_gui.js
-
-density=0.03;  // default 0.03
-setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
-
-fracTruck=0.1; // default 0.1 
-setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 
 // Global overall scenario settings and graphics objects
@@ -283,7 +286,7 @@ function updateSim(){
 
   // (1a) Test code introduce red TL
 
-  if(true){//!!
+  if(false){//!!
     //!! in different road operations (setSpeedlimit) order of
     // trafficObjs.trafficObj array changed in increasing u
     // can only select unique trafficObj at initialization or, as here,
@@ -319,7 +322,9 @@ function updateSim(){
   
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
+  // longModelCar etc defined in control_gui.js
 
+  
 
   mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,

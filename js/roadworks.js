@@ -8,6 +8,14 @@ const refSizeRegular=250;
 const qInRegular=1850/3600; //1850
 const qInSmartphone=1910/3600;
 
+//#############################################################
+// stochasticity settings (acceleration noise spec at top of models.js)
+//#############################################################
+
+var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
+
+
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -22,8 +30,7 @@ const qInSmartphone=1910/3600;
 
  (2) refSizePhys smaller  => all phys roadlengths smaller
   => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
-
+  => chose smaller for mobile
 ######################################################*
 */
 

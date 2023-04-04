@@ -1450,8 +1450,8 @@ road.prototype.calcAccelerations=function(){
         // (it may have truck model by this.updateModelsOfAllVehicles)
         // do not accelerate programmatically the ego vehicle(s)
 
-	if(this.veh[i].id>1){ // no ego vehicles
-	    this.veh[i].acc =(this.veh[i].isRegularVeh()) 
+	if(this.veh[i].id>1){ // no ego vehicles  
+	    this.veh[i].acc =(this.veh[i].isRegularVeh()) // longit w/random
 		? this.veh[i].longModel.calcAcc(s,speed,speedLead,accLead)
 		: 0;
 	}
@@ -1667,8 +1667,8 @@ road.prototype.changeLanes=function(){
 	var testLongTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
 	var testLongTruckIDM=new IDM(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
 	s= 85.7;  speed= 18.7;  speedLead= 15.7;  accLead= 0.7;
-	var testACC=testLongTruck.calcAcc(s,speed,speedLead,accLead);
-	var testIDM=testLongTruckIDM.calcAcc(s,speed,speedLead);
+	var testACC=testLongTruck.calcAccDet(s,speed,speedLead,accLead);
+	var testIDM=testLongTruckIDM.calcAccDet(s,speed,speedLead);
 	console.log("testLongTruck=",testLongTruck," testACC=",testACC);
 	console.log("testLongTruckIDM=",testLongTruck," testIDM=",testIDM);
 
@@ -1690,9 +1690,11 @@ road.prototype.doChangesInDirection=function(toRight){
   //if((!toRight)&&testTime){this.writeVehiclesSimple(300,500);}//!!!
 
   
-  if(testTime){console.log("\nchangeLanes: before changes to the ",
+  //if(testTime){
+  if(false){
+    console.log("\nchangeLanes: before changes to the ",
 		       ((toRight) ? "right" : "left"));
-	  }
+  }
 
   // outer loop over all vehicles of a road;
   // filter for regular vehicles and no LC bans
@@ -1790,7 +1792,7 @@ road.prototype.doChangesInDirection=function(toRight){
           // calculate MOBIL input
 
 	  var vrel=this.veh[i].speed/this.veh[i].longModel.v0;
-	  var accNew=this.veh[i].longModel.calcAcc(
+	  var accNew=this.veh[i].longModel.calcAccDet(
 	    sNew,speed,speedLeadNew,accLeadNew);
 
           // reactions of new follower if LC performed
@@ -1803,7 +1805,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	      this.writeNonregularVehicles(0,this.roadLen);
 	 }
  	 var accLagNew 
-	    =this.veh[iLagNew].longModel.calcAcc(
+	    =this.veh[iLagNew].longModel.calcAccDet(
 	      sLagNew,speedLagNew,speed,accNew); 
       
          // final MOBIL incentive/safety test before actual lane change
@@ -1841,7 +1843,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	      var accLead=this.veh[iLead].acc;
 	      var speed=this.veh[i].speed;
 	      var speedLead=this.veh[iLead].speed;
-	      var accCalc=this.veh[i].longModel.calcAcc(
+	      var accCalc=this.veh[i].longModel.calcAccDet( // within MOBIL
 		 s,speed,speedLead,accLead);
 	      console.log(
 	         "details t=",time.toFixed(1),
@@ -2132,11 +2134,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	var speed=vehConnect.speed;
 	var s0=vehConnect.longModel.s0;
 
+	// within road.connect: deterministic accel for clarity 
 	// distBeforeEnd>0 to prevent going over end w/o connecting=>vanish
 	var uGo=uSource
 	  -(distBeforeEnd+Math.max(1.2*s0,0.2*(duDecision-distBeforeEnd)));
 	var sStop=uSource-u; // should stop s0 upstream of uConnect
-	var accSlowdown=vehConnect.longModel.calcAcc(sStop,speed,0,0);
+	var accSlowdown=vehConnect.longModel.calcAccDet(sStop,speed,0,0);
 
 	// state variables
 
@@ -2265,7 +2268,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	  if(C2||C3){
 	    var du=uSource-u;
-	    var accFree=vehConnect.longModel.calcAcc(100000,speed,speed,0);
+	    var accFree=vehConnect.longModel.calcAccDet(100000,speed,speed,0);
 	    var tc=-speed/accFree
 		+Math.sqrt(Math.pow(speed/accFree,2)+2*du/accFree);
 
@@ -2379,7 +2382,9 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    s=(uSource-u)+ds;
 	    //console.log("    ds=",ds," s=",s);
 	  }
-	  var accDefault=vehConnect.longModel.calcAcc(s,speed,0,0);
+	  
+	  // calcAccDet since within road.connect
+	  var accDefault=vehConnect.longModel.calcAccDet(s,speed,0,0);
 	  var accGo=accDefault;
 	  if(this.connectLog){
 	    console.log("  Preparation (ii): Potential acceleration if",
@@ -2397,7 +2402,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    //var s=uLead-lenLead-uTarget+(uSource-u);
 	    var accLead=targetRoad.veh[iLead].acc;
 
-	    accGo=Math.min(accDefault, vehConnect.longModel.calcAcc(
+	    accGo=Math.min(accDefault, vehConnect.longModel.calcAccDet(
 	      sLead,speed,speedLead,accLead)); // !! influence
 	    if(this.connectLog){
 	      console.log("  Preparation (iiia): leaderExists: leader id=",
@@ -2459,7 +2464,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      //already calc, possibly antic
 	      //var sFollow=uTarget-(uSource-u)-vehConnect.len - uFollow;
 	      var accLead=vehConnect.acc;
-	      var accFollow=targetRoad.veh[iFollow].longModel.calcAcc
+	      var accFollow=targetRoad.veh[iFollow].longModel.calcAccDet
 	      (sFollow,speedFollow,speed,vehConnect.acc);
 	      if(accFollow<-bsafe){
 	        targetCanBeEntered=false; // !! influence
@@ -2735,8 +2740,9 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
     var duOwn=(uSource-u) + ducExitOwn;//OK
 
     // expected time to reach collision point
-    
-    var acc=vehConnect.longModel.calcAcc(10000,speed,speed,0);
+    // calcAccDet since within road.connect
+
+    var acc=vehConnect.longModel.calcAccDet(10000,speed,speed,0);
     var tc=-speed/acc+Math.sqrt(Math.pow(speed/acc,2)+2*duOwn/acc);
 
     // determine the existence of actual conflicts
@@ -3113,10 +3119,10 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	      var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
 
 	      var acc=originVehicles[i].acc;
-	      var accNew=originVehicles[i].longModel.calcAcc(
+	      var accNew=originVehicles[i].longModel.calcAccDet( //MOBIL
 		  sNew,speed,speedLeadNew,accLeadNew);
 	      var accLag=followerNew.acc;
-	      var accLagNew =originVehicles[i].longModel.calcAcc(
+	      var accLagNew =originVehicles[i].longModel.calcAccDet(
 		  sLagNew,speedLagNew,speed,accNew);
 
 
@@ -3186,11 +3192,12 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 	// the deceleration to do so is less than bSafe
 	// if the last orig vehicle is a leader and interacting decel is less,
 	// use it
+	// calcAccDet since within road.connect
 
 	for(var j=0; j<targetVehicles.length; j++){
 	    var sStop=stopLinePosNew-targetVehicles[j].u; // gap to stop for target veh
 	    var speedTarget=targetVehicles[j].speed;
-	    var accTargetStop=targetVehicles[j].longModel.calcAcc(sStop,speedTarget,0,0);
+	    var accTargetStop=targetVehicles[j].longModel.calcAccDet(sStop,speedTarget,0,0);
 	    var allOrigVehsAreLeaders=true;
 
 
@@ -3206,7 +3213,7 @@ road.prototype.mergeDiverge=function(newRoad,offset,uBegin,uEnd,
 		    var s=du-originVehicles[iLast].len;
 		    var speedOrig=originVehicles[iLast].speed;
 		    var accLTC
-			=targetVehicles[j].longModel.calcAcc(s,speedTarget,speedOrig,0); 
+			=targetVehicles[j].longModel.calcAccDet(s,speedTarget,speedOrig,0); 
 		    var accTarget=Math.min(targetVehicles[j].acc,
 					   Math.max(accLTC, accTargetStop));
 		    if(accTarget>-bSafe){

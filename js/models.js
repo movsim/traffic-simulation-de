@@ -2,6 +2,17 @@
 // longitudinal models
 //#################################
 
+// white acceleration noise to avoid artifacts.
+// sqrt(QnoiseAccel/dt) = random accel noise in each step
+
+var QnoiseAccel=0.05; //[m^2/s^3]
+
+// note: correlated noise by inter-driver variation directly in model
+// ACC.driverfactor or IDM.driverfactor
+// inherited from this.veh[i].driverfactor in road.js
+// which is calculated from top-level driver_varcoeff
+// via road.setDriverVariation(driver_varcoeff)
+
 
 /**
 longModel-IDM constructor
@@ -31,11 +42,8 @@ deep copy: longModel2=new IDM(); longModel2.copy(longModel)
 
 function IDM(v0,T,s0,a,b){ 
 
-  // white acceleration noise to avoid artifacts.
-  // sqrt(QnoiseAccel/dt) = random accel noise in each step
-  // for uncorrelated random effects
   
-  this.QnoiseAccel=0.0; //m^2/s^3
+  this.QnoiseAccel=QnoiseAccel; //m^2/s^3
 
   this.driverfactor=1; // if no transfer of driver individuality from master veh
   this.v0=v0;
@@ -95,20 +103,24 @@ IDM acceleration function
 @return:  acceleration [m/s^2]
 */
 
-
 IDM.prototype.calcAcc=function(s,v,vl,al){ 
-
-  //MT 2016,2022,2023: uncorrelated random-walk acceleration noise
-  // (correlated at construction)
+    // sig_speedFluct=noiseAccel*sqrt(t*dt/12)
 
   var accRnd=(s<this.s0) ? 0
       : Math.sqrt(this.QnoiseAccel/dt)*(Math.random()-0.5);
+  return accRnd+this.calcAccDet(s,v,vl,al);
+}
+
+
+IDM.prototype.calcAccDet=function(s,v,vl,al){ 
+
   
   // determine valid local v0eff and accel parameter aeff
   // this.driverfactor from master vehicle;
+  // speedlimit overrides driver variability
   
-  var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
-  v0eff*=this.alpha_v0*this.driverfactor;
+  var v0eff=this.v0*this.driverfactor;
+  v0eff=Math.min(v0eff, this.speedlimit, this.speedmax);
   var aeff=a*this.driverfactor;
 
         // actual acceleration model
@@ -123,7 +135,7 @@ IDM.prototype.calcAcc=function(s,v,vl,al){
         // return original IDM
 
   return (v0eff<0.00001) ? 0 
-	: Math.max(-this.bmax, accFree + accInt + accRnd);
+	: Math.max(-this.bmax, accFree + accInt);
 
         // return IDM+
 
@@ -143,8 +155,10 @@ if this does not include an emergency braking (decel<2*b)
 For the interface and further explanations see ACC.prototype.calcAcc
 */
 
+// deterministic acc for all forced situations
+
 IDM.prototype.calcAccGiveWay=function(sNew, v, vPrio){
-    var accNew=this.calcAcc(sNew, v, vPrio, 0);
+    var accNew=this.calcAccDet(sNew, v, vPrio, 0);
     return (accNew>-2*this.b) ? accNew : acc;
 }
 
@@ -183,7 +197,7 @@ function ACC(v0,T,s0,a,b){
   // sqrt(QnoiseAccel/dt) = random accel noise in each step
   // for uncorrelated random effects
 
-  this.QnoiseAccel=0.; //m^2/s^3
+  this.QnoiseAccel=QnoiseAccel; //m^2/s^3
   this.driverfactor=1; // if no transfer of driver individuality from master veh
   this.v0=v0; 
   this.T=T;
@@ -255,22 +269,25 @@ ACC acceleration function
 @return:  acceleration [m/s^2]
 */
 
-
 ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
-
-  if(s<0.5*this.s0){return -this.bmax;}// particularly for s<0
-
-    // !!! acceleration noise to avoid some artifacts (no noise if s<s0)
     // sig_speedFluct=noiseAccel*sqrt(t*dt/12)
 
   var accRnd=(s<this.s0) ? 0
       : Math.sqrt(this.QnoiseAccel/dt)*(Math.random()-0.5);
+  return accRnd+this.calcAccDet(s,v,vl,al);
+}
+
+ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
+
+  if(s<0.5*this.s0){return -this.bmax;}// particularly for s<0
+
 
   // determine valid local v0eff and accel parameter aeff
   // this.driverfactor from master vehicle;
+  // speedlimit overrides driver variability
   
-  var v0eff=Math.min(this.v0, this.speedlimit, this.speedmax);
-  v0eff*=this.alpha_v0*this.driverfactor; 
+  var v0eff=this.v0*this.driverfactor;
+  v0eff=Math.min(v0eff, this.speedlimit, this.speedmax);
   var aeff=this.a*this.driverfactor;
   
   // actual acceleration model
@@ -301,7 +318,7 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
   var accACC=this.cool*accMix +(1-this.cool)*accIDM;
 
-  var accReturn=(v0eff<0.00001) ? 0 : Math.max(-this.bmax, accACC + accRnd);
+  var accReturn=(v0eff<0.00001) ? 0 : Math.max(-this.bmax, accACC);
 
         // log and return
 
@@ -355,12 +372,14 @@ use MOBIL.respectPriority to determine if the merge is OK
 @return:  acceleration response [m/s^2] to the merging veh with priority
 */
 
-    // !! 0.1*this.b consistent with MOBIL.prototype.respectPriority
-    // !! 2*this.b consistent with MOBIL.bSafe
+// !! 0.1*this.b consistent with MOBIL.prototype.respectPriority
+// !! 2*this.b consistent with MOBIL.bSafe
+// deterministic acc for all forced situations
+
 
 ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
-    var accPrioNoYield=this.calcAcc(sPrio, vPrio, 0, 0);
-    var accYield=this.calcAcc(sYield, v, 0, 0);
+    var accPrioNoYield=this.calcAccDet(sPrio, vPrio, 0, 0);
+    var accYield=this.calcAccDet(sYield, v, 0, 0);
     var priorityRelevant=((accPrioNoYield<-0.2*this.b)
 			  &&(accYield<-0.2*this.b));
     var accGiveWay=priorityRelevant ? accYield : accOld;

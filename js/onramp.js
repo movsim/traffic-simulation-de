@@ -35,13 +35,19 @@ var crashinfo=new CrashInfo();
 
 
 
-
 //#############################################################
-// adapt/override standard param settings (mainly from control_gui.js)
+// stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
 var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
+
+
+
+//#############################################################
+// adapt/override standard param settings from control_gui.js
+//#############################################################
+
 qIn=4500./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
@@ -77,7 +83,6 @@ var nLanes_rmp=1;
   and DOS when try sizing in css (see there) only 
  
   document.getElementById("contents").clientWidth; .clientHeight;
-
   always works!
 
 ######################################################*
@@ -503,6 +508,7 @@ function updateSim(){
 
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
+  // longModelCar etc defined in control_gui.js
 
   mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
   mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
