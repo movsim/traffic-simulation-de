@@ -14,7 +14,7 @@ const qInSmartphone=1910/3600;
 
 var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
-
+factor_v0_truck=1;
 
 
 /*######################################################

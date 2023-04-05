@@ -1,5 +1,8 @@
 (2023-04) all scenarious including deviation work perfectly, but
-(i) roundabout: implementation of traffic rules does not work (same for ring and arm priority
+(i) DONE roundabout: implementation of traffic rules does not work (same for ring and arm priority (do it quickly, because concerns MOBIL references; I am into it)
+veh ID 228 at itime=483 t=40.25 drives into main although gap<0
+"all previous actions drove ..."
+
 
 (ii) intersection: at left turn (sometimes straigt on) some vehicle blips
  while crashes seem to work with general improvement (only a few...)

@@ -769,7 +769,7 @@ TrafficObjects.prototype.selectSignOrTL=function(xPixUser,yPixUser){
 
 TrafficObjects.prototype.setTrafficLight=function(obj, value){
 
-  console.log("in TrafficObjects.setTrafficLight, obj=",obj," value=",value);
+  //console.log("in TrafficObjects.setTrafficLight, obj=",obj," value=",value);
   if(!(obj.type==='trafficLight')){
     console.log("TrafficObjects.setTrafficLight: error:",
 		" object not of type trafficLight");

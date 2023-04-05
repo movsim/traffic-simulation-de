@@ -5,6 +5,15 @@ nLanesMin=2;
 nLanesMax=4; 
 
 //#############################################################
+// stochasticity settings (acceleration noise spec at top of models.js)
+//#############################################################
+
+var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
+
+factor_v0_truck=1;
+
+//#############################################################
 // adapt standard IDM and MOBIL model parameters from control_gui.js
 // since no sliders for that.
 // Values are distributed in updateModels() => truck model derivatives
@@ -38,7 +47,7 @@ IDM_v0=140./3.6;
 slider_IDM_v0.value=3.6*IDM_v0;
 slider_IDM_v0Val.innerHTML=3.6*IDM_v0+" km/h";
 
-qIn=1850./3600; // inflow 1550./3600; 
+qIn=1680./3600; // inflow 1550./3600; 
 slider_qIn.value=3600*qIn;
 slider_qInVal.innerHTML=formd0(3600*qIn)+" Fz/h";
 

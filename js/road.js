@@ -1992,9 +1992,11 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
   var targetHasPiority=(typeof targetPrio === 'undefined')
       ? false : targetPrio;
-  var bsafe=(targetHasPiority) ? 2.5 : 15; //!!! longModel.bmax=10
+  var bsafe=(targetHasPiority) ? 2 : 15; //!!! 2.5:15; longModel.bmax=10
 
+  //if(this.roadID==0){console.log("road.connect: bsafe=",bsafe);}
 
+  
   if(false){
     console.log("\n\nbegin road.connect: t=",time.toFixed(2),
 		" this.roadLen=",this.roadLen.toFixed(1),
@@ -2015,7 +2017,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   // that. However, it must not be prior to the final Go zone u>uGo
   // because than collisions may happen!
 	
-  var distBeforeEnd=1.0; // !! 
+  var distBeforeEnd=1.0; // !!!
   
   var duAntic=60+distBeforeEnd;
   var duDecision=10+distBeforeEnd;
@@ -2036,17 +2038,18 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // "var log" in determineConflicts    
     //#########################################################
 
-    connectLog=false;
+    this.connectLog=false;
     //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
-    //this.connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
+    //this.connectLog=((this.veh[iveh].id==228)&&true);
+    //this.connectLog=((this.veh[iveh].id==228)&&(time>40)&&(time<45));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
     //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
     
-    var ringKO=(this.isRing)
+    var ringOK=(this.isRing)
 	&&(this.veh[iveh].u>uSource+1.5*dt*this.veh[iveh].longModel.v0);
     // veh is candidate if in anticipation regime and regular veh
-    if((this.veh[iveh].isRegularVeh())&&(!ringKO)
+    if((this.veh[iveh].isRegularVeh())&&(!ringOK)
        &&(this.veh[iveh].u>uSource-duAntic)){
  
 
@@ -2107,7 +2110,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
            }
          }
 
- 
+     Notice: Without conflicts, C2 is treated exactly as C3
 */
 
       
@@ -2141,22 +2144,25 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 
 	if(this.connectLog){
-	  console.log("\n\nroad.connect: t=",time.toFixed(2),
+	  var zoneStr=(C1) ? " in braking zone"
+	      : (C2) ? " in decision zone"
+	      : (C3) ? " final go" : " no interation";
+	  console.log("\nroad.connect: t=",time.toFixed(2),
 		      " veh id=",id,
-		      " route=",this.veh[iveh].route,
+		      //" route=",this.veh[iveh].route,
 		      " u=",u.toFixed(1),
 		      " speed=",speed.toFixed(1),
 		      " acc=",vehConnect.acc.toFixed(1),
 		      " uAntic=",uAntic.toFixed(1),
 		      " uDecide=",uDecide.toFixed(1),
 		      " uGo=",uGo.toFixed(1),
-		      " uSource=",uSource.toFixed(1),
-		      "\n              C1=",C1,
-		      "  C2=",C2," C3=",C3,
-		      " laneContinues=",laneContinues,
-		      " conflictsExist=",conflictsExist,
-		      " potentialConflictsExist=",potentialConflictsExist,
-		      " maxspeedImposed=",maxspeedImposed,
+		      " uSource=",uSource.toFixed(1),zoneStr,
+		      //"\n              C1=",C1,
+		      //"  C2=",C2," C3=",C3,
+		      //" laneContinues=",laneContinues,
+		      //" conflictsExist=",conflictsExist,
+		      //" potentialConflictsExist=",potentialConflictsExist,
+		      //" maxspeedImposed=",maxspeedImposed,
 		      "");
 	}
 		    
@@ -2204,13 +2210,14 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  // !! since TL is always obstacle
 	  // (type=="obstacle" lowercase, no function!!),
 	  // check for TL not needed
+
 	  var followerInfo
 	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
 	  var followerExists // no follower complication if road not left!
 	      =followerInfo[0]&&(this.roadID!=targetRoad.roadID)
 	      &&(!(targetRoad.veh[followerInfo[1]].type=="obstacle"));
 	  //&&(!(targetRoad.veh[followerInfo[1]].isTrafficLight()));
-	  if(this.connectLog){console.log("\n\nFollowerExists=",followerExists,"\n\n\n");}
+
 	  var iFollow=followerInfo[1];
 	  var uFollow=(followerExists)
 	      ? targetRoad.veh[iFollow].u : -1000000;
@@ -2233,20 +2240,22 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      ? uLead-uTarget+(uSource-u)-lenLead : 100000;
 
 	  if(this.connectLog){
-	    console.log("  Preparation (i): id=",vehConnect.id,
-			" uTarget=",uTarget.toFixed(1),
-		        " lane+offsetLane=",lane+offsetLane,
-		        " target-leaderExists=",leaderExists,
-			" targetfollowerExists=",followerExists);
-	    if(leaderExists){console.log("  leader id==",
-					 targetRoad.veh[iLead].id,
-					 "sLead=",sLead);}
-	    if(followerExists){console.log("  follower id=",
-					   targetRoad.veh[iFollow].id,
-					   "sFollow=",sFollow);}
+	    console.log(
+	      "  Prep (i):",
+	      " uTarget=",uTarget.toFixed(1),
+	      " lane+offsetLane=",lane+offsetLane,
+	      " leader id==",
+	      ((leaderExists) ? targetRoad.veh[iLead].id : "none"),
+	      " sLead=",sLead,
+	      " follower id=",
+	      ((followerExists) ? targetRoad.veh[iFollow].id : "none"),
+	      " sFollow=",sFollow);
+
 	    //targetRoad.writeVehiclesSimple();
 	  }
 
+
+	  
 	  
 	  // analyse target road in detail if near to it
 	  // and possibly switch leaders/followers to anticipated vehs
@@ -2264,23 +2273,27 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    // use anticipated instead of instantaneous follower
 	    
 	    if(followerExists){ // true follower at uTarget at present
+
+	      // true if anticipated follower is the same
 	      var anticipatedFollowerExists=(uFollow+speedFollow*tc<uTarget);
 
 	      // see comments at "update_iLead" no follower if iLag<=iFollow
 	      var iLag=targetRoad.veh[iFollow].iLag;
 
-	      if(this.connectLog){
+	      if(false){ // only if look at determining new antic follower
+	      //if(this.connectLog){
 		console.log(
 	      "  (1a): in C2||C3 and target follower exists: before checking",
-		"anticipated follower: old idFollow=",
-		targetRoad.veh[iFollow].id,
-		  "\n       tc=expected dt @u Source->uTarget=",tc.toFixed(1),
+		  "anticipated follower: old idFollow=",
+		  targetRoad.veh[iFollow].id,
+	 	  "\n       tc=expected dt @u Source->uTarget=",tc.toFixed(1),
 		  " uFollow+speedFollow*tc=",
 		  (uFollow+speedFollow*tc).toFixed(1),
 		  "uTarget=",uTarget.toFixed(1),
 		  " anticipatedFollowerExists=",
 		  anticipatedFollowerExists,
-		"");
+		  " iLag=",iLag," iFollow=",iFollow,
+		  "");
 	      }
 
 	      //while(false){ // !omit anticipation of future leader/follower
@@ -2291,10 +2304,11 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		speedFollow=targetRoad.veh[iFollow].speed;
 		anticipatedFollowerExists=(uFollow+speedFollow*tc<uTarget);
 		iLag=targetRoad.veh[iFollow].iLag;
-		if(this.connectLog)console.log("iFollow=",iFollow,
+		if(this.connectLog)console.log("  in while: iFollow=",iFollow,
 			    " idFollow=",targetRoad.veh[iFollow].id);
 	      }
-	      if(this.connectLog){
+	      if(false){// only if look at determining new antic follower
+	      // if(this.connectLog){
 		console.log(
 		  "  (1b): in C2||C3 and target follower exists:",
 		  "after checking",
@@ -2313,7 +2327,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    if(uFollow<-100000){ anticipatedFollowerExists=false;}
 
 	    if(anticipatedFollowerExists){ // otherwise use initialisation
-	      sFollow=(uTarget-uFollow) + (uSource-u) - vehConnect.len
+	      sFollow=(uTarget-uFollow) - (uSource-u) - vehConnect.len
 		- speedFollow*tc; // !! antic
 
 
@@ -2337,7 +2351,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		sLead=uLead-uTarget+(uSource-u)-lenLead
 		+ speedLead*tc; // !! antic
 	      }
-	      if(this.connectLog){
+	      if(false){
+	      //if(this.connectLog){
 		console.log(
 		  "  (1c): in C2||C3,",
 		  "new anticipated follower != present follower exists!",
@@ -2376,7 +2391,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var accDefault=vehConnect.longModel.calcAccDet(s,speed,0,0);
 	  var accGo=accDefault;
 	  if(this.connectLog){
-	    console.log("  Preparation (ii): Potential acceleration if",
+	    console.log("  Prep (ii): Potential free acceleration if",
 			"neither conflicts nor target restrictions:",
 			"accDefault=accGo=",accDefault);
 	  }
@@ -2394,7 +2409,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    accGo=Math.min(accDefault, vehConnect.longModel.calcAccDet(
 	      sLead,speed,speedLead,accLead)); // !! influence
 	    if(this.connectLog){
-	      console.log("  Preparation (iiia): leaderExists: leader id=",
+	      console.log("  Prep (iiia): leaderExists: leader id=",
 			  targetRoad.veh[iLead].id," s=",s," accGo=",
 			  accGo," = min(free acc, target leader acc)");}
 
@@ -2418,7 +2433,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      }
 	      
 	      if(this.connectLog){
-		console.log("  Preparation (iiib): leader and",
+		console.log("  Prep (iiib): leader and",
 			    "potential conflicts exist:",
 			    "targetCanBeEntered=",targetCanBeEntered,
 			    "s to target leader s=",s.toFixed(1),
@@ -2439,19 +2454,18 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 	  }
 	  else if(this.connectLog){
-	    console.log("  Preparation (iii): no target leader exists");
+	    console.log("  Prep (iii): no target leader exists");
 	  }
 
 
 	  // (iii) calculation whether it is safe to merge in
 	  // front of followers
 	  // only sensible if near to target road, i.e., (C2||C3)
-
+          // if without conflicts or w/ resolved conflicts => C2 equiv to C3
 	  
 	  if(followerExists){
-	    if(C2||C3){ // then always braking in region C1
-	      //already calc, possibly antic
-	      //var sFollow=uTarget-(uSource-u)-vehConnect.len - uFollow;
+	    if(C2||C3){ // decision zone, zone C1 was braking zone
+	      //sFollow already calculated
 	      var accLead=vehConnect.acc;
 	      var accFollow=targetRoad.veh[iFollow].longModel.calcAccDet
 	      (sFollow,speedFollow,speed,vehConnect.acc);
@@ -2461,15 +2475,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      }
 	      if(this.connectLog){
 	        console.log(
-		  "  Preparation (iv): (C2||C3) and target follower exists:",
-		  "targetCanBeEntered=",targetCanBeEntered,
-		  "id=",vehConnect.id,
-		  "idFollow=",targetRoad.veh[iFollow].id,
+		  "  Prep (iv): enter/merge and target follower exists:",
+		  " targetCanBeEntered=",targetCanBeEntered,
+		  " id=",vehConnect.id,
+		  " idFollow=",targetRoad.veh[iFollow].id,
 		 // "u-uGo=",(u-uGo).toFixed(1),
 		 // "u-uSource=",(u-uSource).toFixed(1),
 		  // "uFollow=",uFollow.toFixed(1),
-		  "targetRoad.veh[iFollow].longModel.cool=",targetRoad.veh[iFollow].longModel.cool,
-		  "sFollow=",sFollow.toFixed(1),
+		  //"targetRoad.veh[iFollow].longModel.cool=",targetRoad.veh[iFollow].longModel.cool,
+		  "\n       sFollow=",sFollow.toFixed(1),// here incl anticip
 		  "speedFollow=",speedFollow.toFixed(1),
 		  "speed=",vehConnect.speed.toFixed(1),
 		  "accFollow=accACC(sFollow,speedFollow,speed)=",
@@ -2488,8 +2502,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      accGo=accSlowdown; // !! influence
 	      if(this.connectLog){
 	        console.log(
-		  "  Preparation (iv): outside (C2||C3) and target follower",
-		  "exists: accGo=",accGo);
+		  "  Preparation (iv): in braking zone with target follower",
+		  " accGo=",accGo);
 	      }
 	    }
 
@@ -2498,7 +2512,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    
 
 	  
-	  if(this.connectLog){
+	  if(false){
+	  //if(this.connectLog){
 	    console.log("  Prepare Action A4 assuming no conflicts",
 			" and check entrance to target",
 			" id=",vehConnect.id,
@@ -2557,7 +2572,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if (!(conflictsAllowPassing&&targetCanBeEntered)){
 	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
 	    if(this.connectLog){
-	      console.log("  Action 3: decelerating to stop",
+	      console.log("  Action 3: conflicts or gridlock danger:",
+			  " decelerating to stop",
 			  " accOld=",accOld.toFixed(1),
 			  " accSlowdown=",accSlowdown.toFixed(1),
 			  "");
@@ -2637,18 +2653,18 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if(this.connectLog){
 	  //if(true){
 	    console.log(
-	    "  \n=========================================================",
-	      "\nt=",time.toFixed(2)," itime=",itime,
+	      "\n  =======================================================",
+	      "\n  t=",time.toFixed(2)," itime=",itime,
 	      " transfer veh ",transferredVeh.id,
-	    "from road ",this.roadID," u=",u.toFixed(1),
-	    "lane=",lane," v=",v.toFixed(1),
-	    "to road ",targetRoad.roadID,
-	    "at u=",transferredVeh.u.toFixed(1),
+	      "from road ",this.roadID," u=",u.toFixed(1),
+	      "lane=",lane," v=",v.toFixed(1),
+	      "to road ",targetRoad.roadID,
+	      "at u=",transferredVeh.u.toFixed(1),
 	      "lane=",transferredVeh.lane,
 	      "laneOld=",transferredVeh.laneOld,
 	      "v=",transferredVeh.v.toFixed(1),
-	    "\ntransferredVeh=",transferredVeh,
-	      "\n=========================================================");
+	      "\n  transferredVeh=",transferredVeh,
+	      "\n  =======================================================");
 	  }
 
 	  //targetRoad.veh.unshift(transferredVeh); // add at beginning
@@ -2666,7 +2682,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	}// if(u>uSource) => Action A5
 	
 	if(this.connectLog){
-	  console.log("exiting road.connect: itime=",itime,
+	  console.log("  exiting road.connect: itime=",itime,
 		      "vehConnect.id=",vehConnect.id,
 		      "speed=",vehConnect.speed.toFixed(1),
 		      "acc=",vehConnect.acc.toFixed(1),

@@ -28,7 +28,6 @@ var crashinfo=new CrashInfo();
 // controlled by a html select elements
 
 respectRingPrio=true; 
-//respectRightPrio=false; // callback: control_gui - handleChangedPriority
 
 
 // merging fine tuning
@@ -52,26 +51,26 @@ MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 
-//OD settings (depend addtl on slider-controlled mainFrac)
+//OD settings 
 // all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
 // only left: leftTurnBias=focusFrac=1 
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
 
-leftTurnBias=0;  // in [-1,1]
-focusFrac=1; // in [0,1]
-
+leftTurnBias=0;  // in [-1,1] // also set html choicebox accordingly!
+focusFrac=0; // in [0,1]
+setCombobox("ODSelect","3"); //{straight ahead, right, left, all directions} 
 
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
 
-qIn=2000./3600;
+qIn=2600./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
 mainFrac=0.6;
 setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
-timewarp=2.5;
+timewarp=3.2;
 setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
 
 IDM_v0=50./3.6;
@@ -545,6 +544,9 @@ function updateSim(){
   hasChanged=false;
 
 
+  
+  //!!! check why here and not in the other scenarios
+
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true; // only pixel; physical changes in updateSim
@@ -653,14 +655,13 @@ function updateSim(){
 
   var maxspeed_turn=7;
 
-  // arms to ring
-  // respectRingPrio set by html choice element
-  
   var duMerge=network[1].roadLen-uMerge; // merge du before the end of the arm
   var mergeOffset  =-rRing*stitchAngleOffset - duMerge;
   var divergeOffset=-rRing*stitchAngleOffset + 0;
   
-  //console.log("0.25*PI+mergeOffset/rRing=",0.25*PI+mergeOffset/rRing);
+  
+  // merge: arms to ring
+  // respectRingPrio set by html choice element
   
   // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
   network[0].connect(network[8], uMerge, // E arm
@@ -681,6 +682,7 @@ function updateSim(){
 
 
   
+  // diverge:
   // ring to arms (vehicles know by their routes on which arm to leave)
 
   // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
