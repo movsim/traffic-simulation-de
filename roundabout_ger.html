@@ -59,10 +59,11 @@ Open traffic-light control panel </button> </div>
 
 <!-- ############################################## -->
 <!-- choice boxes -->
+<!-- besides id there is also a name attribute but id is relevant-->
 <!-- ############################################## -->
 
 <div id="priorityDiv">
-    <select id="changePrioritySelect"
+    <select id="changePrioritySelect" name="changePrioritySelect"
 	    onchange="handleChangedPriority(this.selectedIndex)">
         <option> normale Vorfahrtsregeln</option>
         <option> Rechts vor Links</option>

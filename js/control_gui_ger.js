@@ -174,18 +174,15 @@ function handleIntersectionType(index){
 
 
 var respectRingPrio=true;
-var respectRightPrio=false;
 
 
 // roundabout: priority as a combobox (more options)
 // first option has index 0 etc
-
-function handleChangedPriority(index){
+// reserved combobox var name this.selectedIndex -> index
+function handleChangedPriority(index){ 
     respectRingPrio=(index==0);
-    respectRightPrio=(index==1);
     console.log("in handleChangedPriority: index=",index,
-		" respectRingPrio=",respectRingPrio,
-		" respectRightPrio=",respectRightPrio);
+		" respectRingPrio=",respectRingPrio);
 }
 
 
@@ -198,6 +195,14 @@ function handleChangedOD(index){
     console.log("in handleChangedOD: index=",index,
 		" leftTurnBias=",leftTurnBias,
 		" focusFrac=",focusFrac);
+}
+
+
+// e.g. setCombobox("ODSelect",2) sets the combobox to third option
+function setCombobox(boxname,index){
+  var combobox=document.getElementById(boxname);
+  console.log("combobox=",combobox);
+  combobox.selectedIndex=index;
 }
 
 
