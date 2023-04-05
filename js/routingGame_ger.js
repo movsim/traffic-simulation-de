@@ -389,7 +389,7 @@ var density=0.001;
 var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
-duTactical=300; // anticipation distance for applying mandatory LC rules
+var duTactical=300; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],

@@ -1,3 +1,13 @@
+(2023-04) all scenarious including deviation work perfectly, but
+(i) roundabout: implementation of traffic rules does not work (same for ring and arm priority
+
+(ii) intersection: at left turn (sometimes straigt on) some vehicle blips
+ while crashes seem to work with general improvement (only a few...)
+
+(iii) get rid of info via jquery. Post them directly within js, template: routingGameInfo.js
+
+
+
 (2022-04) General: all "!!!" or "!!!!" are TODOs
 
 (2022-04)

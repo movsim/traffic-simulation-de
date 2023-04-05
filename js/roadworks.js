@@ -72,8 +72,11 @@ var scale=refSizePix/refSizePhys;
 // adapt/override standard param settings (most from from control_gui.js)
 //#############################################################
 
-var driver_varcoeff=0.01; //v0 and a coeff of variation (of "agility")
-                          // need later call road.setDriverVariation(.); 
+// small in this scenario to not destroy synchronize effect
+
+var driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
+                          // need later override road setting by
+                          // calling road.setDriverVariation(.); 
 
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
@@ -202,7 +205,7 @@ var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing);
 
-mainroad.setDriverVariation(driver_varcoeff); //!!!
+mainroad.setDriverVariation(driver_varcoeff); //!!
 
 // network declared in canvas_gui.js
 network[0]=mainroad;  

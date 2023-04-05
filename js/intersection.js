@@ -39,7 +39,7 @@ var laneCount=nLanes_main+nLanes_sec;
 
 qIn=600./3600; // 390 inflow to both directional main roads
 q2=400./3600;   // 220 inflow to secondary (subordinate) roads
-fracRight=0.; // fracRight [0-1] of drivers on road 2 turn right
+fracRight=0.35; // fracRight [0-1] of drivers on road 2 turn right
 fracLeft=0.; // rest of q2-drivers cross straight ahead
 
 IDM_v0=15;
@@ -826,7 +826,7 @@ function updateSim(){
   // debug output
   //##############################################################
 
-  if(true){
+  if(false){
     debugVeh(219,network);
     debugVeh(224,network);
   }

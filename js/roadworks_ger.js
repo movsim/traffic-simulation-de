@@ -8,6 +8,14 @@ const refSizeRegular=250;
 const qInRegular=1850/3600; //1850
 const qInSmartphone=1910/3600;
 
+//#############################################################
+// stochasticity settings (acceleration noise spec at top of models.js)
+//#############################################################
+
+var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
+                          // need later call road.setDriverVariation(.); 
+
+
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -22,8 +30,7 @@ const qInSmartphone=1910/3600;
 
  (2) refSizePhys smaller  => all phys roadlengths smaller
   => vehicles and road widths appear bigger for a given screen size 
-  => chose smaller for mobile, 
-
+  => chose smaller for mobile
 ######################################################*
 */
 
@@ -62,8 +69,14 @@ var scale=refSizePix/refSizePhys;
 
 
 //#############################################################
-// adapt/override standard param settings from control_gui.js
+// adapt/override standard param settings (most from from control_gui.js)
 //#############################################################
+
+// small in this scenario to not destroy synchronize effect
+
+var driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
+                          // need later override road setting by
+                          // calling road.setDriverVariation(.); 
 
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
@@ -191,6 +204,8 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing);
+
+mainroad.setDriverVariation(driver_varcoeff); //!!
 
 // network declared in canvas_gui.js
 network[0]=mainroad;  

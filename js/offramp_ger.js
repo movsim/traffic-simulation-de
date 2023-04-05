@@ -1,14 +1,44 @@
+//#############################################################
+// general ui settings
+//#############################################################
 
 const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+
 
 //#############################################################
-// adapt standard param settings from control_gui.js
+// general debug settings (set=false for public deployment)
 //#############################################################
 
-qIn=3500./3600; 
+drawVehIDs=false;  // override control_gui.js
+drawRoadIDs=false; // override control_gui.js
+var debug=false;   // if true, then sim stops at crash (only for testing)
+var crashinfo=new CrashInfo(); // need to include debug.js in html
+
+
+
+//#############################################################
+// stochasticity settings (acceleration noise spec at top of models.js)
+//#############################################################
+
+var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+                          // need later override road setting by
+                          // calling road.setDriverVariation(.); 
+
+
+//#############################################################
+// adapt/override standard param settings from control_gui.js
+//#############################################################
+
+fracOff=0.25; /// 0.25
+setSlider(slider_fracOff, slider_fracOffVal, 100*fracOff, 0, "%");
+
+
+
+qIn=4000./3600; 
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
-density=0.015;
 
 fracTruck=0.15;
 setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
@@ -18,6 +48,8 @@ IDM_a=0.7; // low to allow stopGo
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 
 factor_a_truck=1; // to allow faster slowing down of the uphill trucks
+
+density=0.015; // IC
 
 MOBIL_mandat_bSafe=22; // standard 42
 MOBIL_mandat_bThr=0;   
@@ -186,15 +218,23 @@ var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var speedInit=20; // IC for speed
 
-duTactical=250; // anticipation distance for applying mandatory LC rules
+var duTactical=310; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj,
 		      density, speedInit,fracTruck, isRing);
 
 var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp,
 		     0.1*density,speedInit,fracTruck,isRing);
-network[0]=mainroad;  // network declared in canvas_gui.js
+
+// road network (network declared in canvas_gui.js)
+
+network[0]=mainroad;
 network[1]=ramp;
+
+for(var ir=0; ir<network.length; ir++){
+  network[ir].setDriverVariation(driver_varcoeff);//!!
+  network[ir].drawVehIDs=drawVehIDs;
+}
 
 
 var offrampIDs=[2];
@@ -342,46 +382,57 @@ function updateSim(){
 				       LCModelMandatory);
 
 
-  // (2a) update moveable speed limits
+  // updateSim (2a): update moveable speed limits
 
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
   }
 
+  // (2b) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
+  // (here more responsive than in drawSim)
+
+  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
+    trafficObjs.zoomBack();
+ }
+
+ 
+
+  // updateSim (3): do central simulation update of vehicles
 
 
-    // do central simulation update of vehicles
+  mainroad.updateLastLCtimes(dt);
+  mainroad.calcAccelerations();  
+  mainroad.changeLanes();         
+  mainroad.updateSpeedPositions();
+  mainroad.updateBCdown();
+  var route=(Math.random()<fracOff) ? route2 : route1;
+  mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
+  //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations();  
-    mainroad.changeLanes();         
-    mainroad.updateSpeedPositions();
-    mainroad.updateBCdown();
-    var route=(Math.random()<fracOff) ? route2 : route1;
-    mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
-    //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
-
-    ramp.updateLastLCtimes(dt); // needed since LC from main road!!
-    ramp.calcAccelerations();  
-    ramp.updateSpeedPositions();
-    ramp.updateBCdown();
+  ramp.updateLastLCtimes(dt); // needed since LC from main road!!
+  ramp.calcAccelerations();  
+  ramp.updateSpeedPositions();
+  ramp.updateBCdown();
 
 
-    //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+  //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    var u_antic=20;
-    mainroad.mergeDiverge(ramp,-mainRampOffset,
+  var u_antic=20;
+  mainroad.mergeDiverge(ramp,-mainRampOffset,
 			  mainRampOffset+taperLen,
 			  mainRampOffset+divergeLen-u_antic,
 			  false,true);
 
-  if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
-    trafficObjs.zoomBack();
-  }
+  // updateSim (4): update detector readings
+
+  //( none)
 
 
-  // debug output
+  // updateSim (5): debug output
 
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  
   if(false){
     console.log("mainroadLen=",formd(mainroadLen),
 		" mainroad.roadLen=",formd(mainroad.roadLen),
@@ -455,7 +506,7 @@ function drawSim() {
   ctx.setTransform(1,0,0,1,0,0);
   if(drawBackground){
     if(hasChanged||(itime<=10) || (itime%50==0) || userCanvasManip
-      || (!drawRoad)){
+      || (!drawRoad) || drawVehIDs){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }
@@ -488,26 +539,25 @@ function drawSim() {
 
 
 
-    // (6) draw some running-time vars
+  // drawSim (6) draw some running-time vars
 
-    displayTime(time,textsize);
+  displayTime(time,textsize);
 
+  
+  // drawSim (7): show logical coordinates if activated
 
-    // (7) draw the speed colormap
-
-    if(drawColormap){ 
-	displayColormap(0.22*refSizePix,
-			0.43*refSizePix,
-			0.1*refSizePix, 0.2*refSizePix,
-			vmin_col,vmax_col,0,100/3.6);
-    }
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+  
+  // drawSim (8): reset/revert variables for the next step
 
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 
   hasChanged=false; 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0); 
  
 } // drawSim
  

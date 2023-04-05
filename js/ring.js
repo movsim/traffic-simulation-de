@@ -22,8 +22,10 @@ var crashinfo=new CrashInfo();
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
-                          // need later call road.setDriverVariation(.); 
+var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+                          // need later override road setting by
+                          // calling road.setDriverVariation(.); 
+
 
 //#############################################################
 // override standard settings control_gui.js

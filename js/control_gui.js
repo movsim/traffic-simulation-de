@@ -418,20 +418,25 @@ var banIsActive=false; // only initialization
 var banButtonClicked=false; // only initialization
 
 function toggleTruckOvertakingBan(){
-    banButtonClicked=true; // everything needs to be redrawn
-    if(banIsActive){
+  banButtonClicked=true; // everything needs to be redrawn
+  if(banIsActive){
 	banIsActive=false;
 	document.getElementById('overtakingBan').innerHTML
 	    ="Enforce Truck Overtaking Ban";
-   }
-    else{
+  }
+  else{
 	banIsActive=true;
 	document.getElementById('overtakingBan').innerHTML
 	    ="Lift Truck Overtaking Ban";
-    }
-    updateModelsUphill();
-    console.log("control_gui.toggleTruckOvertakingBan: LCModelTruckUphill=",
-		LCModelTruckUphill);
+  }
+  updateModelsUphill();
+  
+  if(false){
+    console.log("control_gui.toggleTruckOvertakingBan: banIsActive=",
+	      banIsActive,
+	      " LCModelMandatory=",LCModelMandatory,
+		" LCModelTruckUphill=",LCModelTruckUphill);
+  }
  
 }
 
@@ -971,18 +976,20 @@ function updateModels(){
     longModelCar=new ACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b);
     longModelCar.speedlimit=speedL;
     longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
-    longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
-    LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
+  longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
+  LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
                         MOBIL_bThr, MOBIL_bBiasRight_car);
  
-    LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
+  LCModelTruck=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
 			   MOBIL_bThr, MOBIL_bBiasRight_truck);
-    LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+  LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
 			       MOBIL_mandat_p,
 			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
-  console.log("control_gui.updateModels:",
-	      " longModelTruck.speedlimit=",longModelTruck.speedlimit);
+  if(true){
+    console.log("control_gui.updateModels:",
+		" LCModelMandatory=",LCModelMandatory);
+  }
 
 
 }
@@ -993,26 +1000,22 @@ function updateModelsUphill(){
 
     // uphill section (no overtaking ban by default)
 
-    var T_truck=factor_T_truck*IDM_T;
-    var a_truck=factor_a_truck*IDM_a;
+  var T_truck=factor_T_truck*IDM_T;
+  var a_truck=factor_a_truck*IDM_a;
+  //LCModelMandatory=new MOBIL(MOBIL_mandat_bSafe, MOBIL_mandat_bSafe, 
+//			       MOBIL_mandat_p,
+//			       MOBIL_mandat_bThr, MOBIL_mandat_bias);
 
-    longModelCarUphill=longModelCar;
-    longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
-    LCModelCarUphill=LCModelCar;
-    LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
-    //console.log("control_gui.updateModelsUphill: LCModelTruckUphill=",
-//		LCModelTruckUphill);
+  longModelCarUphill=longModelCar;
+  longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
+  LCModelCarUphill=LCModelCar;
+  LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
+  if(false){
+    console.log("control_gui.updateModelsUphill: banIsActive=",banIsActive,
+		"LCModelMandatory=",LCModelMandatory,
+		" LCModelTruckUphill=",LCModelTruckUphill);
+  }
 }
-
-// example for changing sliders from standard init setting in gui
-/*
-IDM_T=0.5; 
-slider_IDM_T.value=IDM_T;
-slider_IDM_TVal.innerHTML=IDM_T+" s";
-*/
-
-
-
 
 
 

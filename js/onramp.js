@@ -23,25 +23,27 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 const userCanDropObjects=true;
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                       // definition => showLogicalCoords(.) in canvas_gui.js
-
+                      // application: here at drawSim (7):  
 //#############################################################
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawVehIDs=false; // override control_gui.js
-drawRoadIDs=false; // override control_gui.js
-var debug=false;
-var crashinfo=new CrashInfo();
+drawRoadIDs=false; // override control_gui.js; 
+drawVehIDs=false;  // override control_gui.js;
+                   // need to call later road.drawVehIDs=drawVehIDs
 
+var debug=false;   // if true, then sim stops at crash (only for testing)
+var crashinfo=new CrashInfo(); // need to include debug.js in html
+                               // use it in updateSim (4)
 
 
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.15; //!!! v0 and a coeff of variation (of "agility")
-                          // need later call road.setDriverVariation(.); 
-
+var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+                          // need later override road setting by
+                          // calling road.setDriverVariation(.); 
 
 
 //#############################################################
@@ -343,11 +345,12 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 
 // road network (network declared in canvas_gui.js)
 
-network[0]=mainroad;  network[0].drawVehIDs=drawVehIDs;
-network[1]=ramp; network[1].drawVehIDs=drawVehIDs;
+network[0]=mainroad;
+network[1]=ramp;
 
 for(var ir=0; ir<network.length; ir++){
-  network[ir].setDriverVariation(driver_varcoeff);//!!!
+  network[ir].setDriverVariation(driver_varcoeff);//!!
+  network[ir].drawVehIDs=drawVehIDs;
 }
 
 // add standing virtual vehicle at the end of ramp (1 lane)
@@ -522,13 +525,13 @@ function updateSim(){
 
   //console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
 
-   // (2a) update moveable speed limits
+   // updateSim (2a): update moveable speed limits
 
   for(var i=0; i<network.length; i++){
     network[i].updateSpeedlimits(trafficObjs);
   }
   
-  //  (2b) without this zoomback cmd, everything works but depot vehicles
+  // (2b) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
   // (here more responsive than in drawSim)
 
@@ -544,54 +547,51 @@ function updateSim(){
   ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
-    // (3) do central simulation update of vehicles
+  // updateSim (3): do central simulation update of vehicles
 
-    mainroad.updateLastLCtimes(dt);
-    mainroad.calcAccelerations(); 
-    mainroad.changeLanes();       //!!! ideally do MOBIL with determ accel
-    mainroad.updateSpeedPositions();
-    mainroad.updateBCdown();
-    mainroad.updateBCup(qIn,dt); // argument=total inflow
+  mainroad.updateLastLCtimes(dt);
+  mainroad.calcAccelerations(); 
+  mainroad.changeLanes();       //!!! ideally do MOBIL with determ accel
+  mainroad.updateSpeedPositions();
+  mainroad.updateBCdown();
+  mainroad.updateBCup(qIn,dt); // argument=total inflow
 
-    for (var i=0; i<mainroad.nveh; i++){
+  for (var i=0; i<mainroad.nveh; i++){
 	if(mainroad.veh[i].speed<0){
 	    console.log(" speed "+mainroad.veh[i].speed
 			    +" of mainroad vehicle "
 			    +i+" is negative!");
 	}
-    }
+  }
 
 
-    ramp.calcAccelerations();  
-    ramp.updateSpeedPositions();
-    //ramp.updateBCdown();
-    ramp.updateBCup(qOn,dt); // argument=total inflow
+  ramp.calcAccelerations();  
+  ramp.updateSpeedPositions();
+  //ramp.updateBCdown();
+  ramp.updateBCup(qOn,dt); // argument=total inflow
 
-    //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+  //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
 
-    ramp.mergeDiverge(mainroad,mainRampOffset,
+  ramp.mergeDiverge(mainroad,mainRampOffset,
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
 
 
-    // (4) update detector readings
+  // updateSim (4): update detector readings
 
-    for(var iDet=0; iDet<nDet; iDet++){
+  for(var iDet=0; iDet<nDet; iDet++){
 	detectors[iDet].update(time,dt);
-    }
+  }
 
 
+  // updateSim (5): debug output
 
- 
-  //##############################################################
-  // debug output
-  //##############################################################
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
   if(false){
     debugVeh(211,network);
     debugVeh(212,network);
   }
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
 
     //if((itime>=125)&&(itime<=128)){
@@ -728,7 +728,7 @@ function drawSim() {
   drawSpeedlBox();
 
 
-  // (6) show simulation time and detector displays
+  // drawSim (6) show simulation time and detector displays
 
   displayTime(time,textsize);
   for(var iDet=0; iDet<nDet; iDet++){
@@ -754,8 +754,8 @@ function drawSim() {
 		 scaleStr_ylb-0.2*textsize);
   }
 
-      // (6b) draw the speed colormap
-      //!! Now always false; drawn statically by html file!
+  // (6b) draw the speed colormap
+  //!! Now always false; drawn statically by html file!
 
   if(drawColormap){
       displayColormap(0.22*refSizePix,
@@ -771,7 +771,9 @@ function drawSim() {
     showLogicalCoords(xPixUser,yPixUser);
   }
 
+  // drawSim (8): reset/revert variables for the next step
 
+  
   // may be set to true in next step if changed canvas 
   // (updateDimensions) or if old sign should be wiped away 
 

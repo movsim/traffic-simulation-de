@@ -60,9 +60,10 @@ NOTICE all vehicles are constructed w/o specific models
        to implement speed limits and other flow-cons bottlenecks
 
 NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
+        (MT-2023-04): model shallow copies so heineous that 
+                      I have eliminated them completely
 */
 
-var deepCopying=true;
 
 function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
@@ -78,7 +79,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   // driver v0 and a coeff of variation ("agility")
 
-  this.driver_varcoeff=0.2; //!! default; can be overridden
+  this.driver_varcoeff=0.15; //!! default; can be overridden
   
   // network related properties
 
@@ -1119,13 +1120,7 @@ road.prototype.updateTruckFrac=function(fracTruck, mismatchTolerated){
 	  this.veh[k].len=newLength;
 	  this.veh[k].width=newWidth;
 
-	  if(deepCopying){
-	    this.veh[k].longModel.copy(newLongModel);
-	  }
-
-	  else{
-	    this.veh[k].longModel=newLongModel;
-	  }
+	  this.veh[k].longModel.copy(newLongModel); // always deep copy!!
 
 	  this.veh[k].longModel.driverfactor=this.veh[k].driverfactor; //!!
 	}
@@ -1202,16 +1197,12 @@ road.prototype.setCFModelsInRange=function(umin,umax,
     var u=this.veh[i].u;
     if((u>umin)&&(u<umax)){
 
-      if(deepCopying){
-        if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
-        if(this.veh[i].type==="truck"){this.veh[i].longModel.copy(longModelTruck);}
-      }
+      // always deep copy
+      if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
+      if(this.veh[i].type==="truck"){
+	this.veh[i].longModel.copy(longModelTruck);}
 
-      else{
-        if(this.veh[i].type==="car"){this.veh[i].longModel=longModelCar;}
-        if(this.veh[i].type==="truck"){this.veh[i].longModel=longModelTruck;}
-      }
-      
+
       this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;//!!
 
     }
@@ -1227,44 +1218,42 @@ road.prototype.setCFModelsInRange=function(umin,umax,
 //#####################################################
 
 
-road.prototype.setLCModelsInRange
-    =function(umin,umax,LCModelCar,LCModelTruck){
-	//console.log("within road.setLCModelsInRange: LCModelTruck=",LCModelTruck);
-    for(var i=0; i<this.veh.length; i++){
-	var u=this.veh[i].u;
-	if((u>umin)&&(u<umax)){
-	    if(this.veh[i].type==="car"){this.veh[i].LCModel=LCModelCar;}
-	    if(this.veh[i].type==="truck"){this.veh[i].LCModel=LCModelTruck;
-					   //console.log("u=",u," veh[i].LCModel=",this.veh[i].LCModel);
-					  }
-	}
+road.prototype.setLCModelsInRange=function(umin,umax,
+					   LCModelCar,LCModelTruck){
+    
+  //console.log("within road.setLCModelsInRange: LCModelTruck=",LCModelTruck);
+  for(var i=0; i<this.veh.length; i++){
+    var u=this.veh[i].u;
+    if((u>umin)&&(u<umax)){
+      if(this.veh[i].type==="car"){this.veh[i].LCModel.copy(LCModelCar);}	    if(this.veh[i].type==="truck"){this.veh[i].LCModel.copy(LCModelTruck);}
     }
+  }
 }
 
 
 //#####################################################
 // set vehicles in range to mandatory LC 
-// (useful for non-routing related mandatory LC onramps (no offramps), e.g.
+// (useful for non-routing related mandatory LC onramps (no offramps??!!!), e.g.
 // onramps or before lane closings
 // see also updateModelsOfAllVehicles
+// see also setCFModelsInRange, setLCModelsInRange for uphill
 //#####################################################
 
 road.prototype.setLCMandatory=function(umin,umax,toRight){
-    for(var i=0; i<this.veh.length; i++) if(this.veh[i].isRegularVeh()){
-	var u=this.veh[i].u;
-	if((u>umin)&&(u<umax)){
-	    this.veh[i].toRight=toRight;
-	    this.veh[i].LCModel=(toRight) 
-		? this.LCModelMandatoryRight : this.LCModelMandatoryLeft;
-            //console.log("in road.setLCMandatory: this.veh[i].LCModel=",
-	//		this.veh[i].LCModel);
-	}
+  //console.log("in road.setLCMandatory");
+  for(var i=0; i<this.veh.length; i++) if(this.veh[i].isRegularVeh()){
+    var u=this.veh[i].u;
+    if((u>umin)&&(u<umax)){
+      this.veh[i].toRight=toRight;
+      if(toRight){this.veh[i].LCModel.copy(this.LCModelMandatoryRight);}
+      else{this.veh[i].LCModel.copy(this.LCModelMandatoryLeft);}
+    }
 
     // !! do NOT reset to normal otherwise! 
     // side effects with other mandat regions!
     // updateModelsOfAllVehicles redefines the models at beg of each timestep 
 
-    }
+  }
 }
 
 
@@ -2047,8 +2036,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // "var log" in determineConflicts    
     //#########################################################
 
-    //connectLog=false;
-    this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
+    connectLog=false;
+    //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
     //this.connectLog=((this.veh[iveh].id==209)&&(time>20)&&(time<25));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
@@ -3547,11 +3536,9 @@ road.prototype.updateBCup=function(Qin,dt,route){
       var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType,
 			    this.driver_varcoeff); //updateBCup
  
-      if(deepCopying){
-        vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
-        vehNew.LCModel=new MOBIL(); vehNew.LCModel.copy(LCModelNew);
-      }
-      else{vehNew.longModel=longModelNew;}
+      vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+      vehNew.LCModel=new MOBIL(); vehNew.LCModel.copy(LCModelNew);
+
       
       vehNew.longModel.driverfactor=vehNew.driverfactor; //!!
 
@@ -3631,6 +3618,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
   //		LCModelMandatory);
 
 
+
+  
   // mandatory LC: distributed to the vehicles e.g. in setLCMandatory
 
     this.longModelTacticalCar=new ACC(longModelCar.v0,longModelCar.T,
@@ -3639,41 +3628,45 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
     this.longModelTacticalTruck=new ACC(longModelTruck.v0,longModelTruck.T,
 				      longModelTruck.s0,longModelTruck.a,
 				      longModelTruck.b);
- 
-    this.LCModelMandatoryRight
+
+  
+    var LCModelMandatoryLoc  //!!!! reference issues nasty!!!!
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
+
+  
+    this.LCModelMandatoryRight
+	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
+		   LCModelMandatoryLoc.p,
+		   LCModelMandatoryLoc.bThr, LCModelMandatoryLoc.bBiasRight);
     this.LCModelMandatoryLeft
-	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
-		   LCModelMandatory.p,
-		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
+	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
+		   LCModelMandatoryLoc.p,
+		   LCModelMandatoryLoc.bThr, -LCModelMandatoryLoc.bBiasRight);
     //console.log("road.LCModelMandatoryLeft=",this.LCModelMandatoryLeft);
     this.LCModelTacticalRight
-	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
-		   LCModelMandatory.p,
-		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
+	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
+		   LCModelMandatoryLoc.p,
+		   LCModelMandatoryLoc.bThr, LCModelMandatoryLoc.bBiasRight);
     this.LCModelTacticalLeft
-	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
-		   LCModelMandatory.p,
-		   LCModelMandatory.bThr, -LCModelMandatory.bBiasRight);
-
+	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
+		   LCModelMandatoryLoc.p,
+		   LCModelMandatoryLoc.bThr, -LCModelMandatoryLoc.bBiasRight);
 
 
   // normal acc and LC: 
   // distributed to the vehicles depending on car/truck here
 
-  if(deepCopying){
-    for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].isRegularVeh()){
-        this.veh[i].longModel.copy((this.veh[i].type === "car")
+  for(var i=0; i<this.veh.length; i++){
+    if(this.veh[i].isRegularVeh()){
+      this.veh[i].longModel.copy((this.veh[i].type === "car")
 				   ? longModelCar : longModelTruck);
-        this.veh[i].LCModel.copy((this.veh[i].type === "car")
+      this.veh[i].LCModel.copy((this.veh[i].type === "car")
 				 ? LCModelCar : LCModelTruck);
 
-	this.veh[i].longModel.driverfactor=this.veh[i].driverfactor; //!!
-      }
-
+      this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;//!!
+    
       
       if(false){
         console.log("updateModelsOfAllVehicles: type=",this.veh[i].type,
@@ -3683,18 +3676,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
     }
   }
 
-  else{
-    for(var i=0; i<this.veh.length; i++){
-      if(this.veh[i].isRegularVeh()){
-        this.veh[i].longModel=(this.veh[i].type === "car")
-	  ? longModelCar : longModelTruck;
-        this.veh[i].LCModel=(this.veh[i].type === "car")
-	  ? LCModelCar : LCModelTruck;
-	this.veh[i].longModel.driverfactor=this.veh[i].driverfactor; //!!
-      }
-    }
-  }
 
+  
 
   // check if on this road the driver should possibly prepare for diverging
 
@@ -3738,16 +3721,11 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	    var toRight=this.offrampToRight[iNextOff];
 	    var duRemaining=uLastExit-thisVeh.u;
 	    thisVeh.divergeAhead=true; //!!
-	    if(deepCopying){
-	      thisVeh.longModel.alpha_v0
+	    thisVeh.longModel.alpha_v0
 		  =Math.max(0.1, 0.5*duRemaining/this.duTactical);
-	    }
-	    else{
-	      thisVeh.longModel=(thisVeh.type==="truck")
-		? this.longModelTacticalTruck : this.longModelTacticalCar;
-	    }
+	    
 	    thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
-	          : this.LCModelTacticalLeft;
+	          : this.LCModelTacticalLeft; //!!!LCModelTactical new cstr
 
 	    if(false){
 		  console.log(
@@ -3770,7 +3748,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   }} // tactical accel and LC for diverges
 
-}
+}//updateModelsOfAllVehicles
 
 //######################################################################
 // update times since last change for all vehicles (min time between changes)
