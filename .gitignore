@@ -29,7 +29,8 @@ trafficSimulationLocalVersion*
 *screenshot*
 
 ## other files
-nytimes_query
+mails/
+nytimes_query/
 save
 *save.*
 uml_savedFiles

@@ -299,7 +299,7 @@ Each of the following methods acts on all vehicles and is called for all links o
 
 * `changeLanes()` tests and executes lane changes first to the right, then to the left. Because of the waiting times after each active or passive lane change (state variables `vehicle.dt_afterLC`, `vehicle.dt_lastPassiveLC` and `road.waitTime`),  changes to the right are priorized and side effects are avoided  
 
-* `mergeDiverge(otherRoad,...)` change to another network link from the calling element to `otherRoad` if this other element has a parallel section with the calling road (onramp or offramp). Parameters include the `offset` of the arc-length (u) coordinate new-old road, the region `uBegin` and `uEnd` of the ramp, whether it is a merge, whether it is to the right. Diverging takes place only if the corresponding vehicle route have the new road as next element or (if `ignoreRoute` is true) for the vehicles on the adjacent lane 
+* `mergeDiverge(otherRoad,...)` change to another network link from the calling element to `otherRoad` if this other element has a parallel section with the calling road (onramp or offramp). Parameters include the `offset` of the arc-length (u) coordinate new-old road, the region `uBegin` and `uEnd` of the ramp, whether it is a merge, whether it is to the right. _Notice_: Since the vehicle transfer is always from the calling road to the other road, it is, technically speaking, always a diverge. However, merges are always at the end of the calling road and have a standing virtual obstacle at its end. Moreover, merging affects all vehicles while diverging takes place only if the corresponding vehicle route have the new road as next element or (if `ignoreRoute` is true) for the vehicles on the adjacent lane.  Furthermore, some graphics aspects are different.
 
 * `connect(..)` and `determineConflicts`: These methods will be considered in their own section _Intersections and connecting road network elements_
 
@@ -340,6 +340,52 @@ Generally, each of the following actions  (if applicable) is executed for all ro
 * performing the road connections to other links
 
 ## Intersections and connecting road network elements
+
+This is realized by the method `road.connect(target, uSource, uTarget, offsetLane, conflicts, options)`. When connecting just two network elements end-to-end (for example to model lane closing or opening or other changes of the road properties or right tuens where the only thing to watch are the vehicles on the target road but no crossing streams), `conflicts=[]`. Otherwise, the conflicts are analyzed by `road.determineConflicts(..)`
+
+### Connecting two roads end to end
+
+* If this is just used to connect two roads with the same number of lanes but possibly different other properties, you just call
+`sourceRoad.connect(targetRoad, source.roadLen,0,0,[]);`
+
+* If you want to decrease or increase the number of the lanes by subtracting/adding them from/to the right, we still have `sourceRoad.connect(targetRoad, source.roadLen,0,0,[])` since lanes are counted from the left to the right (increasing `v` coordinate). The target road has just fewer or more lanes than the origin road
+
+* If you want to decrease or increase the number of the lanes from/to the left, define offsetLane=-1 for closing and +1 for opening instead of zero.
+
+* You could also simultaneously subtract a lane on the right and add one on the left by setting equal lane numbers for the source and target and `offsetLane=+1`. In all cases, vehicles change lanes to continue on the through lanes in advance (_Notice_ not yet perfect)
+
+### Intersections for ODs with no conflicts
+
+Example for a right-turn from the source road to the target road at the target coordinate uTurn:
+
+`sourceRoad.connect(targetRoad, sourceRoad.roadLen, uTurn, nLanesTarget-nLanesSource, [], maxspeed, targetPrio);`
+The difference to the above is only the target u coordinate, the lane offset (the rightmost lane of the source, index `nLanesSource-1` connects to the rightmost lane of the target, `nLanesTarget-1`, and the optional parameters `maxspeed` and `targetPrio`
+
+Notice that, also with `conflicts=[]`, the vehicles on the target road are always considered. In effect, a right turn to another road (or a general turn without conflicts) is a `mergeDiverge` with a single merging decision point instead of a finite ramp length. Therefore, much anticipation heuristics is needed unless one mandates an entry with a stop (`maxspeed=0`).
+
+_Notice_ not yet perfect
+
+### Intersections for ODs with conflicts
+
+In most cases, crossing or turning at intersections does not only involve looking out for the traffic on the target road (this is done outside of the `conflicts[]` specification) but determining and resolving conflicts with traffic on roads that are neither source nor target: Following is for a classical non-signalized four-way intersections with all ODs (except for U-turns) allowed. Since OD restrictions are implemented on the basis of the allowed vehicle `route`s, these need not to be considered here. Some conflicts just do not appear if there are turning restrictions. Things get simpler for a T-intersection.
+
+* Right turns: None, not even when turning into a priority road (then, `targetPrio` is set to `true`)
+
+* Crossing a mainroad straight-on: traffic on the two mainroad directions (=two separate directed link of the `road` type). The left-turners from the opposite road have to care for themselves, so there is no conflict potential 
+
+* Crossing an equal-rank intersection (right priority) straight-on: traffic on the mainroad direction coming from the right, except right-turners because they are eventually on the target road. _Notice_: In order for that to work, the vehicles change to the new logical link ahead of the actual passing time of the physical boundaries.
+
+* Crossing a secondary road straight-on: none.
+
+* Left turn from a priority road: Straight-ahead OD of the opposite direction of the priority road (the left turning traffic from the opposite mainroad does not conflict for turning _the american way_, the right turning traffic has the same target as the subject and is therefore taken care of as a target-road vehicle).
+
+* Left turn on an equal-rank intersection: As left turn from a priority road, additionally left turners from the right road 
+
+* Left turn from a secondary road: As left turn on an equal-rank intersection, additionally left turners from the left (main) road. Plus `targetPrio=true`  at `sourceRoad.connect(...)`
+
+
+All this is done by the method `road.determineConflicts(..)`
+quite tricky, see the code.
 
 
 ## References 

@@ -3044,7 +3044,7 @@ discretionary or forced merging takes place depending on bSafe*
 @return:        void. Both roads are affected!
 */
 
-//!!!!
+
 road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute,
 				     prioOther, prioOwn){
