@@ -60,7 +60,7 @@ represents a directional logical road link as array element of the ```network```
 
 
 It also has a unique `roadID` and provides methods to draw this network element and the vehicles on it. These drawing methods depend on the road geometry functions ```traj_x``` and ```traj_y``` giving the geo-located positions _(x,y)_ as a function of the arclength _u_ which are provided by the calling pseudoclasses \<scenario\>.js at construction time.
-Further details for [road.js](#More-detailled-description-for-road.js) and [how to connect it with other roads](#Intersections-and-connecting-road-network-elements) are given further below.
+Further details for [road.js](#more-detailled-description-for-roadjs) and [how to connect it with other roads](#intersections-and-connecting-road-network-elements) are given further below.
 
 
 ### vehicle.js
@@ -298,7 +298,7 @@ Each of the following methods acts on all vehicles and is called for all links o
 
 * `mergeDiverge(otherRoad,...)` change to another network link from the calling element to `otherRoad` if this other element has a parallel section with the calling road (onramp or offramp). Parameters include the `offset` of the arc-length (u) coordinate new-old road, the region `uBegin` and `uEnd` of the ramp, whether it is a merge, whether it is to the right. _Notice_: Since the vehicle transfer is always from the calling road to the other road, it is, technically speaking, always a diverge. However, merges are always at the end of the calling road and have a standing virtual obstacle at its end. Moreover, merging affects all vehicles while diverging takes place only if the corresponding vehicle route have the new road as next element or (if `ignoreRoute` is true) for the vehicles on the adjacent lane.  Furthermore, some graphics aspects are different.
 
-* `connect(..)` and `determineConflicts`: These methods will be considered in their own section _Intersections and connecting road network elements_
+* `connect(..)` and `determineConflicts`: These methods will be considered in their [own section](#intersections-and-connecting-road-network-elements)
 
 * `updateBCdown()` If the downstream end is not connected to another link and the road is not a ring road, vehicles just vanish if driving over the boundary
 
@@ -335,6 +335,7 @@ Generally, each of the following actions  (if applicable) is executed for all ro
 * update detector counts
 * applying the upstream and downstream boundary conditions (if connected to a source/to nothing)
 * performing the road connections to other links
+
 
 ## Intersections and connecting road network elements
 
