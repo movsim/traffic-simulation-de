@@ -11,21 +11,24 @@ This simulation uses JavaScript together with html5.
 
 The master html file, for example onramp.html, starts the actual simulation by the canvas tag:
 ```
-<canvas id="canvas_onramp" width="800" height="600">some text for old browsers </canvas>
+<canvas id="canvas_onramp" ... >some text for old browsers </canvas>
 ```
-What to do with this canvas is specified in the _init()_ procedure of onramp.js which starts the simulation and is assocoated with this canvas by the first command of the init procedure,
+What to do with this canvas is specified in the ```init()``` procedure of onramp.js which starts the simulation and is assocoated with this canvas by the first command of the init procedure,
 
 ```
  canvas = document.getElementById("canvas_onramp");
 ```
 
-(for ring.html, the init procedure of ring.js would be associated with the canvas of that file, and so on). At the end of the initialization, _init()_ starts the actual simulation thread by the command 
+(for _ring.html_, the ```init``` procedure of _ring.js_ would be associated with the canvas of that file, and so on). At the end of the initialization, ```init()``` starts the actual simulation thread by the command 
 
 `return setInterval(main_loop, 1000/fps);`
 
-The initial canvas dimensions are overridden depending on the actual browser's
+The canvas dimensions are set/reset depending on the actual browser's
 viewport size by additional controls in _canvasresize.js_ implementing a responsive design.
 
+### Note on cached data
+
+If the simulation does not run, sometimes the cause is old code in cached javascript or css files. So, the first thing to do is empty the cache
 
 ## Offline Usage
 
@@ -44,7 +47,7 @@ The javascript code uses pseudo objects in appropriately named files, particular
 
 ### \<scenario\>.js (ring.js, onramp.js etc)
 
-the top-level simulation code for the corresponding scenario called in ring.html, onramp.html etc. Initializes the road network elements needed for the corresponding scenario (e.g. mainroad and onramp for the onramp scenario), starts/stops the simulation, controls the simulation updates in each time step depending on the scenario, draws everything, and implements the user controls defined in ring_gui.js, onramp_gui.js etc.
+the top-level simulation code for the corresponding scenario called in ring.html, onramp.html etc. Initializes the road network elements needed for the corresponding scenario (e.g. mainroad and onramp for the onramp scenario), starts/stops the simulation, controls the simulation updates in each time step depending on the scenario, draws everything, and implements the user controls defined in _ring_gui.js_, _onramp_gui.js_ etc.
 
 ### \<scenario_gui\>.js (ring_gui.js, etc.)
 
@@ -52,17 +55,41 @@ Defines the user control. Each simulation scenario (such as ring, onramp, roadwo
 
 ### road.js
 
-represents a road network element (road link) and organizes the vehicles on it. Contains an array of vehicles and methods to get the neighboring vehicles for a given vehicle, to update all vehicles for one time step, to interact with/get information of neighboring road network  elements.
+represents a directional logical road link as array element of the ```network``` variable defined in the top-level scenario files  and organizes the vehicles on it. Contains an array of vehicles and methods to get the neighboring vehicles for a given vehicle, to update all vehicles for one time step, and to interact with/get information of neighboring road network  elements.
 
-It also provides methods to draw this network element and the vehicles on it. These drawing methods depend on the road geometry functions ```traj_x``` and ```traj_y``` to be provided by the calling pseudoclasses \<scenario\>.js
+* The longitudinal (arclength) coordinate u runs from u=0 to u=roadLen
+
+* The lateral coordinate v increases to the right with v=0 at the road axis. The lane numbering also starts from the left.
+
+
+It also has a unique `roadID` and provides methods to draw this network element and the vehicles on it. These drawing methods depend on the road geometry functions ```traj_x``` and ```traj_y``` giving the geo-located positions _(x,y)_ as a function of the arclength _u_ which are provided by the calling pseudoclasses \<scenario\>.js at construction time.
+Further details for [road.js](#More-detailled-description-for-road.js) and [how to connect it with other roads](#Intersections-and-connecting-road-network-elements) are given further below.
+
 
 ### vehicle.js
 
-each vehicle has _(i)_ properties such as length, width, type, _(ii)_ dynamic variables such as position and speed, and _(iii_) instances of the acceleration/lane changing methods from models.js.
+each vehicle represents a vehicle-driver unit and has _(i)_ properties such as length, width, type, _(ii)_ dynamic variables such as position and speed, and _(iii_) a (deep copied) instance of the acceleration/lane changing methods from _models.js_. Optionally, a `vehicle` has also a _route_ as a sequence of `roadID`s to be traversed. This is only needed in scenarios with off-ramps or intersections.
+
+Each vehicle also has a data element `driverfactor` set at construction time to model inter-driver variations (see below).
+
+Besides regular vehicles, there are also special vehicle objects to be identified by their vehicle ID:
+
+- `veh.id`=1:            ego vehicle (in future "ego-game" versions)
+- `veh.id`=10..49:       vehicles that are clicked (and disturbed)
+- `veh.id`=50..99:       user-moveable obstacles (desired speed zero, no stochasticity)
+- `veh.id`=100..149      obstacles representing red traffic lights
+- `veh.id` >=200:        normal vehicles and fixed obstacles
+
 
 ### models.js
 
-a collection of pseudo-classes for the longitudinal models (presently, the IDM), and lane-changing decision models (presently, MOBIL).
+a collection of pseudo-classes for the longitudinal models (presently, the IDM and an extension from it, the ACC model), and lane-changing decision models (presently, MOBIL), see the _references_ section for details. In addition to the pure models, following features are implemented.
+
+* White acceleration noise of intensity `QnoiseAccel` that is also uncorrelated between vehicles. This leads to a random walk in speed with average speed difference sqrt(QnoiseAccel*dt). Since the longitudinal model is also used for lane changes (MOBIL) and decisions at intersections, a deterministic version of the acceleration is also provided.
+
+* Inter-driver variations `driverfactor` with a uniform distribution around 1. Both the desired speed and the desired acceleration are multiplied by `driverfactor`. Since model parameters are often changed due to user interaction, speed limits, bottlenecks etc and the driverfactor should survive that, it is taken from the vehicle's driverfactor after each model change
+
+* `speedlimit`s. These override all user-set desired speeds and also the driverfactor but not the acceleration noise
 
 
 ### TrafficObjects.js
@@ -212,6 +239,107 @@ The drawing is essentially based on images:
 * Each road network element is composed of typically 50-100 small road segments. Each   road segment  (a small png file) represents typically 10m-20m of the road length with all the lanes. By transforming this image (translation, rotation,scaling) and drawing it multiple times, realistically looking roads can be drawn.
 
 * The vehicles are drawn first as b/w. images (again translated, rotated, and scaled accordingly) to which an (appropriately transformed) semi-transparent rectangle is added to display the color-coding of the speeds.
+
+
+
+
+
+## More detailled description for road.js
+
+### The most important data elements
+
+* road properties such as the `roadID`, the road length, number of lanes, lanewidth
+
+* Topology: `isRing` or not
+
+* If and how the road element is connected to neighboring network elements on its upstream and downstream boundaries
+
+* If and how the road element is connected along its length by one or more off-ramps. If so, at which position and whether to the left or right. _Notice_: on-ramp info is not needed since, at link transitions, the upstream link always plays the master role
+
+* Global or local influence factors on the driving behaviour such as overall iter-driver variation, minimum time interval between active and/or passive lane changes, and lane-changing bans. _Notice_:  Speed limits are controlled externally by the `TrafficObjects`
+
+* An array of vehicles. This also includes 'special' vehicles such as the ego-vehicles, vehicles that are clicked on, and obstacles.
+
+* An array of traffic lights. If set to red, a set of obstacles is created for every lane.
+
+* Function pointers `traj` containing functions of the geo-referenced _x(u)_ and _y(u)_ coordinates as a function of the arclength u. _Notice_: This is used purely for graphical reasons.
+
+### The most important `road` functions/methods
+
+* The constructor setting the above attributes and populating the road with a given density and vehicle composition. For a detailled micro initialisation, there is the method `initializeMicro`. For only initializing/resetting the traffic without re-constructing the road or affecting the obstacles, there is the method `initRegularVehicles`
+
+* `updateTruckFrac(frac)` Change _in situ_ the percentage of trucks by swapping cars for trucks and vice versa
+
+* `updateDensity(density)` Change _in situ_ the density by dropping vehicles 'out of thin air' into the largest gaps or randomly removing regular vehicles
+(the composition is controlled by the global variable `fracTruck` set by the user
+
+* Add/subtract one lane
+
+* Various searching methods:
+
+  - `getNearestUof(otherRoad, u)`: get the longitudinal coordinate of `otherRoad` that is nearest to the coordinate u on the calling road
+
+  - `findNearestVehTo(x,y)` find on this road the nearest vehicle to a physical (georeferenced) position (x,y)
+
+  - `findNearestDistanceTo(x,y)` Map matching of a geolocated point (x,y) to the calling road. Returned is distance (|v|), u coordinate and v [lanes]
+
+  - methods for finding the next leader/follower index or vehicle object for a given longitudinal coordinate u on a given or arbitrary lane _Notice_: The vehicles are always ordered according to decreasing u, regardless of the lane
+
+* Methods influencing the local driving behaviour such as `setCFModelsInRange` (speed limits), `setLCModelsInRange` (overtaking bans or anticipation for entering an off-ramp), or `setLCMandatory` (before lane closings and on onramps)
+
+### Central simulation `road` update methods called at each time step `dt`
+
+Each of the following methods acts on all vehicles and is called for all links of the `network` before going to the next. As a result, the order of the vehicles or links does not play a role in the update (_parallel update_)
+
+* `updateEnvironment()` Sorts the vehicles in decreasing longitudinal (`u`) order and updates, for each regular vehicle on the road, the local environment: indices of the leader and follower on the own lane and for the lead and lag vehicles on the both adjacent lanes. This is called whenever the vehicles may get disordered (update of the positions, effect of inflow/outflow at the road boundaries, ramp traffic, user dropped or lifted obstacles)
+
+* `calcAccelerations()` calculates longitudinal accelerations for all vehicles and stores them in the `vehicle.acc` data element
+
+* `updateSpeedPositions()` Updates speeds by the Euler method and positions by the ballistic method (see section _Numerical Integration_). 
+
+* `changeLanes()` tests and executes lane changes first to the right, then to the left. Because of the waiting times after each active or passive lane change (state variables `vehicle.dt_afterLC`, `vehicle.dt_lastPassiveLC` and `road.waitTime`),  changes to the right are priorized and side effects are avoided  
+
+* `mergeDiverge(otherRoad,...)` change to another network link from the calling element to `otherRoad` if this other element has a parallel section with the calling road (onramp or offramp). Parameters include the `offset` of the arc-length (u) coordinate new-old road, the region `uBegin` and `uEnd` of the ramp, whether it is a merge, whether it is to the right. Diverging takes place only if the corresponding vehicle route have the new road as next element or (if `ignoreRoute` is true) for the vehicles on the adjacent lane 
+
+* `connect(..)` and `determineConflicts`: These methods will be considered in their own section _Intersections and connecting road network elements_
+
+* `updateBCdown()` If the downstream end is not connected to another link and the road is not a ring road, vehicles just vanish if driving over the boundary
+
+* `updateBCup(Qin,dt,route)` Insert a new vehicle at u=0 whenever the inflow buffer vehile count exceeds 1. 
+
+  - The buffer is incremented by `Qin*dt` with some noise and decremented by 1 if a new vehicle enters or the maximum buffer size (at the present 2) is exceeded. 
+
+  - The type is determined based on the present global `fractruck` variable and the inter-driver variation is set when constructing the vehicle.
+
+  - The vehicle is set at the lane with the largest gap unless it is a truck. Then it is set preferably to the right
+
+* `updateModelsOfAllVehicles` Each vehicle gets a new deep-copied set of acceleration/lane changing models depending on user interaction, arriving at a speed-limit zone, approaching an offramp to be used (the, the lane-changing model gets a strong bias towards the exit), and others. In all cases, the `driverfactor` characterizing the driving style unique for a given driver-vehicle unit  persists all these changes.
+
+* `updateSpeedlimits(trafficObjects)` If the user dragged a speed limit to a new position, lifted one, or changed its value. _Notice_: Since dragging is cumbersome on touch devices, the scenarios `roadworks` where limits are crucial has also a slider for the speedlimit which is changed globally at `updateModelsOfAllVehicles`
+
+* Some callbacks for user-dragged objects such as `dropObject`, `addTrafficLight`, `changeTrafficLight`, `removeTrafficLight`, and `removeObstacle`
+
+
+
+### The order of the updates
+
+Generally, each of the following actions  (if applicable) is executed for all roads and on all vehicles before going to the next action. So, a parallel update is ensured which is the only update type making sense in general networks without a natural order:
+
+* respond to user interactions dragging objects and changing speed limits
+* respond to user interactions by the sliders (and to vehicles entering new zones)
+  - update the truck fraction
+  - update the models
+  - update the density (only for the ringroad scenario)
+
+* calculate accelerations
+* change lanes
+* performing merging and diverging (special case of lane changing)
+* update speeds and longitudinal positions
+* update detector counts
+* applying the upstream and downstream boundary conditions (if connected to a source/to nothing)
+* performing the road connections to other links
+
+## Intersections and connecting road network elements
 
 
 ## References 

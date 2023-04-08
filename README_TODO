@@ -1,3 +1,11 @@
+(2023-04)
+add the new info/implementations to README.md:
+"Variable driving characteristics are now implemented. At construction time of the vehicles, a random "agility variable" is set influencing desire speed and desired acceleration in a persistent way throughout all situations and driving conditions or user-controlled global behaviour changes. All stochasticity (whether persistent to the driver or the random acceleration part) are removed for all purposes except longitudinal acceleration (lane changing, merging, crossing etc)"
+
+answer this american guy by email
+
+=========================================================
+
 (2023-04) all scenarious including deviation work perfectly, but
 (i) DONE roundabout: implementation of traffic rules does not work (same for ring and arm priority (do it quickly, because concerns MOBIL references; I am into it)
 veh ID 228 at itime=483 t=40.25 drives into main although gap<0
@@ -9,7 +17,7 @@ veh ID 228 at itime=483 t=40.25 drives into main although gap<0
 
 (iii) get rid of info via jquery. Post them directly within js, template: routingGameInfo.js
 
-
+=========================================================
 
 (2022-04) General: all "!!!" or "!!!!" are TODOs
 
