@@ -1,0 +1,5 @@
+ressources in
+~/folien/carRoadSketches/
+to remove f...ing white frame of generated xfig png images use fig2pngtrim
+and watch carefully that no part sticks out which would produce even after trim
+a white rectangular fillout

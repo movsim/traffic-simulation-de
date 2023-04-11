@@ -7,18 +7,24 @@ function debugVeh(id,network){
   for(var ir=0; ir<network.length; ir++){
     for(var i=0; i<network[ir].veh.length; i++){
       if(network[ir].veh[i].id==id){
-	  var veh=network[ir].veh[i];
-        console.log("time=",time.toFixed(2), "itime=",itime,
-		    " veh id=",veh.id,
-		    " road id=",network[ir].roadID,
-		    " type=",veh.type,
-		    " route=",veh.route,
-		    " u=",veh.u.toFixed(1),
-		    " roadLen-u=",(network[ir].roadLen-veh.u).toFixed(1),
-		    " lane=",veh.lane," v=",veh.v.toFixed(2),
-		    " speed=",veh.speed.toFixed(1),
-		    " acc=",veh.acc.toFixed(1),
-		     // " veh=",veh,
+	var veh=network[ir].veh[i];
+	var leadVeh=network[ir].veh[veh.iLead];
+	var s=leadVeh.u-leadVeh.len-veh.u;
+        console.log("time=",time.toFixed(2),
+		    //"itime="+itime,
+		    "vehId="+veh.id,
+		    "roadId="+network[ir].roadID,
+		    "type="+veh.type,
+		    "route="+veh.route,
+		    "u="+veh.u.toFixed(1),
+		    "s="+s.toFixed(1),
+		    "roadLen-u="+(network[ir].roadLen-veh.u).toFixed(1),
+		    "lane="+veh.lane,
+		    "v="+veh.v.toFixed(2),
+		    "speed="+veh.speed.toFixed(1),
+		    "acc="+veh.acc.toFixed(1),
+		    "bBiasRight="+veh.LCModel.bBiasRight,
+		     // " veh="+veh,
 		     "");
 	}
     }

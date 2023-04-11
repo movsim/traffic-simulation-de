@@ -129,7 +129,7 @@ IDM.prototype.calcAccDet=function(s,v,vl,al){
 	: aeff*(1-v/v0eff);
   var sstar=this.s0
 	+Math.max(0.,v*this.T+0.5*v*(v-vl)/Math.sqrt(aeff*this.b));
-  var accInt=-aeff*Math.pow(sstar/Math.max(s,this.s0),2);
+  var accInt=-aeff*Math.pow(sstar/Math.max(s,this.s0),2); //!!! also for s<0?
   var accInt_IDMplus=accInt+aeff;
 
         // return original IDM
@@ -279,7 +279,13 @@ ACC.prototype.calcAcc=function(s,v,vl,al){ // this works as well
 
 ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
 
-  if(s<0.5*this.s0){return -this.bmax;}// particularly for s<0
+  // special simple case for s<s0 particularly for s<0
+  // (IDM does not need this)
+  
+  if(s<this.s0){
+    return Math.max(-this.bmax,
+		    -(this.b+(this.bmax-this.b)*(this.s0-s)/this.s0)
+		   );}
 
 
   // determine valid local v0eff and accel parameter aeff

@@ -33,13 +33,13 @@ var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-density=0;
+density=0.0;
 
 qIn=2000./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
-timewarp=2;
+timewarp=5;
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 
 IDM_a=1.2
@@ -89,7 +89,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();  // from css; only influences text size
 
-var refSizePhys=150;              // reference size in m
+var refSizePhys=420;              // reference size in m
 
 // these two must be updated in updateDimensions (aspectRatio != const)
 
@@ -124,18 +124,9 @@ function updateDimensions(){ // if viewport->canvas or sizePhys changed
 //<NETWORK>
 // Specification of physical road network and vehicle geometry
 // If viewport or refSizePhys changes => updateDimensions();
+// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 //##################################################################
 
-// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
-
-
-var center_xRel=0.5;   // 0: left, 1: right
-var center_yRel=-0.65;  // -1: bottom; 0: top
-var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
-var center_yPhys=center_yRel*refSizePhys;
-
-var road0Len=0.47*refSizePhys*aspectRatio;
-var road1Len=0.47*refSizePhys*aspectRatio;
 
 
 // specification of road width and vehicle sizes
@@ -147,15 +138,40 @@ var truck_length=11;
 var truck_width=4; 
 
 
+// road axis geometry
+// !! cannot define diretly function trajNet_x[0](u){ .. } etc
+
+var center_xRel=0.5;   // 0: left, 1: right
+var center_yRel=-0.65;  // -1: bottom; 0: top
+var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
+var center_yPhys=center_yRel*refSizePhys;
+
+var radius=0.1*refSizePhys;
+var radiusBig=0.2*refSizePhys;
+var lenStraight=0.50*refSizePhys*aspectRatio-1.5*radius;
+
+
+var lenOnramp=1.00*lenStraight;
+var lenOfframp=0.70*lenStraight;
+
+var roadLen=[lenStraight,lenStraight,Math.PI*radius,
+	     lenStraight,lenStraight,Math.PI*radius,
+	     1.5*lenStraight, 0.5*lenStraight, 0.5*lenStraight,
+	     lenOnramp, lenOfframp];
+
+var nLanes=[3,3,3,5,3,4,4,2,2,1,1];
+
+
+
 // def trajectories 
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
 function traj0_x(u){ // physical coordinates
-  return center_xPhys+u-road0Len;
+  return center_xPhys+u-lenStraight;
 }
 
 function traj0_y(u){ 
-  return center_yPhys;
+  return center_yPhys-2*radius;
 }
 
 function traj1_x(u){ 
@@ -163,10 +179,104 @@ function traj1_x(u){
 }
 
 function traj1_y(u){ 
-  return center_yPhys+laneWidth; // offsetLane=+1, see road.connect(...)
+  return center_yPhys-2*radius+laneWidth; // offsetLane=+1, see road.connect(...)
 }
 
-var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y] ]; 
+function traj2_x(u){ 
+  return traj1_x(roadLen[1])+radius*Math.sin(u/radius);
+}
+function traj2_y(u){ 
+  return traj1_y(roadLen[1])+radius*(1-Math.cos(u/radius));
+}
+
+function traj3_x(u){ 
+  return traj1_x(roadLen[1]-u);
+}
+function traj3_y(u){ 
+  return traj1_y(roadLen[1])+2*radius;
+}
+
+function traj4_x(u){ 
+  return traj0_x(roadLen[0]-u);
+}
+function traj4_y(u){ 
+  return traj3_y(roadLen[3]);
+}
+
+function traj5_x(u){ 
+  return traj4_x(roadLen[4])-radius*Math.sin(u/radius);
+}
+function traj5_y(u){ 
+  return traj4_y(roadLen[4])+0.5*laneWidth+radius*(1-Math.cos(u/radius));
+}
+
+function traj6_x(u){ 
+  return traj5_x(roadLen[5])+u;
+}
+function traj6_y(u){ 
+  return traj5_y(roadLen[5]);
+}
+
+// final diverging down
+
+function traj7_x(u){ 
+  return traj6_x(roadLen[6])+radiusBig*Math.sin(u/radiusBig);
+}
+function traj7_y(u){ 
+  return traj6_y(roadLen[6])-laneWidth-radiusBig*(1-Math.cos(u/radiusBig));
+}
+
+// final diverging up
+
+function traj8_x(u){ 
+  return traj7_x(u);
+}
+function traj8_y(u){ 
+  return traj6_y(roadLen[6])+laneWidth+radiusBig*(1-Math.cos(u/radiusBig));
+}
+
+// 1-lane onramp to road 6 from above
+// and 1-lane offramp from road 6 to below
+
+var lenMergeDiverge=0.2*roadLen[6];
+var u6_beginMerge=0.4*roadLen[6];   // begin merging at target coord
+var u6_beginDiverge=0.5*roadLen[6]; // begin diverging at source road
+var u9_beginMerge=roadLen[9]-lenMergeDiverge; 
+var u10_beginDiverge=lenMergeDiverge; 
+var x9_beginMerge=traj6_x(u6_beginMerge);
+var y9_beginMerge=traj6_y(u6_beginMerge)+0.5*(nLanes[6]+nLanes[9])*laneWidth;
+var x10_beginDiverge=traj6_x(u6_beginDiverge);
+var y10_beginDiverge=traj6_y(u6_beginDiverge)
+    -0.5*(nLanes[6]+nLanes[10])*laneWidth;
+
+function traj9_x(u){
+  return (u>u9_beginMerge)
+    ? x9_beginMerge+u-u9_beginMerge
+    : x9_beginMerge+radiusBig*Math.sin((u-u9_beginMerge)/radiusBig);
+}
+function traj9_y(u){
+  return (u>u9_beginMerge)
+    ? y9_beginMerge
+    : y9_beginMerge+radiusBig*(1-Math.cos((u-u9_beginMerge)/radiusBig));
+}
+
+function traj10_x(u){
+  return (u<u10_beginDiverge)
+    ? x10_beginDiverge+u-u10_beginDiverge
+    : x10_beginDiverge+radiusBig*Math.sin((u-u10_beginDiverge)/radiusBig);
+}
+function traj10_y(u){
+  return (u<u10_beginDiverge)
+    ? y10_beginDiverge
+    : y10_beginDiverge-radiusBig*(1-Math.cos((u-u10_beginDiverge)/radiusBig));
+}
+
+
+var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
+	     [traj3_x,traj3_y], [traj4_x,traj4_y], [traj5_x,traj5_y],
+	     [traj6_x,traj6_y], [traj7_x,traj7_y], [traj8_x,traj8_y],
+	     [traj9_x,traj9_y], [traj10_x,traj10_y]
+	    ]; 
 
 
 
@@ -174,32 +284,30 @@ var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y] ];
 // Specification of logical road network: constructing the roads
 //##################################################################
 
+// 7 mainroad links ir=0..6, 2 diverge links at the end ir=7,8
+// onramp from above ir=9, offramp to below ir=10
 
-var nLanes_main=3;
-
+var offsetLane=[0,1,0,1,-1,0,0,-2,0,0,0]; // laneindex(i+1)-laneindex(i)
 var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
 var speedInit=20;
 
-// roads
-// last opt arg "doGridding" left out (true:user can change road geometry)
+// road network (network declared in canvas_gui.js)
 
 
 var isRing=false;
-var road0=new road(0,road0Len,laneWidth,nLanes_main,
-		   trajNet[0],
-		   density, speedInit,fracTruck, isRing);
 
-var road1=new road(1,road1Len,laneWidth,nLanes_main,
-		   trajNet[1],
-		   density, speedInit,fracTruck, isRing);
+for(var ir=0; ir<nLanes.length; ir++){
+  network[ir]=new road(ir,roadLen[ir],laneWidth,nLanes[ir],
+		       trajNet[ir], density, speedInit,fracTruck, isRing);
+}
 
-var route1=[road0.roadID, road1.roadID];
+// routes
 
+var route1=[0,1,2,3,4,5,6,7];  // mainroad, diverge down at the end
+var route2=[0,1,2,3,4,5,6,8];  // mainroad, diverge up at the end
+var routes=[route1,route2];
+var routesFrac=[0.1,0.5];
 
-// road network (network declared in canvas_gui.js)
-
-network[0]=road0; 
-network[1]=road1;
 
 // roadIDs drawn in updateSim in separate loop because Xing roads
 // may cover roads drawn before and I alsways want to see the IDs
@@ -217,14 +325,14 @@ for(var ir=0; ir<network.length; ir++){
 
 // vehicle(length, width, u, lane, speed, type)
 var virtualStandingVeh
-    =new vehicle(0.01, laneWidth, road0.roadLen, nLanes_main-1, 0, "obstacle");
+    =new vehicle(0.01, laneWidth, network[0].roadLen, nLanes[0]-1, 0, "obstacle");
 
-road0.veh.unshift(virtualStandingVeh); //!!!!
+network[0].veh.unshift(virtualStandingVeh); 
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
-detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
+detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
+
 
 //</NETWORK>
 
@@ -288,20 +396,23 @@ for (var i=0; i<10; i++){
 
 // init road images for 1 to 4 lanes
 
-roadImgs1 = []; // road with lane separating line
-roadImgs2 = []; // road without lane separating line
+roadImg1Lane = []; // template road image with lane separating line
+roadImg2Lane = []; // road without lane separating line
 
-for (var i=0; i<4; i++){
-    roadImgs1[i]=new Image();
-    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
-    roadImgs2[i]=new Image();
-    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+for (var i=0; i<7; i++){
+    roadImg1Lane[i]=new Image();
+    roadImg1Lane[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImg2Lane[i]=new Image();
+    roadImg2Lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
 }
 
-roadImg1 = new Image();
-roadImg1=roadImgs1[nLanes_main-1];
-roadImg2 = new Image();
-roadImg2=roadImgs2[nLanes_main-1];
+var roadImg1= []; // network road with lane separating line
+var roadImg2= []; // network road w/o lane separating line
+
+for(var ir=0; ir<network.length; ir++){
+  roadImg1[ir] = new Image(); roadImg1[ir]=roadImg1Lane[nLanes[ir]-1];
+  roadImg2[ir] = new Image(); roadImg2[ir]=roadImg2Lane[nLanes[ir]-1];
+}
 
 
 //############################################
@@ -370,7 +481,6 @@ function updateSim(){
       }
     }
   }
-	
 
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
@@ -411,10 +521,38 @@ function updateSim(){
   // (3b) transitions between roads: templates:
   //      road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)  
   //      road.connect(target, uSource, uTarget, offsetLane, conflicts)
+
+  // upstream BC
   
-  network[0].updateBCup(qIn,dt,route1); // qIn=qTot, route is optional arg
-  network[0].connect(network[1],network[0].roadLen,0,1,[]);
-  network[1].updateBCdown(); 
+  var rnd=Math.random();
+  var routeIndex=0;
+  var fracSum=routesFrac[0];
+  while((rnd>fracSum)&&(routeIndex<routesFrac.length-1)){
+    fracSum+=routesFrac[routeIndex];
+    routeIndex++;
+  }
+  var route=routes[routeIndex];
+  network[0].updateBCup(qIn,dt,route); // qIn=qTot, route is optional arg
+  console.log("route=",route);
+
+  
+  // connecting links ends
+  
+  for(var ir=0; ir<6; ir++){
+    network[ir].connect(network[ir+1],network[ir].roadLen,0,
+			offsetLane[ir+1],[]);
+  }
+
+  // 4->2+2 fork
+  network[6].connect(network[7],network[6].roadLen,0,offsetLane[7],[]);
+  network[6].connect(network[8],network[6].roadLen,0,offsetLane[8],[]);
+  //network[6].connect(network[7],network[6].roadLen,0,offsetLane[7],[]);
+  //network[6].connect(network[8],network[6].roadLen,0,offsetLane[8],[]);
+
+  // downstream BC
+  
+  network[7].updateBCdown(); 
+  network[8].updateBCdown(); 
 
   
   // (3c) actual motion (always at the end)
@@ -471,7 +609,7 @@ function drawSim() {
   if(drawBackground){
     var objectsMoved=(mousedown ||touchdown ||objectsZoomBack);
     if(hasChanged||objectsMoved||(itime<=10) || (itime%50==0)
-       || (!drawRoad) || movingObserver){
+       || (!drawRoad) ||drawVehIDs|| movingObserver){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }
@@ -487,7 +625,7 @@ function drawSim() {
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].draw(roadImg1,roadImg2,scale,changedGeometry);
+    network[ir].draw(roadImg1[ir],roadImg2[ir],scale,changedGeometry);
   }
 
   if(drawRoadIDs){// separate loop because of visibility

@@ -500,12 +500,14 @@ function handleClick(event){
   // overrides all other click actions
   //################################################
 
-  if((trafficLightControl.isActive)
-     && trafficLightControl.mouseIsInside(xPixUser, yPixUser)){
-    console.log("handleClick: in trafficLightControl part");
-    trafficLightControl.selectCycleTime([xPixUser, yPixUser]);
+  if(!(typeof trafficLightControl === 'undefined')){
+    if((trafficLightControl.isActive)
+       && trafficLightControl.mouseIsInside(xPixUser, yPixUser)){
+      console.log("handleClick: in trafficLightControl part");
+      trafficLightControl.selectCycleTime([xPixUser, yPixUser]);
 
-    return; 
+      return;
+    }
   }
 
 

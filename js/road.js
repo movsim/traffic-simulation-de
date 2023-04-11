@@ -2087,7 +2087,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
   var targetHasPiority=(typeof targetPrio === 'undefined')
       ? false : targetPrio;
-  var bsafe=(targetHasPiority) ? 2 : 15; //!!! 2.5:15; longModel.bmax=10
+  var bsafe=(targetHasPiority) ? 2 : 15; //!! 2.5:15; longModel.bmax=10
 
   //if(this.roadID==0){console.log("road.connect: bsafe=",bsafe);}
 
@@ -2136,7 +2136,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     this.connectLog=false;
     //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
     //this.connectLog=((this.veh[iveh].id==228)&&true);
-    //this.connectLog=((this.veh[iveh].id==228)&&(time>40)&&(time<45));
+    //this.connectLog=((this.veh[iveh].id==459));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
     //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
@@ -2213,7 +2213,36 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       if(connecting){
 	//console.log(" veh ",this.veh[iveh].id," is connecting");
 
-	var vehConnect=this.veh[iveh];
+	// introduce a temporary virtual vehicle
+	// (only temporary because may not be relevant for other ODs)
+	// does not work completely, even if reverting lane changes
+	// bacause obstacles not bee seen during LC phase.
+	// Forget it; use tactical LC for some OD if needed
+	// and only implement virtual obstacles where
+	// lane is blocked for all ODs
+	
+	var createVirtStandingVehs=false;//!!!
+	var nVirtStandingVehs=0;
+	var ivehLoc=iveh;
+	if(createVirtStandingVehs){
+	  for(var il=0; il<this.nLanes; il++){
+	    var laneContinues=((il+offsetLane>=0)
+			       &&(il+offsetLane<targetRoad.nLanes));
+	    if(!laneContinues){
+	      nVirtStandingVehs++;
+	      var virtualStandingVeh // vehicle(len,width,u,lane,speed,type)
+		  =new vehicle(0.01, laneWidth, this.roadLen,
+			       il, 0, "obstacle");
+	      this.veh.unshift(virtualStandingVeh); //!!!!
+	    }
+	  }
+	  if(nVirtStandingVehs>0){
+	    ivehLoc=iveh+nVirtStandingVehs;//!!!
+	    this.updateEnvironment();
+	  }
+	}
+
+	var vehConnect=this.veh[ivehLoc];
 	var id=vehConnect.id;
 	var u=vehConnect.u;
 	var lane=vehConnect.lane;
@@ -2242,28 +2271,28 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  var zoneStr=(C1) ? " in braking zone"
 	      : (C2) ? " in decision zone"
 	      : (C3) ? " final go" : " no interation";
-	  console.log("\nroad.connect: t=",time.toFixed(2),
-		      " veh id=",id,
-		      //" route=",this.veh[iveh].route,
-		      " u=",u.toFixed(1),
-		      " speed=",speed.toFixed(1),
-		      " acc=",vehConnect.acc.toFixed(1),
-		      " uAntic=",uAntic.toFixed(1),
-		      " uDecide=",uDecide.toFixed(1),
-		      " uGo=",uGo.toFixed(1),
-		      " uSource=",uSource.toFixed(1),zoneStr,
-		      //"\n              C1=",C1,
-		      //"  C2=",C2," C3=",C3,
-		      //" laneContinues=",laneContinues,
-		      //" conflictsExist=",conflictsExist,
-		      //" potentialConflictsExist=",potentialConflictsExist,
-		      //" maxspeedImposed=",maxspeedImposed,
+	  console.log("\nroad.connect: t="+time.toFixed(2),
+		      " veh id="+id,
+		      //" route="+vehConnect.route,
+		      " u="+u.toFixed(1),
+		      " speed="+speed.toFixed(1),
+		      " acc="+vehConnect.acc.toFixed(1),
+		      " uAntic="+uAntic.toFixed(1),
+		      " uDecide="+uDecide.toFixed(1),
+		      " uGo="+uGo.toFixed(1),
+		      " uSource="+uSource.toFixed(1),zoneStr,
+		      //"\n              C1="+C1,
+		      //"  C2="+C2," C3="+C3,
+		      //" laneContinues="+laneContinues,
+		      //" conflictsExist="+conflictsExist,
+		      //" potentialConflictsExist="+potentialConflictsExist,
+		      //" maxspeedImposed="+maxspeedImposed,
 		      "");
 	}
 		    
 
-        // Decide and do actions
 
+        // Decide and do actions
 
         // Action A1: impose bias to change lanes if no through lane
 	// (actual lane-changing action done at a later stage)
@@ -2272,17 +2301,41 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	// additional virtual standing obstacle on the closing lane)
 
 	if(!laneContinues){//!! need forbidding changing back to the
-	                   // closing lane?
+	  // closing lane?
+
+	  //!!! revert wrong LC at the beginning (virtual vehs not visible
+	  // during MOBIL round) does not work completely; prevents wrong
+	  // changes but makes traffic somewhat less efficient
+	  // (also not with else branch down)
+
+	  
+	  if(vehConnect.dt_afterLC<=0.5*dt){
+	    console.log("reverted LC of veh "+vehConnect.id);
+	    vehConnect.lane=Math.round(vehConnect.v);
+	    vehConnect.v=vehConnect.lane;
+	    lane=vehConnect.lane;
+	    v=vehConnect.v;
+	    vehConnect.dt_afterLC=0;
+	    laneContinues=((lane+offsetLane>=0)
+			   &&(lane+offsetLane<targetRoad.nLanes));
+	  }
+          
 	  var toRight=(lane+offsetLane<0);
 	  var bBiasRight=((toRight) ? 1 : -1)*10;
 	  var accOld=vehConnect.acc;
 	  vehConnect.LCModel.bBiasRight=bBiasRight;     // !! influence
 	  vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
 	  if(this.connectLog){
-	    console.log("  Action A1:",
-			" setting LC bias of ",bBiasRight, " to veh ",id,
-			"\n  Action A3: decelerate with accel ",
-			accSlowdown.toFixed(1));
+	      console.log(
+	      "  Action A1:",
+	      " setting LC bias of "+bBiasRight, " to veh "+id,
+	      "\n  Action A3: decelerate to virt stopped veh with accel "+
+		accSlowdown.toFixed(1),
+	      "sStop="+sStop.toFixed(1),
+	      "s0="+s0.toFixed(1),
+	      "\n  test: vehConnect.longModel.calcAccDet(sStop,speed,0,0)="+
+		vehConnect.longModel.calcAccDet(sStop,speed,0,0),
+		"");
 	  }
 	}
       
@@ -2337,14 +2390,14 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if(this.connectLog){
 	    console.log(
 	      "  Prep (i):",
-	      " uTarget=",uTarget.toFixed(1),
-	      " lane+offsetLane=",lane+offsetLane,
-	      " leader id==",
+	      " uTarget="+uTarget.toFixed(1),
+	      " lane+offsetLane="+lane+offsetLane,
+	      " leader id=="+
 	      ((leaderExists) ? targetRoad.veh[iLead].id : "none"),
-	      " sLead=",sLead,
-	      " follower id=",
+	      " sLead="+sLead,
+	      " follower id="+
 	      ((followerExists) ? targetRoad.veh[iFollow].id : "none"),
-	      " sFollow=",sFollow);
+	      " sFollow="+sFollow);
 
 	    //targetRoad.writeVehiclesSimple();
 	  }
@@ -2379,15 +2432,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      //if(this.connectLog){
 		console.log(
 	      "  (1a): in C2||C3 and target follower exists: before checking",
-		  "anticipated follower: old idFollow=",
+		  "anticipated follower: old idFollow="+
 		  targetRoad.veh[iFollow].id,
-	 	  "\n       tc=expected dt @u Source->uTarget=",tc.toFixed(1),
-		  " uFollow+speedFollow*tc=",
+	 	  "\n       tc=expected dt @u Source->uTarget="+tc.toFixed(1),
+		  " uFollow+speedFollow*tc="+
 		  (uFollow+speedFollow*tc).toFixed(1),
-		  "uTarget=",uTarget.toFixed(1),
-		  " anticipatedFollowerExists=",
+		  "uTarget="+uTarget.toFixed(1),
+		  " anticipatedFollowerExists="+
 		  anticipatedFollowerExists,
-		  " iLag=",iLag," iFollow=",iFollow,
+		  " iLag="+iLag," iFollow="+iFollow,
 		  "");
 	      }
 
@@ -2399,17 +2452,17 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		speedFollow=targetRoad.veh[iFollow].speed;
 		anticipatedFollowerExists=(uFollow+speedFollow*tc<uTarget);
 		iLag=targetRoad.veh[iFollow].iLag;
-		if(this.connectLog)console.log("  in while: iFollow=",iFollow,
-			    " idFollow=",targetRoad.veh[iFollow].id);
+		if(this.connectLog)console.log("  in while: iFollow="+iFollow,
+			    " idFollow="+targetRoad.veh[iFollow].id);
 	      }
 	      if(false){// only if look at determining new antic follower
 	      // if(this.connectLog){
 		console.log(
-		  "  (1b): in C2||C3 and target follower exists:",
-		  "after checking",
-		  " anticipatedFollowerExists=",
+		  "  (1b): in C2||C3 and target follower exists:"+
+		  "after checking"+
+		  " anticipatedFollowerExists="+
 		  anticipatedFollowerExists,
-		  "idFollow=",targetRoad.veh[iFollow].id);
+		  "idFollow="+targetRoad.veh[iFollow].id);
 	      }
 	    }
 
@@ -2427,10 +2480,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 
 	      if(false){
-		console.log("before crash: veh id=",vehConnect.id,
-			    " sFollow=",sFollow,
-			    " uFollow=",uFollow,
-			    " targetRoad.veh[iFollow]=",
+		console.log("before crash: veh id="+vehConnect.id,
+			    " sFollow="+sFollow,
+			    " uFollow="+uFollow,
+			    " targetRoad.veh[iFollow]="+
 			    targetRoad.veh[iFollow]);
 	      }
 
@@ -2449,13 +2502,13 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      if(false){
 	      //if(this.connectLog){
 		console.log(
-		  "  (1c): in C2||C3,",
-		  "new anticipated follower != present follower exists!",
-		  "\n    new follower id=",targetRoad.veh[iFollow].id,
-		  "anticipated sFollow=",sFollow.toFixed(1));
+		  "  (1c): in C2||C3,"+
+		  "new anticipated follower != present follower exists!"+
+		  "\n    new follower id="+targetRoad.veh[iFollow].id,
+		  "anticipated sFollow="+sFollow.toFixed(1));
 		if(leaderExists){
 		  console.log(
-		    "    new leader id=",targetRoad.veh[iLead].id,
+		    "    new leader id="+targetRoad.veh[iLead].id,
 		    " sLead="+sLead.toFixed(1));
 		}
 	      }
@@ -2463,7 +2516,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 	  } // if(C2||C3)
 	  
-	  
+	
 	  //########################################################
 	  // determine target road entrance conditions | no conflicts
 	  //########################################################
@@ -2479,7 +2532,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if(maxspeedImposed){
 	    var ds=0.5*maxspeed*maxspeed/vehConnect.longModel.b
 	    s=(uSource-u)+ds;
-	    //console.log("    ds=",ds," s=",s);
+	    //console.log("    ds="+ds," s="+s);
 	  }
 	  
 	  // calcAccDet since within road.connect
@@ -2488,7 +2541,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if(this.connectLog){
 	    console.log("  Prep (ii): Potential free acceleration if",
 			"neither conflicts nor target restrictions:",
-			"accDefault=accGo=",accDefault);
+			"accDefault=accGo="+accDefault);
 	  }
 
 
@@ -2504,8 +2557,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    accGo=Math.min(accDefault, vehConnect.longModel.calcAccDet(
 	      sLead,speed,speedLead,accLead)); // !! influence
 	    if(this.connectLog){
-	      console.log("  Prep (iiia): leaderExists: leader id=",
-			  targetRoad.veh[iLead].id," s=",s," accGo=",
+	      console.log("  Prep (iiia): leaderExists: leader id="+
+			  targetRoad.veh[iLead].id," s="+s," accGo="+
 			  accGo," = min(free acc, target leader acc)");}
 
 
@@ -2518,8 +2571,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      for(var ic=0; ic<conflicts.length; ic++){
 		ducExitMax=Math.max(conflicts[ic].ducExitOwn,ducExitMax);
 		if(this.connectLog){
-		  console.log("  Preparation (iiib): ic=",ic,
-			      "conflicts[ic]=",
+		  console.log("  Preparation (iiib): ic="+ic,
+			      "conflicts[ic]="+
 			      conflicts[ic]);
 		}
 	      }
@@ -2528,21 +2581,21 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      }
 	      
 	      if(this.connectLog){
-		console.log("  Prep (iiib): leader and",
-			    "potential conflicts exist:",
-			    "targetCanBeEntered=",targetCanBeEntered,
-			    "s to target leader s=",s.toFixed(1),
-			    "speedLead=",speedLead.toFixed(1),
-			    "accLead=",accLead.toFixed(1),
-			    "accGo=",accGo.toFixed(1));
+		console.log("  Prep (iiib): leader and"+
+			    "potential conflicts exist:"+
+			    "targetCanBeEntered="+targetCanBeEntered,
+			    "s to target leader s="+s.toFixed(1),
+			    "speedLead="+speedLead.toFixed(1),
+			    "accLead="+accLead.toFixed(1),
+			    "accGo="+accGo.toFixed(1));
 		if(true){
-		  console.log("    uLead=",uLead,
-			      "lenLead=",lenLead,
-			      "vehConnect.len=",vehConnect.len,
-			      "2*s0=",2*s0,
-			      "uSource=",uSource,
-			      "ducExitMax=",ducExitMax,
-			      "targetCanBeEntered=",targetCanBeEntered);
+		  console.log("    uLead="+uLead,
+			      "lenLead="+lenLead,
+			      "vehConnect.len="+vehConnect.len,
+			      "2*s0="+2*s0,
+			      "uSource="+uSource,
+			      "ducExitMax="+ducExitMax,
+			      "targetCanBeEntered="+targetCanBeEntered);
 			 }
 	      }
 	      
@@ -2570,21 +2623,21 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      }
 	      if(this.connectLog){
 	        console.log(
-		  "  Prep (iv): enter/merge and target follower exists:",
-		  " targetCanBeEntered=",targetCanBeEntered,
-		  " id=",vehConnect.id,
-		  " idFollow=",targetRoad.veh[iFollow].id,
-		 // "u-uGo=",(u-uGo).toFixed(1),
-		 // "u-uSource=",(u-uSource).toFixed(1),
-		  // "uFollow=",uFollow.toFixed(1),
-		  //"targetRoad.veh[iFollow].longModel.cool=",targetRoad.veh[iFollow].longModel.cool,
-		  "\n       sFollow=",sFollow.toFixed(1),// here incl anticip
-		  "speedFollow=",speedFollow.toFixed(1),
-		  "speed=",vehConnect.speed.toFixed(1),
-		  "accFollow=accACC(sFollow,speedFollow,speed)=",
+		  "  Prep (iv): enter/merge and target follower exists:"+
+		  " targetCanBeEntered="+targetCanBeEntered,
+		  " id="+vehConnect.id,
+		  " idFollow="+targetRoad.veh[iFollow].id,
+		 // "u-uGo="+(u-uGo).toFixed(1),
+		 // "u-uSource="+(u-uSource).toFixed(1),
+		  // "uFollow="+uFollow.toFixed(1),
+		  //"targetRoad.veh[iFollow].longModel.cool="+targetRoad.veh[iFollow].longModel.cool,
+		  "\n       sFollow="+sFollow.toFixed(1),// here incl anticip
+		  "speedFollow="+speedFollow.toFixed(1),
+		  "speed="+vehConnect.speed.toFixed(1),
+		  "accFollow=accACC(sFollow,speedFollow,speed)="+
 		  accFollow.toFixed(1),
-		  "bsafe=",bsafe.toFixed(1),
-		  "accGo=",accGo);
+		  "bsafe="+bsafe.toFixed(1),
+		  "accGo="+accGo);
 	      }
 	    }
 	    
@@ -2597,8 +2650,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      accGo=accSlowdown; // !! influence
 	      if(this.connectLog){
 	        console.log(
-		  "  Preparation (iv): in braking zone with target follower",
-		  " accGo=",accGo);
+		  "  Preparation (iv): in braking zone with target follower"+
+		  " accGo="+accGo);
 	      }
 	    }
 
@@ -2609,14 +2662,14 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  
 	  if(false){
 	  //if(this.connectLog){
-	    console.log("  Prepare Action A4 assuming no conflicts",
-			" and check entrance to target",
-			" id=",vehConnect.id,
-			"nvehTarget=",targetRoad.veh.length,
-			" leaderExists=",leaderExists,
-			" followerExists=",followerExists,
-			"\n    targetCanBeEntered=",targetCanBeEntered,
-			" accGo=",accGo.toFixed(2));
+	    console.log("  Prepare Action A4 assuming no conflicts"+
+			" and check entrance to target"+
+			" id="+vehConnect.id,
+			"nvehTarget="+targetRoad.veh.length,
+			" leaderExists="+leaderExists,
+			" followerExists="+followerExists,
+			"\n    targetCanBeEntered="+targetCanBeEntered,
+			" accGo="+accGo.toFixed(2));
 	  }
 	 
 
@@ -2641,9 +2694,9 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  else if (C2||(C3&&conflictsExist)){ 
 	  //else if (targetCanBeEntered && (C2||(C3&&conflictsExist)) ){ 
 	    if(this.connectLog){
-	      console.log("  Action A2: potential conflicts possible",
-			  //" C2=",C2," C3=",C3,
-			  //" conflictsExist=",conflictsExist,
+	      console.log("  Action A2: potential conflicts possible"+
+			  //" C2="+C2," C3="+C3,
+			  //" conflictsExist="+conflictsExist,
 			  " calling determineConflicts(..)");
 	    }
 
@@ -2657,6 +2710,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  }
 
 
+
+	  
 	  var accOld=vehConnect.acc;
 	  var conflictsAllowPassing
 	      =((!potentialConflictsExist) || ((!conflictsExist)&&(C2||C3)));
@@ -2667,10 +2722,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if (!(conflictsAllowPassing&&targetCanBeEntered)){
 	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
 	    if(this.connectLog){
-	      console.log("  Action 3: conflicts or gridlock danger:",
-			  " decelerating to stop",
-			  " accOld=",accOld.toFixed(1),
-			  " accSlowdown=",accSlowdown.toFixed(1),
+	      console.log("  Action 3: conflicts or gridlock danger:"+
+			  " decelerating to stop"+
+			  " accOld="+accOld.toFixed(1),
+			  " accSlowdown="+accSlowdown.toFixed(1),
 			  "");
 	    }
 	  }
@@ -2683,14 +2738,14 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    vehConnect.acc=Math.min(accOld,accGo); // !!influence
 	    
 	    if(this.connectLog){
-	      console.log("  Action 4: ready to go",
-			  " veh id=",vehConnect.id,
-		          " route=",vehConnect.route," targetID=",targetID,
-		          " uSource-u=",(uSource-u).toFixed(1),
-		          " speed=",vehConnect.speed.toFixed(1),
-		          " accOld=",accOld.toFixed(1),
-		          " accGo=",accGo.toFixed(1),
-		          " acc=",vehConnect.acc.toFixed(1),
+	      console.log("  Action 4: ready to go"+
+			  " veh id="+vehConnect.id,
+		          " route="+vehConnect.route," targetID="+targetID,
+		          " uSource-u="+(uSource-u).toFixed(1),
+		          " speed="+vehConnect.speed.toFixed(1),
+		          " accOld="+accOld.toFixed(1),
+		          " accGo="+accGo.toFixed(1),
+		          " acc="+vehConnect.acc.toFixed(1),
 		          "");
             }
 	    
@@ -2701,15 +2756,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	} // laneContinues==true
 
 
-
 	// Action A5: actual transfer!!
 
       
 	if((u>uSource-distBeforeEnd)&&(this.roadID!=targetRoad.roadID)){
+	  //if(true){
 	  if(this.connectLog){
-	  //if(this.veh[iveh].id==210){
-	    console.log("  Action 5: All previous actions drove the vehicle",
-			"over uSource => actual transfer");
+	  //if(vehConnect.id==210){
+	    console.log("  Action 5: All previous actions drove the vehicle"+
+			" over uSource => actual transfer");
 	  }
 
 
@@ -2717,10 +2772,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  // Array.splice(position, howManyItems, opt_addedItem1,...) 
 
 	  if(false){
-	    console.log("\nbefore splicing:",
-			" this.veh.length=",this.veh.length,
-			" testVeh=",testVeh,
-			" targetRoad.veh.length=",targetRoad.veh.length,
+	    console.log("\nbefore splicing:"+
+			" this.veh.length="+this.veh.length,
+			" testVeh="+testVeh,
+			" targetRoad.veh.length="+targetRoad.veh.length,
 			"");
 	    this.writeVehiclesSimple();
 	    targetRoad.writeVehiclesSimple();
@@ -2728,7 +2783,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 
 	  // watch out that an array is returned by splice!
-	  var transferredVeh=(this.veh.splice(iveh,1))[0];
+	  // splices away 1 vehicle at pos ivehLoc (third arg would insert it)
+	  var transferredVeh=(this.veh.splice(ivehLoc,1))[0];
 	  this.updateEnvironment();
 
           // transform state vars of transferred vehicle
@@ -2748,17 +2804,17 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  if(this.connectLog){
 	  //if(true){
 	    console.log(
-	      "\n  =======================================================",
-	      "\n  t=",time.toFixed(2)," itime=",itime,
-	      " transfer veh ",transferredVeh.id,
-	      "from road ",this.roadID," u=",u.toFixed(1),
-	      "lane=",lane," v=",v.toFixed(1),
-	      "to road ",targetRoad.roadID,
-	      "at u=",transferredVeh.u.toFixed(1),
-	      "lane=",transferredVeh.lane,
-	      "laneOld=",transferredVeh.laneOld,
-	      "v=",transferredVeh.v.toFixed(1),
-	      "\n  transferredVeh=",transferredVeh,
+	      "\n  ======================================================="+
+	      "\n  t="+time.toFixed(2)," itime="+itime,
+	      " transfer veh "+transferredVeh.id,
+	      "from road "+this.roadID," u="+u.toFixed(1),
+	      "lane="+lane," v="+v.toFixed(1),
+	      "to road "+targetRoad.roadID,
+	      "at u="+transferredVeh.u.toFixed(1),
+	      "lane="+transferredVeh.lane,
+	      "laneOld="+transferredVeh.laneOld,
+	      "v="+transferredVeh.v.toFixed(1),
+	      "\n  transferredVeh="+transferredVeh,
 	      "\n  =======================================================");
 	  }
 
@@ -2777,12 +2833,24 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	}// if(u>uSource) => Action A5
 	
 	if(this.connectLog){
-	  console.log("  exiting road.connect: itime=",itime,
-		      "vehConnect.id=",vehConnect.id,
-		      "speed=",vehConnect.speed.toFixed(1),
-		      "acc=",vehConnect.acc.toFixed(1),
+	  console.log("  exiting road.connect: itime="+itime,
+		      "vehConnect.id="+vehConnect.id,
+		      "speed="+vehConnect.speed.toFixed(1),
+		      "acc="+vehConnect.acc.toFixed(1),
 		      "");
 	}
+
+	// !!! remove the virtual vehicles (unshift=adding, shift=removing)
+	// (are always the first since at u=this.roadLen)
+	
+	if(createVirtStandingVehs&&(nVirtStandingVehs>0)){
+	  for(var ivirt=0; ivirt<nVirtStandingVehs; ivirt++){
+	    this.veh.shift();
+	  }
+	  this.updateEnvironment();
+	}
+	
+	
       } // if(connecting)
     } // veh in anticipation regime and regular veh
 
@@ -2790,7 +2858,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     
   } // loop over all road vehicles
   
-} // road.prototype.connect
+} // end connect; end road.prototype.connect
 
 
 /* #################################################################
@@ -2827,9 +2895,9 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   var speed=vehConnect.speed;
 
   if(log){
-    console.log("\n=====================================================",
-		"\nroad.determineConflicts for veh ",vehConnect.id,":",
-		"t=",time.toFixed(1));
+    console.log("\n====================================================="+
+		"\nroad.determineConflicts for veh "+vehConnect.id,":"+
+		"t="+time.toFixed(1));
   }
 
   for(var ic=0; (ic<conflicts.length)&&noConflictDetected; ic++){
@@ -2853,15 +2921,15 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 
     if(log){
       console.log(
-	"  check conflict", ic,"caused by road ",
-	conflicts[ic].roadConflict.roadID,":",
-	"uSource-u=", (uSource-u).toFixed(1),
-	"ducExitOwn=", ducExitOwn.toFixed(1),
-	"duOwn=",duOwn.toFixed(1),
-	"\n                                       speed=",
+	"  check conflict"+ ic,"caused by road "+
+	conflicts[ic].roadConflict.roadID,":"+
+	"uSource-u="+ (uSource-u).toFixed(1),
+	"ducExitOwn="+ ducExitOwn.toFixed(1),
+	"duOwn="+duOwn.toFixed(1),
+	"\n                                       speed="+
 	speed.toFixed(1),
-	"acc=",acc.toFixed(2),"tc=",tc.toFixed(1),
-	"vehsConflict.length=",vehsConflict.length,
+	"acc="+acc.toFixed(2),"tc="+tc.toFixed(1),
+	"vehsConflict.length="+vehsConflict.length,
 	"");
     }
 
@@ -2885,9 +2953,9 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 	  isCandidate=true;
 	  if(log){
 	    console.log(
-	    "  in conflicting veh loop: vehConflict.id=",
+	    "  in conflicting veh loop: vehConflict.id="+
 	    vehConflict.id,
-	    "isCandidate=",isCandidate);
+	    "isCandidate="+isCandidate);
 	  }
 	}
 
@@ -2914,12 +2982,12 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 	  }
 
 	  if(log){
-	    console.log("  determineConflicts, checking candidates:",
-			"vehConflict.id=",vehConflict.id,
-			"indexOrigin=",indexOrigin,
-			"conflictDestID=",conflictDestID,
-			"conflicts[ic].dest=", conflicts[ic].dest,
-			"isCandidate=",isCandidate);
+	    console.log("  determineConflicts, checking candidates:"+
+			"vehConflict.id="+vehConflict.id,
+			"indexOrigin="+indexOrigin,
+			"conflictDestID="+conflictDestID,
+			"conflicts[ic].dest="+ conflicts[ic].dest,
+			"isCandidate="+isCandidate);
 	  }
 	  
 	}
@@ -2940,16 +3008,16 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 
         if(log){
 	  console.log(
-	  "      veh ",vehConnect.id,
-	  ": conflicting veh ID:",vehConflict.id,
-	  " uOther=",vehConflict.u.toFixed(1),
-	  " ucOther=",ucOther.toFixed(1),
-	  " speedOther*tc=",(vehConflict.speed*tc).toFixed(1),
-	  " ducOther_after_tc=",ducOtherVeh.toFixed(1),
-	  "\n                                          xtc=",xtc.toFixed(1),
-	  " ttc=",ttc.toFixed(1),
-	  " noConflictDetected=",noConflictDetected,
-	    " goOnCrit=",goOnCrit,
+	  "      veh "+vehConnect.id,
+	  ": conflicting veh ID:"+vehConflict.id,
+	  " uOther="+vehConflict.u.toFixed(1),
+	  " ucOther="+ucOther.toFixed(1),
+	  " speedOther*tc="+(vehConflict.speed*tc).toFixed(1),
+	  " ducOther_after_tc="+ducOtherVeh.toFixed(1),
+	  "\n                                          xtc="+xtc.toFixed(1),
+	  " ttc="+ttc.toFixed(1),
+	  " noConflictDetected="+noConflictDetected,
+	    " goOnCrit="+goOnCrit,
 	    "");
 	}
         if(log){
@@ -2962,19 +3030,19 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 	  //if(targetRoad.roadID<2){
 	  if(dist2>=16){
 	    console.log(
-	      "\nGraphics: vehConnect ",vehConnect.id,
-	      "OD ",this.roadID,targetRoad.roadID,
-	      "conflicts with road ID=",conflicts[ic].roadConflict.roadID,
-	      "veh ",vehConflict.id,"having route=",vehConflict.route,
-	      "\n    xConflictOwn (basic target traj)=",
+	      "\nGraphics: vehConnect "+vehConnect.id,
+	      "OD "+this.roadID,targetRoad.roadID,
+	      "conflicts with road ID="+conflicts[ic].roadConflict.roadID,
+	      "veh "+vehConflict.id,"having route="+vehConflict.route,
+	      "\n    xConflictOwn (basic target traj)="+
 	      xConflictOwn.toFixed(1),
-	      "yConflictOwn=",yConflictOwn.toFixed(1),
-	      "\n    xConflictOther                  =",
+	      "yConflictOwn="+yConflictOwn.toFixed(1),
+	      "\n    xConflictOther                  ="+
 	      xConflictOther.toFixed(1),
-	      "yConflictOther=",yConflictOther.toFixed(1),
-	      "duOwn(now)=",duOwn.toFixed(1),
-	      "ducOtherVeh(now)=",(ucOther-vehConflict.u).toFixed(1),
-	      "ducOther(tConflict)=",ducOtherVeh.toFixed(1),
+	      "yConflictOther="+yConflictOther.toFixed(1),
+	      "duOwn(now)="+duOwn.toFixed(1),
+	      "ducOtherVeh(now)="+(ucOther-vehConflict.u).toFixed(1),
+	      "ducOther(tConflict)="+ducOtherVeh.toFixed(1),
 	      "");
 	  }
 	}
@@ -2993,7 +3061,7 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
   }// outer loop over the conflicts
   
   var conflictsExist=(!noConflictDetected);
-  if(log){console.log("Leaving determineConflicts, conflictsExist=",
+  if(log){console.log("Leaving determineConflicts, conflictsExist="+
 		      conflictsExist,
 		      "\n=============================================\n\n");}
   return conflictsExist;
@@ -3069,7 +3137,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
     var loc_prioOwn=(typeof prioOwn==='undefined')
 	? false : prioOwn;
     if(loc_prioOwn&&loc_prioOther){
-	console.log("road.mergeDiverge: Warning: prioOther and prioOwn",
+	console.log("road.mergeDiverge: Warning: prioOther and prioOwn"+
 		    " cannot be true simultaneously; setting prioOwn=false");
 	loc_prioOwn=false;
     }
@@ -3115,10 +3183,10 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
   
   if(log){
-	console.log("\n\nin road.mergeDiverge: itime=",itime,
-		    " ID=",this.roadID,
-		    " targetVehicles.length=",targetVehicles.length,
-		    " originVehicles.length=",originVehicles.length);
+	console.log("\n\nin road.mergeDiverge: itime="+itime,
+		    " ID="+this.roadID,
+		    " targetVehicles.length="+targetVehicles.length,
+		    " originVehicles.length="+originVehicles.length);
   }
 
   // (2) Both for merge and diverge: select changing vehicle (if any): 
@@ -3132,7 +3200,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 		&& originVehicles[0].isRegularVeh()
 		&& (originVehicles[0].u>=uBegin) // otherwise only LT coupl
 		&& (loc_ignoreRoute||originVehicles[0].divergeAhead));
-  if(log){console.log(" road.mergeDiverge: 2a:  success=",success);}
+  if(log){console.log(" road.mergeDiverge: 2a:  success="+success);}
   if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
 
     // (2b) otherwise select the first suitable candidate of originVehicles
@@ -3156,10 +3224,10 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
     for(var i=0;(i<originVehicles.length)&&(!success);i++){
 
       if(log){
-		console.log(" i=",i,
-			    " isRegularVeh=",originVehicles[i].isRegularVeh(),
-			    " loc_ignoreRoute=",loc_ignoreRoute,
-			    " originVehicles[i].divergeAhead=",
+		console.log(" i="+i,
+			    " isRegularVeh="+originVehicles[i].isRegularVeh(),
+			    " loc_ignoreRoute="+loc_ignoreRoute,
+			    " originVehicles[i].divergeAhead="+
 			    originVehicles[i].divergeAhead);
       }
 
@@ -3188,9 +3256,9 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 		    jTarget=j; duFollower=du; followerNew=targetVehicles[j];
 		}
 		if(log){
-		    console.log(" i=",i," j=",j," jTarget=",jTarget,
-				" du=",du," duLeader=",duLeader,
-				" duFollower=",duFollower);
+		    console.log(" i="+i," j="+j," jTarget="+jTarget,
+				" du="+du," duLeader="+duLeader,
+				" duFollower="+duFollower);
 
 		}
 	      }
@@ -3253,7 +3321,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	      //if(true){
 		console.log("testing origin veh "+i +" type="
 			    +originVehicles[i].type+" uTarget="+uTarget);
-		console.log("divergeAhead=",originVehicles[i].divergeAhead);
+		console.log("divergeAhead="+originVehicles[i].divergeAhead);
 	        console.log("  sNew="+sNew+" sLagNew="+sLagNew);
 	        console.log("  speed="+speed +" speedLagNew="+speedLagNew);
 	        console.log("  acc="+acc+" accNew="+accNew+" accLagNew="+accLagNew);
@@ -3330,12 +3398,12 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 		}
 		//if(this.roadID==7){
 		if(false){
-		    console.log("target id=",targetVehicles[j].id,
-				" iLast id=",originVehicles[iLast].id,
-				" lastOrigIsLeader=",lastOrigIsLeader,
-				" sStop=",parseFloat(sStop).toFixed(1),
-				" accTargetStop=",parseFloat(accTargetStop).toFixed(1),
-				" acc=",parseFloat(targetVehicles[j].acc).toFixed(1)
+		    console.log("target id="+targetVehicles[j].id,
+				" iLast id="+originVehicles[iLast].id,
+				" lastOrigIsLeader="+lastOrigIsLeader,
+				" sStop="+parseFloat(sStop).toFixed(1),
+				" accTargetStop="+parseFloat(accTargetStop).toFixed(1),
+				" acc="+parseFloat(targetVehicles[j].acc).toFixed(1)
 			       );
 		}
 	    }
@@ -3345,18 +3413,18 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
     /*
 		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
-		      console.log("in road.mergeDiverge, ",
-				  " LT coupling to acc other road",
-				  " id=",this.roadID,
-				  " t=",parseFloat(itime*dt).toFixed(2),
-				  " iOrigin=",i,
-				  " jTarget=",jTarget,
-				  " target follower: ID=",followerNew.id,
-				  " u befure update=",
+		      console.log("in road.mergeDiverge, "+
+				  " LT coupling to acc other road"+
+				  " id="+this.roadID,
+				  " t="+parseFloat(itime*dt).toFixed(2),
+				  " iOrigin="+i,
+				  " jTarget="+jTarget,
+				  " target follower: ID="+followerNew.id,
+				  " u befure update="+
 				  parseFloat(followerNew.u).toFixed(2),
-				  " speed before=",
+				  " speed before="+
 				  parseFloat(followerNew.speed).toFixed(2),
-				  " acc=",
+				  " acc="+
 				  parseFloat(accLagYield).toFixed(2)
 		  );
 		  }
@@ -3395,7 +3463,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
 //####################################################################
-	this.veh.splice(iOrig,1);// removes chg veh from orig.
+	this.veh.splice(iOrig,1);// removes 1 chg veh from i=iOrig.
         otherRoad.veh.push(changingVeh); // appends changingVeh at last pos;
 //####################################################################
 
@@ -3431,7 +3499,7 @@ road.prototype.removeRegularVehs=function(){
     for(var i=this.veh.length-1; i>=0; i--){
 	if(this.veh[i].isRegularVeh()){this.veh.splice(i,1);}
     }
-    //console.log("remaining number of special vehicles: ",this.veh.length);
+    //console.log("remaining number of special vehicles: "+this.veh.length);
 }
 
 
@@ -3558,6 +3626,8 @@ road.prototype.updateBCup=function(Qin,dt,route){
       vehNew.longModel.driverfactor=vehNew.driverfactor; //!!
 
       vehNew.route=this.route;
+      //console.log("road.updateBCup: vehNew.route="+vehNew.route);
+
 
       //!! define ego vehicles for testing purposes
 
@@ -3590,7 +3660,7 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
     var firstTime=true;
     //console.log("getTargetNeighbourhood:");
     for (var i=0; i<this.veh.length; i++){
-	//console.log("i=",i," nveh=",this.veh.length," u=",this.veh[i].u);
+	//console.log("i="+i," nveh="+this.veh.length," u="+this.veh[i].u);
 	if( (this.veh[i].lane===targetLane)&&(this.veh[i].u>=umin)&&(this.veh[i].u<=umax)){
 	    if(firstTime===true){this.iTargetFirst=i;firstTime=false;}
 	    targetVehicles[iTarget]=this.veh[i];
@@ -3598,8 +3668,8 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 	}
     }
     if(false){
-        console.log("in road.getTargetNeighbourhood(umin="+umin+", umax="+umax
-		  +", targetLane="+targetLane+")");
+        console.log("in road.getTargetNeighbourhood(umin="+umin+"+ umax="+umax
+		  +"+ targetLane="+targetLane+")");
 	for(iTarget=0; iTarget<targetVehicles.length; iTarget++){
 	    console.log("targetVehicles["+iTarget+"].u="+targetVehicles[iTarget].u);
 	}
@@ -3629,7 +3699,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 						  LCModelCar,LCModelTruck,
 						  LCModelMandatory){
 
- //console.log("road.updateModelsOfAllVehicles: LCModelMandatory=",
+ //console.log("road.updateModelsOfAllVehicles: LCModelMandatory="+
   //		LCModelMandatory);
 
 
@@ -3659,7 +3729,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
 		   LCModelMandatoryLoc.p,
 		   LCModelMandatoryLoc.bThr, -LCModelMandatoryLoc.bBiasRight);
-    //console.log("road.LCModelMandatoryLeft=",this.LCModelMandatoryLeft);
+    //console.log("road.LCModelMandatoryLeft="+this.LCModelMandatoryLeft);
     this.LCModelTacticalRight
 	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
 		   LCModelMandatoryLoc.p,
@@ -3684,9 +3754,9 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
     
       
       if(false){
-        console.log("updateModelsOfAllVehicles: type=",this.veh[i].type,
-		  " speedl=",this.veh[i].longModel.speedlimit,
-		  " longModelTruck.speedlimit=",longModelTruck.speedlimit);
+        console.log("updateModelsOfAllVehicles: type="+this.veh[i].type,
+		  " speedl="+this.veh[i].longModel.speedlimit,
+		  " longModelTruck.speedlimit="+longModelTruck.speedlimit);
       }
     }
   }
@@ -3797,10 +3867,10 @@ road.prototype.get_phi=function(u,traj){
     var dx=traj[0](uLoc+du)-traj[0](uLoc-du);
     var dy=traj[1](uLoc+du)-traj[1](uLoc-du);
     if((Math.abs(dx)<smallVal)&&(Math.abs(dy)<smallVal)){
-      console.log("road.get_phi: id=",this.roadID,
-		  " uLoc+du=",uLoc+du," uLoc-du=",uLoc-du,
-		  " traj[0](uLoc+du)=",traj[0](uLoc+du),
-		  " traj[0](uLoc-du)=",traj[0](uLoc-du),
+      console.log("road.get_phi: id="+this.roadID,
+		  " uLoc+du="+uLoc+du," uLoc-du="+uLoc-du,
+		  " traj[0](uLoc+du)="+traj[0](uLoc+du),
+		  " traj[0](uLoc-du)="+traj[0](uLoc-du),
       " error: cannot determine heading of two identical points"); 
       return 0;
     }
@@ -3895,7 +3965,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 
   var lSegm=this.roadLen/this.nSegm;
 
-  //console.log("road.draw: lSegm=",lSegm);
+  //console.log("road.draw: lSegm="+lSegm);
 
   var noRestriction=(typeof umin === 'undefined');
   var movingObserver=(typeof movingObs === 'undefined')
@@ -3935,8 +4005,8 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
   var nSegmLine=2*Math.round(0.5*duLine/(this.roadLen/this.nSegm)); // 0,2,4...
   nSegmLine=Math.max(2, nSegmLine);
 
-  //console.log("road.draw: ID=",this.roadID," nSegm=",this.nSegm,
-//	      " noRestriction=",noRestriction);
+  //console.log("road.draw: ID="+this.roadID," nSegm="+this.nSegm,
+//	      " noRestriction="+noRestriction);
 
   var lSegmPix=scale*factor*lSegm;
   var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
@@ -3961,12 +4031,12 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       //if(itime==1){
       //if((this.roadID==2)&&(iSegm==this.nSegm-4)){
         console.log(
-	  "road.draw: ID=",this.roadID," iSegm=",iSegm,
-	  " this.draw_y[iSegm]=",formd(this.draw_y[iSegm]),
-	  " this.traj[1](this.roadLen-50)=",formd(this.traj[1](this.roadLen-50)),
-	  " lSegmPix=",formd(lSegmPix)," wSegmPix=",formd(wSegmPix),
-	  " xCenterPix=",formd(xCenterPix),
-	  " yCenterPix=",formd(yCenterPix)
+	  "road.draw: ID="+this.roadID," iSegm="+iSegm,
+	  " this.draw_y[iSegm]="+formd(this.draw_y[iSegm]),
+	  " this.traj[1](this.roadLen-50)="+formd(this.traj[1](this.roadLen-50)),
+	  " lSegmPix="+formd(lSegmPix)," wSegmPix="+formd(wSegmPix),
+	  " xCenterPix="+formd(xCenterPix),
+	  " yCenterPix="+formd(yCenterPix)
 	);
       }
     }
@@ -4006,7 +4076,7 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
       }
     }
   }
-  
+
 // draw road ID separately by its own command .draw(imgRed,imgGreen)
 // draw traffic lights separately by its own command .draw(imgRed,imgGreen)
 
@@ -4044,7 +4114,7 @@ normal vehicles (except the black obstacles) are color-coded
 special vehicles (id defined mainly in veh cstr)
 have special appearance according to
 
-// types: 0="car", 1="truck", 2="obstacle" (including red traffic lights)
+// types: 0="car"+ 1="truck"+ 2="obstacle" (including red traffic lights)
 // id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // id<100:              special vehicles/road objects
 // id=1:                ego vehicle
@@ -4089,8 +4159,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
   this.usedTraj_x=this.traj[0]; // default
   this.usedTraj_y=this.traj[1]; // default
 
-  if(false){console.log("road.drawVehicles: traj init:",
-				 " this.usedTraj_x=",this.usedTraj_x);}
+  if(false){console.log("road.drawVehicles: traj init:"+
+				 " this.usedTraj_x="+this.usedTraj_x);}
 
     
   
@@ -4130,9 +4200,9 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
       if(false){
 	//if(this.veh[i].id==209){
 	  console.log(
-	    "drawVehicle after getTraj: roadID=",this.roadID,
-	    " time=",time," vehid=",this.veh[i].id,
-	    "testTraj=",testTraj);
+	    "drawVehicle after getTraj: roadID="+this.roadID,
+	    " time="+time," vehid="+this.veh[i].id,
+	    "testTraj="+testTraj);
       }
 
     }
@@ -4299,7 +4369,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 	
     if(false){
 	  //if(this.veh[i].v>2){
-	      console.log("in road.drawVehicle: itime=",itime,
+	      console.log("in road.drawVehicle: itime="+itime,
 			  +" u="+this.veh[i].u
 			  +" v="+this.veh[i].v
 			  +" xCenterPix="+xCenterPix
@@ -4355,8 +4425,8 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
       success=true;
       var speedL=obj.value/3.6;  // in m/s
       if(false){
-	console.log("road.updateSpeedlimits: speed limit ",
-		    formd(speedL)," starting at ",
+	console.log("road.updateSpeedlimits: speed limit "+
+		    formd(speedL)," starting at "+
 		    formd(obj.u));
       }
 
@@ -4368,10 +4438,10 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 	    ? Math.min(speedL,speedL_truck) : speedL;
 	}
 	if(false){
-	  console.log("iveh=",iveh," u=",formd(targetVeh.u),
-		      " obj.u=",formd(obj.u),
-		      " isRegVeh=",targetVeh.isRegularVeh(),
-		      " speedlimit_kmh=",
+	  console.log("iveh="+iveh," u="+formd(targetVeh.u),
+		      " obj.u="+formd(obj.u),
+		      " isRegVeh="+targetVeh.isRegularVeh(),
+		      " speedlimit_kmh="+
 		      formd0(3.6*targetVeh.longModel.speedlimit));
 	}
 
@@ -4388,8 +4458,8 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
     for(var iveh=0; iveh<this.veh.length; iveh++){
       var veh=this.veh[iveh];
       if(veh.isRegularVeh()){
-	console.log("end updateSpeedlimits: u=",veh.u,
-		    "speedlimit=",veh.longModel.speedlimit);
+	console.log("end updateSpeedlimits: u="+veh.u,
+		    "speedlimit="+veh.longModel.speedlimit);
       }
     }
   }
@@ -4408,9 +4478,9 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 road.prototype.dropObject=function(trafficObj){
   var u=trafficObj.u;
   var lane=trafficObj.lane;
-  console.log("itime=",itime,
-	      " in road.dropObject: trafficObj.u=",u,
-	      " trafficObj.lane=",lane," this.nLanes=",this.nLanes);
+  console.log("itime="+itime,
+	      " in road.dropObject: trafficObj.u="+u,
+	      " trafficObj.lane="+lane," this.nLanes="+this.nLanes);
 
 
   // construct normal road vehicle/obstacle from depot object
@@ -4435,9 +4505,9 @@ road.prototype.dropObject=function(trafficObj){
 
     this.veh.push(roadVehicle);
     this.updateEnvironment(); // possibly crucial !! includes sorting
-    console.log("  end road.dropObject: dropped obstacle at uDrop=",u,
-		" lane=",lane," id=",roadVehicle.id,
-		" imgNumber=",roadVehicle.imgNumber);
+    console.log("  end road.dropObject: dropped obstacle at uDrop="+u,
+		" lane="+lane," id="+roadVehicle.id,
+		" imgNumber="+roadVehicle.imgNumber);
   }
 
   // position a traffic light if depot object id=100 ... 199
@@ -4479,9 +4549,9 @@ road.prototype.addTrafficLight= function(depotObject) {
   this.changeTrafficLight(depotObject.id,depotObject.value);
 
   if(true){
-    console.log("itime=",itime," road.addTrafficLight: roadID=",this.roadID,
-	      " added traffic light id=",depotObject.id,
-		" at u=",formd(depotObject.u)," value=",depotObject.value);
+    console.log("itime="+itime," road.addTrafficLight: roadID="+this.roadID,
+	      " added traffic light id="+depotObject.id,
+		" at u="+formd(depotObject.u)," value="+depotObject.value);
   }
   
 }
@@ -4496,7 +4566,7 @@ and implement effects
 #############################################################
 
 @param id:     unique id in [100,199]
-@param value:  (optional) "red", or "green". 
+@param value:  (optional) "red"+ or "green". 
                If not given, the value is toggled
 @return:       if a traffic light of this id is found, 
                its state is changed accordingly
@@ -4516,15 +4586,15 @@ road.prototype.changeTrafficLight=function(id,value){
       if(typeof(value) === "undefined"){ // just toggle if no value given
 	pickedTL.value=(pickedTL.value==="red")
 	  ? "green" : "red";
-	console.log("road.changeTrafficLight: id=",id, "no TL state given:",
-		    " new value=opposite of old value=",pickedTL.value);
+	console.log("road.changeTrafficLight: id="+id, "no TL state given:"+
+		    " new value=opposite of old value="+pickedTL.value);
       }
       else{pickedTL.value=value;}
     }
   }
 
   if(!success){
-    console.log("road.changeTrafficLight: no TL of id ",id," found!");
+    console.log("road.changeTrafficLight: no TL of id "+id," found!");
     return;
   }
 
@@ -4582,18 +4652,18 @@ road.prototype.changeTrafficLight=function(id,value){
 road.prototype.removeTrafficLight= function(id) {
     // change value of trafficLight object
 
-  console.log("in road.removeTrafficLight: id=",id,"this.trafficLights.length=",this.trafficLights.length);
+  console.log("in road.removeTrafficLight: id="+id,"this.trafficLights.length="+this.trafficLights.length);
   var success=false;
   var iDel=-1;
   for(var i=0; (!success)&&(i<this.trafficLights.length); i++){
     if(this.trafficLights[i].id===id){
       success=true;
-      console.log("  succes! i=",i," trafficLight=",this.trafficLights[i]);
+      console.log("  succes! i="+i," trafficLight="+this.trafficLights[i]);
       iDel=i;
       this.changeTrafficLight(id,"green"); // to remove virt vehicles
     }
   }
-  if(iDel===-1) console.log("road.removeTrafficLight: no id ",id," found!");
+  if(iDel===-1) console.log("road.removeTrafficLight: no id "+id," found!");
   else this.trafficLights.splice(iDel,1);
 }
 
@@ -4609,7 +4679,7 @@ road.prototype.removeTrafficLight= function(id) {
 road.prototype.removeObstacle= function(id) {
     // change value of trafficLight object
 
-  console.log("in road.removeObstacle: id=",id);
+  console.log("in road.removeObstacle: id="+id);
   var success=false;
   var iDel=-1;
   for(var i=0; (!success)&&(i<this.veh.length); i++){
@@ -4618,7 +4688,7 @@ road.prototype.removeObstacle= function(id) {
       iDel=i;
     }
   }
-  if(iDel===-1) console.log("road.removeObstacle: no id ",id," found!");
+  if(iDel===-1) console.log("road.removeObstacle: no id "+id," found!");
   else this.veh.splice(iDel,1);
 }
 
@@ -4652,7 +4722,7 @@ road.prototype.getTraj=function(veh){
 	  this.usedTraj_x=this.trajAlt[iTraj].x;
 	  this.usedTraj_y=this.trajAlt[iTraj].y;
 	  
-	  if(false){console.log("time=",time," iTraj=",iTraj);}
+	  if(false){console.log("time="+time," iTraj="+iTraj);}
 	}
   }
 
