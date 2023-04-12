@@ -245,7 +245,7 @@ function showLogicalCoords(xPixUser,yPixUser){
   var coordsStr_width=12*textsize;
   var coordsStr_height=1.2*textsize;
   var coordsStr_xlb=0.88*canvas.width-0.5*coordsStr_width;
-  var coordsStr_ylb=0.88*canvas.height;
+  var coordsStr_ylb=0.90*canvas.height;
 
   ctx.setTransform(1,0,0,1,0,0);
   ctx.font=textsize+'px Arial';

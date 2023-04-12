@@ -88,6 +88,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.inVehBuffer=0.9; // number of waiting vehicles; if>=1, updateBCup called
   this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 
+  // following three arrays set by this.setOfframpInfo(.)
   this.offrampIDs=[]; // which offramps are attached to this road?
   this.offrampLastExits=[]; // locations? (increasing u)
   this.offrampToRight=[]; // offramp attached to the right?
@@ -1248,6 +1249,8 @@ road.prototype.sortVehicles=function(){
 //#####################################################
 // get network info of offramps attached to this road (for routing)
 // see also updateModelsOfAllVehicles
+// !! no comparable onrampInfo.
+// Use this.setLCModelsInRange(.) for multi-lane onramps
 //#####################################################
 
 road.prototype.setOfframpInfo
@@ -1316,17 +1319,29 @@ road.prototype.setCFModelsInRange=function(umin,umax,
 // set vehicles in range to new lane change models
 // (useful for modeling local overtaking bans, 
 // local necessity/desire to drive right etc)
+
+// nextID is optional. If given, LC model changes only applied
+// to vehicles whose routes contain this link ID
 //#####################################################
 
 
 road.prototype.setLCModelsInRange=function(umin,umax,
-					   LCModelCar,LCModelTruck){
+					   LCModelCar,LCModelTruck,nextID){
     
-  //console.log("within road.setLCModelsInRange: LCModelTruck=",LCModelTruck);
+//  console.log("within road.setLCModelsInRange: nextID=",nextID," LCModelTruck=",LCModelTruck);
   for(var i=0; i<this.veh.length; i++){
+    var routeOK=true; // default
+    if(!(
+      (typeof nextID === 'undefined')
+	||(typeof this.veh[i].route === 'undefined'))){
+      routeOK=this.veh[i].route.includes(nextID);
+    }
     var u=this.veh[i].u;
-    if((u>umin)&&(u<umax)){
-      if(this.veh[i].type==="car"){this.veh[i].LCModel.copy(LCModelCar);}	    if(this.veh[i].type==="truck"){this.veh[i].LCModel.copy(LCModelTruck);}
+    if(routeOK&&(u>umin)&&(u<umax)){
+      if(this.veh[i].type==="car"){this.veh[i].LCModel.copy(LCModelCar);}
+      if(this.veh[i].type==="truck"){this.veh[i].LCModel.copy(LCModelTruck);}
+     // console.log("road"+this.roadID+".setLCModelsInRange:"
+//		  +" nextID=",nextID," LCModelCar=",LCModelCar);
     }
   }
 }
@@ -1838,9 +1853,20 @@ road.prototype.doChangesInDirection=function(toRight){
         var iLeadNew=(toRight) ?this.veh[i].iLeadRight :this.veh[i].iLeadLeft;
         var iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
 
-      // check if also the new leader/follower did not change recently
+	// check consequences of some forced changing and reorder if needed
+	if((typeof this.veh[iLead] === 'undefined')
+	   ||(typeof this.veh[iLag] === 'undefined')
+	   ||(typeof this.veh[iLeadNew] === 'undefined')
+	   ||(typeof this.veh[iLagNew] === 'undefined')){
+	  this.updateEnvironment();
+          iLead=this.veh[i].iLead;
+          iLag=this.veh[i].iLag; // actually not used
+          iLeadNew=(toRight) ?this.veh[i].iLeadRight :this.veh[i].iLeadLeft;
+          iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
+	  console.log("in road.changeLanes: something went wrong, needed to reorder");
+	}
 
-	//console.log("iLeadNew=",iLeadNew," dt_afterLC_iLeadNew=",this.veh[iLeadNew].dt_afterLC," dt_afterLC_iLagNew=",this.veh[iLag].dt_afterLC); 
+	// check if also the new leader/follower did not change recently
 
         if((this.veh[i].id!=1) // not an ego-vehicle
 	 &&(iLeadNew>=0)       // target lane allowed (otherwise iLeadNew=-10)
@@ -2824,7 +2850,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
           // transform state vars of transferred vehicle
 	  transferredVeh.u=uTarget+u-uSource;
 	  transferredVeh.lane=lane+offsetLane;
-	  //transferredVeh.v=transferredVeh.lane;
+	  transferredVeh.laneOld+=offsetLane; // needed for lat dyn (paths.js)
+	  transferredVeh.v=v+offsetLane;
 
 	  // following two settings to perform an immediate LC w/o past memory
           // if there is a single-lane target road
@@ -2835,6 +2862,26 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    transferredVeh.dt_afterLC=0; // otherwise, veh may change at once
 	    transferredVeh.laneOld=transferredVeh.lane;
 	  }
+
+	  // "heal" vehicles besides the new road caused by forcing
+	  // vehicle on this link to resolve gridlocks
+
+	  var vehicleBesidesRoad=false;
+	  if(transferredVeh.lane<0){
+	    vehicleBesidesRoad=true;
+	    transferredVeh.lane=0;
+	  }
+	  else if(transferredVeh.lane>=targetRoad.nLanes){
+	    vehicleBesidesRoad=true;
+	    transferredVeh.lane=targetRoad.nLanes-1;
+	  }
+	  if(vehicleBesidesRoad){
+	    transferredVeh.laneOld=transferredVeh.lane;
+	    transferredVeh.v=transferredVeh.lane; // needed for paths.js
+	  }
+	    
+	  
+	    
 	  if(this.connectLog){
 	  //if(true){
 	    console.log(
@@ -3110,22 +3157,37 @@ road.prototype.determineConflicts=function(vehConnect, uSource, uTarget,
 //######################################################################
 /*
 In both cases, the road change is from the road calling this function
-to the road in the argument list. Only the immediately neighboring 
-lanes of the two roads interact. The rest must be handled in the
-strategic/tactical lane-change behaviour of the drivers: 
-long models set to longModelTactical* and LC models to LCModelTactical*
-if the route of vehicles contains next off-ramp in distance < duTactcal ahead
+to the road in the argument list
 
-!!Note1: if ignoreRoute=false, a diverge can only happen for vehicles with 
-routes containing this offramp and not for other/undefined routes. The default is ignoreRoute=true. This is favourable for 
-interactive routing games ("routing by traffic lights"). Also in this case, 
-the probability for vehicles to diverge is greater if on the route because of
-the route-specific tactical LC behaviour 
-(at the moment, feature, not bug because of routing games/playing with TL)
+Technically, there is not much 
+difference between merge and diverge except for different flags,
+that the target of diverge begins at diverge
+that the source road ends at the end of merge 
+while the source road of the diverge/target of merge  generally continues. 
 
-Note2: If neither the changing vehicles have priority (prioOwn=false) 
+Only the immediately neighboring lanes of the two roads 
+interact at and very near to the merge/diverge zones:
+specifically, the arrays originVehicles (only veh with veh.divergeAhead=true)
+and targetVehicles interact
+
+The rest is handled in the
+strategic/tactical lane-change behaviour of the drivers set as
+part of updateModelsOfAllVehicles() called in each timestep:
+this sets 
+ * veh.divergeAhead if the route of vehicles contains next off-ramp 
+   in distance < duTactical
+ * changes veh.LCModel to appropriate mandatory one if veh.divergeAhead
+ * This is true for each lane => multi-lane diverges should be OK
+
+If ignoreRoute=false, a diverge can only happen for vehicles with 
+routes containing this offramp and not for other/undefined routes. 
+Defaul: true for merging, false for diverging.
+Set to true for 
+interactive routing games ("routing by traffic lights" to be implemented).
+
+If neither the changing vehicles have priority (prioOwn=false) 
 nor the through-lane vehicles (prioOther=false), 
-discretionary or forced merging takes place depending on bSafe*
+merging takes place depending on bSafe*
 
 @param otherRoad: the road to which to merge or diverge
 @param offset:  difference[m] in the arclength coordinate u 
@@ -3136,8 +3198,7 @@ discretionary or forced merging takes place depending on bSafe*
 @param isMerge: if true, merge; otherwise diverge. 
 @param toRight: direction of the merge/diverge.
 @param ignoreRoute: (optional) if true, diverges take place 
-                whenever MOBIL agrees 
-                (default: false for diverging, true for merging)
+                whenever MOBIL agrees (is always true for merge) 
 @param prioOther: (optional) if true, respect the priority of the 
                 target-lane (through-lane) vehicles (default: false)
 @param prioOwn: (optional) if true, trespect the priority of the 
@@ -3151,30 +3212,31 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute,
 				     prioOther, prioOwn){
 
-    var log=false;
-    //var log=(this.roadID==0);    
-    //var log=(this.roadID==0)&&isMerge;    
-    //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
+  var log=false;
+  //var log=(this.roadID==0);    
+  //var log=(this.roadID==0)&&isMerge;    
+  //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
 
+  // visibility extension for orig drivers looking towards target vehs
+  var padding=this.padding; 
 
-    var padding=this.padding; // visib. extension for orig drivers to target vehs
-    var paddingLTC=           // visib. extension for target drivers to orig vehs
-    (isMerge&&prioOwn) ? this.paddingLTC : 0;
+  // visibility extension for target drivers towards orig vehs for LTC
+  var paddingLTC=(isMerge&&prioOwn) ? this.paddingLTC : 0;
 
-    var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
-	? false : ignoreRoute; // default: routes  matter at diverges
-    if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
+  var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
+      ? false : ignoreRoute; // default: routes  matter at diverges
+  if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
 
-    var loc_prioOther=(typeof prioOther==='undefined')
-	? false : prioOther;
+  var loc_prioOther=(typeof prioOther==='undefined')
+      ? false : prioOther;
 
-    var loc_prioOwn=(typeof prioOwn==='undefined')
-	? false : prioOwn;
-    if(loc_prioOwn&&loc_prioOther){
+  var loc_prioOwn=(typeof prioOwn==='undefined')
+      ? false : prioOwn;
+  if(loc_prioOwn&&loc_prioOther){
 	console.log("road.mergeDiverge: Warning: prioOther and prioOwn"+
 		    " cannot be true simultaneously; setting prioOwn=false");
 	loc_prioOwn=false;
-    }
+  }
 
 
 
@@ -3182,22 +3244,21 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
     // (1) get neighbourhood
     // getTargetNeighbourhood also sets [this|otherRoad].iTargetFirst
 
-    var uNewBegin=uBegin+offset;
-    var uNewEnd=uEnd+offset;
-    var originLane=(toRight) ? this.nLanes-1 : 0;
-    var targetLane=(toRight) ? 0 : otherRoad.nLanes-1;
+  var uNewBegin=uBegin+offset;
+  var uNewEnd=uEnd+offset;
+  var originLane=(toRight) ? this.nLanes-1 : 0;
+  var targetLane=(toRight) ? 0 : otherRoad.nLanes-1;
 
-    var originVehicles=this.getTargetNeighbourhood(
+  var originVehicles=this.getTargetNeighbourhood(
 	uBegin-paddingLTC, uEnd, originLane); // padding only for LT coupling!
 
-    var targetVehicles=otherRoad.getTargetNeighbourhood(
+  var targetVehicles=otherRoad.getTargetNeighbourhood(
 	uNewBegin-padding, uNewEnd+padding, targetLane);
 
-    var iMerge=0; // candidate of the originVehicles neighbourhood
-    var uTarget;  // long. coordinate of this vehicle on the orig road
+  var iMerge=0; // candidate of the originVehicles neighbourhood
+  var uTarget;  // long. coordinate of this vehicle on the orig road
 
 
-  
     // debug: color-code interacting vehicles 
     // and their different roles (to be specified later in this method)
     // !! notice: all markings need to be reverted in each simulation step of 
@@ -3205,8 +3266,8 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
   if(this.markVehsMerge && isMerge){
 
-        // mark both potentially interacting vehicles with color 1
-
+    // mark both potentially interacting vehicles with color 1
+    
     for(var i=0; i<originVehicles.length; i++){
       originVehicles[i].colorStyle=1;
     }
@@ -3215,7 +3276,6 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
     }
   }
 
-  
   if(log){
 	console.log("\n\nin road.mergeDiverge: itime="+itime,
 		    " ID="+this.roadID,
@@ -3223,6 +3283,8 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 		    " originVehicles.length="+originVehicles.length);
   }
 
+
+  
   // (2) Both for merge and diverge: select changing vehicle (if any): 
   // only one at each calling; the first vehicle has priority!
 
@@ -3253,7 +3315,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
     if(log){console.log(" entering origVeh loop");}
 
-        // loop over originVehicles for merging veh candidates
+    // loop over originVehicles for merging veh candidates
 
     for(var i=0;(i<originVehicles.length)&&(!success);i++){
 
@@ -3268,10 +3330,11 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
       if(originVehicles[i].isRegularVeh()
 	 &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
 
-              //inChangeRegion can be false for LTC since then paddingLTC>0
-	      var inChangeRegion=(originVehicles[i].u>uBegin); 
+        //inChangeRegion can be false for LTC since then paddingLTC>0
+	
+	var inChangeRegion=(originVehicles[i].u>uBegin);
 
-	      uTarget=originVehicles[i].u+offset;
+	uTarget=originVehicles[i].u+offset;
 
               // inner loop over targetVehicles: search prospective 
               // new leader leaderNew and follower followerNew and get the gaps
@@ -3280,22 +3343,21 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
               //  none may be eligible
               // therefore check for jTarget==-1
 
-	      var jTarget=-1;;
-	      for(var j=0; j<targetVehicles.length; j++){
-		var du=targetVehicles[j].u-uTarget;
-		if( (du>0)&&(du<duLeader)){
+	var jTarget=-1;
+	for(var j=0; j<targetVehicles.length; j++){
+	  var du=targetVehicles[j].u-uTarget;
+	  if( (du>0)&&(du<duLeader)){
 		    duLeader=du; leaderNew=targetVehicles[j];
-		}
-		if( (du<0)&&(du>duFollower)){
+	  }
+	  if( (du<0)&&(du>duFollower)){
 		    jTarget=j; duFollower=du; followerNew=targetVehicles[j];
-		}
-		if(log){
+	  }
+	  if(log){
 		    console.log(" i="+i," j="+j," jTarget="+jTarget,
 				" du="+du," duLeader="+duLeader,
 				" duFollower="+duFollower);
-
-		}
-	      }
+	  }
+	}
 
 
               // get input variables for MOBIL
@@ -3308,45 +3370,45 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
               //   Lag new lag vehicle before LC (only relevant for accLag)
               //   LagNew=new lag vehicle after LC (for accLagNew)
 
-	      var sNew=duLeader-leaderNew.len;
-	      var sLagNew=-duFollower-originVehicles[i].len;
-	      var speedLeadNew=leaderNew.speed;
-	      var accLeadNew=leaderNew.acc; // leaders=exogen. to MOBIL
-	      var speedLagNew=followerNew.speed;
-	      var speed=originVehicles[i].speed;
+	var sNew=duLeader-leaderNew.len;
+	var sLagNew=-duFollower-originVehicles[i].len;
+	var speedLeadNew=leaderNew.speed;
+	var accLeadNew=leaderNew.acc; // leaders=exogen. to MOBIL
+	var speedLagNew=followerNew.speed;
+	var speed=originVehicles[i].speed;
 
-	      var LCModel=(toRight) ? this.LCModelMandatoryRight 
-		  : this.LCModelMandatoryLeft; 
+	var LCModel=(toRight) ? this.LCModelMandatoryRight
+	    : this.LCModelMandatoryLeft;
 
-	      var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
+	var vrel=originVehicles[i].speed/originVehicles[i].longModel.v0;
 
-	      var acc=originVehicles[i].acc;
-	      var accNew=originVehicles[i].longModel.calcAccDet( //MOBIL
-		  sNew,speed,speedLeadNew,accLeadNew);
-	      var accLag=followerNew.acc;
-	      var accLagNew =originVehicles[i].longModel.calcAccDet(
-		  sLagNew,speedLagNew,speed,accNew);
+	var acc=originVehicles[i].acc;
+	var accNew=originVehicles[i].longModel.calcAccDet( //MOBIL
+	  sNew,speed,speedLeadNew,accLeadNew);
+	var accLag=followerNew.acc;
+	var accLagNew =originVehicles[i].longModel.calcAccDet(
+	  sLagNew,speedLagNew,speed,accNew);
 
 
  
 
               // MOBIL decisions
 
-	      var prio_OK=(!loc_prioOther)||loc_prioOwn
-		  ||(!LCModel.respectPriority(accLag,accLagNew));
+	var prio_OK=(!loc_prioOther)||loc_prioOwn
+	    ||(!LCModel.respectPriority(accLag,accLagNew));
 
-	      MOBILOK=LCModel.realizeLaneChange(
+	MOBILOK=LCModel.realizeLaneChange(
 		  vrel,acc,accNew,accLagNew,toRight,false);
 
-	      success=prio_OK && inChangeRegion && MOBILOK 
+	success=prio_OK && inChangeRegion && MOBILOK
 		  && (originVehicles[i].isRegularVeh())
 		  && (sNew>0) && (sLagNew>0);
 	  
-	      if(log&&(this.roadID===10)){
+	if(log&&(this.roadID===10)){
 		  console.log("in road.mergeDiverge: roadID="+this.roadID
 			      +" LCModel.bSafeMax="+LCModel.bSafeMax);
-	      }
-	      if(success){iMerge=i;}
+	}
+	if(success){iMerge=i;}
 
               // test: should only list reg vehicles with mergeAhead=true; 
               // check its number if suspicious happens with this var !!
@@ -3365,7 +3427,6 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	}
 	
       } // !obstacle
-
     }// merging veh loop
   }// else branch (there are target vehicles)
 
@@ -3374,20 +3435,21 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
     // exerted onto target vehicles if merge and loc_prioOwn
 
 
-    if(isMerge && loc_prioOwn){
+  if(isMerge && loc_prioOwn){
 
-	if(this.markVehsMerge){
-	    for(var i=0; i<originVehicles.length; i++){
-	        originVehicles[i].colorStyle=2;
-	    }
-	}
+    if(this.markVehsMerge){
+      for(var i=0; i<originVehicles.length; i++){
+	originVehicles[i].colorStyle=2;
+      }
+    }
 	
-	// (3a) determine stop line such that there cannot be a grid lock for any
-	// merging vehicle, particularly the longest vehicle
+    // (3a) determine stop line such that there cannot be a grid lock for any
+    // merging vehicle, particularly the longest vehicle
+    
 
-	var vehLenMax=9;
-	var stopLinePosNew=uNewEnd-vehLenMax-2;
-	var bSafe=4;
+    var vehLenMax=9;
+    var stopLinePosNew=uNewEnd-vehLenMax-2;
+    var bSafe=4;
 
 	// (3b) all target vehs stop at stop line if at least one origin veh
 	// is follower and 
@@ -3396,79 +3458,64 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	// use it
 	// calcAccDet since within road.connect
 
-	for(var j=0; j<targetVehicles.length; j++){
-	    var sStop=stopLinePosNew-targetVehicles[j].u; // gap to stop for target veh
-	    var speedTarget=targetVehicles[j].speed;
-	    var accTargetStop=targetVehicles[j].longModel.calcAccDet(sStop,speedTarget,0,0);
-	    var allOrigVehsAreLeaders=true;
+    for(var j=0; j<targetVehicles.length; j++){
+      // gap to stop for target veh
+      var sStop=stopLinePosNew-targetVehicles[j].u; 
+      var speedTarget=targetVehicles[j].speed;
+      var accTargetStop
+	  =targetVehicles[j].longModel.calcAccDet(sStop,speedTarget,0,0);
+      var allOrigVehsAreLeaders=true;
 
 
-	    var iLast=-1;
-	    for(var i=originVehicles.length-1; (i>=0)&&(iLast==-1); i--){
+      var iLast=-1;
+      for(var i=originVehicles.length-1; (i>=0)&&(iLast==-1); i--){
 	        if(originVehicles[i].isRegularVeh()){iLast=i;}
-	    }
+      }
 
-	    if((iLast>-1)&& targetVehicles[j].isRegularVeh()){
-		var du=originVehicles[iLast].u+offset-targetVehicles[j].u;
-		var lastOrigIsLeader=(du>0);
-		if(lastOrigIsLeader){
-		    var s=du-originVehicles[iLast].len;
-		    var speedOrig=originVehicles[iLast].speed;
-		    var accLTC
-			=targetVehicles[j].longModel.calcAccDet(s,speedTarget,speedOrig,0); 
-		    var accTarget=Math.min(targetVehicles[j].acc,
-					   Math.max(accLTC, accTargetStop));
-		    if(accTarget>-bSafe){
-			targetVehicles[j].acc=accTarget;
-			if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
-		    }
-		}
-		else{ // if last orig not leading, stop always if it can be done safely
-		    if(accTargetStop>-bSafe){
-			var accTarget=Math.min(targetVehicles[j].acc,accTargetStop);
-			targetVehicles[j].acc=accTarget;
-			if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
-		    }
-		}
-		//if(this.roadID==7){
-		if(false){
-		    console.log("target id="+targetVehicles[j].id,
-				" iLast id="+originVehicles[iLast].id,
-				" lastOrigIsLeader="+lastOrigIsLeader,
-				" sStop="+parseFloat(sStop).toFixed(1),
-				" accTargetStop="+parseFloat(accTargetStop).toFixed(1),
-				" acc="+parseFloat(targetVehicles[j].acc).toFixed(1)
-			       );
-		}
-	    }
-
+      if((iLast>-1)&& targetVehicles[j].isRegularVeh()){
+	var du=originVehicles[iLast].u+offset-targetVehicles[j].u;
+	var lastOrigIsLeader=(du>0);
+	if(lastOrigIsLeader){
+	  var s=du-originVehicles[iLast].len;
+	  var speedOrig=originVehicles[iLast].speed;
+	  var accLTC
+	      =targetVehicles[j].longModel.calcAccDet(s,speedTarget,
+						      speedOrig,0);
+	  var accTarget=Math.min(targetVehicles[j].acc,
+				 Math.max(accLTC, accTargetStop));
+	  if(accTarget>-bSafe){
+	    targetVehicles[j].acc=accTarget;
+	    if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
+	  }
 	}
-    }
 
-    /*
-		  if((itime*dt>12)&&(this.roadID==7)&&(jTarget>-1)){
-		      console.log("in road.mergeDiverge, "+
-				  " LT coupling to acc other road"+
-				  " id="+this.roadID,
-				  " t="+parseFloat(itime*dt).toFixed(2),
-				  " iOrigin="+i,
-				  " jTarget="+jTarget,
-				  " target follower: ID="+followerNew.id,
-				  " u befure update="+
-				  parseFloat(followerNew.u).toFixed(2),
-				  " speed before="+
-				  parseFloat(followerNew.speed).toFixed(2),
-				  " acc="+
-				  parseFloat(accLagYield).toFixed(2)
-		  );
-		  }
-	      }
-*/
-    
+	// if last orig not leading, stop always if it can be done safely
+	
+	else{ 
+	  if(accTargetStop>-bSafe){
+	    var accTarget=Math.min(targetVehicles[j].acc,accTargetStop);
+	    targetVehicles[j].acc=accTarget;
+	    if(this.markVehsMerge){targetVehicles[j].colorStyle=3;}
+	  }
+	}
+		//if(this.roadID==7){
+	if(false){
+	  console.log("target id="+targetVehicles[j].id,
+		      " iLast id="+originVehicles[iLast].id,
+		      " lastOrigIsLeader="+lastOrigIsLeader,
+		      " sStop="+parseFloat(sStop).toFixed(1),
+		      " accTargetStop="+parseFloat(accTargetStop).toFixed(1),
+		      " acc="+parseFloat(targetVehicles[j].acc).toFixed(1)
+		     );
+	}
+      }
+
+    }
+  }
 
     //(4) if success, do the actual merging!
 
-    if(success){// do the actual merging 
+  if(success){// do the actual merging 
 
         //originVehicles[iMerge]=veh[iMerge+this.iTargetFirst] 
 
@@ -3504,7 +3551,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
 	otherRoad.updateEnvironment(); //  //includes otherRoad.sortVehicles()
 
-    }// end do the actual merging
+  }// end do the actual merging
 
 }// end mergeDiverge
 
@@ -3726,6 +3773,9 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
   * Mandatory models apply to all vehicles in a certain range, tactical
     models only for the vehicles with corresponding routes in a certain range
 
+  * No tactical lane changes for onramps! use this.setLCModelsInRange(.)
+    if there is need (only for multilane-onramps)
+
 //####################################################
 */
 
@@ -3801,7 +3851,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
   // check if on this road the driver should possibly prepare for diverging
 
   if(this.duTactical>0) for(var i=0; i<this.veh.length; i++){
-  if(this.veh[i].isRegularVeh()){
+    if(this.veh[i].isRegularVeh()){
 
       // get next offramp, whether on route or not (index=-1 if nothing)
 
@@ -3816,56 +3866,58 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
 
       if(nextOfframpNearby){
-          if(false){console.log("in road.updateModels... iveh="+i
-		      +" iNextOff="+iNextOff
-		      +" u="+this.veh[i].u
-		      +" uLastExit="+uLastExit);
-		   }
+        if(false){console.log("in road"+this.roadID+".updateModels: veh="
+			     +this.veh[i].id
+			     +" iNextOff="+iNextOff
+		             +" u="+this.veh[i].u
+		             +" uLastExit="+uLastExit);
+		}
 
         // test if the vehicle's route contains this off-ramp
 	// !! Only here route is active
 
-	  var offID=this.offrampIDs[iNextOff];
-	  var route=this.veh[i].route;
-	  var tacticalLC=false;
-	  for(var ir=0; ir<route.length; ir++){
-	      if(offID===route[ir]){tacticalLC=true;}
-	  }
+	var offID=this.offrampIDs[iNextOff];
+	var route=this.veh[i].route;
+	var tacticalLC=false;
+	for(var ir=0; ir<route.length; ir++){
+	  if(offID===route[ir]){tacticalLC=true;}
+	}
 
           // if so, change lanes in the direction of the diverge 
           // and reduce speed if coming very near to "last exit"
  
-	  if(tacticalLC){
-	    var thisVeh=this.veh[i];
-	    var toRight=this.offrampToRight[iNextOff];
-	    var duRemaining=uLastExit-thisVeh.u;
-	    thisVeh.divergeAhead=true; //!!
-	    thisVeh.longModel.alpha_v0
+	if(tacticalLC){
+	  var thisVeh=this.veh[i];
+	  var toRight=this.offrampToRight[iNextOff];
+	  var duRemaining=uLastExit-thisVeh.u;
+	  thisVeh.divergeAhead=true; //!!
+	  thisVeh.longModel.alpha_v0
 		  =Math.max(0.1, 0.5*duRemaining/this.duTactical);
 	    
-	    thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
+	  thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
 	          : this.LCModelTacticalLeft; //!!!LCModelTactical new cstr
 
-	    if(false){
-		  console.log(
-		  "road.updateModelsOfAllVehicles: apply tacticalLC to Veh "+i
-	              +"!"
-		      +" id="+thisVeh.id
-		      + " route="+thisVeh.route
-		      +" offID="+offID
-		      +" u="+parseFloat(thisVeh.u).toFixed(1)
-		      +" uLastExit="+parseFloat(uLastExit).toFixed(1)
-		      +" bBiasRight="+thisVeh.LCModel.bBiasRight);
-	    }
+	  if(false){
+	    console.log(
+	      "road.updateModelsOfAllVehicles: apply tacticalLC to Veh"
+		+" id="+thisVeh.id
+		+" route="+thisVeh.route
+		+" offID="+offID
+		+" toRight="+toRight
+		+" u="+parseFloat(thisVeh.u).toFixed(1)
+		+" uLastExit="+parseFloat(uLastExit).toFixed(1)
+		+" bBiasRight="+thisVeh.LCModel.bBiasRight
+	    );
 	  }
+	}
 
       } // nextOfframpNearby
 
       else{ // also for missed diverges
-	  this.veh[i].divergeAhead=false;
+	this.veh[i].divergeAhead=false;
       }
-
-  }} // tactical accel and LC for diverges
+    }
+  } // tactical accel and LC for diverges
 
 }//updateModelsOfAllVehicles
 
@@ -4383,7 +4435,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 
     //if(this.drawVehIDs&&(this.veh[i].isRegularVeh())){
     if(this.drawVehIDs){
-	var textsize=0.018*Math.min(canvas.width,canvas.height);
+	var textsize=0.014*Math.min(canvas.width,canvas.height);
         var lPix=2.8*textsize;
         var hPix=1.1*textsize;
         var xOffset=0.7*lPix;

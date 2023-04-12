@@ -24,6 +24,7 @@ function debugVeh(id,network){
 		    "speed="+veh.speed.toFixed(1),
 		    "acc="+veh.acc.toFixed(1),
 		    "bBiasRight="+veh.LCModel.bBiasRight,
+		    "dt_afterLC="+veh.dt_afterLC.toFixed(1),
 		     // " veh="+veh,
 		     "");
 	}
