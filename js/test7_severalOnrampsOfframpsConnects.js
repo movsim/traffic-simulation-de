@@ -306,7 +306,7 @@ for(var ir=0; ir<nLanes.length; ir++){
 var route1=[0,1,2,3,4,5,6,7];  // mainroad, diverge down at the end
 var route2=[0,1,2,3,4,5,6,8];  // mainroad, diverge up at the end
 var routes=[route1,route2];
-var routesFrac=[0.1,0.5];
+var routesFrac=[0.5,0.5];
 
 
 // roadIDs drawn in updateSim in separate loop because Xing roads
@@ -466,21 +466,8 @@ function updateSim(){
     trafficObjs.calcDepotPositions(canvas);
   }
  
-  // (1a) Test code
+  // updateSim: Test code at the end, point (5)
 
-  //if(time<38.5){
-  if(false){
-    for(var ir=0; ir<network.length; ir++){
-      for(var i=0; i<network[ir].veh.length; i++){
-        if (network[ir].veh[i].id==219){
-	  var testveh=network[ir].veh[i];
-	  console.log("time=",time," ir=",ir," veh id=",testveh.id,
-		      " bBiasRight=",testveh.LCModel.bBiasRight,
-		      "");
-	}
-      }
-    }
-  }
 
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
@@ -533,7 +520,7 @@ function updateSim(){
   }
   var route=routes[routeIndex];
   network[0].updateBCup(qIn,dt,route); // qIn=qTot, route is optional arg
-  console.log("route=",route);
+
 
   
   // connecting links ends
@@ -570,14 +557,55 @@ function updateSim(){
   }
 
   
-  // updateSim (5): debug output
+  // updateSim (5): test code/debug output
 
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
-  if(true){
-    debugVeh(459,network);
+  //if(time<38.5){
+  if(false){
+    debugVeh(308,network);
   }
   
+  // dropping of traffic lights in onramp.js
+
+  // drop speed limits here
+  
+  if(true){
+
+    // select two speedlimits from the trafficObjects
+    
+    var speedL1;
+    var speedL2;
+    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
+      if(trafficObjs.trafficObj[iobj].id==150){// first speed limit
+	speedL1=trafficObjs.trafficObj[iobj];
+      }
+      if(trafficObjs.trafficObj[iobj].id==151){// second speed limit
+	speedL2=trafficObjs.trafficObj[iobj];
+      }
+    }
+
+    // drop speed limit
+    // values and graphics controlled by speedlBoxAttr in canvas_gui.js 
+    // speedlBoxAttr.limits=[10,20,30,40,50,60,80,100,120,1000]
+    
+    if(itime==1){
+      var udrop1=0.50*network[3].roadLen;
+      var udrop2=0.80*network[3].roadLen;
+      trafficObjs.setSpeedlimit(speedL1,10); // km/h, rounded to i*10 km/h
+      trafficObjs.setSpeedlimit(speedL2,80); // km/h, rounded to i*10 km/h
+
+      trafficObjs.dropObject(speedL1,network,
+			     network[3].traj[0](udrop1),
+			     network[3].traj[1](udrop1),
+			     20,scale);
+      trafficObjs.dropObject(speedL2,network,
+			     network[3].traj[0](udrop2),
+			     network[3].traj[1](udrop2),
+			     20,scale);
+    }
+  }
+
 
 
 }//updateSim

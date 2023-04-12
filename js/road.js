@@ -2300,32 +2300,65 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	// i.e., without an
 	// additional virtual standing obstacle on the closing lane)
 
-	if(!laneContinues){//!! need forbidding changing back to the
-	  // closing lane?
+	if(!laneContinues){
 
-	  //!!! revert wrong LC at the beginning (virtual vehs not visible
+	  var revertDecisions=false;
+
+	  
+	  // (a) !! revert wrong LC at the beginning
+	  // (virtual vehs not visible
 	  // during MOBIL round) does not work completely; prevents wrong
 	  // changes but makes traffic somewhat less efficient
 	  // (also not with else branch down)
-
 	  
 	  if(vehConnect.dt_afterLC<=0.5*dt){
-	    console.log("reverted LC of veh "+vehConnect.id);
-	    vehConnect.lane=Math.round(vehConnect.v);
-	    vehConnect.v=vehConnect.lane;
-	    lane=vehConnect.lane;
-	    v=vehConnect.v;
-	    vehConnect.dt_afterLC=0;
-	    laneContinues=((lane+offsetLane>=0)
-			   &&(lane+offsetLane<targetRoad.nLanes));
+	    var laneOld=Math.round(vehConnect.v);
+	    var laneContinuesOld=((laneOld+offsetLane>=0)
+			          &&(laneOld+offsetLane<targetRoad.nLanes));
+	    if(laneContinuesOld){
+	      vehConnect.lane=laneOld;
+	      vehConnect.v=vehConnect.lane;
+	      lane=vehConnect.lane;
+	      v=vehConnect.v;
+	      vehConnect.dt_afterLC=0;
+	      laneContinues=true;
+	      revertDecisions=true;
+	      console.log("reverted LC of veh",vehConnect.id,"to lane",lane);
+	    }
 	  }
-          
-	  var toRight=(lane+offsetLane<0);
-	  var bBiasRight=((toRight) ? 1 : -1)*10;
-	  var accOld=vehConnect.acc;
-	  vehConnect.LCModel.bBiasRight=bBiasRight;     // !! influence
-	  vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
-	  if(this.connectLog){
+
+	  // !!! resolve gridlock by force-hack
+	  // if vehicle is gridlocked for a sufficient time
+	  // vehicle "jumps" to the next link over the blocking vehicles
+
+	  var time_maxGridlock=0.8; //!!
+	  var speed_gridlock=0.2; //!!
+	  if(vehConnect.speed<speed_gridlock){
+	    vehConnect.dt_gridlock+=dt;
+
+	    if(vehConnect.dt_gridlock>time_maxGridlock){
+	      console.log("==== veh",vehConnect.id,
+			  "moved by force to new link",targetRoad.roadID);
+	      vehConnect.u=uSource; // move to connect point => does action A5
+	      vehConnect.dt_gridlock=0;
+	      laneContinues=true;
+	      revertDecisions=true;
+	    }
+	  }
+	  else{
+	    vehConnect.dt_gridlock=0;
+	  }
+
+	  // (c) do the regular action
+	  // if revertDecisions, directly go to the if(laneContinues) branch
+	  
+	  if(!revertDecisions){ 
+	    var toRight=(lane+offsetLane<0);
+	    var bBiasRight=((toRight) ? 1 : -1)*10;
+	    var accOld=vehConnect.acc;
+	    vehConnect.LCModel.bBiasRight=bBiasRight;     // !! influence
+	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
+	    if(this.connectLog){
 	      console.log(
 	      "  Action A1:",
 	      " setting LC bias of "+bBiasRight, " to veh "+id,
@@ -2336,6 +2369,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      "\n  test: vehConnect.longModel.calcAccDet(sStop,speed,0,0)="+
 		vehConnect.longModel.calcAccDet(sStop,speed,0,0),
 		"");
+	    }
 	  }
 	}
       
@@ -2840,7 +2874,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		      "");
 	}
 
-	// !!! remove the virtual vehicles (unshift=adding, shift=removing)
+	// !! remove the virtual vehicles (unshift=adding, shift=removing)
 	// (are always the first since at u=this.roadLen)
 	
 	if(createVirtStandingVehs&&(nVirtStandingVehs>0)){
@@ -4416,8 +4450,9 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
   // implement (all speedlimits should be set to 1000 prior to this action)
 
-  var duAntic=50; // anticipation distance for  obeying the speed limit
+  var duAntic=20; // !! anticipation distance for  obeying the speed limit
   var success=false;
+  var bBrake=3;
   for(var i=0; i<trafficObjects.trafficObj.length; i++){
     var obj=trafficObjects.trafficObj[i];
     if((obj.type==='speedLimit')&&(obj.isActive) 
@@ -4430,6 +4465,24 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 		    formd(obj.u));
       }
 
+
+      for(var iveh=0; iveh<this.veh.length; iveh++){
+	var targetVeh=this.veh[iveh];
+	var sLimit=obj.u-targetVeh.u;
+	var speed=targetVeh.speed;
+	var neededDecel=(sLimit<0)
+	    ? 0 : 0.5*(speed+speedL)*(speed-speedL)/sLimit;
+	if((sLimit<duAntic)||(neededDecel>bBrake)){
+	//if(sLimit<duAntic){
+	  if(targetVeh.isRegularVeh()){
+	    targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
+	      ? Math.min(speedL,speedL_truck) : speedL;
+	  }
+	}
+      }
+
+      
+      /*
       var iveh=0;
       while((iveh<this.veh.length)&&(this.veh[iveh].u>obj.u-duAntic)){
 	var targetVeh=this.veh[iveh];
@@ -4447,6 +4500,9 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
 	iveh++;
       }
+      */
+
+      
       //if(iveh==this.veh.length){return;} // otherwise risk of range excess
 
     }

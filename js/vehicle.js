@@ -37,9 +37,10 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.fracLaneOptical=1; // slow optical LC over fracLaneOptical lanes
   this.colorStyle=0;  // {hue as f(speed), thick-red, thick-green}
 
-  this.dt_LC=4;
-  this.dt_afterLC=10;
-  this.dt_lastPassiveLC=10;
+  this.dt_LC=4;       // fixed vehicle property
+  this.dt_afterLC=10; // dynamical variable incremented and reset at LC
+  this.dt_lastPassiveLC=10; // dyn var
+  this.dt_gridlock=0; // only used/incremented in connect if vehicle is stuck 
   this.acc=0;
 
   // only for golfCourse simulation (cannot incept new attribute from outside)

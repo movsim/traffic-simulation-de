@@ -518,24 +518,11 @@ function updateSim(){
 		  " window.innerHeight=",window.innerHeight);
     }
   }
- 
-  // (1a) Test code
 
-  //if(time<38.5){
-  if(false){
-    for(var ir=0; ir<network.length; ir++){
-      for(var i=0; i<network[ir].veh.length; i++){
-        if (network[ir].veh[i].id==219){
-	  var testveh=network[ir].veh[i];
-	  console.log("time=",time," ir=",ir," veh id=",testveh.id,
-		      " bBiasRight=",testveh.LCModel.bBiasRight,
-		      "");
-	}
-      }
-    }
-  }
-	
+  // updAteSim: Test code at last point (5)
 
+
+  
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
   // longModelCar etc defined in control_gui.js
@@ -625,18 +612,17 @@ function updateSim(){
   }
 
 
-  // updateSim (5): debug output
+  // updateSim (5): debug/test code
 
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
+  //if(time<38.5){
   if(false){
     debugVeh(211,network);
     debugVeh(212,network);
   }
   
 
-
-    //if((itime>=125)&&(itime<=128)){
   if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
@@ -659,7 +645,7 @@ function updateSim(){
       mainroad.writeVehiclesSimple();
       ramp.writeVehiclesSimple();
     }
-
+  
     if(true){
       onlyTL=true;
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
@@ -669,10 +655,47 @@ function updateSim(){
       mainroad.writeDepotVehObjects();
       ramp.writeDepotVehObjects();
     }
-    //if(time>1.2){clearInterval(myRun);}
   }
+  
+  // 
 
+  if(false){//!!
 
+    //!! in different road operations (setSpeedlimit) order of
+    // trafficObjs.trafficObj array changed in increasing u
+    // can only select unique trafficObj at initialization or, as here,
+    // when filtering for attributes
+
+    // dropping of speed limits in test7*.js
+
+    var TL;
+    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
+      if(trafficObjs.trafficObj[iobj].id==100){// first TL
+	TL=trafficObjs.trafficObj[iobj];
+      }
+    }
+    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
+
+    // drop red traffic light
+
+    if(itime==1){
+      var udrop=0.25*network[0].roadLen;
+      trafficObjs.setTrafficLight(TL,"red");
+      trafficObjs.dropObject(TL,network,
+			     network[0].traj[0](udrop),
+			     network[0].traj[1](udrop),
+			     20,scale);
+    }
+
+    // switch TL to greem
+
+    if(itime==100){
+      console.log("set first TL to green");
+      trafficObjs.setTrafficLight(TL,"green");
+    }
+  }
+    
+   //if(time>1.2){clearInterval(myRun);}
 
 
 }//updateSim

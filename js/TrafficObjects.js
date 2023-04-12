@@ -170,7 +170,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     }
 
     //#################################################################
-    // xxx central object this.trafficObj[i]
+    // central object this.trafficObj[i]
     // object on road: isActive=true, u>=0,inDepot=isDragged=false 
     // object picked: isPicked=true, inDepot=false, isDragged and isActive
     //         can have both values 
@@ -840,6 +840,37 @@ should also be called if clicked but not dragged
   return success;
 
 }
+
+//#############################################################
+// programmatic setting of a speed limit
+//#############################################################
+
+/** 
+@param obj:    a TrafficObjects object of type "speedLimit"
+@param value:  the new value in km/h; 
+               will be rounded to multiples of 10 km/h or "free" if >=125
+@return:       changed state, if active, also changed road influence
+*/
+
+TrafficObjects.prototype.setSpeedlimit=function(obj, value){
+
+  if(!(obj.type==='speedLimit')){
+    console.log("TrafficObjects.setSpeedlimit: error:",
+		" object not of type speedLimit");
+    return;
+  }
+  
+  // translate value to image index
+
+  var index=Math.round(0.1*value);
+  if(value<5){index=1;}   // no 5 km/h image at present
+  if(value>=125){index=0;} // free sign/no speed limit
+  var usedLimit=(index>0) ? 10*index : 130; // "free"=130 km/h
+
+  obj.value=usedLimit;
+  obj.image=this.imgSpeedlRepo[index];
+}
+  
 
 /*####################################################################
 bring back all dragged trafficObj objects back to the depot 
