@@ -1761,20 +1761,14 @@ road.prototype.updateSpeedPositions=function(){
 //######################################################################
 
 road.prototype.changeLanes=function(){
-    if(false){ //!!
-	this.writeVehicles();
-	var testLongTruck=new ACC(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
-	var testLongTruckIDM=new IDM(IDMtruck_v0,IDMtruck_T,IDM_s0,IDMtruck_a,IDM_b);
-	s= 85.7;  speed= 18.7;  speedLead= 15.7;  accLead= 0.7;
-	var testACC=testLongTruck.calcAccDet(s,speed,speedLead,accLead);
-	var testIDM=testLongTruckIDM.calcAccDet(s,speed,speedLead);
-	console.log("testLongTruck=",testLongTruck," testACC=",testACC);
-	console.log("testLongTruckIDM=",testLongTruck," testIDM=",testIDM);
 
-    }
+  // (2023-04-14) the transitions between the roads
+  // (BC, mergeDiverge, connect may have left some disorder  
+  //this.updateEnvironment();//!!!!
+  
 
-    this.doChangesInDirection(1); // changes to right 
-    this.doChangesInDirection(0); // changes to left 
+  this.doChangesInDirection(1); // changes to right 
+  this.doChangesInDirection(0); // changes to left 
 }
 
 
@@ -1853,7 +1847,11 @@ road.prototype.doChangesInDirection=function(toRight){
         var iLeadNew=(toRight) ?this.veh[i].iLeadRight :this.veh[i].iLeadLeft;
         var iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
 
-	// check consequences of some forced changing and reorder if needed
+	// Somehow the vehicle order was not always clearly defined
+	// (MT 2023-04) Cause found! Forgot this.updateEnvironment()
+	// in mergeDiverge. Should now never happen.
+	// left checking code just in case...
+	
 	if((typeof this.veh[iLead] === 'undefined')
 	   ||(typeof this.veh[iLag] === 'undefined')
 	   ||(typeof this.veh[iLeadNew] === 'undefined')
@@ -1863,7 +1861,7 @@ road.prototype.doChangesInDirection=function(toRight){
           iLag=this.veh[i].iLag; // actually not used
           iLeadNew=(toRight) ?this.veh[i].iLeadRight :this.veh[i].iLeadLeft;
           iLagNew=(toRight) ? this.veh[i].iLagRight : this.veh[i].iLagLeft;
-	  console.log("in road.changeLanes: something went wrong, needed to reorder");
+	  console.log("in road.changeLanes: something went wrong, needed to reorder calling this.updateEnvironment(); check if forgot somewhere...");
 	}
 
 	// check if also the new leader/follower did not change recently
@@ -2366,6 +2364,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      console.log("==== veh",vehConnect.id,
 			  "moved by force to new link",targetRoad.roadID);
 	      vehConnect.u=uSource; // move to connect point => does action A5
+	      this.updateEnvironment(); 
 	      vehConnect.dt_gridlock=0;
 	      laneContinues=true;
 	      revertDecisions=true;
@@ -2938,7 +2937,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
     
   } // loop over all road vehicles
-  
+
 } // end connect; end road.prototype.connect
 
 
@@ -3544,15 +3543,16 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
 //####################################################################
-	this.veh.splice(iOrig,1);// removes 1 chg veh from i=iOrig.
-        otherRoad.veh.push(changingVeh); // appends changingVeh at last pos;
+    this.veh.splice(iOrig,1);// removes 1 chg veh from i=iOrig.
+    otherRoad.veh.push(changingVeh); // appends changingVeh at last pos;
 //####################################################################
 
 
-	otherRoad.updateEnvironment(); //  //includes otherRoad.sortVehicles()
+    this.updateEnvironment();     // MT 2023-04: Forgot this;
+                                  // => subtle errors later on in lane changes
+    otherRoad.updateEnvironment();// includes otherRoad.sortVehicles()
 
   }// end do the actual merging
-
 }// end mergeDiverge
 
 
@@ -3723,7 +3723,6 @@ road.prototype.updateBCup=function(Qin,dt,route){
 		   
     }
   }
-
 }
 
 //######################################################################
