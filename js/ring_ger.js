@@ -285,41 +285,7 @@ function updateSim(){
   itime++;
   isSmartphone=mqSmartphone();
 
-
-  // (1a) Test code introduce red TL
-
-  if(false){//!!
-    //!! in different road operations (setSpeedlimit) order of
-    // trafficObjs.trafficObj array changed in increasing u
-    // can only select unique trafficObj at initialization or, as here,
-    // when filtering for attributes
-
-    var TL;
-    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
-      if(trafficObjs.trafficObj[iobj].id==100){// first TL
-	TL=trafficObjs.trafficObj[iobj];
-      }
-    }
-    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
-
-    // drop red traffic light
-
-    if(itime==1){
-      var udrop=0.25*network[0].roadLen;
-      trafficObjs.setTrafficLight(TL,"red");
-      trafficObjs.dropObject(TL,network,
-			     network[0].traj[0](udrop),
-			     network[0].traj[1](udrop),
-			     20,scale);
-    }
-
-    // switch TL to greem
-
-    if(itime==100){
-      console.log("set first TL to green");
-      trafficObjs.setTrafficLight(TL,"green");
-    }
-  }
+  // test code at point (5)
 
   
   // (2) transfer effects from slider interaction and mandatory regions
@@ -360,7 +326,7 @@ function updateSim(){
 
 
   //##############################################################
-  // debug output
+  // (5) debug output
   //##############################################################
 
   if(false){
@@ -374,6 +340,42 @@ function updateSim(){
     mainroad.writeTrucksLC();
     //mainroad.writeVehicleLCModels();
 
+  }
+
+  // 
+
+  if(false){//!!
+
+    //!! in different road operations (setSpeedlimit) order of
+    // trafficObjs.trafficObj array changed in increasing u
+    // can only select unique trafficObj at initialization or, as here,
+    // when filtering for attributes
+
+    var TL;
+    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
+      if(trafficObjs.trafficObj[iobj].id==100){// first TL
+	TL=trafficObjs.trafficObj[iobj];
+      }
+    }
+    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
+
+    // drop red traffic light (dropObject includes activate)
+
+    if(itime==1){
+      var udrop=0.25*network[0].roadLen;
+      trafficObjs.setTrafficLight(TL,"red");
+      trafficObjs.dropObject(TL,network,
+			     network[0].traj[0](udrop),
+			     network[0].traj[1](udrop),
+			     20,scale);
+    }
+
+    // switch TL to greem
+
+    if(itime==100){
+      console.log("set first TL to green");
+      trafficObjs.setTrafficLight(TL,"green");
+    }
   }
 
 

@@ -184,7 +184,9 @@ CrashInfo.prototype.checkForCrashes=function(network){
 		){
 		  this.crashParner1_ID=veh1.id;
 		  this.crashParner2_ID=veh2.id;
-		  alert("crash of vehs "+veh1.id+" and "+veh2.id);
+		  alert("crash of veh "+veh1.id+" on road"+road1.roadID
+			+", u="+veh1.u.toFixed(2)+"\n with "+veh2.id
+			+" on road"+road2.roadID+", u="+veh2.u.toFixed(2));
 		}
 	      }
 	    }

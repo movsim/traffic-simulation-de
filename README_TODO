@@ -1,4 +1,7 @@
 (2023-04)
+add some example implementations to REAME.md, e.g., how to put a new vehicle/obstacle on a road (github Issue #22)
+
+(2023-04)
 add the new info/implementations to README.md:
 "Variable driving characteristics are now implemented. At construction time of the vehicles, a random "agility variable" is set influencing desire speed and desired acceleration in a persistent way throughout all situations and driving conditions or user-controlled global behaviour changes. All stochasticity (whether persistent to the driver or the random acceleration part) are removed for all purposes except longitudinal acceleration (lane changing, merging, crossing etc)"
 

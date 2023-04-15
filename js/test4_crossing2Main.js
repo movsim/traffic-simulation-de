@@ -70,7 +70,6 @@ var aspectRatio=canvas.width/canvas.height;
 
 var hasChanged=true;              // window dimensions have changed
 
-// (hasChangedPhys=true only legacy for main scenarios)
 
 
 function updateDimensions(){ // if viewport->canvas or sizePhys changed

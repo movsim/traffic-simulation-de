@@ -145,9 +145,7 @@ var scale=refSizePix/refSizePhys;
 
 
 var hasChanged=true; // window or physical dimensions have changed
-var hasChangedPhys=true; // physical road dimensions have changed 
-                          // in last updateDimensions
-                          // (only true when switching from/to mobile version)
+
 
 //<NETWORK>
 //##################################################################
@@ -196,7 +194,6 @@ trajNet[0]=traj;
 
 // define/redefine geometry, trajectories
 
-hasChangedPhys=true;
 updateDimensions();
 
 function updateDimensions(){ // if viewport or sizePhys changed
@@ -209,9 +206,8 @@ function updateDimensions(){ // if viewport or sizePhys changed
   center_yPhys=center_yRel*refSizePhys;
 
   // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
-  // if hasChangedPhys=true
 
-  if(hasChangedPhys){
+  if(true){  // formerly hasChangedPhys
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys+hideFirst_m;
@@ -233,8 +229,7 @@ function updateDimensions(){ // if viewport or sizePhys changed
   
   if(true){
     console.log("updateDimensions: mainroadLen=",mainroadLen,
-		" isSmartphone=",isSmartphone, 
-		" hasChangedPhys=",hasChangedPhys);
+		" isSmartphone=",isSmartphone);
   }
 }
 
@@ -437,7 +432,6 @@ function updateSim(){
 
     if(isSmartphone!=mqSmartphone()){
       isSmartphone=mqSmartphone();
-      hasChangedPhys=true;
     }
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
@@ -711,7 +705,6 @@ function drawSim() {
   // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
-  hasChangedPhys=false; 
 
   // revert to neutral transformation at the end!
 

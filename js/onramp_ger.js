@@ -28,19 +28,20 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawRoadIDs=false; // override control_gui.js; 
+drawRoadIDs=true; // override control_gui.js; 
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
 var debug=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
-                               // use it in updateSim (4)
+                               // use it in updateSim (5)
 
 
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
+QnoiseAccel=0.05;         //[m^2/s^3] override default setting at models.js
 var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
@@ -50,7 +51,7 @@ var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-qIn=4500./3600; 
+qIn=4600./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
@@ -74,6 +75,12 @@ var nLanes_rmp=1;
  (2) refSizePhys smaller  => all phys roadlengths smaller
   => vehicles and road widths appear bigger for a given screen size 
   => chose smaller for mobile, 
+
+  NOTICE: Unless refSizePhys is constant during sim,  
+  updateDimensions needs to re-define  
+  the complete infrastructure geometry at every change
+
+
 
   Example: refSizePhys propto sqrt(refSizePix) => roads get more compact 
   and vehicles get smaller, both on a sqrt basis
@@ -130,9 +137,6 @@ var scale=refSizePix/refSizePhys;
 
 
 var hasChanged=true; // window or physical dimensions have changed
-var hasChangedPhys=true; // physical road dimensions have changed 
-                          // in last updateDimensions
-                          // (only true when switching from/to mobile version)
 
 //<NETWORK>
 //##################################################################
@@ -177,33 +181,10 @@ function updateDimensions(){ // if viewport or sizePhys changed
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
-  // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
-  // if hasChangedPhys=true
-
-  if(hasChangedPhys){
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; 
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; 
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
-
-  
-    // update positions of fixed obstacles to new road lengths/geometry
-    // (e.g. onramp: ramp via the ref virtualStandingVeh)
-    // see "Specification of logical road network" below
-
-    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen;
-
-  }
-  
+ 
   if(true){
     console.log("updateDimensions: mainroadLen=",mainroadLen,
-		" isSmartphone=",isSmartphone, 
-		" hasChangedPhys=",hasChangedPhys);
+		" isSmartphone=",isSmartphone);
   }
 }
 
@@ -348,8 +329,12 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 network[0]=mainroad;
 network[1]=ramp;
 
+
+// roadIDs drawn in updateSim in separate loop because Xing roads
+// may cover roads drawn before and I alsways want to see the IDs
+
 for(var ir=0; ir<network.length; ir++){
-  network[ir].setDriverVariation(driver_varcoeff);//!!
+  network[ir].setDriverVariation(driver_varcoeff);
   network[ir].drawVehIDs=drawVehIDs;
 }
 
@@ -494,7 +479,6 @@ function updateSim(){
 
     if(isSmartphone!=mqSmartphone()){
       isSmartphone=mqSmartphone();
-      hasChangedPhys=true;
     }
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
@@ -507,31 +491,26 @@ function updateSim(){
 		  " window.innerHeight=",window.innerHeight);
     }
   }
- 
 
+  // updAteSim: Test code at last point (5)
+
+
+  
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
   // longModelCar etc defined in control_gui.js
+  // also update user-dragged movable speed limits
 
-  mainroad.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck,
-				       LCModelMandatory);
-
-  ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
-  ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
-				       LCModelCar,LCModelTruck,
-				       LCModelMandatory);
-
-  //console.log(" mainroadLen=",mainroadLen," mainroad.roadLen=",mainroad.roadLen);
-
-   // updateSim (2a): update moveable speed limits
-
-  for(var i=0; i<network.length; i++){
-    network[i].updateSpeedlimits(trafficObjs);
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+    network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
+					 LCModelCar,LCModelTruck,
+					 LCModelMandatory);
+    network[ir].updateSpeedlimits(trafficObjs);
   }
-  
-  // (2b) without this zoomback cmd, everything works but depot vehicles
+
+ 
+  // (2a) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
   // (here more responsive than in drawSim)
 
@@ -539,16 +518,44 @@ function updateSim(){
     trafficObjs.zoomBack();
  }
 
-
-
-    // (2c) externally impose mandatory LC behaviour
-    // all ramp vehicles must change lanes to the left (last arg=false)
+  // (2b) externally impose mandatory LC behaviour
+  // all ramp vehicles must change lanes to the left (last arg=false)
 
   ramp.setLCMandatory(0, ramp.roadLen, false);
 
 
+  
   // updateSim (3): do central simulation update of vehicles
+  // updateSim (3): do central simulation update of vehicles
+  // one action at a time for all network elements for parallel update
+  // first accelerations,
+  // then networking (updateBCup, connect/mergeDiverge, updateBCdown),
+  // then motions in x (speed, pos based on accel) and y (LC)
+  // !! motions at the end because connect may override some accelerations
 
+  // network[0]=mainroad,  network[1]=ramp
+
+  //  (3a) accelerations
+  
+  for(var ir=0; ir<network.length; ir++){network[ir].calcAccelerations();} 
+
+  // (3b) transitions between roads: templates:
+  //      road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)  
+  //      road.connect(target, uSource, uTarget, offsetLane, conflicts)
+  
+  mainroad.updateBCup(qIn,dt); ramp.updateBCup(qOn,dt);
+  ramp.mergeDiverge(mainroad,mainRampOffset,
+			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
+  mainroad.updateBCdown();
+
+  // (3c) actual motion (always at the end)
+  
+  mainroad.updateLastLCtimes(dt);
+  mainroad.changeLanes();
+  for(var ir=0; ir<network.length; ir++){network[ir].updateSpeedPositions();} 
+
+
+  /*
   mainroad.updateLastLCtimes(dt);
   mainroad.calcAccelerations(); 
   mainroad.changeLanes();       //!!! ideally do MOBIL with determ accel
@@ -556,16 +563,10 @@ function updateSim(){
   mainroad.updateBCdown();
   mainroad.updateBCup(qIn,dt); // argument=total inflow
 
-  for (var i=0; i<mainroad.nveh; i++){
-	if(mainroad.veh[i].speed<0){
-	    console.log(" speed "+mainroad.veh[i].speed
-			    +" of mainroad vehicle "
-			    +i+" is negative!");
-	}
-  }
 
-
+  ramp.updateLastLCtimes(dt);
   ramp.calcAccelerations();  
+  ramp.changeLanes();  
   ramp.updateSpeedPositions();
   //ramp.updateBCdown();
   ramp.updateBCup(qOn,dt); // argument=total inflow
@@ -574,7 +575,8 @@ function updateSim(){
 
   ramp.mergeDiverge(mainroad,mainRampOffset,
 			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
-
+  */
+  
 
   // updateSim (4): update detector readings
 
@@ -583,18 +585,17 @@ function updateSim(){
   }
 
 
-  // updateSim (5): debug output
+  // updateSim (5): debug/test code
 
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
+  //if(time<38.5){
   if(false){
     debugVeh(211,network);
     debugVeh(212,network);
   }
   
 
-
-    //if((itime>=125)&&(itime<=128)){
   if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
@@ -617,7 +618,7 @@ function updateSim(){
       mainroad.writeVehiclesSimple();
       ramp.writeVehiclesSimple();
     }
-
+  
     if(true){
       onlyTL=true;
       trafficObjs.writeObjects(onlyTL); //the trafficObjs general TL objects
@@ -627,10 +628,47 @@ function updateSim(){
       mainroad.writeDepotVehObjects();
       ramp.writeDepotVehObjects();
     }
-    //if(time>1.2){clearInterval(myRun);}
   }
+  
+  // 
 
+  if(false){//!!
 
+    //!! in different road operations (setSpeedlimit) order of
+    // trafficObjs.trafficObj array changed in increasing u
+    // can only select unique trafficObj at initialization or, as here,
+    // when filtering for attributes
+
+    // dropping of speed limits in test7*.js
+
+    var TL;
+    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
+      if(trafficObjs.trafficObj[iobj].id==100){// first TL
+	TL=trafficObjs.trafficObj[iobj];
+      }
+    }
+    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
+
+    // drop red traffic light
+
+    if(itime==1){
+      var udrop=0.25*network[0].roadLen;
+      trafficObjs.setTrafficLight(TL,"red");
+      trafficObjs.dropObject(TL,network,
+			     network[0].traj[0](udrop),
+			     network[0].traj[1](udrop),
+			     20,scale);
+    }
+
+    // switch TL to greem
+
+    if(itime==100){
+      console.log("set first TL to green");
+      trafficObjs.setTrafficLight(TL,"green");
+    }
+  }
+    
+   //if(time>1.2){clearInterval(myRun);}
 
 
 }//updateSim
@@ -693,7 +731,7 @@ function drawSim() {
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
-  if(drawRoadIDs){
+  if(drawRoadIDs){// separate loop because of visibility
     for(var ir=0; ir<network.length; ir++){
       network[ir].drawRoadID(scale);
     }
@@ -778,7 +816,6 @@ function drawSim() {
   // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
-  hasChangedPhys=false; 
 
   // revert to neutral transformation at the end!
 

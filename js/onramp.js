@@ -137,9 +137,6 @@ var scale=refSizePix/refSizePhys;
 
 
 var hasChanged=true; // window or physical dimensions have changed
-var hasChangedPhys=true; // physical road dimensions have changed 
-                          // in last updateDimensions
-                          // (only true when switching from/to mobile version)
 
 //<NETWORK>
 //##################################################################
@@ -184,33 +181,10 @@ function updateDimensions(){ // if viewport or sizePhys changed
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
-  // redefine basis of traj*_x, traj*_y or traj_x[], traj_y[]
-  // if hasChangedPhys=true
-
-  if(hasChangedPhys){
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=mainroad.roadLen=arcLen+2*straightLen; 
-    rampLen=ramp.roadLen=rampLenRel*refSizePhys; 
-    mergeLen=0.5*rampLen;
-    mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-    taperLen=0.2*rampLen;
-    rampRadius=4*arcRadius;
-
-  
-    // update positions of fixed obstacles to new road lengths/geometry
-    // (e.g. onramp: ramp via the ref virtualStandingVeh)
-    // see "Specification of logical road network" below
-
-    virtualStandingVeh.u=ramp.roadLen-0.9*taperLen;
-
-  }
-  
+ 
   if(true){
     console.log("updateDimensions: mainroadLen=",mainroadLen,
-		" isSmartphone=",isSmartphone, 
-		" hasChangedPhys=",hasChangedPhys);
+		" isSmartphone=",isSmartphone);
   }
 }
 
@@ -505,7 +479,6 @@ function updateSim(){
 
     if(isSmartphone!=mqSmartphone()){
       isSmartphone=mqSmartphone();
-      hasChangedPhys=true;
     }
 
     updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
@@ -843,7 +816,6 @@ function drawSim() {
   // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
-  hasChangedPhys=false; 
 
   // revert to neutral transformation at the end!
 

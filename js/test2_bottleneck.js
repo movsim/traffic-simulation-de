@@ -101,7 +101,6 @@ var aspectRatio=canvas.width/canvas.height;
 
 var hasChanged=true;              // window dimensions have changed
 
-// (hasChangedPhys=true only legacy for main scenarios)
 
 
 function updateDimensions(){ // if viewport->canvas or sizePhys changed
@@ -538,7 +537,6 @@ function drawSim() {
   // drawSim (8): reset/revert variables for the next step
 
   hasChanged=false; // set true before next drawing if canvas changed
-  hasChangedPhys=false; 
   ctx.setTransform(1,0,0,1,0,0);
 
 } // drawSim
