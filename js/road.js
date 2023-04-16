@@ -1,6 +1,4 @@
 
-//!!! make/check v and lane consistent: v=laneWidth*(v-0.5*(nLanes-1))
-// !! debugging: making simulations reproducible (see docu at onramp.js)
 
 //Math.seedrandom(42); 
 //console.log(Math.random());          // Always 0.0016341939679719736 with 42
@@ -88,8 +86,21 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.inVehBuffer=0.9; // number of waiting vehicles; if>=1, updateBCup called
   this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 
+  // following set by this.initMergeDiverge(..)
+  // each array element is struct
+  //{targetID: id, isMerge: true/false, uLast:u, toRight: true/false}
+  
+  this.mergeDivergeInfo=[];
+
+  
+   // set by this.initConnect()
+  // each array element is struct
+  //{targetID: id, isMerge: true/false, uLast:u, toRight: true/false}
+
+  this.connectInfo=[];      // set by this.initConnect()
+ 
   // following three arrays set by this.setOfframpInfo(.)
-  this.offrampIDs=[]; // which offramps are attached to this road?
+  this.mergeDivergeID=[]; // which offramps are attached to this road?
   this.offrampLastExits=[]; // locations? (increasing u)
   this.offrampToRight=[]; // offramp attached to the right?
 
@@ -105,7 +116,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   this.waitTime=4;   // waiting time after passive LC to do an active LC
                        //similar value as default vehicle.dt_LC at cstr
-  this.duTactical=-1e-6; // if duAntic>0 activate tactical changes 
+  this.duTactical=-1e-6; // if >0 activate tactical changes 
                            // for mandat. LC
   this.uminLC=20;      // only allow lane changes for long coord u>uminLC 
   this.LCbanStart=1e6; // another LC ban (e.g. before intersections)
@@ -474,7 +485,7 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 		" nveh=",this.veh.length,
 		" itime=",itime, "\n",
 		"  duTactical=",this.duTactical,
-		"  offrampIDs=",this.offrampIDs,
+		"  mergeDivergeID=",this.mergeDivergeID,
 		"  lastExits=",this.offrampLastExits);
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
@@ -1247,22 +1258,54 @@ road.prototype.sortVehicles=function(){
 
 
 //#####################################################
-// get network info of offramps attached to this road (for routing)
+// OBSOLETE get network info of offramps attached to this road (for routing)
 // see also updateModelsOfAllVehicles
 // !! no comparable onrampInfo.
 // Use this.setLCModelsInRange(.) for multi-lane onramps
 //#####################################################
 
+/*
 road.prototype.setOfframpInfo
- =function(offrampIDs,offrampLastExits,offrampToRight){
-     this.offrampIDs=offrampIDs;  
+ =function(mergeDivergeID,offrampLastExits,offrampToRight){
+     this.mergeDivergeID=mergeDivergeID;  
      this.offrampLastExits=offrampLastExits; // road.u at end of diverge
      this.offrampToRight=offrampToRight; // whether offramp is to the right
      console.log("\nin road.setOfframpInfo: ID=",this.roadID,
-		 "  offrampIDs=",offrampIDs,
-		 "  this.offrampIDs=",this.offrampIDs);
+		 "  mergeDivergeID=",mergeDivergeID,
+		 "  this.mergeDivergeID=",this.mergeDivergeID);
 
  }
+*/
+
+
+/*#####################################################
+get info of location and kind of ramps
+to be used for tactical lane changing and drawing tapers
+!!! see also updateModelsOfAllVehicles and adapt it
+(Use this.setLCModelsInRange(.))
+@param mergeDivergeID: integer array of target link IDs
+@param isMerge:        boolean array of same length
+@param uLast:          double array of last position to merge/diverge
+@param toRight:        boolean array whether entering the road by LC to right
+@return:   mergeDivergeInfo=array of structs set
+//#####################################################
+*/
+
+
+road.prototype.initMergeDiverge=function(mergeDivergeIDs,isMerge,
+					 uLast, toRight){
+  for(var ir=0; ir<mergeDivergeIDs.length; ir++){
+    
+    this.mergeDivergeInfo[ir]={
+      targetID: mergeDivergeIDs[ir],
+      isMerge: isMerge[ir],
+      uLast:uLast[ir],
+      toRight:toRight[ir]
+    };
+    console.log("\nin road.initMergeDiverge: this.mergeDivergeInfo[0]=",
+		this.mergeDivergeInfo[0]);
+  }
+}
 
 
 
@@ -1270,21 +1313,10 @@ road.prototype.setOfframpInfo
 // get next offramp index for a given longitudinal position u (routing)
 //##################################################################
 
-road.prototype.getNextOffIndex=function(u){
-    var index=-1;
-    var success=false;
-    var duNearest=this.roadLen;
 
-    // this.offrampLastExits[iOff] increasing with iOff
-    for(var iOff=0; iOff<this.offrampIDs.length; iOff++){
-	var uExit=this.offrampLastExits[iOff];
-	var du=(uExit>u) ? uExit-u : 10000*this.roadLen;
-	if((this.isRing)&&(uExit<u)){du=uExit-u+this.roadLen;}
-	if(du<duNearest){index=iOff; duNearest=du;}
-    }
-    return index;
-      
-}
+//##################################################################
+// get next merge or diverge index not needed
+//##################################################################
 
 
 
@@ -3692,7 +3724,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
       var LCModelNew=(vehType==="car") ? LCModelCar : LCModelTruck;
       var uNew=0;
 
-      //!!! MT 2019-09 hack since otherwise veh enter too fast 
+      //!! MT 2019-09 hack since otherwise veh enter too fast 
 
       var v0New=0.9*Math.min(longModelNew.v0, longModelTruck.v0);
       var speedNew=Math.min(v0New, longModelNew.speedlimit,
@@ -3729,8 +3761,8 @@ road.prototype.updateBCup=function(Qin,dt,route){
 // get target vehicle neighbourhood/context for merging of other roads
 // returns targetVehicles, an array of all vehicles on the target lane 
 // inside the arclength range [umin, umax].
-// Also sets iTargetFirst, the first vehicle (smallest i) within range
-//!!! does not take care of specialities of ring roads
+// !! Also sets iTargetFirst, the first vehicle (smallest i) within range
+// does not take care of specialities of ring roads
 // => set "stitch" of ring road far away from merges
 //######################################################################
 
@@ -3798,7 +3830,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 				      longModelTruck.b);
 
   
-    var LCModelMandatoryLoc  //!!!! reference issues nasty!!!!
+    var LCModelMandatoryLoc  //!! reference issues nasty!!
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
@@ -3846,66 +3878,52 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
 
   
+  //##########################################################
+  // Tactical acceleration/LC for diverging and multi-lane Merging
 
-  // check if on this road the driver should possibly prepare for diverging
+  for(var ir=0; ir<this.mergeDivergeInfo.length; ir++){
+    var targetID=this.mergeDivergeInfo[ir].targetID;
+    var isMerge=this.mergeDivergeInfo[ir].isMerge;
+    var uLast=this.mergeDivergeInfo[ir].uLast;
+    var toRight=this.mergeDivergeInfo[ir].toRight;
+    console.log(
+      "road.updateModelsOfAllVehicles: new: apply tacticalLC to Veh");
+    console.log(""
+		+" mergeDivergeID="+targetID
+		+" isMerge="+isMerge
+		+" toRight="+toRight
+		+" uLast="+parseFloat(uLast).toFixed(1));
 
-  if(this.duTactical>0) for(var i=0; i<this.veh.length; i++){
-    if(this.veh[i].isRegularVeh()){
+    for(var i=0; i<this.veh.length; i++){
+      if( (this.veh[i].isRegularVeh())
+	  &&(this.veh[i].route.includes(targetID))){
 
-      // get next offramp, whether on route or not (index=-1 if nothing)
+      // test if the next on- or off-ramp is nearby (dist< duTactical)
 
-      var iNextOff=this.getNextOffIndex(this.veh[i].u);
-      var uLastExit=this.offrampLastExits[iNextOff];
+	if((this.veh[i].u<uLast)&&(this.veh[i].u>uLast-this.duTactical)){
 
-      // test if the next off-ramp is nearby (dist< duTactical)
-
-      var nextOfframpNearby=(this.veh[i].isRegularVeh())
-	  && (iNextOff>-1)
-	  && (uLastExit-this.veh[i].u<this.duTactical);
-
-
-      if(nextOfframpNearby){
-        if(false){console.log("in road"+this.roadID+".updateModels: veh="
-			     +this.veh[i].id
-			     +" iNextOff="+iNextOff
-		             +" u="+this.veh[i].u
-		             +" uLastExit="+uLastExit);
-		}
-
-        // test if the vehicle's route contains this off-ramp
-	// !! Only here route is active
-
-	var offID=this.offrampIDs[iNextOff];
-	var route=this.veh[i].route;
-	var tacticalLC=false;
-	for(var ir=0; ir<route.length; ir++){
-	  if(offID===route[ir]){tacticalLC=true;}
-	}
 
           // if so, change lanes in the direction of the diverge 
-          // and reduce speed if coming very near to "last exit"
+          // and, if offramp coming very near to "last exit", reduce speed
  
-	if(tacticalLC){
-	  var thisVeh=this.veh[i];
-	  var toRight=this.offrampToRight[iNextOff];
-	  var duRemaining=uLastExit-thisVeh.u;
-	  thisVeh.divergeAhead=true; //!!
-	  thisVeh.longModel.alpha_v0
-		  =Math.max(0.1, 0.5*duRemaining/this.duTactical);
-	    
-	  thisVeh.LCModel=(toRight) ? this.LCModelTacticalRight
-	          : this.LCModelTacticalLeft; //!!!LCModelTactical new cstr
+	  this.veh[i].LCModel=(toRight) ? this.LCModelTacticalRight
+	          : this.LCModelTacticalLeft; //LCModelTactical new cstr
+	  if(!isMerge){
+	    this.veh[i].divergeAhead=true; //only if true LC performed
+	    this.veh[i].longModel.alpha_v0
+	      =Math.max(0.1, (uLast-this.veh[i].u)/this.duTactical);
+	  }
 
-	  if(false){
+	  if(true){
 	    console.log(
 	      "road.updateModelsOfAllVehicles: apply tacticalLC to Veh"
-		+" id="+thisVeh.id
-		+" route="+thisVeh.route
-		+" offID="+offID
+		+" id="+this.veh[i].id
+		+" route="+this.veh[i].route
+		+" mergeDivergeID="+targetID
 		+" toRight="+toRight
-		+" u="+parseFloat(thisVeh.u).toFixed(1)
-		+" uLastExit="+parseFloat(uLastExit).toFixed(1)
-		+" bBiasRight="+thisVeh.LCModel.bBiasRight
+		+" u="+parseFloat(this.veh[i].u).toFixed(1)
+		+" uLast="+parseFloat(uLast).toFixed(1)
+		+" bBiasRight="+this.veh[i].LCModel.bBiasRight
 	    );
 	  }
 	}
@@ -3916,7 +3934,9 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	this.veh[i].divergeAhead=false;
       }
     }
-  } // tactical accel and LC for diverges
+  } // end new tactical accel and LC for diverges/multilane merges
+
+
 
 }//updateModelsOfAllVehicles
 
@@ -4274,7 +4294,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
     if(filterPassed){
 
       
-      //!!! use side effect on this.usedTraj_xy, not testTraj
+      //!! use side effect on this.usedTraj_xy, not testTraj
       // this only used for checkForCrashes and here for testing
 
       var testTraj=this.getTraj(this.veh[i]); 
@@ -4310,7 +4330,6 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
                    draw veh IDs to the right of the vehicle
 */
 
-//!!!! finally get rid of uOffset; only used in drawVehiclesGenTraj called only in the roundabout scenarios
 
 road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 				    speedmin,speedmax,traj,
@@ -4323,7 +4342,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
  
     // (1) determine uCenter, vCenter in logical long/lat coordinates
     // v increasing from left to right, 0 @ road center
-    // !!! update_v ... in paths.js  Influences veh[i].v
+    // !! update_v ... in paths.js  Influences veh[i].v
   
   update_v_dvdt_optical(this.veh[i]);
 
@@ -4349,7 +4368,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
 
   // special corrections for special (depot) obstacles 
   // normal obstacles are drawn with obstacleImgs[0]=black box
-  // !!! special index 50-> obstacleImgs[1] etc 
+  // !! special index 50-> obstacleImgs[1] etc 
 
   var obstacleImgIndex=(this.veh[i].isSpecialVeh())
     ? (this.veh[i].id-49) % obstacleImgs.length : 0;
@@ -4493,7 +4512,7 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 
   // sort trafficObj array by decreasing u values (mixing of different roads
   // and object types OK since filtered in loop)
-  // !!! but side effect: trafficObjects.trafficObj[i] not static!
+  // !! but side effect: trafficObjects.trafficObj[i] not static!
 
   trafficObjects.trafficObj.sort(function(a,b){ 
 	    return a.u - b.u;
@@ -4805,7 +4824,7 @@ road.prototype.removeObstacle= function(id) {
 // check if alternative trajectories apply (turning etc)
 // i.e., the vehicle route is equal to one of the list of routes
 // for using alternative trajectories
-// F...ing bugs if  use arrays or return values; unresolvable!!!!
+// F...ing bugs if  use arrays or return values; unresolvable!!!
 // in order to use this function in collision detection, just addtl return it
 // ####################################################################
 

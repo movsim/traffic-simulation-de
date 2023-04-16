@@ -327,12 +327,16 @@ for(var ir=0; ir<nLanes.length; ir++){
 
 // set tactical information for the offramps
 // (for road.connect must do it by hand via road.setLCModelsInRange(.))
+// !!!! now implement road.initConnect(..) and control LC for road ids 8,9
 
-var offrampIDs=[10]; // offramp road 6->10
-var offrampLastExits=[u6_beginDiverge+lenMergeDiverge];
-var offrampToRight=[true]; // array!
-network[6].setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
 network[6].duTactical=duTactical;
+
+var targetID=[10]; // offramp road 6->10
+var uLast=[u6_beginDiverge+lenMergeDiverge];
+var toRight=[true]; // array!
+var isMerge=[false];
+
+network[6].initMergeDiverge(targetID,isMerge,uLast,toRight);
 
 // routes
 

@@ -237,10 +237,10 @@ for(var ir=0; ir<network.length; ir++){
 }
 
 
-var offrampIDs=[2];
+var mergeDivergeID=[2];
 var offrampLastExits=[mainRampOffset+divergeLen];
 var offrampToRight=[true];
-mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
+mainroad.setOfframpInfo(mergeDivergeID,offrampLastExits,offrampToRight);
 mainroad.duTactical=duTactical;
 
 

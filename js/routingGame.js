@@ -401,11 +401,15 @@ network[0]=mainroad;  // network declared in canvas_gui.js
 network[1]=ramp;
 
 
-var offrampIDs=[2];
+mainroad.duTactical=duTactical;
+
+var mergeDivergeID=[2];  // array with one element 2
 var offrampLastExits=[umainDiverge+lrampDev];
 var offrampToRight=[true];
-mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
-mainroad.duTactical=duTactical;
+var isMerge=[false];
+
+mainroad.initMergeDiverge(mergeDivergeID,isMerge,
+			  offrampLastExits,offrampToRight);
 
 
 //############################################

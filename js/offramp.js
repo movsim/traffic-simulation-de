@@ -236,12 +236,15 @@ for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
 }
 
+mainroad.duTactical=duTactical;
 
-var offrampIDs=[2];
+var mergeDivergeID=[2];  // array with one element 2
 var offrampLastExits=[mainRampOffset+divergeLen];
 var offrampToRight=[true];
-mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
-mainroad.duTactical=duTactical;
+var isMerge=[false];
+
+mainroad.initMergeDiverge(mergeDivergeID,isMerge,
+			  offrampLastExits,offrampToRight);
 
 
 var route1=[1];  // stays on mainroad
@@ -408,7 +411,6 @@ function updateSim(){
   mainroad.updateBCdown();
   var route=(Math.random()<fracOff) ? route2 : route1;
   mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
-  //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
   ramp.updateLastLCtimes(dt); // needed since LC from main road!!
   ramp.calcAccelerations();  
