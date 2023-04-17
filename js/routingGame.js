@@ -403,13 +403,14 @@ network[1]=ramp;
 
 mainroad.duTactical=duTactical;
 
-var mergeDivergeID=[2];  // array with one element 2
-var offrampLastExits=[umainDiverge+lrampDev];
-var offrampToRight=[true];
+var targets=[ramp];  // array with one element 2
 var isMerge=[false];
+var mergeDivergeLen=[lrampDev];
+var uLast=[umainDiverge+lrampDev];
+var offrampToRight=[true];
 
-mainroad.initMergeDiverge(mergeDivergeID,isMerge,
-			  offrampLastExits,offrampToRight);
+mainroad.initMergeDiverge(targets,isMerge,
+			  mergeDivergeLen,uLast,offrampToRight);
 
 
 //############################################

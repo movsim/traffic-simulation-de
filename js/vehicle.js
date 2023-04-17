@@ -12,6 +12,8 @@
 // need to introduce here instead of model because models often overridden
 // during sim (v0 changes from outside, speed limits,...)
 
+// (driver_varcoeff optional parameter)
+
 var ivehCount=0;
 
 function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
@@ -85,7 +87,7 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
 vehicle.prototype.setDriverVariation=function(driver_varcoeff){
   this.driver_varcoeff=driver_varcoeff
   this.driverfactor=1+Math.sqrt(12)*this.driver_varcoeff*(Math.random()-0.5);
-  console.log("vehicle.setDriverVariation: this.driverfactor=",this.driverfactor);
+  //console.log("vehicle.setDriverVariation: this.driverfactor=",this.driverfactor);
 }
 
 //######################################################################

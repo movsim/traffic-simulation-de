@@ -372,12 +372,17 @@ for(var ir=0; ir<network.length; ir++){
 
 var duTactical=300; // anticipation distance for applying mandatory LC rules
 mainroad.duTactical=duTactical;
-var mergeDivergeID=[2];
-var offrampLastExits=[umainDiverge+lrampDev];
-var offrampToRight=[true];
+
+var targets=[ramp];  // array with one element 2
 var isMerge=[false];
-mainroad.initMergeDiverge(mergeDivergeID,isMerge,
-			  offrampLastExits,offrampToRight);
+var mergeDivergeLen=[lrampDev];
+var uLast=[umainDiverge+lrampDev];
+var offrampToRight=[true];
+
+mainroad.initMergeDiverge(targets,isMerge,
+			  mergeDivergeLen,uLast,offrampToRight);
+
+
 
 
 

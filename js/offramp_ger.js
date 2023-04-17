@@ -106,7 +106,6 @@ var scale=refSizePix/refSizePhys;
 
 //##################################################################
 // Specification of physical road geometry and vehicle properties
-// If refSizePhys changes, change them all => updateDimensions();
 //##################################################################
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
@@ -125,29 +124,12 @@ var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 
 var offLen=offLenRel*refSizePhys; 
-var divergeLen=0.5*offLen;
+var divergeLen=0.4*offLen;
 
-var mainRampOffset=mainroadLen-straightLen;
-var taperLen=0.2*offLen;
+var mainRampOffset=mainroadLen-0.9*straightLen;
 var offRadius=3*arcRadius;
 
 
-function updateDimensions(){ // if viewport or sizePhys changed (mobile)
-    center_xPhys=center_xRel*refSizePhys; //[m]
-    center_yPhys=center_yRel*refSizePhys;
-
-    arcRadius=arcRadiusRel*refSizePhys;
-    arcLen=arcRadius*Math.PI;
-    straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=arcLen+2*straightLen;
-    offLen=offLenRel*refSizePhys; 
-    divergeLen=0.5*offLen;
-
-    mainRampOffset=mainroadLen-straightLen;
-    taperLen=0.2*offLen;
-    offRadius=3*arcRadius;
-  console.log(" mainroadLen=",mainroadLen);
-}
 
 
 // the following remains constant 
@@ -197,8 +179,7 @@ function trajRamp_x(u){ // physical coordinates
 function trajRamp_y(u){ // physical coordinates
     	var yDivergeBegin=traj_y(mainRampOffset)
 	    -0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
-	return (u<taperLen)
-            ? yDivergeBegin+laneWidth-laneWidth*u/taperLen: (u<divergeLen)
+	return (u<divergeLen)
 	    ? yDivergeBegin
 	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
 }
@@ -236,12 +217,15 @@ for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
 }
 
-
-var mergeDivergeID=[2];
-var offrampLastExits=[mainRampOffset+divergeLen];
-var offrampToRight=[true];
-mainroad.setOfframpInfo(mergeDivergeID,offrampLastExits,offrampToRight);
 mainroad.duTactical=duTactical;
+
+var targetRoads=[ramp];  // ! watch out: array with one element 
+var uLast=[mainRampOffset+divergeLen];
+var offrampToRight=[true];
+var isMerge=[false];
+var mergeDivergeLen=[divergeLen];
+mainroad.initMergeDiverge(targetRoads,isMerge,
+			  mergeDivergeLen,uLast,offrampToRight);
 
 
 var route1=[1];  // stays on mainroad
@@ -408,7 +392,6 @@ function updateSim(){
   mainroad.updateBCdown();
   var route=(Math.random()<fracOff) ? route2 : route1;
   mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
-  //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
   ramp.updateLastLCtimes(dt); // needed since LC from main road!!
   ramp.calcAccelerations();  
@@ -420,7 +403,7 @@ function updateSim(){
 
   var u_antic=20;
   mainroad.mergeDiverge(ramp,-mainRampOffset,
-			  mainRampOffset+taperLen,
+			  mainRampOffset,
 			  mainRampOffset+divergeLen-u_antic,
 			  false,true);
 
@@ -442,7 +425,7 @@ function updateSim(){
 		" mainRampOffset=",formd(mainRampOffset));
     console.log("mergeDiverge(ramp",
 		",",formd(-mainRampOffset),
-		",",formd(mainRampOffset+taperLen),
+		",",formd(mainRampOffset),
 		",",formd(mainRampOffset+divergeLen-u_antic),
 		")");
   }
@@ -484,7 +467,7 @@ function drawSim() {
 	scale=refSizePix/refSizePhys; // refSizePhys=constant unless mobile
 
 
-      updateDimensions();
+      //updateDimensions();
       trafficObjs.calcDepotPositions(canvas); 
 
 	if(true){
@@ -513,13 +496,16 @@ function drawSim() {
 
 
 
-    // (3) draw mainroad and ramps (offramp "bridge" => draw last)
-    // and vehicles (directly after frawing resp road or separately, depends)
-    // (always drawn; changedGeometry only triggers building a new lookup table)
+  // (3) draw mainroad and ramps (offramp "bridge" => draw last)
+  // and vehicles (directly after frawing resp road or separately, depends)
+  // changedGeometry=true builds new pixel lookup table
+  // drawTaper (roadImg1, scale, isMerge, toRight)
+  // has purely graphical purposes
 
-    var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-    ramp.draw(rampImg,rampImg,scale,changedGeometry);
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+  var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
+  ramp.draw(rampImg,rampImg,scale,changedGeometry);
+  ramp.drawTaper(rampImg,scale,false,true);
+  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
     // (4) draw vehicles
 

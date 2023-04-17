@@ -164,7 +164,7 @@ function TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol){
     
     var img=(isTL) ? this.imgTLred : (isSpeedl)
       ? this.imgSpeedlRepo[initSpeedInd[iSpeed]] : this.imgObstRepo[iObst];
-    if(true){
+    if(false){
       console.log("TrafficObjects cstr: i=",i,
 		  " img=",img," iObst=",iObst);
     }

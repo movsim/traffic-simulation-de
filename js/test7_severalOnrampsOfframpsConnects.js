@@ -190,7 +190,7 @@ function traj1_x(u){
 }
 
 function traj1_y(u){ 
-  return center_yPhys-2*radius+laneWidth; // offsetLane=+1, see road.connect(...)
+  return center_yPhys-2*radius+laneWidth; // +laneWidth because offsetLane=+1
 }
 
 function traj2_x(u){ 
@@ -309,7 +309,7 @@ var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
 // 7 mainroad links ir=0..6, 2 diverge links at the end ir=7,8
 // onramp from above ir=9, offramp to below ir=10, second mainroad ir=11
 
-// connections from road 0 to road 7 laneindex(ir)->laneindex(ir+1)
+// connections from road 0 to road 7 laneindex(ir-1)->laneindex(ir)
 var offsetLane=[0,1,0,1,-1,0,2,-3]; // laneindex(ir+1)-laneindex(ir)
 var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
 var speedInit=20;
@@ -325,18 +325,32 @@ for(var ir=0; ir<nLanes.length; ir++){
 		       trajNet[ir], density, speedInit,fracTruck, isRing);
 }
 
-// set tactical information for the offramps
-// (for road.connect must do it by hand via road.setLCModelsInRange(.))
-// !!!! now implement road.initConnect(..) and control LC for road ids 8,9
+// set tactical information for the ramps
+// to implement tactical behaviour and/or drawing tapers
+// (this.drawTaper)
+// road.initMergeDiverge([targetRoads],[isMerge],
+//                       [mergeDivergeLen], [uLast], [toRight]);
 
 network[6].duTactical=duTactical;
+network[6].initMergeDiverge([network[10]], [false],[lenMergeDiverge],
+			    [u6_beginDiverge+lenMergeDiverge], [true]);
 
-var targetID=[10]; // offramp road 6->10
-var uLast=[u6_beginDiverge+lenMergeDiverge];
-var toRight=[true]; // array!
-var isMerge=[false];
 
-network[6].initMergeDiverge(targetID,isMerge,uLast,toRight);
+// set tactical lane changes and decelerations for the connectors (nodes)
+// where tactical behaviour and/or drawing tapers (this.drawTaperConnect)
+// is required
+// initConnect(targetRoads, uSource, offsetLane, LCbias)
+// LCbias in {-1=left,0=neutral,1=right}
+// for lanes to be closed, LCbias is set automatically if LCbias=0
+
+network[0].initConnect([network[1]],[network[0].roadLen],[offsetLane[1]],[0]);
+network[3].initConnect([network[4]],[network[3].roadLen],[offsetLane[4]],[0]);
+network[4].initConnect([network[5]],[network[4].roadLen],[offsetLane[5]],[0]);
+network[6].initConnect([network[7],network[8]],
+		       [network[6].roadLen, network[6].roadLen],
+		       [offsetLane[7],0], [0,0]);
+
+
 
 // routes
 
@@ -745,10 +759,15 @@ function drawSim() {
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
+  // purely optical: road.drawTaper (roadImg1, scale, isMerge, toRight)
+  network[9].drawTaper(roadImg1[9], scale, true, true);
+  network[10].drawTaper(roadImg1[10], scale, false, true);
+
   for(var ir=0; ir<network.length; ir++){ 
     network[ir].draw(roadImg1[ir],roadImg2[ir],scale,changedGeometry);
   }
 
+  
   if(drawRoadIDs){// separate loop because of visibility
     for(var ir=0; ir<network.length; ir++){
       network[ir].drawRoadID(scale);

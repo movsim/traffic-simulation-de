@@ -369,12 +369,21 @@ for(var ir=0; ir<network.length; ir++){
 
 // offramp specification; controlled by mainroad
 
+
 var duTactical=300; // anticipation distance for applying mandatory LC rules
-var mergeDivergeID=[2];
-var offrampLastExits=[umainDiverge+lrampDev];
-var offrampToRight=[true];
-mainroad.setOfframpInfo(mergeDivergeID,offrampLastExits,offrampToRight);
 mainroad.duTactical=duTactical;
+
+var targets=[ramp];  // array with one element 2
+var isMerge=[false];
+var mergeDivergeLen=[lrampDev];
+var uLast=[umainDiverge+lrampDev];
+var offrampToRight=[true];
+
+mainroad.initMergeDiverge(targets,isMerge,
+			  mergeDivergeLen,uLast,offrampToRight);
+
+
+
 
 
 //############################################

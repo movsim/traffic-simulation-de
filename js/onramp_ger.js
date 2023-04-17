@@ -149,7 +149,7 @@ var hasChanged=true; // window or physical dimensions have changed
 var center_xRel=0.43;
 var center_yRel=-0.54;
 var arcRadiusRel=0.35;
-var rampLenRel=0.95;
+var rampLenRel=0.85;
 
 
 // !!slight double-coding with updateDimensions unavoidable since
@@ -164,9 +164,9 @@ var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 var rampLen=rampLenRel*refSizePhys; 
-var mergeLen=0.5*rampLen;
+var mergeLen=0.4*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
-var taperLen=0.2*rampLen;
+//var taperLen=0.2*rampLen; //!!!
 var rampRadius=4*arcRadius;
 
 // !! slightdouble-coding necessary unless big changes, 
@@ -222,6 +222,7 @@ function updateRampGeometry(){
 @return: lateral offset in [0,laneWidth]
 */
 
+/*
 function taperDiverge(u,taperLen,laneWidth){
   var res=
     (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
@@ -233,6 +234,7 @@ function taperMerge(u,taperLen,laneWidth,rampLen){
   return taperDiverge(rampLen-u,taperLen,laneWidth);
 }
 
+*/
 
 // def trajectories
 
@@ -254,29 +256,26 @@ function traj_y(u){ // physical coordinates
 
 var traj=[traj_x,traj_y];
 
-// !! in defining dependent geometry,
-// do not refer to mainroad or onramp!! may not be defined: 
+// in defining dependent geometry watch out that master (here traj_xy)
+// is defined. Do not refer to road.traj_xy, only directly to functions
 // mainroad.nLanes => nLanes_main, ramp.nLanes=>nLanes_ramp1
+// !! approximated dx=du => nearly horizontal ramp
 
 function trajRamp_x(u){ // physical coordinates
-	//var xMergeBegin=traj_x(mainroadLen-straightLen);
 	var xMergeBegin=traj_x(mainRampOffset+rampLen-mergeLen);
-	var xPrelim=xMergeBegin+(u-(rampLen-mergeLen));
-	return (u<rampLen-taperLen) 
-	    ? xPrelim : xPrelim-0.05*(u-rampLen+taperLen);
+	var x=xMergeBegin+(u-(rampLen-mergeLen));
+	return x;
 }
 
 
 function trajRamp_y(u){ // physical coordinates
 
-  var yMergeBegin=traj[1](mainRampOffset+rampLen-mergeLen)
+  var yMergeBegin=traj_y(mainRampOffset+rampLen-mergeLen)
 	-0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
 
-  var yMergeEnd=yMergeBegin+laneWidth;
   return (u<rampLen-mergeLen)
     ? yMergeBegin - 0.5*Math.pow(rampLen-mergeLen-u,2)/rampRadius
-    : (u<rampLen-taperLen) ? yMergeBegin
-    : yMergeBegin+taperMerge(u,taperLen,laneWidth,rampLen);
+    : yMergeBegin;
 }
 
 var trajRamp=[trajRamp_x,trajRamp_y];
@@ -324,6 +323,8 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp,
 		  0*density, speedInit, fracTruck, isRing);
 
+ramp.taperLen=30; // override constructor
+
 // road network (network declared in canvas_gui.js)
 
 network[0]=mainroad;
@@ -340,8 +341,8 @@ for(var ir=0; ir<network.length; ir++){
 
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
-
-var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-0.9*taperLen, 0, 0, "obstacle");
+// vehicle(length, width, u, lane, speed, type, //!!! omit later on
+var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-1, 0, 0, "obstacle");
 
 ramp.veh.unshift(virtualStandingVeh);
 
@@ -721,11 +722,15 @@ function drawSim() {
   
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
+  
   ramp.draw(rampImg,rampImg,scale,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
 	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
-	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0)); 
+	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
+
+  // only graphical
+  ramp.drawTaper(rampImg, scale, true, false);
 
   mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
 		0,mainroad.roadLen,

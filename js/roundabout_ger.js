@@ -420,7 +420,7 @@ for(var ir=0; ir<nLanes.length; ir++){
 // road with passive merge/diverge: nothing needs to be added
 // road with active merge (ramp): road.mergeDiverge at sim time
 // road with active diverge (mainroad, when routes are relevant): 
-//   road.setOfframpInfo at init time and road.mergeDiverge at sim time
+// road.initMergeDiverge at init time and road.mergeDiverge at sim time
 
 //##################################################################
 
