@@ -44,6 +44,8 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.dt_lastPassiveLC=10; // dyn var
   this.dt_gridlock=0; // only used/incremented in connect if vehicle is stuck 
   this.acc=0;
+  this.LCbanLeft=false;  // MT 2023-04: tactical: no changes to left allowed
+  this.LCbanRight=false;  // MT 2023-04: tactical: no changes to left allowed
 
   // only for golfCourse simulation (cannot incept new attribute from outside)
   // if it will be needed for more applications (such as this.dt_LC etc)

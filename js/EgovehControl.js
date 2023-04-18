@@ -87,7 +87,7 @@ trajectory curvature [1/m] (=road + (u,v) curvature) propto steering angle
 
 
 
-EgoVeh.prototype.update=function(canvas,scale,egoCtrlRegion,isOutside,
+EgoVeh.prototype.update=function(canvas,egoCtrlRegion,isOutside,
 				 xMouseCanvas,yMouseCanvas,dt){
 
     // determine pixel bullet point relative to canvas

@@ -598,7 +598,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
  
     trafficObjs.calcDepotPositions(canvas);
   }
@@ -873,30 +873,30 @@ function drawSim() {
   //var changedGeometry=hasChanged||(itime<=1); 
   var changedGeometry=(itime<=1); // if no physical change of road lengths
 
-  // road.draw(img1,img2,scale,changedGeometry,
+  // road.draw(img1,img2,changedGeometry,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
   for(var ir=network.length-1; ir>=0; ir--){ // draw second. roads first
     network[ir].draw(roadImages[ir][0],roadImages[ir][1],
-		     scale,changedGeometry);
+		     changedGeometry);
   }
 
   if(drawRoadIDs){  
     for(var ir=0; ir<network.length; ir++){
-      network[ir].drawRoadID(scale);
+      network[ir].drawRoadID();
     }
   }
 
   
   // drawSim (4): draw vehicles
 
-  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  // road.drawVehicles(carImg,truckImg,obstImgs,vmin_col,vmax_col,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col);
   }
 
@@ -905,7 +905,7 @@ function drawSim() {
   // (zoomback is better in sim!)
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   ctx.setTransform(1,0,0,1,0,0); 
@@ -1000,19 +1000,19 @@ function changeTrafficRules(ruleIndex){
     trafficObjs.dropObject(TL[0],network,
 		       network[0].traj[0](u05Source),
 		       network[0].traj[1](u05Source),
-		       20,scale);
+		       20,);
     trafficObjs.dropObject(TL[1],network,
 		       network[1].traj[0](u05Source),
 		       network[1].traj[1](u05Source),
-		       20,scale);
+		       20,);
     trafficObjs.dropObject(TL[2],network,
 		       network[2].traj[0](u20Source),
 		       network[2].traj[1](u20Source),
-		       20,scale);
+		       20,);
     trafficObjs.dropObject(TL[3],network,
 		       network[4].traj[0](u20Source),
 		       network[4].traj[1](u20Source),
-			   20,scale);
+			   20,);
   }
   else{
     for(var i=0; i<4; i++){

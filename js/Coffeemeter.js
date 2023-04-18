@@ -117,7 +117,9 @@ simple Euler/ballistic approaches are problematic for oscillatory motion
 @param ay:  longitudinal acceleration [m/s^2]
 @param dt:  time increment [s]
 
-@return:     none; changes states of this.x, y, dotx, doty, stains[]
+@return:    none; changes states of this.x, y, dotx, doty, stains[]
+            this.x=phi_x=surface normal in right lat direction
+            this.y=phi_y=surface normal in positive long direction
 */
 //##############################################################
 
@@ -160,11 +162,11 @@ Coffeemeter.prototype.updateSurface=function(ax,ay,dt){
     // check for new spills and, if applicable, add the newly spilt coffee
     // to the stain that is nearest of the rim location of the spilling
 
-    if(false){
+    if(true){
       console.log("Coffeemeter.updateSurface: before treating spills:",
-		"\n phi_x=",this.x,
+		"\n lat right: x=phi_x=",this.x,
 		"\n dotphi_x=",this.dotx,
-		"\n phi_y=",this.y,
+		"\n long front: y=phi_y=",this.y,
 		"\n dotphi_y=",this.doty
 	       );
     }
@@ -188,7 +190,7 @@ Coffeemeter.prototype.updateSurface=function(ax,ay,dt){
 	var iStain=Math.round(this.nStains*angle/(2*Math.PI)-0.5);
 	this.stains[iStain] += excess;
 	this.stains[iStain]=Math.min(this.stains[iStain],this.stainVolMax);
-	if(false){
+	if(true){
 	    console.log(" Coffeemeter: spill event happened!",
 			" excess=",parseFloat(excess).toFixed(2),
 			" spill direction nx=",parseFloat(xSpill).toFixed(2),
@@ -366,7 +368,7 @@ Coffeemeter.prototype.draw=function(canvas){
     var scale=200/diam; // so that radius of arc cmds=100 pixels
     var e1=[e1Horiz[0], e1Horiz[1], e1Horiz[2]-coffeemeter.x];
     var e2=[e2Horiz[0], e2Horiz[1], e2Horiz[2]-coffeemeter.y];
-    var aff=affineTransformGraphics(dr, e1, e2, scale, nShoot, rotCamera, f, 
+  var aff=affineTransformGraphics(dr, e1, e2, scale, nShoot, rotCamera, f, 
 				 canvas.width);
     
     if(aff[6]){ // seventh element of return array is success flag
@@ -414,8 +416,8 @@ Coffeemeter.prototype.draw=function(canvas){
 			 dr[1]+0.7*diam*sinphi,
 			 dr[2]-0.4*diam];
 	    var affStain= affineTransformGraphics(
-		drStain, e1Horiz, e2Horiz, scale, nShoot, rotCamera, f, 
-		canvas.width);
+	      drStain, e1Horiz, e2Horiz,  scale, nShoot, rotCamera, f, 
+	      canvas.width);
 
 	    ctx.setTransform(affStain[0], affStain[1], affStain[2],
 			     affStain[3], affStain[4]+xPixCoffee,
@@ -441,7 +443,7 @@ Coffeemeter.prototype.draw=function(canvas){
 		var e1Wall=[-sinphi,cosphi,0];
 		var e2Wall=[sinOverh*cosphi,sinOverh*sinphi,cosOverh]
 		var affWall= affineTransformGraphics(
-		    drWall, e1Wall, e2Wall, scale, nShoot, rotCamera, f, 
+		  drWall, e1Wall, e2Wall, scale, nShoot, rotCamera, f, 
 		    canvas.width);
                 // elongate result vertically
 		ctx.setTransform(0.6*affWall[0],0.6*affWall[1],1.6*affWall[2],

@@ -71,7 +71,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   //console.log("1. in road cstr: traj=",traj);
   this.roadID=roadID;
   this.roadLen=roadLen;
-  this.taperLen=25; //!! purely graphical; only use in this.drawTaper()
+  this.taperLen=25; //!! purely graphical; only use in this.drawTaperRamp()
 
   this.laneWidth=laneWidth;
   this.nLanes=nLanes;
@@ -115,7 +115,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   this.waitTime=4;   // waiting time after passive LC to do an active LC
                        //similar value as default vehicle.dt_LC at cstr
-  this.duTactical=-1e-6; // if >0 activate tactical changes 
+  this.duTactical=150; // if >0 activate tactical changes 
                            // for mandat. LC
   this.uminLC=20;      // only allow lane changes for long coord u>uminLC 
   this.LCbanStart=1e6; // another LC ban (e.g. before intersections)
@@ -748,7 +748,7 @@ road.prototype.findNearestVehTo=function(xUser,yUser,filterFun){
 @return [distance in m, u in m, v in lanes]
 
 Notice1: u discretized to width of road segments, typically about 10 m
-see also this.get_xPix(u,v,scale), this.get_yPix(u,v,scale)
+see also this.get_xPix(u,v), this.get_yPix(u,v)
 
 #############################################################
 */
@@ -1282,8 +1282,10 @@ road.prototype.initMergeDiverge=function(targetRoads,isMerge,
       uLast:uLast[ir],
       toRight:toRight[ir]
     };
-    console.log("\nin road.initMergeDiverge: this.mergeDivergeInfo["+ir+"]=",
-		this.mergeDivergeInfo[ir]);
+    if(false){
+      console.log("\nin road.initMergeDiverge: this.mergeDivergeInfo["+ir
+		  +"]=",this.mergeDivergeInfo[ir]);
+    }
   }
 }
 
@@ -1294,7 +1296,7 @@ road.prototype.initMergeDiverge=function(targetRoads,isMerge,
 get info of location and kind of connections (nodes) to other roads
 to be used for tactical lane changing and drawing tapers
 !!! see also updateModelsOfAllVehicles and adapt it
-(Use this.setLCModelsInRange(.))
+
 @param targetRoads:    array of (references to) target links
 @param uSource:        array of the source positions (LC must be done there)
 @param offsetLane:     laneIndex(target)-laneIndex(source) for same position
@@ -1316,8 +1318,8 @@ road.prototype.initConnect=function(targetRoads, uSource,
       offsetLane: offsetLane[ir],
       LCbias:LCbias[ir]
     };
-    console.log("\nin road.initConnect: this.connectInfo["+ir+"]=",
-		this.connectInfo[ir]);
+    //console.log("\nin road.initConnect: this.connectInfo["+ir+"]=",
+//		this.connectInfo[ir]);
   }
 }
 
@@ -1795,7 +1797,7 @@ road.prototype.updateSpeedPositions=function(){
 // returns true if change took place
 //######################################################################
 
-road.prototype.changeLanes=function(){
+road.prototype.changeLanes=function(allowRight, allowLeft){
 
   // (2023-04-14) the transitions between the roads
   // (BC, mergeDiverge, connect may have left some disorder  
@@ -1854,10 +1856,18 @@ road.prototype.doChangesInDirection=function(toRight){
 		  ? "true" : "false",
 		  "");
     }
-		  
-    if(beyondStart && outsideLCban && (this.veh[i].isRegularVeh())){
-    //if(beyondStart  && (this.veh[i].isRegularVeh())){
 
+    // MT 2023-04 optionally restrict LC by tactical considerations
+    // to not change to a closed lane
+
+
+    
+    if(beyondStart && outsideLCban && (this.veh[i].isRegularVeh())
+       &&(!(this.veh[i].LCbanRight&&toRight))
+       &&(!(this.veh[i].LCbanLeft&&(!toRight))) )
+    {
+ 
+    //if(beyondStart && outsideLCban && (this.veh[i].isRegularVeh())){
 
       // test if there is a target lane 
       // and if last change is sufficiently long ago
@@ -3796,19 +3806,30 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 /*####################################################
  distribute model parameters updated from  GUI to all vehicles
 
-  * LCModelMandatory will be divided into ...Right and ...Left inside
+  * LCModelMandatory and longModelCar/Truck defined in control_gui.js
 
-  * For preparing offramp diverges, a pair of new tactical models 
-    LCModelTactical and longModelTacticalCar/Truck  
-    will be constructed from the mandatory LC models and the longModels
-    with the "new" operator. Necessary because otherwise v0 reduction
-    of tactical models will be "copied" to all models since references!
+  * LCModelMandatory and LCModelTactical will be divided into ...Right 
+    and ...Left her and all derived (deep-copy) from LCModelMandatory.
+    The same with longModelTacticalCar/Truck
 
   * Mandatory models apply to all vehicles in a certain range, tactical
     models only for the vehicles with corresponding routes in a certain range
 
-  * No tactical lane changes for onramps! use this.setLCModelsInRange(.)
-    if there is need (only for multilane-onramps)
+  * Here, the appropriate models  will be deep-copied to the vehicles
+
+  * tactical lane changes for onramps (only relevant for multilane)
+    and offramps (always relevant). 
+    !! Unconditional LCbias for the appropriate routing, may be less than
+    optimal for multilane diverges. If so, use laneInfo=[] as in the
+    tactical connect preparation
+
+  * With the new tactical model setting in preparation to connect
+    virtual standing vehs at the lane ends no longer needed
+
+  * if updateModelsOfAllVehicles does not work for certain situations, 
+    override it by calling
+    road.setLCMandatory(.) or road.setLCModelsInRange(.) 
+    in the main program after this
 
 //####################################################
 */
@@ -3817,14 +3838,6 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 						  LCModelCar,LCModelTruck,
 						  LCModelMandatory){
 
- //console.log("road.updateModelsOfAllVehicles: LCModelMandatory="+
-  //		LCModelMandatory);
-
-
-
-  
-  // mandatory LC: distributed to the vehicles e.g. in setLCMandatory
-
     this.longModelTacticalCar=new ACC(longModelCar.v0,longModelCar.T,
 				      longModelCar.s0,longModelCar.a,
 				      longModelCar.b);
@@ -3832,8 +3845,9 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 				      longModelTruck.s0,longModelTruck.a,
 				      longModelTruck.b);
 
+  // reference issues nasty!!! (??LCModel.copy works??)
   
-    var LCModelMandatoryLoc  //!! reference issues nasty!!
+    var LCModelMandatoryLoc 
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
@@ -3847,7 +3861,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
 		   LCModelMandatoryLoc.p,
 		   LCModelMandatoryLoc.bThr, -LCModelMandatoryLoc.bBiasRight);
-    //console.log("road.LCModelMandatoryLeft="+this.LCModelMandatoryLeft);
+
     this.LCModelTacticalRight
 	=new MOBIL(LCModelMandatoryLoc.bSafe, LCModelMandatoryLoc.bSafeMax,
 		   LCModelMandatoryLoc.p,
@@ -3868,7 +3882,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
       this.veh[i].LCModel.copy((this.veh[i].type === "car")
 				 ? LCModelCar : LCModelTruck);
 
-      this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;//!!
+      this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;
     
       
       if(false){
@@ -3883,6 +3897,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
   
   //##########################################################
   // Tactical acceleration/LC for diverging and multi-lane Merging
+  // !! unconditional lane bias! not optimal for multi-lane merges/diverges
 
   for(var ir=0; ir<this.mergeDivergeInfo.length; ir++){
     var targetID=this.mergeDivergeInfo[ir].targetID;
@@ -3920,7 +3935,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	      =Math.max(0.1, (uLast-this.veh[i].u)/this.duTactical);
 	  }
 
-	  if(true){
+	  if(false){
 	    console.log(
 	      "road.updateModelsOfAllVehicles: apply tacticalLC to Veh"
 		+" id="+this.veh[i].id
@@ -3942,7 +3957,94 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
     }
   } // end new tactical accel and LC for diverges/multilane merges
 
+  
+  //##########################################################
+  // Tactical acceleration/LC for connections with lane closings
+  // dependent on the route
 
+
+  // reset tactical LC bans
+  
+  for(var i=0; i<this.veh.length; i++){
+    if(this.veh[i].isRegularVeh()){
+      this.veh[i].LCbanLeft=false;
+      this.veh[i].LCbanRight=false;
+    }
+  }
+  
+  for(var ir=0; ir<this.connectInfo.length; ir++){ //!!!!
+  //for(var ir=0; ir<0; ir++){
+    var targetID=this.connectInfo[ir].targetID;
+    var uConnect=this.connectInfo[ir].uSource; //!!!restrict uConnect=roadLen?
+    var offset=this.connectInfo[ir].offsetLane;
+    var targetNlanes=this.connectInfo[ir].targetNlanes;
+    
+    // for each lane: 1=closing but open to right, 0=through,
+    // -1=closing, open to left
+    
+    var laneInfo=[];
+    for(var il=0; il<this.nLanes; il++){
+      var ilNew=il+offset;
+      laneInfo[il]=(ilNew<0) ? 1 : (ilNew>=targetNlanes) ? -1 : 0;
+    }
+    if(false){ //!!!
+      console.log(
+	"road.updateModelsOfAllVehicles: new: apply tactical connectInfo");
+      console.log("itime=",itime,
+		  "targetID="+targetID,
+		  "uConnect="+uConnect.toFixed(1),
+		  "laneInfo=",laneInfo);
+    }
+
+    for(var i=0; i<this.veh.length; i++){
+      if( (this.veh[i].isRegularVeh())
+	  &&(this.veh[i].route.includes(targetID))){
+
+	var lane=this.veh[i].lane;
+	
+	// test if the veh is on a through lane for the target roadID and,
+	// if not, is inside the tactical range (dist< duTactical)
+
+	if((this.veh[i].u<uConnect)
+	   &&(this.veh[i].u>uConnect-this.duTactical)){
+
+
+          // if so, change lanes in the direction of the diverge 
+          // and, if offramp coming very near to "last exit", reduce speed
+
+	  if(laneInfo[lane]==-1){
+	    this.veh[i].LCModel=this.LCModelTacticalLeft;}
+	  if(laneInfo[lane]==+1){
+	    this.veh[i].LCModel =this.LCModelTacticalRight;}
+	  if((lane<this.nLanes-1)&&(laneInfo[lane+1]==-1)){
+	    this.veh[i].LCbanRight=true;}
+	  if((lane>0)&&(laneInfo[lane-1]==+1)){
+	    this.veh[i].LCbanLeft=true;}
+	}
+ 
+	if(false){
+	//if(this.veh[i].id==302){
+	  console.log(
+	    "road.updateModelsOfAllVehicles: apply connectInfo to Veh id",
+	    this.veh[i].id,
+	    "route="+this.veh[i].route,
+	    "u="+parseFloat(this.veh[i].u).toFixed(1),
+	    "uConnect="+uConnect.toFixed(1),
+	    "duTactical=",this.duTactical.toFixed(1),
+	    "lane=",lane,
+	    "laneInfo=",laneInfo,
+	    "bBiasRight="+this.veh[i].LCModel.bBiasRight,
+	    "");
+	}
+	
+      }
+
+    } // iveh loop for tactical connectinfo
+
+  }// end new tactical accel and LC as preparation for connects
+
+
+  
 
 }//updateModelsOfAllVehicles
 
@@ -4022,9 +4124,9 @@ see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
 
 */
 
-road.prototype.get_xPix=function(u,v,scale){
-    var phi=this.get_phi(u,this.traj);
-    return scale*(this.traj[0](u)+v*Math.sin(phi));
+road.prototype.get_xPix=function(u,v){
+  var phi=this.get_phi(u,this.traj);
+  return scale*(this.traj[0](u)+v*Math.sin(phi));
 }
 
 //######################################################################
@@ -4040,55 +4142,12 @@ see also this.findNearestDistanceTo(xUser,yUser)=>[dist,uReturn,vLanes]
 
 */
 
-road.prototype.get_yPix=function(u,v,scale){
+road.prototype.get_yPix=function(u,v){
     var phi=this.get_phi(u,this.traj);
     return -scale*(this.traj[1](u)-v*Math.cos(phi));
 }
 
 
-
-
-//######################################################################
-// helper functions for draw() drawing the taper sections 
-//######################################################################
-
- /*
-@param u: virtual coordinate beyond (onramp, >0) 
-          or before (offramp, <0) this.roadLen
-@param laneWidth: width of the ramp (only single-lane assumed)
-@param toRight: whether merge to the right
-@return: lateral offset in [0,laneWidth] (toRight=true) or [0,-laneWidth]
-*/
-
-road.prototype.taperMerge_v=function(u, toRight){
-  var res=(u<0.5*this.taperLen)
-      ? 2*this.laneWidth*Math.pow(u/this.taperLen,2)
-      : (u<this.taperLen)
-      ? this.laneWidth*(1-2*Math.pow((this.taperLen-u)/this.taperLen,2))
-      : 0;
-  //console.log("taperMerge_v: u=",u," res=",res, "return=", (( (toRight) ? 1 : -1)*res));
-  return ( (toRight) ? 1 : -1)*res;
-}
-
-road.prototype.taperDiverge_v=function(u, toRight){
-  return -this.taperMerge_v(-u, toRight);
-}
-
-
-// heading with respect to road axis
-// (functionally defined also before/after roadLen)
-// approx tan(phi)=phi
-// v>0 if to right=>phi=-gradient!!
-
-road.prototype.taperMerge_phi=function(u,toRight){
-  var du=1;
-  return(-0.5*(this.taperMerge_v(u+0.5*du,this.laneWidth,toRight)
-	       -this.taperMerge_v(u-0.5*du,this.laneWidth,toRight)));
-}
-  
-road.prototype.taperDiverge_phi=function (u, toRight){
-  return -this.taperMerge_phi(-u, toRight);
-}
 
 
 
@@ -4113,7 +4172,7 @@ road.prototype.taperDiverge_phi=function (u, toRight){
 @return draw into graphics context ctx (defined in calling routine)
 */
 
-road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
+road.prototype.draw=function(roadImg1,roadImg2,changedGeometry,
 			     umin,umax,
 			     movingObs,uObs,xObs,yObs){
 
@@ -4235,74 +4294,180 @@ road.prototype.draw=function(roadImg1,roadImg2,scale,changedGeometry,
 }// draw road
 
 
-// only for onramps and offramps, no influence on traffic flow dynamics!
-// not for moving observers
-// !! approximate merge angles << 1, so arclength=road axis length
 
-road.prototype.drawTaper=function(roadImg1, scale, isMerge, toRight){
+//######################################################################
+// helper functions for draw() drawing the taper sections 
+//######################################################################
 
+ /*
+s-shaped small segment that can be used for drawing tapers
+always starts at v=0 for u=0 and ends at v=laneIncr*this.laneWidth
+
+@param u:         virtual coordinate in [0, this.taperLen]
+@param laneIncr: v coordiate changes by laneIncr*this.laneWidth
+@return:          lateral offset with v(0)=0
+*/
+
+road.prototype.sShape_v=function(u, laneIncr){
+  var res=(u<0.5*this.taperLen)
+      ? 2*Math.pow(u/this.taperLen,2)
+      : (1-2*Math.pow((this.taperLen-u)/this.taperLen,2));
+  //if(itime==1){console.log("taperMerge_v: u=",u," res=",res);}
+  return laneIncr*this.laneWidth*res;
+}
+
+
+
+// relative heading of s-shaped segment with respect to road axis
+// !! since v>0 if to right we have phi=-gradient
+
+road.prototype.sShape_phi=function(u, laneIncr){
+  var du=1;
+  return(-0.5*(this.sShape_v(u+0.5*du,laneIncr)
+	       -this.sShape_v(u-0.5*du,laneIncr)));
+}
+  
+
+
+/* ###################################################################
+ draw tapers for general purposes, ramps, and connects
+onramps (u>=roadLen) and offramps (u<0)
+ no influence on traffic flow dynamics!
+@param laneIncr: lane number increment
+ !! not implemented for moving observers
+ !! approximate merge angles << 1, so arclength=road axis length
+ ###################################################################
+*/
+
+road.prototype.drawTaperRamp=function(roadImg1,  laneIncr, atRight){
+  //console.log("\nitime=",itime,"in .drawTaperRamp");
+  var isMerge=(laneIncr<0);
+  var uStart=(isMerge) ? this.roadLen : -this.taperLen;
+  var vStart=this.laneWidth*((atRight) ? 1 : -1) * 0.5*(this.nLanes-1);
+  if(laneIncr>0){vStart-=laneIncr*((atRight) ? 1 : -1) * this.laneWidth;}
+  var laneShift=(atRight) ? laneIncr : -laneIncr;
+  this.drawTaper(roadImg1,  laneShift, uStart, vStart);
+}
+
+
+road.prototype.drawTaperConnect=function(roadImg1,  targetID){
+
+  //var debug=((itime==2)&&(this.roadID==2));
+  var debug=false;
+  var ir=-1; // target road index
+  for(var i=0; i<this.connectInfo.length; i++){
+    if(this.connectInfo[i].targetID==targetID){ir=i;}
+  }
+
+  if(debug){
+	console.log("road.drawTaperConnect: roadID=",this.roadID,
+		    "targetID=",targetID," ir=",ir,
+		    "this.connectInfo[ir]=",this.connectInfo[0]);
+  }
+  
+  if(ir>-1){
+    var uSource=this.connectInfo[ir].uSource;
+    var incrLeft=this.connectInfo[ir].offsetLane;
+    var incrRight=-incrLeft
+	+this.connectInfo[ir].targetNlanes-this.nLanes;
+    
+    if(Math.abs(incrRight)>0){
+      var laneShift=incrRight;
+      var uStart=(incrRight>0) ? uSource-this.taperLen : uSource;
+      var vStart=this.laneWidth*0.5*(this.nLanes-1);
+      this.drawTaper(roadImg1,laneShift,uStart,vStart);
+      
+      if(debug){
+	console.log("road.drawTaperConnect: roadID=",this.roadID,
+		    "incrRight=",incrRight,
+		    "laneShift=",laneShift,
+		    "uStart=",uStart.toFixed(2),
+		    "vStart=",vStart.toFixed(2),
+		    "");
+      }
+      
+    }
+    if(Math.abs(incrLeft)>0){
+      var laneShift=-incrLeft;
+      var uStart=(incrLeft>0) ? uSource-this.taperLen : uSource;
+      var vStart=-this.laneWidth*0.5*(this.nLanes-1);
+      this.drawTaper(roadImg1,laneShift,uStart,vStart);
+      if(debug){
+	console.log("road.drawTaperConnect: roadID=",this.roadID,
+		    "incrLeft=",incrLeft,
+		    "laneShift=",laneShift,
+		    "uStart=",uStart.toFixed(2),
+		    "vStart=",vStart.toFixed(2),
+		    "");
+      }
+    }
+  }
+}
+
+
+// @param laneShift: lane index increment during the S-shape
+// beginning at uStart,vStart
+// taper width =|laneShift|*laneWidth+boundaryStripWidth
+
+road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
+
+  //var debug=((itime==1)&&(this.roadID==0));
+  var debug=false;
+  if(debug){console.log("road.drawTaper: laneShift=",laneShift,
+			"uStart=",uStart,"vStart=",vStart);}
   var lSegm=this.roadLen/this.nSegm;
-
-  //console.log("road.drawTaper: lSegm="+lSegm);
-
-
+  var abs_shiftv=Math.abs(laneShift)*this.laneWidth;
   var boundaryStripWidth=0.3*this.laneWidth;
 
-  var draw_curvMax=0.04; // curvature radius 25 m
-  var factor=Math.min(1.5, // " stitch factor" for drawing
-		      1+this.nLanes*this.laneWidth*draw_curvMax); 
+  // " stitch factor" for drawing, curvature radius >=25 m
+  
+  var draw_curvMax=0.04;
+  var factor=Math.min(1.5, 1+abs_shiftv*draw_curvMax); 
 
 
     // actual drawing routine
 
   var nSegmTaper=Math.floor(this.taperLen/lSegm);
-  if(false){
-    console.log(
-      "road.drawTaper: ID="+this.roadID,
-      "this.taperLen=",this.taperLen,
-      "lSegm=",lSegm,
-      "nSegmTaper=",nSegmTaper,
-      "this.laneWidth=",this.laneWidth,
-    "");
-  }
 
   var lSegmPix=scale*factor*lSegm;
-  var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
+  var wSegmPix=scale*(abs_shiftv+boundaryStripWidth);
   
   for (var iSegm=0; iSegm<nSegmTaper; iSegm++){
     var du=this.taperLen*(iSegm+0.5)/nSegmTaper;
-    if(!isMerge){du*=-1;}
-    var u=(isMerge) ? this.roadLen+du : du;
-    var dv=(isMerge)
-	? this.taperMerge_v(du,toRight)
-	: this.taperDiverge_v(du,toRight);
-    var dphi=(isMerge)
-	? this.taperMerge_phi(du,toRight)
-	: this.taperDiverge_phi(du,toRight);
+    var u=uStart+du;
+
+    //if(this.roadID==10){console.log("u=",u," du=",du);}
+    var dv=this.sShape_v(du,laneShift);
+    
+    var dphi=this.sShape_phi(du,laneShift)
     var phi=this.get_phi(u,this.traj)+dphi;
+    
     var cosphi=Math.cos(phi);
     var sinphi=Math.sin(phi);
-    var xCenterPix= scale*(this.traj[0](u)+sinphi*dv);
-    var yCenterPix=-scale*(this.traj[1](u)-cosphi*dv);
+    var xCenterPix=this.get_xPix(u,vStart)+scale*sinphi*dv;
+    var yCenterPix=this.get_yPix(u,vStart)+scale*cosphi*dv; // (-1)*(-1)
 
 
     ctx.setTransform(cosphi, +sinphi, -sinphi, cosphi, xCenterPix,yCenterPix);
     ctx.drawImage(roadImg1, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 
  
-    //if(itime==1){
-    if(false){
+    if(debug){
+    //if(false){
       console.log(
 	"road.drawTaper: roadID="+this.roadID," iSegm="+iSegm,
 	//" lSegmPix="+formd(lSegmPix)," wSegmPix="+formd(wSegmPix),
+	"u=",u.toFixed(2),
+	"vStart=",vStart.toFixed(2),
+	//"this.get_xPix(u,vStart)=",this.get_xPix(u,vStart),
 	"du=",du.toFixed(2),
 	"dv=",dv.toFixed(2),
 	"dphi=",dphi.toFixed(2),
 	"phi=",phi.toFixed(2),
-	"scale=",scale.toFixed(2),
+//	"scale=",scale.toFixed(2),
 	"xCenterPix=",xCenterPix.toFixed(0),
 	"yCenterPix=",yCenterPix.toFixed(0),
-	"this.traj[1](u)=",this.traj[1](u).toFixed(2),
+	""
       );
     }
   }
@@ -4311,7 +4476,7 @@ road.prototype.drawTaper=function(roadImg1, scale, isMerge, toRight){
 
 // separately because otherwise later roads overwrite road ID
 
-road.prototype.drawRoadID=function(scale){
+road.prototype.drawRoadID=function(){
     var xCenterPix= scale*this.traj[0](0.5*this.roadLen);
     var yCenterPix=-scale*this.traj[1](0.5*this.roadLen);
     var textsize=0.022*Math.min(canvas.width,canvas.height);
@@ -4373,7 +4538,7 @@ have special appearance according to
 
 
 
-road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
+road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, 
 				     speedmin,speedmax,umin,umax,
 				     movingObs, uObs, xObs, yObs,
 				     upright){
@@ -4418,7 +4583,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
       // this only used for checkForCrashes and here for testing
 
       var testTraj=this.getTraj(this.veh[i]); 
-      this.drawVehicle(i,carImg, truckImg, obstacleImg, scale,
+      this.drawVehicle(i,carImg, truckImg, obstacleImg, 
 			 speedmin,speedmax,[this.usedTraj_x,this.usedTraj_y],
 			 xOffset,yOffset,upright);
 
@@ -4451,7 +4616,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg, scale,
 */
 
 
-road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, scale,
+road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, 
 				    speedmin,speedmax,traj,
 				    xOffset,yOffset,upright){
 
@@ -4724,9 +4889,11 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
 road.prototype.dropObject=function(trafficObj){
   var u=trafficObj.u;
   var lane=trafficObj.lane;
-  console.log("itime="+itime,
-	      " in road.dropObject: trafficObj.u="+u,
-	      " trafficObj.lane="+lane," this.nLanes="+this.nLanes);
+  if(false){
+    console.log("itime="+itime,
+	        " in road.dropObject: trafficObj.u="+u,
+	        " trafficObj.lane="+lane," this.nLanes="+this.nLanes);
+  }
 
 
   // construct normal road vehicle/obstacle from depot object

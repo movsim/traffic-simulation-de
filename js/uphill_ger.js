@@ -544,13 +544,13 @@ function drawSim() {
 
     
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+  mainroad.draw(roadImg1,roadImg2,changedGeometry);
 
 
  
   // (4) draw vehicles (obstacleImg here empty, only needed for interface)
 
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,vmin_col,vmax_col);
 
   // (4a) draw traffic signs (banButtonClicked => control_gui.js) MT 2020-01
   //console.log("banButtonClicked=",banButtonClicked," banIsActive=",banIsActive);
@@ -560,12 +560,12 @@ function drawSim() {
     var sizeSignPix=0.1*refSizePix;
     var vOffset=1.4*nLanes_main*laneWidth; // in v direction, pos if right
 
-    var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,scale);
-    var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,scale);
-    var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,scale);
-    var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,scale);
-    var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
-    var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,scale);
+    var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,);
+    var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,);
+    var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,);
+    var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,);
+    var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,);
+    var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,);
 
         // center sign (the drawing coords denote the left upper corner)
 
@@ -587,7 +587,7 @@ function drawSim() {
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

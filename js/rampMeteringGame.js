@@ -553,7 +553,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
     trafficObjs.xRelDepot=(canvas.width/canvas.height<critAspectRatio)
       ? 0.35 : 0.35*canvas.height/canvas.width*1.7;
     trafficObjs.calcDepotPositions(canvas);
@@ -730,13 +730,13 @@ function drawSim() {
   
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
-  ramp.draw(rampImg,rampImg,scale,changedGeometry,
+  ramp.draw(rampImg,rampImg,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
 	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
 	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0)); 
 
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+  mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
@@ -753,7 +753,7 @@ function drawSim() {
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
   // here only example for complete args (only in coffeemeterGame relevant
 
-  ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+  ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 		    vmin_col,vmax_col,
 		    0,ramp.roadLen,
 		    movingObserver,0,
@@ -761,7 +761,7 @@ function drawSim() {
 		    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col,
 			0,mainroad.roadLen,
 			movingObserver,uObs,center_xPhys,center_yPhys);
@@ -769,7 +769,7 @@ function drawSim() {
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box
@@ -791,7 +791,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
-    var scaleStr=" scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;

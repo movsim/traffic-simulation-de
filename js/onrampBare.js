@@ -306,8 +306,8 @@ rampImg=roadImgs1[nLanes_rmp-1];
 
 var smallerDimPix=Math.min(canvas.width,canvas.height);
 var depot=new ObstacleTLDepot(obstacleImgs.length, 2,2,
-			   0.7*smallerDimPix/scale,
-			   -0.5*smallerDimPix/scale,
+			   0.7*smallerDimPix/
+			   -0.5*smallerDimPix/
 			   30,30,true);
 
 
@@ -473,13 +473,13 @@ function drawSim() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
-    ramp.draw(rampImg,rampImg,scale,changedGeometry,
+    ramp.draw(rampImg,rampImg,changedGeometry,
 		movingObserver,0, 
 		center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
 		center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
     ramp.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+    mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		  movingObserver,uObs,center_xPhys,center_yPhys); 
     mainroad.drawTrafficLights(traffLightRedImg,traffLightGreenImg);//!!!
 
@@ -487,21 +487,21 @@ function drawSim() {
  
     // (4) draw vehicles
 
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col,0,ramp.roadLen,
 			movingObserver,0,
 			center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
 			center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0));
 
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			  vmin_col,vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
     // (5) !!! draw depot vehicles
 
    if(userCanDropObjects&&(!isSmartphone)){
-	depot.draw(obstacleImgs,scale,canvas);
+	depot.draw(obstacleImgs,canvas);
     }
 
 

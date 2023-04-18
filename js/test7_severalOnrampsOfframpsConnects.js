@@ -327,7 +327,7 @@ for(var ir=0; ir<nLanes.length; ir++){
 
 // set tactical information for the ramps
 // to implement tactical behaviour and/or drawing tapers
-// (this.drawTaper)
+// (this.drawTaperRamp)
 // road.initMergeDiverge([targetRoads],[isMerge],
 //                       [mergeDivergeLen], [uLast], [toRight]);
 
@@ -337,13 +337,15 @@ network[6].initMergeDiverge([network[10]], [false],[lenMergeDiverge],
 
 
 // set tactical lane changes and decelerations for the connectors (nodes)
-// where tactical behaviour and/or drawing tapers (this.drawTaperConnect)
+// where tactical behaviour and/or drawing tapers (this.drawTaperRampConnect)
 // is required
-// initConnect(targetRoads, uSource, offsetLane, LCbias)
-// LCbias in {-1=left,0=neutral,1=right}
-// for lanes to be closed, LCbias is set automatically if LCbias=0
+// initConnect(targetRoads, uSource, offsetLane, LCbiasIndex)
+// LCbiasIndex in {-1=left,0=neutral,1=right}
+// for lanes to be closed, LCbias is set automatically if LCbiasIndex=0
+// not all connectors need tactical info, e.g. not needed for network[11]
 
 network[0].initConnect([network[1]],[network[0].roadLen],[offsetLane[1]],[0]);
+network[2].initConnect([network[3]],[network[2].roadLen],[offsetLane[3]],[0]);
 network[3].initConnect([network[4]],[network[3].roadLen],[offsetLane[4]],[0]);
 network[4].initConnect([network[5]],[network[4].roadLen],[offsetLane[5]],[0]);
 network[6].initConnect([network[7],network[8]],
@@ -357,11 +359,13 @@ network[6].initConnect([network[7],network[8]],
 var route0_0=[0,1,2,3,4,5,6,7];  // mainroad, diverge down at the end
 var route0_1=[0,1,2,3,4,5,6,8];  // mainroad, diverge up at the end
 var route0_2=[0,1,2,3,4,5,6,10]; // mainroad, then offramp 10
-var route9_0=[9,6,8];            // onramp, diverge up at the end
-var route11_0=[11,6,8];           // second mainroad, diverge up at the end
+var route9_0=[9,6,8];            // onramp, up at the end
+var route9_1=[9,6,7];            // onramp, down at the end
+var route11_0=[11,6,8];          // second mainroad, up at the end
+var route11_1=[11,6,7];          // second mainroad, down at the end
 var routes_source0=[route0_0,route0_1,route0_2];
-var routes_source9=[route9_0];
-var routes_source11=[route11_0];
+var routes_source9=[route9_0,route9_1];
+var routes_source11=[route11_0,route11_1];
 var routesFrac_source0=[0.4,0.4,0.3]; // must be of same length
 
 function getRoute(routes, routesFrac){
@@ -406,7 +410,7 @@ for(var il=0; il<nLanes[9]; il++){
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
+//detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
 
 
 //</NETWORK>
@@ -538,7 +542,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
  
     trafficObjs.calcDepotPositions(canvas);
   }
@@ -582,47 +586,35 @@ function updateSim(){
   for(var ir=0; ir<network.length; ir++){network[ir].calcAccelerations();}
 
   
-  // (3b) transitions between roads: templates:
-  //      road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)  
-  //      road.connect(target, uSource, uTarget, offsetLane, conflicts)
 
-  // (3b1) upstream/inflow BC
+  // (3b) upstream/inflow BC (getRoute selects routes according to OD matrix)
   
   var route0=getRoute(routes_source0, routesFrac_source0);
+  var route9=getRoute(routes_source9, [0.9,0.1]);  // [fracUp,fracDown]
+  var route11=getRoute(routes_source11, [0.5,0.5]);  // [fracUp,fracDown]
   network[0].updateBCup(qIn,dt,route0); // qIn=qTot, route is optional arg
-  network[9].updateBCup(q9,dt,route9_0); 
-  network[11].updateBCup(q11,dt,route11_0);
+  network[9].updateBCup(q9,dt,route9); 
+  network[11].updateBCup(q11,dt,route11);
 
   
-  // (3b2) connecting links ends
+  // (3c) connecting links ends
   // road.connect(target, uSource, uTarget, offsetLane, conflicts)
 
-  // mainroad
+  // mainroad 1 linear
   for(var ir=0; ir<6; ir++){
     network[ir].connect(network[ir+1],network[ir].roadLen,0,
 			offsetLane[ir+1],[]);
   }
-
-  // 4->2+2 fork
-  // need to set tactical lane changes for lane selection in time
-  // road.setLCModelsInRange(umin,umax,LCModelCar,LCModelTruck,nextRoadID)
-  
-  network[6].setLCModelsInRange(
-    0,network[6].roadLen,
-    network[6].LCModelTacticalRight,network[6].LCModelTacticalRight, 7);
-  network[6].setLCModelsInRange(
-    0,network[6].roadLen,
-    network[6].LCModelTacticalLeft, network[6].LCModelTacticalLeft, 8);
-
+  // mainroad 1 fork
   network[6].connect(network[7],network[6].roadLen,0,offsetLane[7],[]);
   network[6].connect(network[8],network[6].roadLen,0,0,[]); // offsetLane=0
 
-  // connect the two mainroads
+  // connect mainroad 2 -> mainroad 1
   network[11].connect(network[6],network[11].roadLen,0,0,[]);
   
 
   
-  // (3b3) merges and diverges
+  // (3d) merges and diverges
   // road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
   
   // onramp (for multilane-onramp set tactical lane changes via
@@ -665,7 +657,7 @@ function updateSim(){
   // updateSim (5): test code/debug output
 
   //if(time<38.5){
-  if(true){
+  if(false){
     debugVeh(1018,network);
   }
 
@@ -673,7 +665,7 @@ function updateSim(){
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
   
-  // dropping of traffic lights in onramp.js
+  // templae for dropping traffic lights in onramp.js
 
   // drop speed limits here
   
@@ -705,11 +697,11 @@ function updateSim(){
       trafficObjs.dropObject(speedL1,network,
 			     network[3].traj[0](udrop1),
 			     network[3].traj[1](udrop1),
-			     20,scale);
+			     20,);
       trafficObjs.dropObject(speedL2,network,
 			     network[3].traj[0](udrop2),
 			     network[3].traj[1](udrop2),
-			     20,scale);
+			     20,);
     }
   }
 
@@ -752,37 +744,45 @@ function drawSim() {
 
   // drawSim (3): draw road network
   
-  //var changedGeometry=hasChanged||(itime<=1); 
-  var changedGeometry=(itime<=1); // if no physical change of road lengths
+   var changedGeometry=(itime<=1); // if no physical change of road lengths
 
-  // road.draw(img1,img2,scale,changedGeometry,
+
+  // purely optical: road.drawTaperRamp(roadImg,  laneIncr, atRight)
+  // purely optical: road.drawTaper(roadImg,  laneShift, uStart, vStart)
+
+  network[9].drawTaperRamp(roadImg1[9], -1, false);
+  network[10].drawTaperRamp(roadImg1[10], 1, true);
+
+  network[0].drawTaperConnect(roadImg1[10], 1);
+  network[2].drawTaperConnect(roadImg1[10], 3);
+  network[3].drawTaperConnect(roadImg1[10], 4);
+  network[4].drawTaperConnect(roadImg1[10], 5);
+
+  
+  // road.draw(img1,img2,changedGeometry,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
-  // second arg line optional, only for moving observer
-
-  // purely optical: road.drawTaper (roadImg1, scale, isMerge, toRight)
-  network[9].drawTaper(roadImg1[9], scale, true, true);
-  network[10].drawTaper(roadImg1[10], scale, false, true);
+  //           second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].draw(roadImg1[ir],roadImg2[ir],scale,changedGeometry);
+    network[ir].draw(roadImg1[ir],roadImg2[ir],changedGeometry);
   }
 
   
   if(drawRoadIDs){// separate loop because of visibility
     for(var ir=0; ir<network.length; ir++){
-      network[ir].drawRoadID(scale);
+      network[ir].drawRoadID();
     }
   }
 
   
   // drawSim (4): draw vehicles
 
-  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  // road.drawVehicles(carImg,truckImg,obstImgs,vmin_col,vmax_col,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
-  // second arg line optional, only for moving observer
+  //           second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col);
   }
 
@@ -791,7 +791,7 @@ function drawSim() {
   // drawSim (5): draw changeable traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box
@@ -839,9 +839,10 @@ function main_loop() {
 // THIS function does all the things; everything else 
 // only functions/definitions
 // triggers:
-// (i) automatically when loading the simulation 
+// (i)  automatically when loading the simulation
+//      (all js are loaded/executed, setInterval(.) is last of all)
 // (ii) when pressing the start button in *gui.js
-//  ("myRun=setInterval(main_loop, 1000/fps);")
+//      ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
 console.log("first main execution");

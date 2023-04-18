@@ -140,7 +140,7 @@ function displayEgoVehInfo(){
 // slider*.value gives actual value (e.g. for use in html and sim js)
 
 
-// sizePhys (=scale) slider
+// sizePhys (=) slider
 
 var slider_sizePhys = document.getElementById("slider_sizePhys");
 var slider_sizePhysVal = document.getElementById("slider_sizePhysVal");

@@ -57,7 +57,7 @@ function canvas_resize(canvas,limAspectRatio){
 	scale=refDim/refSizePhys;  
 	console.log(" canvasresize: width=",canvas.width,
 		    " height=",canvas.height," refDim=",
-		    refDim," refSizePhys=",refSizePhys," scale=",scale);
+		    refDim," refSizePhys=",refSizePhys," scale=",);
     }
     return hasChanged;
 }

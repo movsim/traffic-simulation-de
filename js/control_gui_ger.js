@@ -487,7 +487,7 @@ if(document.getElementById("slider_timewarp")!==null){
 // scale slider
 
 var scale=2.3;  // pixel/m
-var slider_scale,slider_scaleVal;
+var slider_slider_scaleVal;
 if(document.getElementById("slider_scale")!==null) {
     slider_scale= document.getElementById("slider_scale");
     slider_scaleVal = document.getElementById("slider_scaleVal");

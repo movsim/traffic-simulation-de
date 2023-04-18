@@ -766,24 +766,24 @@ function drawSim() {
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1);
   for(var ir=0; ir<network.length; ir++){
     network[ir].draw(roadImages[ir][0],roadImages[ir][1],
-		    scale,changedGeometry);
+		    changedGeometry);
   }
 
   if(drawRoadIDs){  
     for(var ir=0; ir<network.length; ir++){
-      network[ir].drawRoadID(scale);
+      network[ir].drawRoadID();
     }
   }
 
    
   // (4) draw vehicles !! degree of smooth changing: fracLaneOptical
 
-  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  // road.drawVehicles(carImg,truckImg,obstImgs,vmin_col,vmax_col,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){
-    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
 			    vmin_col,vmax_col);
   }
 
@@ -792,7 +792,7 @@ function drawSim() {
   // (zoomback is better in sim!)
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   ctx.setTransform(1,0,0,1,0,0); // speedlimit-change select box

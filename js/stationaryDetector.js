@@ -139,8 +139,8 @@ stationaryDetector.prototype.display=function(textsize){
     var roadWidth=this.road.nLanes*this.road.laneWidth;
     //var toRight_axis=-(1.1+0.8*Math.abs(sphi))*roadWidth;
     var toRight_axis=-0.5*roadWidth-(2.2+1.8*Math.abs(sphi))*laneWidth;
-    var xPixCenter=this.road.get_xPix(this.u, toRight_axis,scale);
-    var yPixCenter=this.road.get_yPix(this.u, toRight_axis,scale);
+    var xPixCenter=this.road.get_xPix(this.u, toRight_axis);
+    var yPixCenter=this.road.get_yPix(this.u, toRight_axis);
     var boxWidth=8.2*textsize;
     var boxHeight=3.6*textsize;
 

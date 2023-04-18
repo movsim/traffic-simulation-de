@@ -499,23 +499,23 @@ function drawSim() {
   // (3) draw mainroad and ramps (offramp "bridge" => draw last)
   // and vehicles (directly after frawing resp road or separately, depends)
   // changedGeometry=true builds new pixel lookup table
-  // drawTaper (roadImg1, scale, isMerge, toRight)
+  // drawTaperRamp (roadImg1,  isMerge, toRight)
   // has purely graphical purposes
 
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-  ramp.draw(rampImg,rampImg,scale,changedGeometry);
-  ramp.drawTaper(rampImg,scale,false,true);
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+  ramp.draw(rampImg,rampImg,changedGeometry);
+  ramp.drawTaperRamp(rampImg,false,true);
+  mainroad.draw(roadImg1,roadImg2,changedGeometry);
 
     // (4) draw vehicles
 
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,vmin_col,vmax_col);
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,vmin_col,vmax_col);
 
    // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

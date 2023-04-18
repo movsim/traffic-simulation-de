@@ -349,7 +349,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
  
     trafficObjs.calcDepotPositions(canvas);
   }
@@ -481,29 +481,29 @@ function drawSim() {
   //var changedGeometry=hasChanged||(itime<=1); 
   var changedGeometry=(itime<=1); // if no physical change of road lengths
 
-  // road.draw(img1,img2,scale,changedGeometry,
+  // road.draw(img1,img2,changedGeometry,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].draw(roadImg1,roadImg2,scale,changedGeometry);
+    network[ir].draw(roadImg1,roadImg2,changedGeometry);
   }
 
   if(drawRoadIDs){// separate loop because of visibility
     for(var ir=0; ir<network.length; ir++){
-      network[ir].drawRoadID(scale);
+      network[ir].drawRoadID();
     }
   }
 
   
   // drawSim (4): draw vehicles
 
-  // road.drawVehicles(carImg,truckImg,obstImgs,scale,vmin_col,vmax_col,
+  // road.drawVehicles(carImg,truckImg,obstImgs,vmin_col,vmax_col,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col);
   }
 
@@ -512,7 +512,7 @@ function drawSim() {
   // drawSim (5): draw changeable traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

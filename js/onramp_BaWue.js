@@ -685,25 +685,25 @@ function drawSim() {
   // Otherwise, road drawn at old position
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
-  ramp.draw(rampImg,rampImg,scale,changedGeometry);
+  ramp.draw(rampImg,rampImg,changedGeometry);
 	//	movingObserver,0, 
 	//	center_xPhys-mainroad.traj_x(uObs)+ramp.traj_x(0),
 	//	center_yPhys-mainroad.traj_y(uObs)+ramp.traj_y(0)); 
 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry); 
+    mainroad.draw(roadImg1,roadImg2,changedGeometry); 
 
 
  
     // (4) draw vehicles
 
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col,0,ramp.roadLen,
 			movingObserver,0,
 			center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
 			center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			  vmin_col,vmax_col,0,mainroad.roadLen,
 			  movingObserver,uObs,center_xPhys,center_yPhys);
 
@@ -711,7 +711,7 @@ function drawSim() {
    // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

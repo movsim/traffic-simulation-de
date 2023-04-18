@@ -461,7 +461,7 @@ function finishDistortOrDropObject(xUser, yUser){
     var distCrit_m=20;  // optimize!!
     var distCritPix=distCrit_m*scale;
     trafficObjs.dropObject(trafficObject, network, 
-			   xUser, yUser, distCritPix, scale);
+			   xUser, yUser, distCritPix, );
     trafficObjPicked=false;
     console.log("  end finishDistortOrDropObject: dropped object!");
   }

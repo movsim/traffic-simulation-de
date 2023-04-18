@@ -507,19 +507,19 @@ function drawSim() {
 
     
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
+    mainroad.draw(roadImg1,roadImg2,changedGeometry);
 
 
  
     // (4) draw vehicles
 
-    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			  vmin_col, vmax_col);
     
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

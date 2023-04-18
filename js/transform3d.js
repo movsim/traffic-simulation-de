@@ -112,7 +112,7 @@ function proj3d_coordPix(dr, nShoot, cosrot, sinrot, f, nPix){
 		    "\n  e2Sensor=",e2Sensor,
 		    "\n  drLen=  ",parseFloat(drLen).toFixed(1),
 		    "\n  drParLen=  ",parseFloat(drParLen).toFixed(1),
-                    "\n  scale[Pix/m]=",parseFloat(scale).toFixed(2),
+                    "\n  scale[Pix/m]=",parseFloat().toFixed(2),
 		    "\n  final: xPix=",parseFloat(xPixRot).toFixed(0),
 		    " yPix=",parseFloat(yPixRot).toFixed(0)
 		   );
@@ -327,7 +327,7 @@ function affineTransformImage(dr0, dr1, dr2, nPix1, nPix2, nShoot,
 }
 
 
-/**
+/*
 affineTransformGraphics is as affineTransformImage but specialized for 
 (html5 canvas) graphics such as fillRect which are drawn 
 on a virtual surface at distance dr [physical coordinates]
@@ -357,7 +357,7 @@ the left top cormer of the image but the center of the image
                   arr[6], the success flag for regular completion
 */
 
-function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f, 
+function affineTransformGraphics(dr, e1, e2,  scale, nShoot, rotation, f, 
 				 screenSize ){
 
     //console.log("affineTransformGraphics: dr=",dr);
@@ -403,7 +403,7 @@ function affineTransformGraphics(dr, e1, e2, scale, nShoot, rotation, f,
 
     if(false){
 	console.log("in transform3d.affineTransformGraphics:",
-		    " scale=",scale," screenSize=",screenSize);
+		    " scale="," screenSize=",screenSize);
 	console.log("e1=",e1," e2=",e2);
 	console.log("dr1=",dr1," dr2=",dr2);
 	console.log("screenPixCenter=",screenPixCenter,

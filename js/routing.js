@@ -727,25 +727,25 @@ function drawSim() {
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
     //var changedGeometry=false; 
 
-  ramp.draw(rampImg,rampImg,scale,changedGeometry);
-  if(drawRoadIDs){ramp.drawRoadID(scale);}
-  ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  ramp.draw(rampImg,rampImg,changedGeometry);
+  if(drawRoadIDs){ramp.drawRoadID();}
+  ramp.drawVehicles(carImg,truckImg,obstacleImgs,vmin_col,vmax_col);
 
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
-  if(drawRoadIDs){mainroad.drawRoadID(scale);}
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
+  mainroad.draw(roadImg1,roadImg2,changedGeometry);
+  if(drawRoadIDs){mainroad.drawRoadID();}
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,vmin_col,vmax_col);
 
     // redraw first/last deviation vehicles obscured by mainroad drawing
  
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 			  vmin_col,vmax_col,0,lrampDev);
-    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 			   vmin_col,vmax_col,lDev-lrampDev, lDev);
 
    // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

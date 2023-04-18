@@ -482,7 +482,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
  
     trafficObjs.calcDepotPositions(canvas);
     if(true){
@@ -633,7 +633,9 @@ function updateSim(){
   
   // 
 
-  if(false){//!!
+  if(false){
+
+    // drop red traffic light
 
     //!! in different road operations (setSpeedlimit) order of
     // trafficObjs.trafficObj array changed in increasing u
@@ -648,9 +650,6 @@ function updateSim(){
 	TL=trafficObjs.trafficObj[iobj];
       }
     }
-    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
-
-    // drop red traffic light
 
     if(itime==1){
       var udrop=0.25*network[0].roadLen;
@@ -658,10 +657,10 @@ function updateSim(){
       trafficObjs.dropObject(TL,network,
 			     network[0].traj[0](udrop),
 			     network[0].traj[1](udrop),
-			     20,scale);
+			     20,);
     }
 
-    // switch TL to greem
+    // switch TL to green
 
     if(itime==100){
       console.log("set first TL to green");
@@ -723,22 +722,23 @@ function drawSim() {
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
   
-  ramp.draw(rampImg,rampImg,scale,changedGeometry,
+  ramp.draw(rampImg,rampImg,changedGeometry,
 	    0,ramp.roadLen,
 	    movingObserver,0,
 	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
 	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
-  // only graphical
-  ramp.drawTaper(rampImg, scale, true, false);
+  // only graphical: drawTaperRamp(roadImg1,  laneIncr, atRight)
 
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+  ramp.drawTaperRamp(rampImg,  -1, true);
+
+  mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
   if(drawRoadIDs){// separate loop because of visibility
     for(var ir=0; ir<network.length; ir++){
-      network[ir].drawRoadID(scale);
+      network[ir].drawRoadID();
     }
   }
 
@@ -746,7 +746,7 @@ function drawSim() {
   //!! all args at and after umin,umax=0,ramp.roadLen are optional
   // here only example for complete args (only in coffeemeterGame relevant
 
-  ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+  ramp.drawVehicles(carImg,truckImg,obstacleImgs,
 		    vmin_col,vmax_col,
 		    0,ramp.roadLen,
 		    movingObserver,0,
@@ -754,7 +754,7 @@ function drawSim() {
 		    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
 
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col,
 			0,mainroad.roadLen,
 			movingObserver,uObs,center_xPhys,center_yPhys);
@@ -762,7 +762,7 @@ function drawSim() {
   // (5a) draw traffic objects 
 
   if(userCanDropObjects&&(!isSmartphone)){
-    trafficObjs.draw(scale);
+    trafficObjs.draw();
   }
 
   // (5b) draw speedlimit-change select box

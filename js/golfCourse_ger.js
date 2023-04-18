@@ -434,7 +434,7 @@ function updateSim(){
       isSmartphone=mqSmartphone();
     }
 
-    updateDimensions(); // updates refsizePhys, -Pix, scale, geometry
+    updateDimensions(); // updates refsizePhys, -Pix,  geometry
  
     if(true){
       console.log("updateSim: haschanged=true: new canvas dimension: ",
@@ -626,7 +626,7 @@ function drawSim() {
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1)||true; 
 
 
-  mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+  mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		0,mainroad.roadLen,
 		movingObserver,uObs,center_xPhys,center_yPhys);
 
@@ -645,7 +645,7 @@ function drawSim() {
   // (relevant in coffeemeterGame, only), too
 
   var upright=true; // golfers shout not be upside down
-  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,
+  mainroad.drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col,
 			0,mainroad.roadLen,
 			movingObserver,uObs,center_xPhys,center_yPhys,upright);
@@ -670,7 +670,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
-    var scaleStr=" scale="+Math.round(10*scale)/10;
+    var scaleStr=" scale="+Math.round(10*)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;

@@ -1,5 +1,5 @@
 
-
+var downloadActive=false; //!!! no download functionality here
 
 //#############################################
 // model specifications and fixed settings 
@@ -249,7 +249,8 @@ var density=0;
 var speedInit=0; // not relevant since initially no vehicles
 var fracTruck=0; // not relevant since initially no vehicles
 
-var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,traj_x,traj_y, 
+var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,
+		      [traj_x,traj_y], 
 		      density, speedInit,fracTruck, isRing);
 console.log("mainroad.egoVeh=",mainroad.egoVeh);
 
@@ -541,7 +542,7 @@ function drawMovingBackground(uObs){
 	    " traj_y(uObs)=",traj_y(uObs),
 	    "\n  sizeBgPhys=",sizeBgPhys,
 	    "\n  lower tile: j=",iLowerTile," yTopPix=",yTopPix,
-	    "yTopPhys=",yTopPix/scale,
+	    "yTopPhys=",yTopPix/
 	    "\n  upper tile: j=",iLowerTile-1," yTopPix=",yTopPix-scale*sizeBgPhys,
 	    "yTopPhys=",yTopPix/scale-sizeBgPhys
 	   // "\nleft tile: i=",iLeftTile," xLeftPix=",xLeftPix,
@@ -652,7 +653,7 @@ function update(){
     mainroad.updateBCdown();
     mainroad.updateBCup(qIn,dt); // argument=total inflow
 
-    egoVeh.update(canvas,scale,egoControlRegion,
+    egoVeh.update(canvas,egoControlRegion,
 		  isOutside,xMouseCanvas,yMouseCanvas,dt);
     coffeemeter.updateSurface(egoVeh.aLat,egoVeh.aLong,dt);
  
@@ -704,11 +705,11 @@ function draw() {
     // change also drawMovingBackground accordingly
 
     var xObsRel=xBegin+traj_x(uObs)-traj_x(0);
-    mainroad.draw(roadImg1,roadImg2,scale,changedGeometry,
+    mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		  0,lenMainroad,relObserver,
 		  uObs,xObsRel,yBegin); //
 
-        mainroad.drawVehicles(carImg,truckImg,obstacleImg,scale,
+        mainroad.drawVehicles(carImg,truckImg,obstacleImg,
 			  vmin_colColormap,vmax_colColormap,0,lenMainroad,relObserver,
 			  uObs,xObsRel,yBegin);
     displayEgoVehInfo();
@@ -736,7 +737,7 @@ function resize() {
 	console.log("resize(): sizePhys=",sizePhys,
 		    " canvas.height=",canvas.height,
 		    " canvas.width=",canvas.width,
-		    " scale=",scale,
+		    " scale=",
 		    " ego_yRelPosition=",ego_yRelPosition,
 		    " uObs-ego.u=",uObs-mainroad.egoVeh.u);
     }

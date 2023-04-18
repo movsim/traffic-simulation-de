@@ -512,8 +512,8 @@ TrafficObjects.prototype.activate=function(obj, road, u){
     obj.u=u;
     //obj.lane=0.5*road.nLanes; // center, v=0
     obj.lane=0; // !!! 
-    obj.xPix=road.get_xPix(u,0,scale);
-    obj.yPix=road.get_yPix(u,0,scale);
+    obj.xPix=road.get_xPix(u,0);
+    obj.yPix=road.get_yPix(u,0);
     obj.inDepot=false;
     obj.isPicked=false;
     obj.isDragged=false;
@@ -602,13 +602,17 @@ calculate x,y by roads's trajectory and u and apply this.dropObject
 
 // needs global physical coordinates xUser yUser
 TrafficObjects.prototype.dropObject=function(obj, network, 
-				    xUser, yUser, distCritPix, scale){
+				    xUser, yUser, distCritPix, ){
 
-  console.log("itime=",itime
-	      ," in TrafficObjects.dropObject: obj.id=",obj.id,
-	      " obj.xPix=",obj.xPix,
-	      " network[0].roadID=",network[0].roadID);
-  console.log("inside dropObject begin: this.trafficObj[0]=",this.trafficObj[0]);
+  if(false){
+    console.log("itime=",itime
+	        ," in TrafficObjects.dropObject: obj.id=",obj.id,
+	        " obj.xPix=",obj.xPix,
+	        " network[0].roadID=",network[0].roadID);
+    console.log("inside dropObject begin: this.trafficObj[0]=",
+		this.trafficObj[0]);
+  }
+  
   // transform pointer to physical coordinates since road geometry
   // defined in these coordinates
   
@@ -663,10 +667,10 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   // pick obstacles at center => at position u-du
 
   if(success){
-    console.log("  success! roadID=",obj.road.roadID,
-		" obj.u=",obj.u," obj.lane=",obj.lane);
-    obj.xPix=road.get_xPix(obj.u-du, obj.lane, scale);
-    obj.yPix=road.get_yPix(obj.u-du, obj.lane, scale);
+    //console.log("  success! roadID=",obj.road.roadID,
+    //		" obj.u=",obj.u," obj.lane=",obj.lane);
+    obj.xPix=road.get_xPix(obj.u-du, obj.lane);
+    obj.yPix=road.get_yPix(obj.u-du, obj.lane);
   }
 
 
@@ -677,7 +681,7 @@ TrafficObjects.prototype.dropObject=function(obj, network,
   }
 
 
-  if(true){
+  if(false){
     console.log("  end TrafficObjects.dropObject: success=",success,
 		" nearest roadID=",road.roadID,
 	        " road.roadLen=",formd(road.roadLen),
@@ -686,9 +690,10 @@ TrafficObjects.prototype.dropObject=function(obj, network,
 	        //" obj.u=",formd(obj.u),
 	        //" obj.xPix=",formd0(obj.xPix),
 		"");
+    console.log("inside dropObject end: this.trafficObj[0]=",
+		this.trafficObj[0]);
   }
 
-  console.log("inside dropObject end: this.trafficObj[0]=",this.trafficObj[0]);
 
 } // dropObject
 
