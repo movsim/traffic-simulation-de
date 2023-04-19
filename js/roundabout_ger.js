@@ -425,7 +425,7 @@ for(var ir=0; ir<nLanes.length; ir++){
 //##################################################################
 
 
-var speedInit=20; // m/s
+speedInit=20; // m/s
 var density=0.00;
 
 //new road(ID,length,laneWidth,nLanes,traj_x,traj_y,

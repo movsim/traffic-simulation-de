@@ -409,8 +409,8 @@ for(var ir=0; ir<traj.length; ir++){
 //##################################################################
 
 
-var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-var speedInit=20;
+fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
+speedInit=20;
 density=0;
 var isRing=false;
 var roadIDs=[0,1,2,3,4,5];

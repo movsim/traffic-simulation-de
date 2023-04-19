@@ -48,11 +48,13 @@ density=0.0;         // nonzero value only sensible for ring or simple sims
 fracTruck=0.1;
 
 qIn=2000./3600;      // main flow [veh/h] controlled by GUI
-var q9=500./3600;    // inflow to link 9 (onramp)
-var q11=1000./3600;  // inflow to link 11 (second mainroad)
+var qOn=500./3600;    // inflow to link 9 (onramp)
+var q2=1000./3600;  // inflow to link 11 (second mainroad)
 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+setSlider(slider_qOn, slider_qInVal, 3600*qOn, commaDigits, "veh/h");
+setSlider(slider_q2, slider_qInVal, 3600*q2, commaDigits, "veh/h");
 
 timewarp=4;         // time-lapse factor 
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
@@ -311,8 +313,8 @@ var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
 
 // connections from road 0 to road 7 laneindex(ir-1)->laneindex(ir)
 var offsetLane=[0,1,0,1,-1,0,2,-3]; // laneindex(ir+1)-laneindex(ir)
-var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-var speedInit=20;
+fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
+speedInit=20;
 
 var duTactical=200; // anticipation distance for offramps
 
@@ -381,20 +383,19 @@ function getRoute(routes, routesFrac){
 }
 
 
-// roadIDs drawn in updateSim in separate loop because Xing roads
-// may cover roads drawn before and I alsways want to see the IDs
-
 for(var ir=0; ir<network.length; ir++){
   network[ir].setDriverVariation(driver_varcoeff);
   network[ir].drawVehIDs=drawVehIDs;
 }
 
 
-// !! add standing virtual vehicles at the end of links and onramps
+// add standing virtual vehicles at the end of links and onramps
 // where lanes are blocked for all routes 
 // unshift: add elem at i=0; shift: remove at i=0; push: add at end
 
+// ! now no longer needed, (!!! not even at onramp, why?)
 
+/*
 // vehicle(length, width, u, lane, speed, type)
 network[0].veh.unshift(
   new vehicle(0.01,laneWidth,network[0].roadLen,nLanes[0]-1,0, "obstacle"));
@@ -407,6 +408,7 @@ for(var il=0; il<nLanes[9]; il++){
   network[9].veh.unshift(
     new vehicle(0.01,laneWidth,network[9].roadLen,il,0, "obstacle"));
 }
+*/
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
@@ -587,18 +589,19 @@ function updateSim(){
 
   
 
-  // (3b) upstream/inflow BC (getRoute selects routes according to OD matrix)
+  // (3b) upstream/inflow BCup (getRoute:  routes according to OD matrix)
   
   var route0=getRoute(routes_source0, routesFrac_source0);
   var route9=getRoute(routes_source9, [0.9,0.1]);  // [fracUp,fracDown]
   var route11=getRoute(routes_source11, [0.5,0.5]);  // [fracUp,fracDown]
   network[0].updateBCup(qIn,dt,route0); // qIn=qTot, route is optional arg
-  network[9].updateBCup(q9,dt,route9); 
-  network[11].updateBCup(q11,dt,route11);
+  network[9].updateBCup(qOn,dt,route9); 
+  network[11].updateBCup(q2,dt,route11);
 
   
   // (3c) connecting links ends
-  // road.connect(target, uSource, uTarget, offsetLane, conflicts)
+  // road.connect(target, uSource, uTarget, offsetLane, conflicts,
+  //              opt_vmax, opt_targetPrio)
 
   // mainroad 1 linear
   for(var ir=0; ir<6; ir++){
@@ -615,7 +618,8 @@ function updateSim(){
 
   
   // (3d) merges and diverges
-  // road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+  // road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight,
+  //                   opt_ignoreRoute, opt_prioOther, opt_prioOwn)
   
   // onramp (for multilane-onramp set tactical lane changes via
   // source.setLCModelsInRange(.))
@@ -631,7 +635,7 @@ function updateSim(){
     u6_beginDiverge,u6_beginDiverge+lenMergeDiverge, false, true);
 
   
-  // (3b4) downstream BC
+  // (3e) downstream BC
   
   network[6].updateBCdown(); // remove erring vehicles
   network[7].updateBCdown(); 
@@ -639,7 +643,7 @@ function updateSim(){
   network[10].updateBCdown(); 
 
   
-  // (3c) actual motion (always at the end)
+  // (3f) actual motion (always at the end)
 
   for(var ir=0; ir<network.length; ir++){network[ir].updateLastLCtimes(dt);} 
   for(var ir=0; ir<network.length; ir++){network[ir].changeLanes();} 
@@ -656,17 +660,19 @@ function updateSim(){
   
   // updateSim (5): test code/debug output
 
-  //if(time<38.5){
   if(false){
-    debugVeh(1018,network);
+  //if((time>35)&&(time<38.0)){
+    debugVeh(204,network);
+    debugVeh(205,network);
   }
 
   
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
 
   
-  // templae for dropping traffic lights in onramp.js
-
+  // template for dropping traffic lights: onramp.js
+  // template for dropping speedL: test7_severalOnrampsOfframpsConnects.js
+ 
   // drop speed limits here
   
   if(true){
@@ -767,8 +773,11 @@ function drawSim() {
     network[ir].draw(roadImg1[ir],roadImg2[ir],changedGeometry);
   }
 
-  
-  if(drawRoadIDs){// separate loop because of visibility
+
+  // roadIDs drawn in updateSim in separate loop because Xing roads
+  // may cover roads drawn before and I alsways want to see the IDs
+
+  if(drawRoadIDs){
     for(var ir=0; ir<network.length; ir++){
       network[ir].drawRoadID();
     }

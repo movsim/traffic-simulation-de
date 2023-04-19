@@ -221,10 +221,10 @@ function traj_y(u){ // physical coordinates
 
 var isRing=false;  // 0: false; 1: true
 var roadID=1;
-var speedInit=20; // IC for speed
-var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+speedInit=20; // IC for speed
+fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
-var speedInit=20; // m/s
+speedInit=20; // m/s
 
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],

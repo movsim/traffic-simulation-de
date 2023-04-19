@@ -15,7 +15,7 @@ function debugVeh(id,network){
 		    "vehId="+veh.id,
 		    "roadId="+network[ir].roadID,
 		    "type="+veh.type,
-		    "route="+veh.route,
+		   // "route="+veh.route,
 		    "u="+veh.u.toFixed(1),
 		    "s="+s.toFixed(1),
 		    "roadLen-u="+(network[ir].roadLen-veh.u).toFixed(1),

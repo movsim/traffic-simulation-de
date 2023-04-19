@@ -348,9 +348,9 @@ function trajRamp_y(u){ // physical coordinates
 //##################################################################
 
 
-var speedInit=20; // m/s
+speedInit=20; // m/s
 var density=0.001;
-var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 var isRing=false; 
 

@@ -195,9 +195,9 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
-var speedInit=20; // IC for speed
+speedInit=20; // IC for speed
 
 var duTactical=310; // anticipation distance for applying mandatory LC rules
 

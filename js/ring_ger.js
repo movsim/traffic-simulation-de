@@ -149,8 +149,8 @@ var trajIn=[trajIn_x,trajIn_y];
 
 var isRing=true;  // 0: false; 1: true
 var roadID=1;
-var speedInit=20; // IC for speed
-var fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
+speedInit=20; // IC for speed
+fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing);
 

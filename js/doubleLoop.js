@@ -8,71 +8,94 @@ const userCanDropObjects=true;
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                       // definition => showLogicalCoords(.) in canvas_gui.js
                       // application: here at drawSim (7):  
+
+
 //#############################################################
 // general debug settings (set=false for public deployment)
 //#############################################################
 
 drawRoadIDs=true; // override control_gui.js; 
 drawVehIDs=true;  // override control_gui.js;
-                   // need to call later road.drawVehIDs=drawVehIDs
+                  // need to call later road.drawVehIDs=drawVehIDs
 
-var debug=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
                                // use it in updateSim (5)
+var debug=false;   // if true, then sim stops at crash (only for testing)
+
+
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-QnoiseAccel=0;            //[m^2/s^3] override default setting at models.js
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
-                          // need later override road setting by
-                          // calling road.setDriverVariation(.); 
+// white acceleration noise [m^2/s^3] overrides default setting at models.js
+
+QnoiseAccel=0;
+
+// coeff of variation sddev/avg for the IDM/ACC model parameters
+// desired speed v0 and acceleration a ("agility")
+// need later override road setting by calling road.setDriverVariation(.); 
+
+var driver_varcoeff=0.20;
+
 
 
 //#############################################################
-// adapt/override standard param settings from control_gui.js
+// global parameter settings/initialisations
+// (partly override standard param settings in control_gui.js)
 //#############################################################
 
-density=0;
+density=0.001; // defined in control_gui.js
+setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
 
-qIn=2000./3600; 
-commaDigits=0;
-setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+qIn=600./3600;
+setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
-timewarp=2;
+fracOff=0.5; /// 0.25
+setSlider(slider_fracOff, slider_fracOffVal, 100*fracOff, 0, "%");
+
+fracTruck=0.1; // no slider
+
+
+timewarp=4;         // time-lapse factor 
+commaDigits=1;
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 
 IDM_a=1.2
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, " m/s<sup>2</sup>");
 
-fracTruck=0.1;
+IDM_v0=60/3.6
+setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, " km/h");
+
+lenMergeDiverge=100; // if implementation of nodes by merges/diverges
+
+
 
 /*######################################################
- Global overall scenario settings and graphics objects
+ Global display settings
 
  refSizePhys  => reference size in m (generally smaller side of canvas)
  refSizePix   => reference size in pixel (generally smaller side of canvas)
+                 (will be set by the simulation)
  scale = refSizePix/refSizePhys 
-       => roads have full canvas regardless of refSizePhys, refSizePix
+              => roads have full canvas regardless of canvas size
 
- (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
+Notes:
 
- (2) refSizePhys smaller  => all phys roadlengths smaller
-  => vehicles and road widths appear bigger for a given screen size 
-  NOTICE: Unless refSizePhys is constant during sim,  
+  (1) refSizePix=Math.min(canvas.width, canvas.height) determined during run  
+
+  (2) refSizePhys smaller => vehicles and road widths appear bigger
+
+  (3) Unless refSizePhys is constant during sim,  
   updateDimensions needs to re-define  
   the complete infrastructure geometry at every change
 
-  Example: refSizePhys propto sqrt(refSizePix) => roads get more compact 
-  and vehicles get smaller, both on a sqrt basis
-
-  NOTICE: canvas has strange initialization of width=300 in firefox 
-  and DOS when try sizing in css (see there) only 
- 
+  (4) canvas has strange initialization of width=300 in firefox 
+  and DOS when try sizing in css (see there) only: 
   document.getElementById("contents").clientWidth; .clientHeight;
   always works!
 ######################################################*/
 
+var refSizePhys=200;              // reference size in m
 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
@@ -80,16 +103,14 @@ var ctx = canvas.getContext("2d"); // graphics context
 canvas.width  = simDivWindow.clientWidth; 
 canvas.height  = simDivWindow.clientHeight;
 
-console.log("before addTouchListeners()");
-addTouchListeners();
-console.log("after addTouchListeners()");
+addTouchListeners(); // clicking can be replaced by tapping.
+                     // dragging on touchscreens somehow does not work 
 
 
 // init overall scaling 
 
 var isSmartphone=mqSmartphone();  // from css; only influences text size
 
-var refSizePhys=150;              // reference size in m
 
 // these two must be updated in updateDimensions (aspectRatio != const)
 
@@ -103,8 +124,10 @@ var hasChanged=true;              // window dimensions have changed
 
 
 
-function updateDimensions(){ // if viewport->canvas or sizePhys changed
+function updateDimensions(){ // if viewport->canvas changed
 
+  // canvas always slightly landscape; only sliders etc change responsively
+  
   refSizePix=canvas.height;     // corresponds to pixel size of smaller side
   scale=refSizePix/refSizePhys;
   
@@ -120,88 +143,111 @@ function updateDimensions(){ // if viewport->canvas or sizePhys changed
 
 
 //##################################################################
-//<NETWORK>
-// Specification of physical road network and vehicle geometry
-// If viewport or refSizePhys changes => updateDimensions();
+//<NETWORK> Specification of physical road network and vehicle geometry
 //##################################################################
 
-// all relative "Rel" settings with respect to refSizePhys, not refSizePix!
+
+// specification of lane width and vehicle sizes
+
+var laneWidth=4; 
+var car_length=6;    // car length in m (all a bit oversize for visualisation)
+var car_width=2.5;     // car width in m
+var truck_length=11;
+var truck_width=3.5; 
 
 
-var center_xRel=0.5;   // 0: left, 1: right
-var center_yRel=-0.65;  // -1: bottom; 0: top
+// road axis geometry and number of lanes
+
+var center_xRel=0.40;   // 0: left, 1: right
+var center_yRel=-0.5;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
-var road0Len=0.47*refSizePhys*aspectRatio;
-var road1Len=0.47*refSizePhys*aspectRatio;
+var radius=0.35*refSizePhys;
+var lenStraight=0.20*refSizePhys;
 
+var lenRing=2*Math.PI*radius;
+var lenHalfRing=Math.PI*radius+2*lenStraight
 
-// specification of road width and vehicle sizes
+var roadLen=[lenRing,lenHalfRing];
 
-var laneWidth=5; 
-var car_length=6;    // car length in m (all a bit oversize for visualisation)
-var car_width=3;     // car width in m
-var truck_length=11;
-var truck_width=4; 
+var nLanes=[1,1];
+
 
 
 // def trajectories 
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
-function traj0_x(u){ // physical coordinates
-  return center_xPhys+u-road0Len;
+
+// The seven sections of the first main road
+
+function traj0_x(u){ // physical coordinates, stitch at left side
+  return center_xPhys+radius*Math.cos(Math.PI+u/radius);
 }
 
-function traj0_y(u){ 
-  return center_yPhys;
+function traj0_y(u){ // physical coordinates
+  return center_yPhys+radius*Math.sin(Math.PI+u/radius);
 }
+
 
 function traj1_x(u){ 
-  return center_xPhys+u;
+  return (u<lenStraight)
+    ? center_xPhys+u : (u<lenHalfRing-lenStraight)
+    ? center_xPhys+lenStraight
+    +radius*Math.cos(1.5*Math.PI+(u-lenStraight)/radius)
+    : center_xPhys+lenHalfRing-u;
 }
 
 function traj1_y(u){ 
-  return center_yPhys+laneWidth; // offsetLane=+1, see road.connect(...)
+  return (u<lenStraight)
+    ? center_yPhys-radius : (u<lenHalfRing-lenStraight)
+    ? center_yPhys+radius*Math.sin(1.5*Math.PI+(u-lenStraight)/radius)
+    : center_yPhys+radius;
 }
 
-var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y] ]; 
 
+
+var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y]];
 
 
 //##################################################################
-// Specification of logical road network: constructing the roads
+// Specification of logical road network and constructing the roads
 //##################################################################
 
 
-var nLanes_main=3;
-
-fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-speedInit=20;
-
-// roads
-// last opt arg "doGridding" left out (true:user can change road geometry)
-
-
-var isRing=false;
-var road0=new road(0,road0Len,laneWidth,nLanes_main,
-		   trajNet[0],
-		   density, speedInit,fracTruck, isRing);
-
-var road1=new road(1,road1Len,laneWidth,nLanes_main,
-		   trajNet[1],
-		   density, speedInit,fracTruck, isRing);
-
-var route1=[road0.roadID, road1.roadID];
-
+var duTactical=100; // anticipation distance for offramps
 
 // road network (network declared in canvas_gui.js)
 
-network[0]=road0; 
-network[1]=road1;
+var isRing=true;
 
-// roadIDs drawn in updateSim in separate loop because Xing roads
-// may cover roads drawn before and I alsways want to see the IDs
+network[0]=new road(0, roadLen[0], laneWidth, nLanes[0], trajNet[0],
+		      density,IDM_v0,fracTruck, !isRing); //!!!
+network[1]=new road(1, roadLen[1], laneWidth, nLanes[1], trajNet[1],
+		      0,IDM_v0,fracTruck, !isRing);
+
+// define routes and set them to the roads
+// (a more general stochastic selection
+// in test7_severalOnrampsOfframpsConnects)
+
+var route0=[0];      // just around the ring
+var route1=[0,1,0];  // use also the second ring segment
+var routes=[route0,route1];
+
+function getRoute(routes,fracOff){
+  var rnd=Math.random();
+  return (rnd<1-fracOff) ? routes[0] : routes[1];
+}
+
+for(var ir=0; ir<network.length; ir++){
+  for(var i=0; i<network[ir].veh.length; i++){
+    if(network[ir].veh[i].isRegularVeh()){
+      network[ir].veh[i].route=getRoute(routes,fracOff);
+    }
+  }
+}
+
+// set other road and driver attributes not set at constructor
 
 for(var ir=0; ir<network.length; ir++){
   network[ir].setDriverVariation(driver_varcoeff);
@@ -209,30 +255,41 @@ for(var ir=0; ir<network.length; ir++){
 }
 
 
-// add standing virtual vehicles at the end of links
-// where lanes are blocked for all routes 
-// unshift: add elem at i=0; shift: remove at i=0; push: add at end
+// test implementation of the nodes by merges and diverges
+// road.initMergeDiverge([targetRoads],[isMerge],
+//                       [mergeDivergeLen], [uLast], [toRight]);
 
+network[0].duTactical=duTactical;
+network[0].initMergeDiverge([network[1]], [false],[lenMergeDiverge],
+			    [0.25*roadLen[0]+lenMergeDiverge], [true]);
 
-// vehicle(length, width, u, lane, speed, type)
-var virtualStandingVeh
-    =new vehicle(0.01, laneWidth, road0.roadLen, nLanes_main-1, 0, "obstacle");
+// test implementation of the nodes by connectors
 
-road0.veh.unshift(virtualStandingVeh); //!!!!
+// initConnect(targetRoads, uSource, offsetLane, LCbiasIndex)
+// LCbiasIndex in {-1=left,0=neutral,1=right}
+// for lanes to be closed, LCbias is set automatically if LCbiasIndex=0
+// not all connectors need tactical info, e.g. not needed for network[11]
 
+network[0].initConnect([network[1]],[0.25*roadLen[0]],[0], [0]);
+network[1].initConnect([network[0]],[roadLen[1]],[0], [0]);
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
-detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
+//detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
+
 
 //</NETWORK>
 
 
 //#########################################################
-// model initialization (models and methods override control_gui.js)
+// model initialization
 //#########################################################
-	
-updateModels(); // defines longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+
+// constructs/updates a series of standard models
+// longModelCar,-Truck,LCModelCar,-Truck,-Mandatory
+// as defined in control_gui.js, possibly with overridden model parameters
+// if defined so in "global parameter settings/initialisations" above
+
+updateModels(); 
 
 
 //####################################################################
@@ -287,20 +344,23 @@ for (var i=0; i<10; i++){
 
 // init road images for 1 to 4 lanes
 
-roadImgs1 = []; // road with lane separating line
-roadImgs2 = []; // road without lane separating line
+roadImg1Lane = []; // template road image with lane separating line
+roadImg2Lane = []; // road without lane separating line
 
-for (var i=0; i<4; i++){
-    roadImgs1[i]=new Image();
-    roadImgs1[i].src="figs/road"+(i+1)+"lanesCropWith.png"
-    roadImgs2[i]=new Image();
-    roadImgs2[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
+for (var i=0; i<7; i++){
+    roadImg1Lane[i]=new Image();
+    roadImg1Lane[i].src="figs/road"+(i+1)+"lanesCropWith.png"
+    roadImg2Lane[i]=new Image();
+    roadImg2Lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
 }
 
-roadImg1 = new Image();
-roadImg1=roadImgs1[nLanes_main-1];
-roadImg2 = new Image();
-roadImg2=roadImgs2[nLanes_main-1];
+var roadImg1= []; // network road with lane separating line
+var roadImg2= []; // network road w/o lane separating line
+
+for(var ir=0; ir<network.length; ir++){
+  roadImg1[ir] = new Image(); roadImg1[ir]=roadImg1Lane[nLanes[ir]-1];
+  roadImg2[ir] = new Image(); roadImg2[ir]=roadImg2Lane[nLanes[ir]-1];
+}
 
 
 //############################################
@@ -308,11 +368,7 @@ roadImg2=roadImgs2[nLanes_main-1];
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.50,0.80,3,2);
-
-// !! Editor not yet finished
-// (then args xRelEditor,yRelEditor not relevant unless editor shown)
-//var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
+var trafficObjs=new TrafficObjects(canvas,1,3,0.40,0.50,3,2);
 
 
 
@@ -324,6 +380,7 @@ var time=0;
 var itime=0;
 var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
+
 
 
 //#################################################################
@@ -354,22 +411,8 @@ function updateSim(){
     trafficObjs.calcDepotPositions(canvas);
   }
  
-  // (1a) Test code
+  // updateSim: Test code at the end, point (5)
 
-  //if(time<38.5){
-  if(false){
-    for(var ir=0; ir<network.length; ir++){
-      for(var i=0; i<network[ir].veh.length; i++){
-        if (network[ir].veh[i].id==219){
-	  var testveh=network[ir].veh[i];
-	  console.log("time=",time," ir=",ir," veh id=",testveh.id,
-		      " bBiasRight=",testveh.LCModel.bBiasRight,
-		      "");
-	}
-      }
-    }
-  }
-	
 
   // (2) transfer effects from slider interaction and mandatory regions
   // to the vehicles and models
@@ -384,6 +427,11 @@ function updateSim(){
     network[ir].updateSpeedlimits(trafficObjs);
   }
 
+  //!!! DO NOT USE with several roads
+  // nasty effects by interacting merges/diverges and density corr.
+
+  //network[0].updateDensity(density); 
+  
     // (2a) Without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
   // (here more responsive than in drawSim)
@@ -407,16 +455,52 @@ function updateSim(){
   for(var ir=0; ir<network.length; ir++){network[ir].calcAccelerations();}
 
   
-  // (3b) transitions between roads: templates:
-  //      road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)  
-  //      road.connect(target, uSource, uTarget, offsetLane, conflicts)
+
+  // (3b) upstream/inflow BC BCup
+  // (none)
+
+  // test open road, F... error with ring roads
   
-  network[0].updateBCup(qIn,dt,route1); // qIn=qTot, route is optional arg
-  network[0].connect(network[1],network[0].roadLen,0,1,[]);
-  network[1].updateBCdown(); 
+  network[0].updateBCup(qIn,dt,getRoute(routes,fracOff)); //!!!
 
   
-  // (3c) actual motion (always at the end)
+  // (3c) connecting links ends
+  // road.connect(target, uSource, uTarget, offsetLane, conflicts,
+  //              opt_vmax, opt_targetPrio)
+
+  var useConnect=true;  // if false, nodes implemented via merges/diverges
+
+  if(useConnect){
+    network[0].connect(network[1],
+		       0.25*network[0].roadLen, 0, 0, []);
+    network[1].connect(network[0],
+		       network[1].roadLen, 0.75*network[0].roadLen, 0, []);
+  }
+
+  
+  // (3d) merges and diverges
+  // road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight,
+  //                   opt_ignoreRoute, opt_prioOther, opt_prioOwn)
+  
+  if(!useConnect){
+  
+    network[0].mergeDiverge(network[1],
+			    -0.25*network[0].roadLen,0.25*network[0].roadLen,
+			    0.25*network[0].roadLen+lenMergeDiverge,
+			    false, true);
+    network[1].mergeDiverge(network[0],
+			    0.75*network[0].roadLen-network[1].roadLen,
+			    network[1].roadLen-lenMergeDiverge,
+			    network[1].roadLen,
+			    true, false);
+  }
+ 
+  // (3e) downstream BC
+
+  network[0].updateBCdown();//!!!
+
+  
+  // (3f) actual motion (always at the end)
 
   for(var ir=0; ir<network.length; ir++){network[ir].updateLastLCtimes(dt);} 
   for(var ir=0; ir<network.length; ir++){network[ir].changeLanes();} 
@@ -431,14 +515,38 @@ function updateSim(){
   }
 
   
-  // updateSim (5): debug output
+  // updateSim (5): test code/debug output
 
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(false){
+    console.log(
+      "radius=",radius.toFixed(2),
+      "lenStraight=",lenStraight.toFixed(2),
+      "lenHalfRing=",lenHalfRing.toFixed(2),
+      "traj1_x(0)=",traj1_x(0).toFixed(2),
+      "traj1_x(0.5*lenHalfRing)=",traj1_x(0.5*lenHalfRing).toFixed(2),
+      "traj1_x(lenHalfRing)=",traj1_x(lenHalfRing).toFixed(2),
+      "");
+  }
 
-  if(true){
-    debugVeh(459,network);
+  if(false){
+    network[0].writeVehicleRoutes();
+    network[1].writeVehicleRoutes();
   }
   
+  
+ //if(false){
+  if((time>32)&&(time<38.0)){
+    debugVeh(204,network);
+   // debugVeh(205,network);
+  }
+
+  
+  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+
+  
+  // template for dropping traffic lights: onramp.js
+  // template for dropping speedL: test7_severalOnrampsOfframpsConnects.js
+
 
 
 }//updateSim
@@ -470,7 +578,7 @@ function drawSim() {
   if(drawBackground){
     var objectsMoved=(mousedown ||touchdown ||objectsZoomBack);
     if(hasChanged||objectsMoved||(itime<=10) || (itime%50==0)
-       || (!drawRoad) || movingObserver){
+       || (!drawRoad) ||drawVehIDs|| movingObserver){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
   }
@@ -478,18 +586,21 @@ function drawSim() {
 
   // drawSim (3): draw road network
   
-  //var changedGeometry=hasChanged||(itime<=1); 
-  var changedGeometry=(itime<=1); // if no physical change of road lengths
+   var changedGeometry=(itime<=1); // if no physical change of road lengths
 
+ 
   // road.draw(img1,img2,changedGeometry,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
-  // second arg line optional, only for moving observer
+  //           second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
-    network[ir].draw(roadImg1,roadImg2,changedGeometry);
+    network[ir].draw(roadImg1[ir],roadImg2[ir],changedGeometry);
   }
 
-  if(drawRoadIDs){// separate loop because of visibility
+  // roadIDs drawn in updateSim in separate loop because Xing roads
+  // may cover roads drawn before and I always want to see the IDs
+
+  if(drawRoadIDs){
     for(var ir=0; ir<network.length; ir++){
       network[ir].drawRoadID();
     }
@@ -500,7 +611,7 @@ function drawSim() {
 
   // road.drawVehicles(carImg,truckImg,obstImgs,vmin_col,vmax_col,
   //           umin,umax,movingObserver,uObs,center_xPhys,center_yPhys)
-  // second arg line optional, only for moving observer
+  //           second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
     network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
@@ -560,9 +671,10 @@ function main_loop() {
 // THIS function does all the things; everything else 
 // only functions/definitions
 // triggers:
-// (i) automatically when loading the simulation 
+// (i)  automatically when loading the simulation
+//      (all js are loaded/executed, setInterval(.) is last of all)
 // (ii) when pressing the start button in *gui.js
-//  ("myRun=setInterval(main_loop, 1000/fps);")
+//      ("myRun=setInterval(main_loop, 1000/fps);")
 //############################################
 
 console.log("first main execution");

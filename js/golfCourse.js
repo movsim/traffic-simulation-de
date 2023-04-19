@@ -253,7 +253,7 @@ var truck_width=30; // irrelevant but needed in road.js
 var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 
-var speedInit=1; // IC for speed
+speedInit=1; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj,

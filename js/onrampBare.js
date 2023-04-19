@@ -186,10 +186,10 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var fracTruckToleratedMismatch=1.0; // open system: need tolerance, otherwise
+fracTruckToleratedMismatch=1.0; // open system: need tolerance, otherwise
                       // sudden changes with new incoming/outgoing vehicles
 
-var speedInit=20; // IC for speed
+speedInit=20; // IC for speed
 
 // last arg = doGridding (true: user can change road geometry)
 

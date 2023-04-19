@@ -150,7 +150,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
     // lane or v is transversal coordinate
 
   this.veh=[];
-  this.initRegularVehicles(densInitPerLane,fracTruck);
+  this.initRegularVehicles(densInitPerLane,fracTruck,speedInit);
 
     // formally define ego vehicle for external reference
     // if applicable, it will be attributed to one element of this.veh, 
@@ -210,7 +210,8 @@ road.prototype.setDriverVariation=function(driver_varcoeff){
 // they exist
 //######################################################################
 
-road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
+road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
+					    speedInit){
 
   var nvehPlus=Math.floor(this.nLanes*this.roadLen*densityPerLane);
   var nVehOld=this.veh.length;
@@ -267,7 +268,7 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck){
 // change number of lanes
 //######################################################################
 
-road.prototype.addOneLane = function(){
+road.prototype.addOneLane=function(){
   this.nLanes++;  // initially empty
 
   // MT Bugfix  2018-04-23: obsolete? 
@@ -288,7 +289,7 @@ road.prototype.addOneLane = function(){
 // !! need to count backwards since array is changed in size during
 // its traversal; otherwise, not all old this.veh.length vehs checked!
 
-road.prototype.subtractOneLane = function(){
+road.prototype.subtractOneLane=function(){
 
     for(var i=this.veh.length-1; i>=0; i--){ 
 	console.log("road.subtractOneLane: old nLanes=",this.nLanes);
@@ -309,7 +310,7 @@ road.prototype.subtractOneLane = function(){
 // write/print/display vehicle info
 //######################################################################
 
-road.prototype.writeVehicles= function(umin,umax) {
+road.prototype.writeVehicles=function(umin,umax) {
     console.log("\nin road.writeVehicles(): itime=",itime,
 		" roadID=",this.roadID,
 		" nVehicles=",this.veh.length,
@@ -345,7 +346,7 @@ road.prototype.writeVehicles= function(umin,umax) {
 // simple write vehicle info (umin,umax optional)
 //######################################################################
 
-road.prototype.writeVehiclesSimple= function(umin,umax) {
+road.prototype.writeVehiclesSimple=function(umin,umax) {
     console.log("\n\nIn road.writeVehiclesSimple(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" nLanes=",this.nLanes," itime=",itime,
@@ -375,7 +376,7 @@ road.prototype.writeVehiclesSimple= function(umin,umax) {
 //######################################################################
 
 
-road.prototype.writeVehiclesSimpleToFile= function(filename) {
+road.prototype.writeVehiclesSimpleToFile=function(filename) {
 
   console.log("\nin road.writeVehiclesSimpleToFile(): roadID=",this.roadID,
 	      " filename=",filename);
@@ -416,7 +417,7 @@ road.prototype.updateExportString=function(){
 // write simple speedlimit info
 //######################################################################
 
-road.prototype.writeSpeedlimits= function(umin,umax) {
+road.prototype.writeSpeedlimits=function(umin,umax) {
   console.log("\nin road.writeSpeedlimits(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" nLanes=",this.nLanes," itime=",itime);
@@ -448,7 +449,7 @@ road.prototype.writeSpeedlimits= function(umin,umax) {
 // write very simple info for id range of vehicles
 //######################################################################
 
-road.prototype.writeVehiclesIDrange= function(idmin,idmax) {
+road.prototype.writeVehiclesIDrange=function(idmin,idmax) {
 
     var uminLoc=(typeof umin!=='undefined') ? umin : 0;
     var umaxLoc=(typeof umax!=='undefined') ? umax : this.roadLen;
@@ -478,7 +479,7 @@ road.prototype.writeVehiclesIDrange= function(idmin,idmax) {
 // write the routes of the vehicles
 //######################################################################
 
-road.prototype.writeVehicleRoutes= function(umin,umax) {
+road.prototype.writeVehicleRoutes=function(umin,umax) {
     console.log("\nin road.writeVehicleRoutes: roadID=",this.roadID,
 		" length=",parseFloat(this.roadLen).toFixed(1),
 		" nveh=",this.veh.length,
@@ -490,8 +491,8 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 
     for(var i=0; i<this.veh.length; i++){
 	var u=this.veh[i].u;
-	if((u>uminLoc) && (u<umaxLoc) 
-	   &&(this.veh[i].route.length>0)){
+      if((u>uminLoc) && (u<umaxLoc)){ 
+	  // &&(this.veh[i].route.length>0)){
 
 	    console.log(" veh[",i,"].type=",this.veh[i].type,
 		        "  id=",this.veh[i].id,
@@ -508,7 +509,7 @@ road.prototype.writeVehicleRoutes= function(umin,umax) {
 // write all relevant veh-type obstacles derived from the depot vheicles
 //######################################################################
 
-road.prototype.writeDepotVehObjects= function(umin,umax){
+road.prototype.writeDepotVehObjects=function(umin,umax){
   console.log("itime=",itime,
 	      "in road.writeDepotVehObjects: roadID=",this.roadID,
 	      " nveh=",this.veh.length);
@@ -535,7 +536,7 @@ road.prototype.writeDepotVehObjects= function(umin,umax){
 // write out the contents of this.trafficLights
 //######################################################################
 
-road.prototype.writeTrafficLights= function(umin,umax) {
+road.prototype.writeTrafficLights=function(umin,umax) {
   console.log("itime=",itime," in road.writeTrafficLights:",
 	      " writing the road's operational TL objects",
 	      " roadID=",this.roadID,
@@ -563,7 +564,7 @@ road.prototype.writeTrafficLights= function(umin,umax) {
 // write vehicle longmodel info
 //######################################################################
 
-road.prototype.writeVehicleLongModels= function(umin,umax) {
+road.prototype.writeVehicleLongModels=function(umin,umax) {
     console.log("\nin road.writeVehicleLongModels(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" itime="+itime);
@@ -603,7 +604,7 @@ road.prototype.writeVehicleLongModels= function(umin,umax) {
 // write vehicle LC model info
 //######################################################################
 
-road.prototype.writeVehicleLCModels= function() {
+road.prototype.writeVehicleLCModels=function() {
     console.log("\nin road.writeVehicleLCModels(): roadID=",this.roadID,
 		" nveh=",this.veh.length,
 		" itime="+itime);
@@ -625,7 +626,7 @@ road.prototype.writeVehicleLCModels= function() {
 // write truck info including LC
 //######################################################################
 
-road.prototype.writeTrucksLC= function() {
+road.prototype.writeTrucksLC=function() {
     console.log("\nin road.writeTrucksLC(): nveh=",this.veh.length,
 		" itime="+itime);
     for(var i=0; i<this.veh.length; i++){if(this.veh[i].type==="truck"){
@@ -2154,9 +2155,9 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
   if(typeof conflicts === 'undefined'){conflicts=[];}
   var maxspeedImposed=(!(typeof maxspeed === 'undefined'));
-  var targetHasPiority=(typeof targetPrio === 'undefined')
+  var targetHasPriority=(typeof targetPrio === 'undefined')
       ? false : targetPrio;
-  var bsafe=(targetHasPiority) ? 2 : 15; //!! 2.5:15; longModel.bmax=10
+  var bsafe=(targetHasPriority) ? 2 : 15; //!! 2.5:15; longModel.bmax=10
 
   //if(this.roadID==0){console.log("road.connect: bsafe=",bsafe);}
 
@@ -2202,10 +2203,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // "var log" in determineConflicts    
     //#########################################################
 
-    this.connectLog=false;
+    //this.connectLog=false;
     //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
     //this.connectLog=((this.veh[iveh].id==228)&&true);
-    //this.connectLog=((this.veh[iveh].id==459));
+    this.connectLog=((this.veh[iveh].id==204));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
     //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
@@ -3256,17 +3257,8 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 				     isMerge,toRight,ignoreRoute,
 				     prioOther, prioOwn){
 
-  var log=false;
-  //var log=(this.roadID==0);    
-  //var log=(this.roadID==0)&&isMerge;    
-  //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
-
-  // visibility extension for orig drivers looking towards target vehs
-  var padding=this.padding; 
-
-  // visibility extension for target drivers towards orig vehs for LTC
-  var paddingLTC=(isMerge&&prioOwn) ? this.paddingLTC : 0;
-
+  // (0) parse parameters
+  
   var loc_ignoreRoute=(typeof ignoreRoute==='undefined')
       ? false : ignoreRoute; // default: routes  matter at diverges
   if(isMerge) loc_ignoreRoute=true;  // merging must be always possible
@@ -3276,11 +3268,24 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
   var loc_prioOwn=(typeof prioOwn==='undefined')
       ? false : prioOwn;
+  
   if(loc_prioOwn&&loc_prioOther){
 	console.log("road.mergeDiverge: Warning: prioOther and prioOwn"+
 		    " cannot be true simultaneously; setting prioOwn=false");
 	loc_prioOwn=false;
   }
+
+
+  var log=false;
+  //var log=(this.roadID==0);    
+  //var log=(this.roadID==0)&&isMerge;    
+  //var log=((this.roadID===10)&&(this.veh.length>0)&&(!isMerge));
+
+  // visibility extension for orig drivers looking towards target vehs
+  var padding=this.padding; 
+
+  // visibility extension for target drivers towards orig vehs for LTC
+  var paddingLTC=(isMerge&&loc_prioOwn) ? this.paddingLTC : 0;
 
 
 
@@ -4953,7 +4958,7 @@ purely for the road operations of the traffic light.
 All drawing is controlled by the depotObjects (elements of the obstTL[])
 */
 
-road.prototype.addTrafficLight= function(depotObject) {
+road.prototype.addTrafficLight=function(depotObject) {
   var trafficLight={id: depotObject.id,
 		    u: depotObject.u,
 		    value: depotObject.value, // "red" or "green"
@@ -5062,7 +5067,7 @@ road.prototype.changeTrafficLight=function(id,value){
                vehicles associated with it
 */
 
-road.prototype.removeTrafficLight= function(id) {
+road.prototype.removeTrafficLight=function(id) {
     // change value of trafficLight object
 
   console.log("in road.removeTrafficLight: id="+id,"this.trafficLights.length="+this.trafficLights.length);
@@ -5089,7 +5094,7 @@ road.prototype.removeTrafficLight= function(id) {
 
 @return:       removes the obstacle if id is found in road.veh
 */
-road.prototype.removeObstacle= function(id) {
+road.prototype.removeObstacle=function(id) {
     // change value of trafficLight object
 
   console.log("in road.removeObstacle: id="+id);

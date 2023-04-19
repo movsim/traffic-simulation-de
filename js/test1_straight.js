@@ -132,8 +132,8 @@ var truck_width=4;
 //##################################################################
 
 
-var fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-var speedInit=20;
+fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
+speedInit=20;
 
 // roads
 // last opt arg "doGridding" left out (true:user can change road geometry)

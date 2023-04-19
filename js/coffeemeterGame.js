@@ -246,7 +246,7 @@ truckImg.src='figs/truck1Small.png';
 var isRing=0;  // 0: false; 1: true
 var roadIDmain=1;
 var density=0;
-var speedInit=0; // not relevant since initially no vehicles
+speedInit=0; // not relevant since initially no vehicles
 var fracTruck=0; // not relevant since initially no vehicles
 
 var mainroad=new road(roadIDmain,lenMainroad,laneWidth,nLanes,

@@ -311,9 +311,9 @@ var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
 var roadIDramp=2;
 
-var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
+fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
-var speedInit=20; // IC for speed
+speedInit=20; // IC for speed
 
 var mainroad=new road(roadIDmain,mainroadLen,laneWidth,nLanes_main,
 		      traj,
@@ -635,6 +635,9 @@ function updateSim(){
 
   if(false){
 
+  // template for dropping traffic lights: onramp.js
+  // template for dropping speedL: test7_severalOnrampsOfframpsConnects.js
+    
     // drop red traffic light
 
     //!! in different road operations (setSpeedlimit) order of

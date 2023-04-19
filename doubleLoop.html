@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Test 7: Onramps, offramps, and connects</title> 
+    <title>Double loop</title> 
 </head>
 
 
@@ -57,10 +57,6 @@
 
 <div id="scenarios">
   <br>
-  <a href="./test5_crossingAndRightturn.html">
-    test5: crossing and right turns</a><br>
-  <a href="./test6_crossingLeftRight.html">
-    test6: crossing left and right</a><br>
   <a href="./test7_severalOnrampsOfframpsConnects.html">
     test7: onramps, offramps, and connects</a><br>
   <a href="./doubleLoop.html">
@@ -120,24 +116,18 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Main Inflow</td>
+  <td class="important">Inflow</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
 </tr>
 
-<tr>
-  <td>Inflow Road 11</td>
-  <td> <input id="slider_q2" type="range" 
-              min="0" max="5000" step="10"></td>
-  <td> <div id="slider_q2Val"></div> </td>
-</tr>
 
 <tr>
-  <td class="important">Onramp Flow</td>
-  <td> <input id="slider_qOn" type="range" 
-              min="0" max="2000" step="10"></td>
-  <td> <div id="slider_qOnVal"></div> </td>
+  <td class="important">Offramp Use</td>
+  <td> <input id="slider_fracOff" type="range" 
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_fracOffVal"></div> </td>
 </tr>
 
 
@@ -176,6 +166,8 @@
 </tr>
 </table>
 
+
+<!--
 <h3>Lane-Changing Behavior</h3>
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
@@ -208,7 +200,7 @@
   <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
 </tr>
 </table>
-
+-->
 
 </center>
 </div>   <!-- id="sliders">-->
@@ -245,7 +237,7 @@
 
 <script src="js/debug.js"></script>
 
-<!-- PROJ--> <script src="js/test7_severalOnrampsOfframpsConnects.js"></script> 
+<!-- PROJ--> <script src="js/doubleLoop.js"></script> 
 
 </body>
 </html>
