@@ -74,6 +74,8 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
   this.taperLen=25; //!! purely graphical; only use in this.drawTaperRamp()
 
   this.laneWidth=laneWidth;
+  this.boundaryStripWidth=0.3*this.laneWidth;
+
   this.nLanes=nLanes;
   this.exportString="";
 
@@ -294,7 +296,7 @@ road.prototype.subtractOneLane=function(){
     for(var i=this.veh.length-1; i>=0; i--){ 
 	console.log("road.subtractOneLane: old nLanes=",this.nLanes);
 	if(this.veh[i].lane=== (this.nLanes-1)){
-	    this.veh.splice(i,1);
+	    this.veh.splice(i,1); // !!!changeArray
 	}
     }
     this.nLanes--; 
@@ -305,9 +307,8 @@ road.prototype.subtractOneLane=function(){
 
 
 
-
 //######################################################################
-// write/print/display vehicle info
+// write/printVehicles/logVehicles display vehicle info
 //######################################################################
 
 road.prototype.writeVehicles=function(umin,umax) {
@@ -1161,8 +1162,8 @@ road.prototype.updateDensity=function(density){
         var k=Math.floor( this.veh.length*r);
 	var rmCandidate=this.veh[k];
 	if(rmCandidate.isRegularVeh()){
-	    this.veh.splice(k,1); // remove vehicle at random position k
-	} // if it is, do not try a second time; wait to the next round
+	  this.veh.splice(k,1); // !!!changeArray
+	} 
     }
 
     // too few vehicles, generate one per time step in largest gap
@@ -1227,8 +1228,10 @@ road.prototype.updateDensity=function(density){
 				   speedNew,vehType,
 				   this.driver_varcoeff); //updateDensity
 
+	  // add vehicle at position k  (k=0 ... n-1)
+	  
 	    if(emptyLanes){vehNew.speed=longModelTruck.v0;}
-	    this.veh.splice(k,0,vehNew); // add vehicle at position k  (k=0 ... n-1)
+	    this.veh.splice(k,0,vehNew); //!!! changeArray
 	}
     }
     // sort (re-sort) vehicles with respect to decreasing positions
@@ -2177,12 +2180,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 
 
-  // !!! Subtle bug: vehicle vanishes if driven in one timestep
-  // beyond roadLen, so road transfer must be before that to prevent
-  // that. However, it must not be prior to the final Go zone u>uGo
-  // because than collisions may happen!
+  // !! Subtle bug: vehicle vanishes/drives further w/o connecting
+  // if driven in one timestep beyond connect point uSource
+  // => road transfer must be before that nominal connecting point
+  // => define distBeforeEnd. However, uGo<uSource-distBeforeEnd etc
 	
-  var distBeforeEnd=1.0; // !!!
+  var distBeforeEnd=dt*IDM_v0; 
   
   var duAntic=60+distBeforeEnd;
   var duDecision=10+distBeforeEnd;
@@ -2204,9 +2207,9 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     //#########################################################
 
     //this.connectLog=false;
+    this.connectLog=((this.veh[iveh].id==214));
     //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
     //this.connectLog=((this.veh[iveh].id==228)&&true);
-    this.connectLog=((this.veh[iveh].id==204));
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
     //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
@@ -2221,9 +2224,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       //oder arraysEqual((this.trajAlt[itr].route, this.veh[i].route))// !
 
       // check if route is consistent with targetID
+      // and vehicle not more than 1 max step past the connect point
+      // (possible if other connect point on this road is for smaller u)
       // Array.indexOf(a) gives index of the first element==a, and-1 if none
       
-      var connecting=(this.veh[iveh].route.indexOf(targetID)>=0);
+      var connecting=((this.veh[iveh].route.indexOf(targetID)>=0)
+		      &&(this.veh[iveh].u<uSource+dt*IDM_v0));
  
       /* 
        only further treatment if veh regular, in influence range,
@@ -2242,9 +2248,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
             (should be <uSource-s0, otherw too timid approaching, but works)
 
        conditions (C1-C3 disjunct and complete, u<uAntic treated above):
-         C1: ((u>uAntic)&&(u<=uDecide))       "braking zone"
-         C2: ((u>uDecide)&&(u<=uGo))          "unconditional decision zone"
-         C3: (u>uGo)                          "final go if conflicts resolved"
+         C1: ((u>uAntic)&&(u<=uDecide))  "braking zone"
+         C2: ((u>uDecide)&&(u<=uGo))     "decision zone" (final w/o conflicts)
+         C3: (u>uGo)                     "final go if conflicts resolved"
+         C3a:(u>distBeforeEnd)           "formally transfer roads"
+                                         !! only then target vehs react
+!!! must communicate with the target vehicles 
 
          C4: laneContinues
          C5: conflictsExist                   "conflicts in previous step"
@@ -2254,21 +2263,16 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
        actions:
          A1: try to change lanes possibly changing C4 in the next step
              (cannot use possible changes at once since lane changing later)
-         A2: decide possibly changing C5
+         A2: decide on conflicts (possibly changing C5)
          A3: decelerate (IDM) to a virtual veh at uSource (stop @ gap s0) 
          A4: go ahead taking care of traffic on the target road
 
        connect actions with conditions (in this order)
-         if( !C4 )                     then A1 -> C4
-         if( C4 && (C2||(C3&&C5)) )    then A2 -> C5 (cannot use updated C4)
-         if( (!C4) || C1 || C5 )       then A3       (can use updated C5)
-         if( (!C6) || (!C5) && C4 && (C2||C3) ) then A4
 
-       =>
          if( !C4 )                  then A1 -> C4
-         else{
+         if( C4&&(C2||C3))
            if( !C6 )                then A4
-           else{
+           else{   // potential conflicts, in C2 or C3
              if ( C2 || (C3&&C5) )  then A2 -> C5
              if ( (!C5)&&(C2||C3) ) then A4    (use updated C5)
              else A3
@@ -2281,38 +2285,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       
       
       if(connecting){
-	//console.log(" veh ",this.veh[iveh].id," is connecting");
-
-	// introduce a temporary virtual vehicle
-	// (only temporary because may not be relevant for other ODs)
-	// does not work completely, even if reverting lane changes
-	// bacause obstacles not bee seen during LC phase.
-	// Forget it; use tactical LC for some OD if needed
-	// and only implement virtual obstacles where
-	// lane is blocked for all ODs
 	
-	var createVirtStandingVehs=false;//!!!
-	var nVirtStandingVehs=0;
-	var ivehLoc=iveh;
-	if(createVirtStandingVehs){
-	  for(var il=0; il<this.nLanes; il++){
-	    var laneContinues=((il+offsetLane>=0)
-			       &&(il+offsetLane<targetRoad.nLanes));
-	    if(!laneContinues){
-	      nVirtStandingVehs++;
-	      var virtualStandingVeh // vehicle(len,width,u,lane,speed,type)
-		  =new vehicle(0.01, laneWidth, this.roadLen,
-			       il, 0, "obstacle");
-	      this.veh.unshift(virtualStandingVeh); //!!!!
-	    }
-	  }
-	  if(nVirtStandingVehs>0){
-	    ivehLoc=iveh+nVirtStandingVehs;//!!!
-	    this.updateEnvironment();
-	  }
-	}
-
-	var vehConnect=this.veh[ivehLoc];
+	var vehConnect=this.veh[iveh];
 	var id=vehConnect.id;
 	var u=vehConnect.u;
 	var lane=vehConnect.lane;
@@ -2724,7 +2698,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      (sFollow,speedFollow,speed,vehConnect.acc);
 	      if(accFollow<-bsafe){
 	        targetCanBeEntered=false; // !! influence
-		accGo=-vehConnect.longModel.bmax; //!!
+		accGo=-vehConnect.longModel.bmax; //!!! check!
 	      }
 	      if(this.connectLog){
 	        console.log(
@@ -2887,9 +2861,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  }
 
 
+	 
 	  // watch out that an array is returned by splice!
-	  // splices away 1 vehicle at pos ivehLoc (third arg would insert it)
-	  var transferredVeh=(this.veh.splice(ivehLoc,1))[0];
+	  // splices away 1 vehicle at pos iveh (third arg would insert it)
+	  var transferredVeh=(this.veh.splice(iveh,1))[0]; // !!!changeArray
 	  this.updateEnvironment();
 
           // transform state vars of transferred vehicle
@@ -2966,15 +2941,6 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		      "");
 	}
 
-	// !! remove the virtual vehicles (unshift=adding, shift=removing)
-	// (are always the first since at u=this.roadLen)
-	
-	if(createVirtStandingVehs&&(nVirtStandingVehs>0)){
-	  for(var ivirt=0; ivirt<nVirtStandingVehs; ivirt++){
-	    this.veh.shift();
-	  }
-	  this.updateEnvironment();
-	}
 	
 	
       } // if(connecting)
@@ -3592,6 +3558,8 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 	changingVeh.dt_afterLC=0;             // just changed
 	changingVeh.divergeAhead=false; // reset mandatory LC behaviour
 
+    // !!!changeArray
+    
 //####################################################################
     this.veh.splice(iOrig,1);// removes 1 chg veh from i=iOrig.
     otherRoad.veh.push(changingVeh); // appends changingVeh at last pos;
@@ -3639,10 +3607,11 @@ road.prototype.removeRegularVehs=function(){
 // downstream BC: drop at most one vehicle at a time (no action needed if isRing)
 //######################################################################
 
+
 road.prototype.updateBCdown=function(){
   if( (!this.isRing) &&(this.veh.length>0)){
     if(this.veh[0].u>this.roadLen){
-      this.veh.splice(0,1);
+      this.veh.splice(0,1);     // !!!changeArray
       this.updateEnvironment();
     }
   }
@@ -3767,7 +3736,8 @@ road.prototype.updateBCup=function(Qin,dt,route){
 	      if(vehNew.id%100<percEgo){vehNew.id=1;}
       }
 
-      this.veh.push(vehNew); // add vehicle after pos nveh-1
+      // add vehicle after pos nveh-1
+      this.veh.push(vehNew);  // !!!changeArray
       this.updateEnvironment();
       this.inVehBuffer -=1;
 		   
@@ -4193,7 +4163,6 @@ road.prototype.draw=function(roadImg1,roadImg2,changedGeometry,
   var yRef=(movingObserver) ? yObs : this.traj[1](0);
 
 
-  var boundaryStripWidth=0.3*this.laneWidth;
 
   var draw_curvMax=0.04; // curvature radius 25 m
   var factor=Math.min(1.5, // " stitch factor" for drawing
@@ -4225,7 +4194,7 @@ road.prototype.draw=function(roadImg1,roadImg2,changedGeometry,
 //	      " noRestriction="+noRestriction);
 
   var lSegmPix=scale*factor*lSegm;
-  var wSegmPix=scale*(this.nLanes*this.laneWidth+boundaryStripWidth);
+  var wSegmPix=scale*(this.nLanes*this.laneWidth+this.boundaryStripWidth);
   
   for (var iSegm=0; iSegm<this.nSegm; iSegm++){
     var u=this.roadLen*(iSegm+0.5)/this.nSegm;
@@ -4272,7 +4241,7 @@ road.prototype.draw=function(roadImg1,roadImg2,changedGeometry,
 
       
       var wSegmPix=scale*(laneMax-laneMin+1)
-	  *this.laneWidth+boundaryStripWidth;
+	  *this.laneWidth+this.boundaryStripWidth;
     
       var vCenterPhys=this.laneWidth*0.5*(laneMin+laneMax+1-this.nLanes);
       for (var iSegm=0; iSegm<nSegmAlt; iSegm++){
@@ -4422,7 +4391,6 @@ road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
 			"uStart=",uStart,"vStart=",vStart);}
   var lSegm=this.roadLen/this.nSegm;
   var abs_shiftv=Math.abs(laneShift)*this.laneWidth;
-  var boundaryStripWidth=0.3*this.laneWidth;
 
   // " stitch factor" for drawing, curvature radius >=25 m
   
@@ -4435,7 +4403,7 @@ road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
   var nSegmTaper=Math.floor(this.taperLen/lSegm);
 
   var lSegmPix=scale*factor*lSegm;
-  var wSegmPix=scale*(abs_shiftv+boundaryStripWidth);
+  var wSegmPix=scale*(abs_shiftv+this.boundaryStripWidth);
   
   for (var iSegm=0; iSegm<nSegmTaper; iSegm++){
     var du=this.taperLen*(iSegm+0.5)/nSegmTaper;
@@ -4921,7 +4889,7 @@ road.prototype.dropObject=function(trafficObj){
 
     // insert vehicle (array position does not matter since sorted anyway)
 
-    this.veh.push(roadVehicle);
+    this.veh.push(roadVehicle); // !!!changeArray
     this.updateEnvironment(); // possibly crucial !! includes sorting
     console.log("  end road.dropObject: dropped obstacle at uDrop="+u,
 		" lane="+lane," id="+roadVehicle.id,
@@ -5016,9 +4984,10 @@ road.prototype.changeTrafficLight=function(id,value){
     return;
   }
 
-    // implement effect to traffic by adding/removing virtual obstacles
-    // (1) new TL value green
-
+  // implement effect to traffic by adding/removing virtual obstacles
+  // (1) new TL value green
+  // !!!changeArray
+  
   if(pickedTL.value==="green"){
     for(var i=0; i<this.veh.length; i++){ //!!! is this.veh.length updated?
       if(this.veh[i].id===id){
@@ -5045,7 +5014,7 @@ road.prototype.changeTrafficLight=function(id,value){
 			        pickedTL.u, il, 0, "obstacle");
         virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
         virtVeh.id=id;
-        this.veh.push(virtVeh);
+        this.veh.push(virtVeh); // !!!changeArray
       }
     }
   }
@@ -5107,7 +5076,7 @@ road.prototype.removeObstacle=function(id) {
     }
   }
   if(iDel===-1) console.log("road.removeObstacle: no id "+id," found!");
-  else this.veh.splice(iDel,1);
+  else this.veh.splice(iDel,1); // !!!changeArray
 }
 
 

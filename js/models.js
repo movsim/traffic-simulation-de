@@ -363,10 +363,6 @@ having priority.
 Notice 2: No actual lane change is involved. The lane change of the merging vehicle
 is just favoured in the next steps by this longitudinal-transversal coupling
 
-Notice 3: For active merges to priority roads 
-(the mainroad vehicles have priority) 
-use MOBIL.respectPriority to determine if the merge is OK
-
 
 @param sYield: distance [m] to yield point 
                (stop if merging veh present)
@@ -378,9 +374,6 @@ use MOBIL.respectPriority to determine if the merge is OK
 @return:  acceleration response [m/s^2] to the merging veh with priority
 */
 
-// !! 0.1*this.b consistent with MOBIL.prototype.respectPriority
-// !! 2*this.b consistent with MOBIL.bSafe
-// deterministic acc for all forced situations
 
 
 ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
@@ -489,18 +482,6 @@ MOBIL.prototype.realizeLaneChange=function(vrel,acc,accNew,accLagNew,
 
 
 
-/**
-check first for priority if merging to a priority lane.
-In contrast to the safety criterion (critical deceleration), 
-the criterion here is a rather small critical acceleration *change*
-
-@param accLag:    actual acceleration of the target lag vehicle
-@param accLagNew: acceleration of this vehicle after a prospective change
-
-@return:          true if the mainroad (target lane) vehicle would be obstructed by
-                  the changing by more than a very small amount
-*/
-
 // to be used in connection with new, e.g., at inflow:
 // LCModel2=new MOBIL(); LCModel2.copy(LCModel1)
 
@@ -512,3 +493,21 @@ MOBIL.prototype.copy=function(LCModel){
   this.bBiasRight=LCModel.bBiasRight;
 }
 
+/*
+check first for priority if merging to a priority lane.
+In contrast to the safety criterion (critical deceleration), 
+the criterion here is a rather small critical acceleration *change*
+
+@param accLag:    actual acceleration of the target lag vehicle
+@param accLagNew: acceleration of this vehicle after a prospective change
+
+@return:          true if the mainroad (target lane) vehicle would be obstructed by
+                  the changing by more than a very small amount
+*/
+
+MOBIL.prototype.respectPriority=function(accLag,accLagNew){
+
+    if(this.targetLanePrio){
+	return(accLag-accLagNew>0.1);
+    }
+}

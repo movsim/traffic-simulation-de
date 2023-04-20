@@ -47,7 +47,7 @@ var driver_varcoeff=0.20;
 density=0.001; // defined in control_gui.js
 setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
 
-qIn=600./3600;
+qIn=1000./3600;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 fracOff=0.5; /// 0.25
@@ -149,7 +149,7 @@ function updateDimensions(){ // if viewport->canvas changed
 
 // specification of lane width and vehicle sizes
 
-var laneWidth=4; 
+var laneWidth=4;   // road cstr: boundaryStripWidth=0.3*laneWidth
 var car_length=6;    // car length in m (all a bit oversize for visualisation)
 var car_width=2.5;     // car width in m
 var truck_length=11;
@@ -158,6 +158,8 @@ var truck_width=3.5;
 
 // road axis geometry and number of lanes
 
+var nLanes=[1,1];
+
 var center_xRel=0.40;   // 0: left, 1: right
 var center_yRel=-0.5;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
@@ -165,13 +167,13 @@ var center_yPhys=center_yRel*refSizePhys;
 
 var radius=0.35*refSizePhys;
 var lenStraight=0.20*refSizePhys;
+var lenMerge=Math.sqrt(2*radius*laneWidth*(nLanes[1]+0.3)) - 4;//!!!
 
 var lenRing=2*Math.PI*radius;
-var lenHalfRing=Math.PI*radius+2*lenStraight
+var lenHalfRing=Math.PI*radius+2*lenStraight;
 
 var roadLen=[lenRing,lenHalfRing];
 
-var nLanes=[1,1];
 
 
 
@@ -219,12 +221,24 @@ var duTactical=100; // anticipation distance for offramps
 
 // road network (network declared in canvas_gui.js)
 
-var isRing=true;
+// !! set isRing=false (last arg of new road(..)
+// also in ring road because ramps interfere with density control
 
 network[0]=new road(0, roadLen[0], laneWidth, nLanes[0], trajNet[0],
-		      density,IDM_v0,fracTruck, !isRing); //!!!
+		      density,IDM_v0,fracTruck, false); //!!!
 network[1]=new road(1, roadLen[1], laneWidth, nLanes[1], trajNet[1],
-		      0,IDM_v0,fracTruck, !isRing);
+		    0,IDM_v0,fracTruck,false);
+
+var useConnect=true;  //!!! if false, nodes implemented via merges/diverges
+
+//!!! needed for lane change (why not in test7? probably needed there as well)
+
+if(!useConnect){
+  network[1].veh.unshift(
+    new vehicle(0.5,laneWidth,network[1].roadLen-5,nLanes[0]-1,0,
+		"obstacle"));
+}
+
 
 // define routes and set them to the roads
 // (a more general stochastic selection
@@ -271,7 +285,7 @@ network[0].initMergeDiverge([network[1]], [false],[lenMergeDiverge],
 // not all connectors need tactical info, e.g. not needed for network[11]
 
 network[0].initConnect([network[1]],[0.25*roadLen[0]],[0], [0]);
-network[1].initConnect([network[0]],[roadLen[1]],[0], [0]);
+network[1].initConnect([network[0]],[roadLen[1]-lenMerge],[0], [0]);
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
 //detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
@@ -457,24 +471,22 @@ function updateSim(){
   
 
   // (3b) upstream/inflow BC BCup
-  // (none)
-
-  // test open road, F... error with ring roads
   
-  network[0].updateBCup(qIn,dt,getRoute(routes,fracOff)); //!!!
+  network[0].updateBCup(qIn,dt,getRoute(routes,fracOff)); 
 
   
   // (3c) connecting links ends
   // road.connect(target, uSource, uTarget, offsetLane, conflicts,
   //              opt_vmax, opt_targetPrio)
 
-  var useConnect=true;  // if false, nodes implemented via merges/diverges
 
   if(useConnect){
     network[0].connect(network[1],
 		       0.25*network[0].roadLen, 0, 0, []);
-    network[1].connect(network[0],
-		       network[1].roadLen, 0.75*network[0].roadLen, 0, []);
+    network[1].connect(network[0], // road after roadLen-lenMerge just optical
+		       network[1].roadLen-lenMerge,
+		       0.75*network[0].roadLen-lenMerge, 0, [],
+		       0.8*IDM_v0, true);
   }
 
   
@@ -492,12 +504,14 @@ function updateSim(){
 			    0.75*network[0].roadLen-network[1].roadLen,
 			    network[1].roadLen-lenMergeDiverge,
 			    network[1].roadLen,
-			    true, false);
+			    true, false
+			    ,true,true,false); // !!! prioOther true!
+			   // ); 
   }
  
   // (3e) downstream BC
 
-  network[0].updateBCdown();//!!!
+  network[0].updateBCdown();
 
   
   // (3f) actual motion (always at the end)
@@ -535,8 +549,8 @@ function updateSim(){
   
   
  //if(false){
-  if((time>32)&&(time<38.0)){
-    debugVeh(204,network);
+  if((time>85)&&(time<96)){
+    debugVeh(216,network);
    // debugVeh(205,network);
   }
 
