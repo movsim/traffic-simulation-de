@@ -2183,23 +2183,27 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
   // !! Subtle bug: vehicle vanishes/drives further w/o connecting
   // if driven in one timestep beyond connect point uSource
   // => road transfer must be before that nominal connecting point
-  // => define distBeforeEnd. However, uGo<uSource-distBeforeEnd etc
-	
-  var distBeforeEnd=dt*IDM_v0; 
-  
-  var duAntic=60+distBeforeEnd;
-  var duDecision=10+distBeforeEnd;
+  // => define duTransfer. However, uGo<uSource-duTransfer etc
 
-  var uAntic=uSource-duAntic;
-  var uDecide=uSource-duDecision;
+	
+  var duAntic=60+duTransfer;    // "approach braking zone"
+  var uAntic=uSource-duAntic;   //  [uAntic,uDecide]
+
+  var duDecide=10+duTransfer;   // "reversible decision zone"
+  var uDecide=uSource-duDecide; //  [uDecide,uGo]
+  
+  // uGo<=uTransfer-1.2*s0      // "final decision zone"
+  // defined in vehicle loop    //  [uGo, uTransfer]
+  
+  var duTransfer=dt*IDM_v0; 
+  var uTransfer=uSource-duTransfer; // duTransfer=dt*IDM_v0
+
   // uGo defined later once longModel.s0 is known
 
   var targetID=targetRoad.roadID;
   var potentialConflictsExist=(conflicts.length>0);
 
-  // check if there are candidates and, if so, influence them
-
-  for(var iveh=0; iveh<this.veh.length; iveh++){
+  for(var iveh=0; iveh<this.veh.length; iveh++){// central vehicle loop
 
     //#########################################################
     // central debugging!!! also is copied to
@@ -2213,24 +2217,29 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     //this.connectLog=(this.veh[iveh].id==225)||(this.veh[iveh].id==226);
     //this.connectLog=(this.veh[iveh].id==210)&&(targetID==3);
     //this.connectLog=((this.veh[iveh].id==230)||(this.veh[iveh].id==227));
+
+
+
     
-    var ringOK=(this.isRing)
-	&&(this.veh[iveh].u>uSource+1.5*dt*this.veh[iveh].longModel.v0);
-    // veh is candidate if in anticipation regime and regular veh
-    if((this.veh[iveh].isRegularVeh())&&(!ringOK)
-       &&(this.veh[iveh].u>uSource-duAntic)){
- 
+    // (1) determine if vehicle is a candidate
 
-      //oder arraysEqual((this.trajAlt[itr].route, this.veh[i].route))// !
 
-      // check if route is consistent with targetID
-      // and vehicle not more than 1 max step past the connect point
-      // (possible if other connect point on this road is for smaller u)
-      // Array.indexOf(a) gives index of the first element==a, and-1 if none
+    // check if regular veh and in the influence region
+    // of this connection (transfer at uTransfer, allow
+    // down to uSource=uTransfer+duTransfer to control dt discretisation
+
+    var inInfluenceRegion=((this.veh[iveh].isRegularVeh())
+			   &&(this.veh[iveh].u>uAntic)
+			   &&(this.veh[iveh].u<=uSource));
+
+    // check if route fits to this connector (contains targetindex)
+    // array.includes or (arrray.indexOf(targetID)>=0);
+    
+    var routeOK=(this.veh[iveh].route.includes(targetID));
+     
+    if(inInfluenceRegion && routeOK){
+
       
-      var connecting=((this.veh[iveh].route.indexOf(targetID)>=0)
-		      &&(this.veh[iveh].u<uSource+dt*IDM_v0));
- 
       /* 
        only further treatment if veh regular, in influence range,
        and route fits to this connector
@@ -2243,15 +2252,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
        virtual road lines:
          uAntic =uSource-duAntic                 "braking zone"
-         uDecide=uSource-duDecision              "unconditional decision zone"
-	 uGo    =uSource-max(1.2*s0, 0.2*duDecision)  "final go if conflicts"
+         uDecide=uSource-duDecide              "unconditional decision zone"
+	 uGo    =uSource-max(1.2*s0, 0.2*duDecide)  "final go if conflicts"
             (should be <uSource-s0, otherw too timid approaching, but works)
 
        conditions (C1-C3 disjunct and complete, u<uAntic treated above):
          C1: ((u>uAntic)&&(u<=uDecide))  "braking zone"
          C2: ((u>uDecide)&&(u<=uGo))     "decision zone" (final w/o conflicts)
          C3: (u>uGo)                     "final go if conflicts resolved"
-         C3a:(u>distBeforeEnd)           "formally transfer roads"
+         C3a:(u>duTransfer)           "formally transfer roads"
                                          !! only then target vehs react
 !!! must communicate with the target vehicles 
 
@@ -2284,34 +2293,31 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
       
       
-      if(connecting){
 	
-	var vehConnect=this.veh[iveh];
-	var id=vehConnect.id;
-	var u=vehConnect.u;
-	var lane=vehConnect.lane;
-	var v=vehConnect.v;
-	var speed=vehConnect.speed;
-	var s0=vehConnect.longModel.s0;
+      var vehConnect=this.veh[iveh];
+      var id=vehConnect.id;
+      var u=vehConnect.u;
+      var lane=vehConnect.lane;
+      var v=vehConnect.v;
+      var speed=vehConnect.speed;
+      var s0=vehConnect.longModel.s0;
 
-	// within road.connect: deterministic accel for clarity 
-	// distBeforeEnd>0 to prevent going over end w/o connecting=>vanish
-	var uGo=uSource
-	  -(distBeforeEnd+Math.max(1.2*s0,0.2*(duDecision-distBeforeEnd)));
-	var sStop=uSource-u; // should stop s0 upstream of uConnect
-	var accSlowdown=vehConnect.longModel.calcAccDet(sStop,speed,0,0);
+      var uGo=uTransfer-Math.max(1.2*s0, 0.2*(uTransfer-uDecide));
 
-	// state variables
-
-	var conflictsExist=vehConnect.conflictsExist; // from previous step
-	var laneContinues=((lane+offsetLane>=0)
-			   &&(lane+offsetLane<targetRoad.nLanes));
-	var C1=((u>uAntic)&&(u<=uDecide));  // braking zone
-        var C2=((u>uDecide)&&(u<=uGo));     // unconditional decision zone
-        var C3=(u>uGo);                     // final go if conflicts resolved
+      // connect-related state variables
+      
+      var sStop=uTransfer-u; // should stop s0 upstream of uConnect
+      var accStop=vehConnect.longModel.calcAccDet(sStop,speed,0,0);
+      var conflictsExist=vehConnect.conflictsExist; // from previous step
+      var laneContinues=((lane+offsetLane>=0)
+			 &&(lane+offsetLane<targetRoad.nLanes));
+      
+      var C1=((u>uAntic)&&(u<=uDecide)); // braking zone
+      var C2=((u>uDecide)&&(u<=uGo));    // reversible decision zone
+      var C3=(u>uGo);                    // final go if conflicts resolved
 
 
-	if(this.connectLog){
+      if(this.connectLog){
 	  var zoneStr=(C1) ? " in braking zone"
 	      : (C2) ? " in decision zone"
 	      : (C3) ? " final go" : " no interation";
@@ -2332,111 +2338,89 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		      //" potentialConflictsExist="+potentialConflictsExist,
 		      //" maxspeedImposed="+maxspeedImposed,
 		      "");
-	}
+      }
+
+      
 		    
 
 
-        // Decide and do actions
+      // (2) on a closing lane:
+      // do actions A3 (decel to stop): Action A1 (LC) obsolete 
+      // except for forc-hacking out of a gridlock
 
-        // Action A1: impose bias to change lanes if no through lane
-	// (actual lane-changing action done at a later stage)
-	// (check if I can do the decel action A2 here as well,
-	// i.e., without an
-	// additional virtual standing obstacle on the closing lane)
+      // deleted all reverting wrong LC decisions because now implemented
+      // in antic (if not working, old versions->revertDecisions)
 
-	if(!laneContinues){
+      if(!laneContinues){
 
-	  var revertDecisions=false;
 
-	  
-	  // (a) !! revert wrong LC at the beginning
-	  // (virtual vehs not visible
-	  // during MOBIL round) does not work completely; prevents wrong
-	  // changes but makes traffic somewhat less efficient
-	  // (also not with else branch down)
-	  
-	  if(vehConnect.dt_afterLC<=0.5*dt){
-	    var laneOld=Math.round(vehConnect.v);
-	    var laneContinuesOld=((laneOld+offsetLane>=0)
-			          &&(laneOld+offsetLane<targetRoad.nLanes));
-	    if(laneContinuesOld){
-	      vehConnect.lane=laneOld;
-	      vehConnect.v=vehConnect.lane;
-	      lane=vehConnect.lane;
-	      v=vehConnect.v;
-	      vehConnect.dt_afterLC=0;
-	      laneContinues=true;
-	      revertDecisions=true;
-	      console.log("reverted LC of veh",vehConnect.id,"to lane",lane);
-	    }
-	  }
+	// !!! (2a) resolve gridlock by force-hack
+	// if vehicle is gridlocked for a sufficient time
+	// vehicle "jumps" to the next link over the blocking vehicles
 
-	  // !!! resolve gridlock by force-hack
-	  // if vehicle is gridlocked for a sufficient time
-	  // vehicle "jumps" to the next link over the blocking vehicles
+	var time_maxGridlock=0.8; //!!!
+	var speed_gridlock=0.2; //!!!
+	if(speed<speed_gridlock){
+	  vehConnect.dt_gridlock+=dt;
 
-	  var time_maxGridlock=0.8; //!!
-	  var speed_gridlock=0.2; //!!
-	  if(vehConnect.speed<speed_gridlock){
-	    vehConnect.dt_gridlock+=dt;
-
-	    if(vehConnect.dt_gridlock>time_maxGridlock){
-	      console.log("==== veh",vehConnect.id,
-			  "moved by force to new link",targetRoad.roadID);
-	      vehConnect.u=uSource; // move to connect point => does action A5
-	      this.updateEnvironment(); 
-	      vehConnect.dt_gridlock=0;
-	      laneContinues=true;
-	      revertDecisions=true;
-	    }
-	  }
-	  else{
+	  if(vehConnect.dt_gridlock>time_maxGridlock){
+	    console.log("==== veh",vehConnect.id,
+			"moved by force to new link",targetRoad.roadID);
+	    vehConnect.u=uSource; // move to connect point => does action A5
+	    this.updateEnvironment();
 	    vehConnect.dt_gridlock=0;
 	  }
+	}
+	else{
+	  vehConnect.dt_gridlock=0;
+	}
+      
+	// (2b) do the regular action (LCbias and resetting acc
+	// !!! test if LC related action needed; probably now done in
+	// sourceroad.updateModelsOfAllVehicles()
 
-	  // (c) do the regular action
-	  // if revertDecisions, directly go to the if(laneContinues) branch
 	  
-	  if(!revertDecisions){ 
-	    var toRight=(lane+offsetLane<0);
-	    var bBiasRight=((toRight) ? 1 : -1)*10;
-	    var accOld=vehConnect.acc;
-	    vehConnect.LCModel.bBiasRight=bBiasRight;     // !! influence
-	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
-	    if(this.connectLog){
-	      console.log(
-	      "  Action A1:",
-	      " setting LC bias of "+bBiasRight, " to veh "+id,
+	if(false){ // test if needed
+	  var toRight=(lane+offsetLane<0);
+	  var bBiasRight=((toRight) ? 1 : -1)*10;
+	  vehConnect.LCModel.bBiasRight=bBiasRight;    // !! influence
+	}
+      
+	var accOld=vehConnect.acc;
+	vehConnect.acc=Math.min(accOld, accStop); // !! influence
+	if(this.connectLog){
+	  console.log(
+	      "  No through lane -> Action A1:",
+	      " no longer setting LC bias (see comment) but"
 	      "\n  Action A3: decelerate to virt stopped veh with accel "+
-		accSlowdown.toFixed(1),
+		accStop.toFixed(1),
 	      "sStop="+sStop.toFixed(1),
 	      "s0="+s0.toFixed(1),
 	      "\n  test: vehConnect.longModel.calcAccDet(sStop,speed,0,0)="+
 		vehConnect.longModel.calcAccDet(sStop,speed,0,0),
 		"");
-	    }
-	  }
 	}
+      }
+    }//!laneContinues
       
+  
 
-	// Decisions/Actions A2-A4:
-	// take decision if laneContinues and in decision zone
-	// if in zone C2, allow reverting decision later
-        // see ../README_IntersectionsVarNetworks.txt
-	// (vehConnect.conflictsExist from previous time step)
+    // (3) on a through lane, in any region u in [uAntic, uSource]
 
-	if(laneContinues){ 
+    if(laneContinues){
 
-	  // Prepare Action A4 assuming at the moment no conflicts
-	  // determine if, in this case, the target road can be entered
-	  // follower need not brake more than bsafe)
-	  // and if so, at which acceleration accGo
+      // Prepare Action A4 assuming at the moment no conflicts
+      // determine if, in this case, the target road can be entered
+      // such that follower need not brake more than bsafe (!!! introduce prio)
+      // and if so, at which acceleration accGo
+      
 	  
-	  //targetLeaderInfo and targetFollowerInfo=[success,index]
-	  // if no success, index=-1
-	  // !! since TL is always obstacle
-	  // (type=="obstacle" lowercase, no function!!),
-	  // check for TL not needed
+      //targetLeaderInfo and targetFollowerInfo=[success,index]
+      // if no success, index=-1
+      // !! since TL is always obstacle
+      // (type=="obstacle" lowercase, no function!!),
+      // check for TL not needed
+      
 
 	  var followerInfo
 	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
@@ -2726,7 +2710,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    // even w/o conflicts or conflicts cleared
 	    
 	    else{
-	      accGo=accSlowdown; // !! influence
+	      accGo=accStop; // !! influence
 	      if(this.connectLog){
 	        console.log(
 		  "  Preparation (iv): in braking zone with target follower"+
@@ -2799,12 +2783,12 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  // and/or in zone C2 and/or !targetCanBeEntered
 
 	  if (!(conflictsAllowPassing&&targetCanBeEntered)){
-	    vehConnect.acc=Math.min(accOld, accSlowdown); // !! influence
+	    vehConnect.acc=Math.min(accOld, accStop); // !! influence
 	    if(this.connectLog){
 	      console.log("  Action 3: conflicts or gridlock danger:"+
 			  " decelerating to stop"+
 			  " accOld="+accOld.toFixed(1),
-			  " accSlowdown="+accSlowdown.toFixed(1),
+			  " accStop="+accStop.toFixed(1),
 			  "");
 	    }
 	  }
@@ -2838,7 +2822,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	// Action A5: actual transfer!!
 
       
-	if((u>uSource-distBeforeEnd)&&(this.roadID!=targetRoad.roadID)){
+	if((u>uSource-duTransfer)&&(this.roadID!=targetRoad.roadID)){
 	  //if(true){
 	  if(this.connectLog){
 	  //if(vehConnect.id==210){
