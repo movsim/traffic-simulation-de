@@ -2391,7 +2391,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	if(this.connectLog){
 	  console.log(
 	      "  No through lane -> Action A1:",
-	      " no longer setting LC bias (see comment) but"
+	    " no longer setting LC bias (see comment) but",
 	      "\n  Action A3: decelerate to virt stopped veh with accel "+
 		accStop.toFixed(1),
 	      "sStop="+sStop.toFixed(1),
@@ -2408,7 +2408,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     // (3) on a through lane, in any region u in [uAntic, uSource]
 
     if(laneContinues){
-
+    
       // Prepare Action A4 assuming at the moment no conflicts
       // determine if, in this case, the target road can be entered
       // such that follower need not brake more than bsafe (!!! introduce prio)
@@ -2927,11 +2927,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	
 	
-      } // if(connecting)
-    } // veh in anticipation regime and regular veh
 
-
-    
   } // loop over all road vehicles
 
 } // end connect; end road.prototype.connect
