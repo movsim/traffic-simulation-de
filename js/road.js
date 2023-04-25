@@ -2368,20 +2368,24 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
       if(laneContinues){
 
+	// (3a) check if there are instantaneous leaders and followers 
+	// on the target road if the source road were parallel to the target
+	
+	var uTargetInst=uTarget+u-uSource;  // instantaneous pos < uTarget
 	var followerInfo
-	      = targetRoad.findFollowerAtLane(uTarget,lane+offsetLane);
+	      = targetRoad.findFollowerAtLane(uTargetInst,lane+offsetLane);
 	var followerExists // no follower complication if road not left!
 	      =followerInfo[0]&&(this.roadID!=targetRoad.roadID)
 	      &&(!(targetRoad.veh[followerInfo[1]].type=="obstacle"));
 
 	var iFollow=followerInfo[1];
 	var speedFollow=(followerExists) ?targetRoad.veh[iFollow].speed : 0;
-	var sFollow=(followerExists)
-	      ? uTarget-(uSource-u)-vehConnect.len - uFollow : 1000000;
+	var sFollow=(followerExists) 
+	    ? uTargetInst-vehConnect.len-uFollow : 1000000;
 
       
 	var leaderInfo
-	        = targetRoad.findLeaderAtLane(uTarget,lane+offsetLane);
+	        = targetRoad.findLeaderAtLane(uTargetInst,lane+offsetLane);
 	var leaderExists // same filter as follower
 	      =leaderInfo[0]&&(this.roadID!=targetRoad.roadID)
 	      &&(!(targetRoad.veh[leaderInfo[1]].type=="obstacle"));
@@ -2391,40 +2395,59 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	var uLead=(leaderExists)
 	      ? targetRoad.veh[iLead].u : +1000000;
 	var lenLead=(leaderExists)?targetRoad.veh[iLead].len : 0;
-	var sLead=(leaderExists)?uLead-uTarget+(uSource-u)-lenLead : 100000;
-        
+	var sLead=(leaderExists)?uLead-lenLead-uTargetInst : 100000;
 
-	// (3a) //special case just glued together and no own leader
+	if(this.connectLog){
+	  console.log(
+	    "   connect (3): through lane, leaderID=",
+	    "acc from calcAccelerations=", vehConnect.acc.toFixed(2),
+	    "\n   connect (3a): leaderID=",
+	    ((leaderExists) ? targetRoad.veh[iLead].id : "none"),
+	    "sLead=",sLead.toFixed(1),
+	    " followerID=",
+	    ((followerExists) ? targetRoad.veh[iFollow].id : "none"),
+	    "sFollow=",sFollow.toFixed(1),
+	    "");
+	}
+
+	// (3b) //special case just glued together and no own leader
 	// (no changed acceleration/action if there is own leader)
 
 	if(justGluedTogether){
 	  if(vehConnect.iLead>=iveh){// no own leader
 	    
 	    // just follow targetroad leader or enter free target
-	    // change leader gap to real physical gap instead of heuristic
 	    
 	    if(leaderExists){
-	      var sLeadPhysical=uLead-uTarget+(uSource-u)-lenLead;
 	      vehConnect.acc=vehConnect.longModel.calcAccDet( //!!influence
-		sLeadPhysical,speed,speedLead,targetRoad.veh[iLead].acc);
+		sLead,speed,speedLead,targetRoad.veh[iLead].acc);
 	    }
 	    else{
 	      vehConnect.acc=accFree; // !! influence
 	    }
 	  }
+	  if(this.connectLog){
+	    console.log("   connect (3b): just glued together: acc=",
+			vehConnect.acc.toFixed(2));
+	  }
 	}
 	
 	  
-        // (3b) in C1 and possible stops ahead: decelerate
+        // (3c) in C1 and not justGluedTogether:
+	// possible stops ahead: decelerate
       
 	if(C1 && (!justGluedTogether)){
 	  vehConnect.acc=Math.min(accStop,accOld); // !! influence
+	  if(this.connectLog){
+	    console.log(
+	      "   connect (3c): in C1, decel to stop if needed: acc=",
+	      vehConnect.acc.toFixed(2));
+	  }
 	}
 
 
 	
-	//########################################################
-	// (4) in C2||C3 and not justGluedTogether:
+	// (3d) in C2||C3 and not justGluedTogether:
 	// determine entry condition and acceleration | no conflicts
 	// make or revert the decision vehicle.tookGoDecision
 	// with hysteresis
@@ -2432,43 +2455,39 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	if((C2||C3) && (!justGluedTogether)){
 
-	  // (4a) acceleration if target road is free 
+	  // (3d)(i) acceleration if target road is free 
 	  // (accFree includes optional param speedmax if applicable)
 
-	  
 	  if((!leaderExists)&&(!followerExists)){
 	    vehConnect.tookGoDecision=true;
 	    vehConnect.acc=Math.min(accOld, accFree);//(should be already set)
+	    if(this.connectLog){
+	      console.log(
+		"   connect (3d): in C2||C3, no leader or follower: acc=",
+		vehConnect.acc.toFixed(2));
+	    }
 	  }
 
 	  
 	
-
-
-
-	  // Determine the most probable leader and follower
-	  // * If no follower, then the anticipated target leader is just
-	  //   the actual leader 
-	  // * If follower, then antic the target followers AND leaders at
-	  //   expected entry time tc assuming free acceleration
-	  
-          //targetLeaderInfo and targetFollowerInfo=[success,index]
-          // if no success, index=-1
+	  // (3d)(ii) in C2||C3, true target follower at present
+	  // update the most probable follower
+	  // if subject speed< instantaneous follower speed
 	    
-	  if(followerExists){ // in C2||C3, true target follower at present
+	  if(followerExists&&(speed<speedFollow)){
 	
 	    // determine entry time
 	  
 	    var tc=-speed/accFree
 	      +Math.sqrt(Math.pow(speed/accFree,2)+2*(uSource-u)/accFree);
 
-	    // recursively find anticipated follower assuming constant speeds
+	    // recursively find anticipated follower assuming constant
+	    // target-vehicle speeds
 
-	    // true if anticipated follower is the same
 	    var anticipatedFollowerTheSame=(uFollow+speedFollow*tc<uTarget);
 	    var newAnticipatedFollower=(!anticipatedFollowerTheSame);
 
-	    // no follower if iLag<=iFollow
+	    // no follower of actual target follower if iLag<=iFollow
 	    var iLag=targetRoad.veh[iFollow].iLag;
 
 
@@ -2479,41 +2498,41 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	      speedFollow=targetRoad.veh[iFollow].speed;
 	      newAnticipatedFollower=(uFollow+speedFollow*tc>uTarget);
 	      iLag=targetRoad.veh[iFollow].iLag;
-
-	      if(this.connectLog){
-	      console.log("  recursive while loop:",
-			  " anticipatedFollowerExists="+
-			  anticipatedFollowerExists,
-			  "iFollow="+iFollow,
-			  "idFollow="+targetRoad.veh[iFollow].id);
-	      }
 	    }
 
-	    // !!!? Because anticipation is complicated in full generality,
-	    // sometimes anticipatedFollowerExists although not the case
-	    // then uFollow=-100000 is the clue
-	    
-	    if(uFollow<-100000){
-	      console.log("Error: anticipatedFollowerExists and uFollow<-100000 should not happen! Check if it happens!");
-	      anticipatedFollowerExists=false;
-	    }
 
-	    if(anticipatedFollowerExists){ // otherwise use initialisation
+	    if(!anticipatedFollowerTheSame){ // otherwise use initialisation
 	      sFollow=(uTarget-uFollow) - (uSource-u) - vehConnect.len
 		  - speedFollow*tc; // !! antic
 	    }
 
-	    // If anticipated follower != actual follower then the 
-	    // anticipated leader is the leader of the anticipated follower 
+	    // If anticipated follower != actual follower then
+	    // update sFollow and update the leader data
+	    // to that of the leader of new follower
 
-	    if(newAnticipatedFollower){
-	        leaderExists=true;
-	        iLead=(targetRoad.veh[iFollow].iLead);
-	        uLead=targetRoad.veh[iLead].u;
-	        speedLead=targetRoad.veh[iLead].speed;
-	        lenLead=targetRoad.veh[iLead].len;
-	        sLead=uLead-uTarget+(uSource-u)-lenLead+ speedLead*tc;
+	    if(!anticipatedFollowerTheSame){ // otherwise use initialisation
+	      sFollow=(uTarget-uFollow) - (uSource-u) - vehConnect.len
+		  - speedFollow*tc; // !! antic
+	      leaderExists=true;
+	      iLead=(targetRoad.veh[iFollow].iLead);
+	      uLead=targetRoad.veh[iLead].u;
+	      speedLead=targetRoad.veh[iLead].speed;
+	      lenLead=targetRoad.veh[iLead].len;
+	      sLead=uLead-uTarget+(uSource-u)-lenLead+ speedLead*tc;
 	    }
+	    
+	    if(this.connectLog){
+	      console.log(
+		"   connect (3d): in C2||C3 with follower and",
+		"speed<speedFolloer: update leader/follower:",
+		"\n   leaderID=",
+		((leaderExists) ? targetRoad.veh[iLead].id : "none"),
+		"sLead=",sLead.toFixed(1),
+		" followerID=",
+		((followerExists) ? targetRoad.veh[iFollow].id : "none"),
+		"sFollow=",sFollow.toFixed(1));
+	    }
+	    
 	  } // if(followerExists)  in C2||C3 and not just glued togeter)
 
       	    
@@ -2521,13 +2540,28 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       
 
 	  
-	  // (4c) make conditional hysteretic go/revert decision
-	  // if target followers (sFollow def. earlier)
+	  // (3e) if target followers and/or leaders:
+	  // make conditional hysteretic decideGo/decideRevert decision
+	  // and from this make the actual vehConnect.tookGoDecision
+	  
+	  // Follower:
+	  // 
+	  // targetPrio decideGo                  revertGo
+	  // yes        (accFl>-bPrio)            (accFl<-bIDM) &&      
+	  //                                       (accStop>min(-bSafe,accFl))
+	  // no         (accFl>-bIDM)             (accFl<min(-bSafe,accStop))
+	  //
+	  // Leader (independent of prio):
+	  //
+	  // (n.a.) &&(acc(subj,leader)>-bIDM)    ||(acc(subj,leader)<-bSafe)
+	  //            
+	  
+	  
+	  var decideGo=true; // conditional go if (!vehConnect.tookGoDecision)
+	  var revertGo=false;// cond. revert if (vehConnect.tookGoDecision)
 
-	  var decideGo=true; // hysteresis between the "can go"
-	  var revertGo=false; // and "revert can go" decision
-
-	  if(followerExists){// then also in C2||C3, exclusive to (4a),(4b)
+	  
+	  if(followerExists){// then also in C2||C3, exclusive to (3b),(3c)
 	    var accFollow=targetRoad.veh[iFollow].longModel.calcAccDet(
 	      sFollow,speedFollow,speed,vehConnect.acc);
 	    var IDMbFollow=-targetRoad.veh[iFollow].longModel.b;
@@ -2538,24 +2572,19 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 	    else{ // own has prio but target cannot see => respect also here
 	      decideGo=(accFollow>-IDMbFollow);
-	      revertGo=(accFollow<Math.max(-bSafe,accStop));
+	      revertGo=(accFollow<Math.min(-bSafe,accStop));
 	    }
 	  }
 
-
-	  // (4c) update cond go/revert decisions if target leader
-	  // (lenLead, sLead def. earlier) 
-
-	  if(leaderExists&&(!justGluedTogether)){
-	    //xxxx
+	  if(leaderExists){
 	    accConnect_sLead=vehConnect.longModel.calcAccDet(
-	      sLead,speed,speedLead,0);
+	      sLead,speed,speedLead,0); //with leader.acc no parallel update);
 	    decideGo=(decideGo && (accConnect_sLead>-vehConnect.longModel.b));
 	    revertGo=(revertGo || (accConnect_sLead<-bSafe));
 	  }
 
 	
-	// (4d) make the actual go/revert decision
+	// make the actual go/revert decision
 	// and update the own acceleration (because of hysteresis, none
 	// of the following two conditions may be true;
 	// then vehConnect.tookGoDecision unchanged
@@ -2571,9 +2600,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  ? accFree : accStop;  // !! influence
 	
 
-
-
-	// HERE
+        // console.log(    connect (3e): decideGo, revertGo, tookDecision, acc)
+	
+	
+	// HERE still in if((C2||C3) && (!justGluedTogether))
 	
 	// !!! include this in (4c)
 	//do not enter if targetroad vehicles do not allow to pass
@@ -2700,14 +2730,15 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	  }
 
 	  
-	}
+	} // if((C2||C3) && (!justGluedTogether))
       }// laneContinues==true
 
 
-	// Action A5: actual transfer!!
+      // Action A5: actual transfer (outside laneContinuous because
+      // of forced hack to get rid of lane-route gridlock
 
       
-	if((u>uSource-duSource)&&(this.roadID!=targetRoad.roadID)){
+      if((u>uSource-duSource)&&(this.roadID!=targetRoad.roadID)){
 	  //if(true){
 	  if(this.connectLog){
 	  //if(vehConnect.id==210){
@@ -2810,7 +2841,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 		      "");
 	}
 
-    } // in influence region and route OK and no own leader
+    }// in influence region and route OK and no own leader
 	
 
   } // loop over all road vehicles
