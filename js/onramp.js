@@ -28,7 +28,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawRoadIDs=true; // override control_gui.js; 
+drawRoadIDs=true; // override control_gui.js; call later
+                  // network[ir].drawRoadID();
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 

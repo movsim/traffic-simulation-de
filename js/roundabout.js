@@ -663,7 +663,10 @@ function updateSim(){
   // merge: arms to ring
   // respectRingPrio set by html choice element
   
-  // connect(targetRoad,uSource,uTarget,offsetLane,conflicts(opt),speed(opt))
+  // connect(targetRoad,uSource,uTarget,offsetLane,
+  // conflicts(opt),speed(opt), targetPrio (opt))
+
+  
   network[0].connect(network[8], uMerge, // E arm
 		     0.25*PI*rRing+mergeOffset, 0, [], maxspeed_turn,
 		     respectRingPrio);

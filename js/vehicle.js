@@ -47,7 +47,8 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.LCbanLeft=false;  // MT 2023-04: tactical: no changes to left allowed
   this.LCbanRight=false;  // MT 2023-04: tactical: no changes to left allowed
 
-  this.tookGoDecision=true; // only relevant for road.connect; can I go on?
+  this.tookGoDecision=true; // only relev for road.connect; reversible go
+  this.finalGo=false;       // only relev for road.connect; irreversible go
 
 
   // only for golfCourse simulation (cannot incept new attribute from outside)

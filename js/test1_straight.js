@@ -1,13 +1,21 @@
 
 const userCanDropObjects=true;
-drawVehIDs=true; // override control_gui.js
 
-var nLanes_main=2;
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawRoadIDs=true; // override control_gui.js; 
+drawVehIDs=false;  // override control_gui.js;
+                   // need to call later road.drawVehIDs=drawVehIDs
+
 
 
 //#############################################################
 // adapt/override standard param settings from control_gui.js
 //#############################################################
+
+var nLanes_main=2;
 
 density=0;
 
@@ -153,8 +161,11 @@ var route1=[road0.roadID, road1.roadID];
 
 // road network (network declared in canvas_gui.js)
 
-network[0]=road0; network[0].drawVehIDs=drawVehIDs;
-network[1]=road1; network[1].drawVehIDs=drawVehIDs;
+network=[road0,road1];
+for(var ir=0; ir<network.length; ir++){
+  network[ir].drawVehIDs=drawVehIDs;
+  network[ir].drawRoadIDs=drawRoadIDs;
+}
 
 
 // add standing virtual vehicles at the end of some road elements
@@ -422,6 +433,7 @@ function drawSim() {
   // second arg line optional, only for moving observer
 
   for(var ir=0; ir<network.length; ir++){ 
+    network[ir].drawRoadID();
     network[ir].drawVehicles(carImg,truckImg,obstacleImgs,
 			vmin_col,vmax_col);
   }
