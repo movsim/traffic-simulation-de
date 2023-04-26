@@ -79,17 +79,11 @@ var scale=refSizePix/refSizePhys;
 
 // all relative "Rel" settings with respect to refSizePhys, not refSizePix!
 
-// controls the x coordinate left / right pull of the road
 var center_xRel=0.43;
-// controls the y coordinate up / down pull of a roads center
 var center_yRel=-0.53;
-// radius of the road and its curve
 var arcRadiusRel=0.35;
+var offLenRel=0.9;
 
-// length of the offramp
-// var offLenRel=0.9;
-
-// for phone use or resizing
 var center_xPhys=center_xRel*refSizePhys; //[m]
 var center_yPhys=center_yRel*refSizePhys;
 
@@ -98,6 +92,12 @@ var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 
+var offLen=offLenRel*refSizePhys; 
+var divergeLen=0.5*offLen;
+
+var mainRampOffset=mainroadLen-straightLen - 100;
+var taperLen=0.2*offLen;
+var offRadius=3*arcRadius;
 
 
 function updateDimensions(){ // if viewport or sizePhys changed (mobile)
@@ -108,6 +108,12 @@ function updateDimensions(){ // if viewport or sizePhys changed (mobile)
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
     mainroadLen=arcLen+2*straightLen;
+    offLen=offLenRel*refSizePhys; 
+    divergeLen=0.5*offLen;
+
+    mainRampOffset=mainroadLen-straightLen;
+    taperLen=0.2*offLen;
+    offRadius=3*arcRadius;
   console.log(" mainroadLen=",mainroadLen);
 }
 
@@ -116,7 +122,8 @@ function updateDimensions(){ // if viewport or sizePhys changed (mobile)
 // => road becomes more compact for smaller screens
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
-var nLanes_main=3;
+// var laneWidthRamp=5; // main lanewidth used
+var nLanes_main=2;
 var nLanes_rmp=1;
 
 var car_length=7; // car length in m
@@ -128,22 +135,37 @@ var truck_width=7;
 
 
 function traj_x(u){ // physical coordinates
-        var dxPhysFromCenter= // left side (median), phys coordinates
-	    (u<straightLen) ? straightLen-u
-	  : (u>straightLen+arcLen) ? u-mainroadLen+straightLen
-	  : -arcRadius*Math.sin((u-straightLen)/arcRadius);
-	return traj_x(u) = refSizePhys / 2;
+  var dxPhysFromCenter = u * Math.cos(Math.PI / 4); // angle of 45 degrees
+  return center_xPhys + dxPhysFromCenter - 150;
 }
 
 
 function traj_y(u){ // physical coordinates
-        var dyPhysFromCenter=
- 	    (u<straightLen) ? arcRadius
-	  : (u>straightLen+arcLen) ? -arcRadius
-	  : arcRadius*Math.cos((u-straightLen)/arcRadius);
-	return center_yPhys+dyPhysFromCenter;
+  var dyPhysFromCenter = u * Math.sin(Math.PI / 11); 
+  return center_yPhys + dyPhysFromCenter - 150;
 }
 var traj=[traj_x,traj_y];
+
+
+function trajRamp_x(u){ // physical coordinates
+	var xDivergeBegin=traj_x(mainRampOffset);
+	return (u<divergeLen)
+	    ? xDivergeBegin+u
+	    : xDivergeBegin+divergeLen
+	+offRadius*Math.sin((u-divergeLen)/offRadius);
+}
+
+
+function trajRamp_y(u){ // physical coordinates
+    	var yDivergeBegin=traj_y(mainRampOffset)
+	    -0.5*laneWidth*(nLanes_main+nLanes_rmp)-0.02*laneWidth;
+	return (u<taperLen)
+            ? yDivergeBegin+laneWidth-laneWidth*u/taperLen: (u<divergeLen)
+	    ? yDivergeBegin
+	    : yDivergeBegin -offRadius*(1-Math.cos((u-divergeLen)/offRadius));
+}
+
+var trajRamp=[trajRamp_x,trajRamp_y];
 
 
 //##################################################################
@@ -152,7 +174,7 @@ var traj=[traj_x,traj_y];
 
 var isRing=false;  // 0: false; 1: true
 var roadIDmain=1;
-// var roadIDramp=2;
+var roadIDramp=2;
 
 var fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
@@ -163,11 +185,25 @@ duTactical=250; // anticipation distance for applying mandatory LC rules
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj,
 		      density, speedInit,fracTruck, isRing);
 
+var ramp=new road(2,offLen,laneWidth,nLanes_rmp,trajRamp,
+		     0.1*density,speedInit,fracTruck,isRing);
 network[0]=mainroad;  // network declared in canvas_gui.js
+network[1]=ramp;
 
+
+var offrampIDs=[2];
+var offrampLastExits=[mainRampOffset+divergeLen];
+var offrampToRight=[true];
+mainroad.setOfframpInfo(offrampIDs,offrampLastExits,offrampToRight);
+mainroad.duTactical=duTactical;
 
 
 var route1=[1];  // stays on mainroad
+var route2=[1,2]; // takes ramp
+for (var i=0; i<mainroad.veh.length; i++){
+    mainroad.veh[i].route=(Math.random()<fracOff) ? route2 : route1;
+    //console.log("mainroad.veh["+i+"].route="+mainroad.veh[i].route);
+}
 
 
 
@@ -203,7 +239,7 @@ var vmax_col=100/3.6; // max speed for speed colormap (drawn in blue-violet)
 // init background image
 
 var background = new Image();
-background.src ='figs/grassTest.jpg'; 
+background.src ='figs/backgroundGrass.jpg'; 
  
 
 // init vehicle image(s)
@@ -252,6 +288,10 @@ roadImg1=roadImgs1[nLanes_main-1];
 roadImg2 = new Image();
 roadImg2=roadImgs2[nLanes_main-1];
 
+rampImg = new Image();
+rampImg=roadImgs1[nLanes_rmp-1];
+
+console.log("roadImg1=",roadImg1," rampImg=",rampImg);
 
 //############################################
 // traffic objects
@@ -290,6 +330,10 @@ function updateSim(){
     mainroad.updateModelsOfAllVehicles(longModelCar,longModelTruck,
 				       LCModelCar,LCModelTruck,
 				       LCModelMandatory);
+    ramp.updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
+    ramp.updateModelsOfAllVehicles(longModelCar,longModelTruck,
+				      LCModelCar,LCModelTruck,
+				       LCModelMandatory);
 
 
   // (2a) update moveable speed limits
@@ -311,6 +355,19 @@ function updateSim(){
     mainroad.updateBCup(qIn,dt,route); // qIn=total inflow, route opt. arg.
     //mainroad.writeVehicleRoutes(0.5*mainroad.roadLen,mainroad.roadLen);//!!!
 
+    ramp.updateLastLCtimes(dt); // needed since LC from main road!!
+    ramp.calcAccelerations();  
+    ramp.updateSpeedPositions();
+    ramp.updateBCdown();
+
+
+    //template: mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
+
+    var u_antic=20;
+    mainroad.mergeDiverge(ramp,-mainRampOffset,
+			  mainRampOffset+taperLen,
+			  mainRampOffset+divergeLen-u_antic,
+			  false,true);
 
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
@@ -320,7 +377,7 @@ function updateSim(){
   // debug output
 
   if(false){
-    console.log("mainroadLen=",formd(mainroadLen), 
+    console.log("mainroadLen=",formd(mainroadLen),
 		" mainroad.roadLen=",formd(mainroad.roadLen),
 		" mainroad.offrampLastExits=",
 		formd(mainroad.offrampLastExits),
@@ -404,11 +461,12 @@ function drawSim() {
     // (always drawn; changedGeometry only triggers building a new lookup table)
 
     var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
- 
+    ramp.draw(rampImg,rampImg,scale,changedGeometry);
     mainroad.draw(roadImg1,roadImg2,scale,changedGeometry);
 
     // (4) draw vehicles
 
+    ramp.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
     mainroad.drawVehicles(carImg,truckImg,obstacleImgs,scale,vmin_col,vmax_col);
 
    // (5a) draw traffic objects 
