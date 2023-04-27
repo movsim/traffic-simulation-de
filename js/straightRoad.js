@@ -155,16 +155,16 @@ function traj_rmew_y(u){ // physical coordinates
 }
 
 function traj_rsew_x(u){ // physical coordinates
-  var dxPhysFromCenter = -u * Math.cos(Math.PI / 6) // angle of 45 degrees
-  return center_xPhys + dxPhysFromCenter;
-  // return (radius+80)*(1-Math.cos(u/radius))-100;
+  // var dxPhysFromCenter = -u * Math.cos(Math.PI / 6) // angle of 45 degrees
+  // return center_xPhys + dxPhysFromCenter + 500;
+  return (radius+80)*(1-Math.cos(u/radius))-100;
 }
 
 
 function traj_rsew_y(u){ // physical coordinates
-  var dyPhysFromCenter = -u * Math.sin(Math.PI / 8.2); 
-  return center_yPhys + dyPhysFromCenter;
-  // return (radius+150)*Math.sin(u/radius)+50;
+  // var dyPhysFromCenter = -u * Math.sin(Math.PI / 8.2); 
+  // return center_yPhys + dyPhysFromCenter + 300;
+  return (radius+150)*Math.sin(u/radius)+50;
 }
 
 
