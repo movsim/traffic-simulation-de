@@ -89,13 +89,13 @@ var center_yPhys=center_yRel*refSizePhys;
 
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
-var straightLen=refSizePhys*critAspectRatio-center_xPhys;
+var straightLen=refSizePhys*critAspectRatio-center_xPhys - 50;
 var mainroadLen=arcLen+2*straightLen;
 
 var offLen=offLenRel*refSizePhys; 
 var divergeLen=0.5*offLen;
 
-var mainRampOffset=mainroadLen-straightLen - 100;
+var mainRampOffset=mainroadLen-straightLen;
 var taperLen=0.2*offLen;
 var offRadius=3*arcRadius;
 
@@ -123,7 +123,7 @@ function updateDimensions(){ // if viewport or sizePhys changed (mobile)
 
 var laneWidth=7; // remains constant => road becomes more compact for smaller
 // var laneWidthRamp=5; // main lanewidth used
-var nLanes_main=2;
+var nLanes_main=1;
 var nLanes_rmp=1;
 
 var car_length=7; // car length in m
@@ -136,7 +136,7 @@ var truck_width=7;
 
 function traj_x(u){ // physical coordinates
   var dxPhysFromCenter = u * Math.cos(Math.PI / 4); // angle of 45 degrees
-  return center_xPhys + dxPhysFromCenter - 150;
+  return center_xPhys + dxPhysFromCenter - 200;
 }
 
 
