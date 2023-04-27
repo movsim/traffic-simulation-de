@@ -170,7 +170,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
    each of the this.trajAlt[r] elements has the form
    {x: alternative trajectory_x, e.g., for turning vehicles,
     y: the same,
-    roadID: filter vehicles with that neighboring roadID in their routes,
+    roadID: filter vehicles containing this roadID in their routes,
     umin: minimum logical this.u coordinate for using this traj,
     umax: maximum logical this.u coordinate
    }
@@ -4117,8 +4117,13 @@ road.prototype.draw=function(roadImg1,roadImg2,changedGeometry,
     }
   }
 
-  // draw special trajectories (turnings etc) only stationary observer
-  // and if drawAlternativeTrajectories (=false by default)
+  /* road.draw: draw special trajectories (turnings etc) if 
+    (i) alternative trajectories defined (this.trajAlt.length>0)
+    (ii) stationary observer
+    (iii) this.drawAlternativeTrajectories=true (false by default)
+     Of course, route filtering (this.getTraj(veh)) only for vehicles
+*/
+
   
   if((!movingObserver)&&this.drawAlternativeTrajectories){
     for(var iTraj=0; iTraj<this.trajAlt.length; iTraj++){
@@ -4409,11 +4414,9 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
   // select trajectories (non-default only if turning left or right or
   // in roundabout)
 
-  this.usedTraj_x=this.traj[0]; // default
-  this.usedTraj_y=this.traj[1]; // default
 
   if(false){console.log("road.drawVehicles: traj init:"+
-				 " this.usedTraj_x="+this.usedTraj_x);}
+				 " this.traj[0]="+this.traj[0]);}
 
     
   
@@ -4422,10 +4425,10 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
   var movingObserver=(typeof movingObs === 'undefined')
       ? false : movingObs;
   var uRef=(movingObserver) ? uObs : 0;
-  var xRef=(movingObserver) ? xObs : this.usedTraj_x(0);
-  var yRef=(movingObserver) ? yObs : this.usedTraj_y(0);
-  var xOffset=this.usedTraj_x(uRef)-xRef; // =0 for !movingObserver
-  var yOffset=this.usedTraj_y(uRef)-yRef;
+  var xRef=(movingObserver) ? xObs : this.traj[0](0);
+  var yRef=(movingObserver) ? yObs : this.traj[1](0);
+  var xOffset=this.traj[0](uRef)-xRef; // =0 for !movingObserver
+  var yOffset=this.traj[1](uRef)-yRef;
 
 
   for(var i=0; i<this.veh.length; i++){
@@ -4442,12 +4445,12 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
     if(filterPassed){
 
       
-      //!! use side effect on this.usedTraj_xy, not testTraj
-      // this only used for checkForCrashes and here for testing
+      // check if alternate trajectories be used for some routes
+      // (turning, merging etc, purely optical)
 
-      var testTraj=this.getTraj(this.veh[i]); 
+      var usedTraj=this.getTraj(this.veh[i]); 
       this.drawVehicle(i,carImg, truckImg, obstacleImg, 
-			 speedmin,speedmax,[this.usedTraj_x,this.usedTraj_y],
+			 speedmin,speedmax,usedTraj,
 			 xOffset,yOffset,upright);
 
       if(false){
@@ -4455,7 +4458,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
 	  console.log(
 	    "drawVehicle after getTraj: roadID="+this.roadID,
 	    " time="+time," vehid="+this.veh[i].id,
-	    "testTraj="+testTraj);
+	    "usedTraj="+usedTraj);
       }
 
     }
@@ -4972,23 +4975,17 @@ road.prototype.removeObstacle=function(id) {
 
 // ####################################################################
 // helper function finding the appropriate trajectory
-// check if alternative trajectories apply (turning etc)
-// i.e., the vehicle route is equal to one of the list of routes
-// for using alternative trajectories
-// F...ing bugs if  use arrays or return values; unresolvable!!!
-// in order to use this function in collision detection, just addtl return it
+// for vehicles. If alternative trajectories exist and the veh route
+// contains the roadID element of one of the alternative traj, use it
 // ####################################################################
 
 road.prototype.getTraj=function(veh){
-  this.usedTraj_x=this.traj[0];
-  this.usedTraj_y=this.traj[1];
-  
+  var usedTraj=this.traj; // default
   if(this.trajAlt.length>0){
         var iTraj=-1;
         var routefits=false;
         for(var itr=0; (itr<this.trajAlt.length)&&(!routefits); itr++){
 	  if(veh.route.indexOf(this.trajAlt[itr].roadID)>=0){
-	  //if(arraysEqual(this.trajAlt[itr].route, veh.route)){
 	    iTraj=itr;
 	    routefits=true;
 	  }
@@ -4996,14 +4993,12 @@ road.prototype.getTraj=function(veh){
 	var success=routefits && (veh.u>=this.trajAlt[iTraj].umin)
 	    && (veh.u<=this.trajAlt[iTraj].umax);
 	if(success){
-	  this.usedTraj_x=this.trajAlt[iTraj].x;
-	  this.usedTraj_y=this.trajAlt[iTraj].y;
-	  
+	  usedTraj=[this.trajAlt[iTraj].x, this.trajAlt[iTraj].y];
 	  if(false){console.log("time="+time," iTraj="+iTraj);}
 	}
   }
 
-  return [this.usedTraj_x,this.usedTraj_y];
+  return usedTraj;
 
 }
 

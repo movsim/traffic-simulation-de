@@ -496,7 +496,7 @@ for(var ir=2; ir<=4; ir+=2){
 
 for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
-  network[ir].drawAlternativeTrajectories=true;
+  network[ir].drawAlternativeTrajectories=true; // must define road.trajAlt
 }
 
 
@@ -1146,8 +1146,8 @@ function defineGeometricRoadproperties(nLanes_main,nLanes_sec){
   road5.roadLen=road5Len;
 
 // adding the alternative trajectories ([0]=right turn, [1]=left turn)
-// depending on the roadID of the route link neighboring to the road
-// to which the alt traj are added
+// then corresponding road drawn if road.drawAlternativeTrajectories=true
+// and corresponding vehicles if their route contains the trajAlt roadID elem
 
   road0.trajAlt[0]={x: traj0_20x,
 		  y: traj0_20y,

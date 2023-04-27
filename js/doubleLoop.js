@@ -167,7 +167,7 @@ var center_yPhys=center_yRel*refSizePhys;
 
 var radius=0.35*refSizePhys;
 var lenStraight=0.20*refSizePhys;
-var lenMerge=Math.sqrt(2*radius*laneWidth*(nLanes[1]+0.3)) - 4;//!!!
+var lenMerge=Math.sqrt(2*radius*laneWidth*(nLanes[1]+0.3));
 
 var lenRing=2*Math.PI*radius;
 var lenHalfRing=Math.PI*radius+2*lenStraight;

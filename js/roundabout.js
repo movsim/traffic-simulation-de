@@ -484,8 +484,11 @@ var routeSL=[6,8,5];  // inflow S-arm, left turn
 
 // add the special trajectories depending on the roadID of the route link
 // neighboring to the ring (roadID=8)
+// then corresponding road drawn if road.drawAlternativeTrajectories=true
+// and corresponding vehicles if their route contains the trajAlt roadID elem
 
 var altOffset=-rRing*stitchAngleOffset;
+
 mainroad.trajAlt[0]={x: trajRing_0x,
 		     y: trajRing_0y,
 		     roadID: 0,
