@@ -499,12 +499,13 @@ function drawSim() {
   // (3) draw mainroad and ramps (offramp "bridge" => draw last)
   // and vehicles (directly after frawing resp road or separately, depends)
   // changedGeometry=true builds new pixel lookup table
-  // drawTaperRamp (roadImg1,  isMerge, toRight)
+  // drawTaperRamp (roadImg1,  laneIncr, atRight)
   // has purely graphical purposes
 
   var changedGeometry=userCanvasManip || hasChanged||(itime<=1); 
   ramp.draw(rampImg,rampImg,changedGeometry);
-  ramp.drawTaperRamp(rampImg,false,true);
+  ramp.drawTaperRamp(rampImg,1,true);
+  //mainroad.drawTaperRamp(rampImg,1,true);
   mainroad.draw(roadImg1,roadImg2,changedGeometry);
 
     // (4) draw vehicles

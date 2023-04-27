@@ -96,7 +96,7 @@ function myRestartFunction(){
     // add regular vehicles according to the given init density per lane
 
     road.veh=newVehicles;
-    road.initRegularVehicles(density,fracTruck);
+    road.initRegularVehicles(density,fracTruck,speedInit);
   }
 
   // reset all detectors (each detector knows which road it is at)
@@ -556,6 +556,8 @@ if(document.getElementById("slider_qOn")!==null){
 // truck fraction slider
 
 var fracTruck=0.10; // 0.10
+var fracTruckToleratedMismatch=0.02; // 1=100% allowed=>chges only by sources
+
 var slider_fracTruck;
 var slider_fracTruckVal;
 if(document.getElementById("slider_fracTruck")!==null){
@@ -574,6 +576,8 @@ if(document.getElementById("slider_fracTruck")!==null){
 // density slider
 
 var density=0.03; // 0.10
+var speedInit=20; // also needed for initializing density
+
 var slider_density;
 var slider_densityVal;
 if(document.getElementById("slider_density")!==null){

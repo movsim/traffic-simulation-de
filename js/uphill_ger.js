@@ -560,12 +560,12 @@ function drawSim() {
     var sizeSignPix=0.1*refSizePix;
     var vOffset=1.4*nLanes_main*laneWidth; // in v direction, pos if right
 
-    var xPixUp=mainroad.get_xPix(uBeginUp,vOffset,);
-    var yPixUp=mainroad.get_yPix(uBeginUp,vOffset,);
-    var xPixEnd=mainroad.get_xPix(uEndUp,vOffset,);
-    var yPixEnd=mainroad.get_yPix(uEndUp,vOffset,);
-    var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset,);
-    var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset,);
+    var xPixUp=mainroad.get_xPix(uBeginUp,vOffset);
+    var yPixUp=mainroad.get_yPix(uBeginUp,vOffset);
+    var xPixEnd=mainroad.get_xPix(uEndUp,vOffset);
+    var yPixEnd=mainroad.get_yPix(uEndUp,vOffset);
+    var xPixBan=mainroad.get_xPix(uBeginBan+0.1*straightLen,-0.5*vOffset);
+    var yPixBan=mainroad.get_yPix(uBeginBan+0.1*straightLen,-0.5*vOffset);
 
         // center sign (the drawing coords denote the left upper corner)
 

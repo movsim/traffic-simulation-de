@@ -268,6 +268,18 @@ for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
 }
 
+// add special trajectories for turns/merges etc
+// then corresponding road drawn if road.drawAlternativeTrajectories=true
+// and corresponding vehicles if their route contains the trajAlt roadID elem
+
+network[0].trajAlt[0]={x: function(u){
+  return traj1_x(u-0.75*network[0].roadLen+network[1].roadLen);},
+		       y: function(u){
+  return traj1_y(u-0.75*network[0].roadLen+network[1].roadLen);},
+		       roadID: 1,
+		       umin: 0.75*roadLen[0]-lenMerge,
+		       umax:0.75*roadLen[0]
+		      };
 
 // test implementation of the nodes by merges and diverges
 // road.initMergeDiverge([targetRoads],[isMerge],

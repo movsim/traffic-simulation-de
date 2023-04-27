@@ -174,6 +174,16 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
     umin: minimum logical this.u coordinate for using this traj,
     umax: maximum logical this.u coordinate
    }
+   if you want to use a trajectory function of another road at an offset
+   use anonymous function such as 
+   target.trajAlt=
+   { x: function(u){return trajSource_x(u-uTarget+uSource);},
+     y: function(u){return trajSource_x(u-uTarget+uSource);},
+     roadID: sourceID
+     umin: uTarget-duMerge,
+     umax: uTarget
+   }
+  
    #########################################################*/
   
   this.trajAlt=[];

@@ -92,7 +92,7 @@ qIn=(isSmartphone) ? qInSmartphone : qInRegular;
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
-IDM_a=2.05;
+IDM_a=1.2;
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 
 

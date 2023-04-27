@@ -28,7 +28,8 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 // general debug settings (set=false for public deployment)
 //#############################################################
 
-drawRoadIDs=true; // override control_gui.js; 
+drawRoadIDs=true; // override control_gui.js; call later
+                  // network[ir].drawRoadID();
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
@@ -633,7 +634,12 @@ function updateSim(){
   
   // 
 
-  if(false){//!!
+  if(false){
+
+  // template for dropping traffic lights: onramp.js
+  // template for dropping speedL: test7_severalOnrampsOfframpsConnects.js
+    
+    // drop red traffic light
 
     //!! in different road operations (setSpeedlimit) order of
     // trafficObjs.trafficObj array changed in increasing u
@@ -648,9 +654,6 @@ function updateSim(){
 	TL=trafficObjs.trafficObj[iobj];
       }
     }
-    //var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
-
-    // drop red traffic light
 
     if(itime==1){
       var udrop=0.25*network[0].roadLen;
@@ -661,7 +664,7 @@ function updateSim(){
 			     20,);
     }
 
-    // switch TL to greem
+    // switch TL to green
 
     if(itime==100){
       console.log("set first TL to green");
@@ -729,8 +732,9 @@ function drawSim() {
 	    center_xPhys-mainroad.traj[0](uObs)+ramp.traj[0](0),
 	    center_yPhys-mainroad.traj[1](uObs)+ramp.traj[1](0));
 
-  // only graphical
-  ramp.drawTaperRamp(rampImg,  true, false);
+  // only graphical: drawTaperRamp(roadImg1,  laneIncr, atRight)
+
+  ramp.drawTaperRamp(rampImg,  -1, true);
 
   mainroad.draw(roadImg1,roadImg2,changedGeometry,
 		0,mainroad.roadLen,
@@ -784,7 +788,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
-    var scaleStr=" scale="+Math.round(10*)/10;
+    var scaleStr=" scale="+Math.round(10*scale)/10;
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;
