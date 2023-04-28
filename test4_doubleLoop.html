@@ -5,15 +5,15 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 
-    <link href="css/styleSliders.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleSliders.css" rel="stylesheet" type="text/css" ></img>
     <link href="css/styleTrafficSimulationDe.css" 
-          rel="stylesheet" type="text/css"/>
+          rel="stylesheet" type="text/css"></img>
     <link rel="shortcut icon" type="image/jpg" href="./favicon.jpg">
     <script type="text/javascript" src="js/jquery-1.12.4.min.js">
     </script>
 
     
-    <title>Test 7: Onramps, offramps, and connects</title> 
+    <title>Test 4: double loop: merging with connect</title> 
 </head>
 
 
@@ -27,14 +27,6 @@
 <div id="container">
 
 
-<!-- ############################################## -->
-<!-- header: title image loaded as background image via css -->
-<!-- ############################################## -->
-
-<div id="header"> 
-<!--  <img class="title" src="figs/title.png"  width="100%"/> -->
-</div> 
-
 
 <!-- ############################################## -->
 <!-- Buttons                                        -->
@@ -42,11 +34,11 @@
 
 
 <div id="startStopDiv"><img id="startStop" width="100%" 
-     src="figs/buttonStop3_small.png" onclick="myStartStopFunction()"/>
+     src="figs/buttonStop3_small.png" onclick="myStartStopFunction()"></img>
 </div>
 
 <div id="restartDiv"><img id="restart" width="100%" 
-     src="figs/buttonRestart_small.png" onclick="myRestartFunction()"/>
+     src="figs/buttonRestart_small.png" onclick="myRestartFunction()"></img>
 </div>
 
 
@@ -57,14 +49,18 @@
 
 <div id="scenarios">
   <br>
-  <a href="./test5_crossingAndRightturn.html">
-    test5: crossing and right turns</a><br>
-  <a href="./test6_crossingLeftRight.html">
-    test6: crossing left and right</a><br>
-  <a href="./test7_severalOnrampsOfframpsConnects.html">
-    test7: onramps, offramps, and connects</a><br>
-  <a href="./doubleLoop.html">
-    double loop</a><br>
+  <a href="./test1_straightRoad.html">
+    Test 1: simple straight road</a><br>
+  <a href="./test2_bottleneck.html">
+    Test 2: anticipative lane-changing</a><br>
+  <a href="./test3_severalOnrampsOfframpsConnects.html">
+    Test 3: more complex network</a><br>
+  <a href="./test4_doubleLoop.html">
+    Test 4: double-loop: merging with connect</a><br>
+  <a href="./test5_golfCourse.html">
+    Test 5: golf course</a><br>
+  <a href="./index.html">
+    Back to main simulations</a><br>
 </div> 
 
 
@@ -89,6 +85,14 @@
   </canvas>
 </div>
 
+
+<!-- ############################################## -->
+<!-- header (below the canvas, top alone in css not enough!) -->
+<!-- ############################################## -->
+
+<div id="header"> 
+Test 4: double loop: merging with connect
+</div> 
 
 
 
@@ -120,24 +124,18 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Main Inflow</td>
+  <td class="important">Inflow</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
 </tr>
 
-<tr>
-  <td>Inflow Road 11</td>
-  <td> <input id="slider_q2" type="range" 
-              min="0" max="5000" step="10"></td>
-  <td> <div id="slider_q2Val"></div> </td>
-</tr>
 
 <tr>
-  <td class="important">Onramp Flow</td>
-  <td> <input id="slider_qOn" type="range" 
-              min="0" max="2000" step="10"></td>
-  <td> <div id="slider_qOnVal"></div> </td>
+  <td class="important">Offramp Use</td>
+  <td> <input id="slider_fracOff" type="range" 
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_fracOffVal"></div> </td>
 </tr>
 
 
@@ -176,6 +174,8 @@
 </tr>
 </table>
 
+
+<!--
 <h3>Lane-Changing Behavior</h3>
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
@@ -208,7 +208,7 @@
   <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
 </tr>
 </table>
-
+-->
 
 </center>
 </div>   <!-- id="sliders">-->
@@ -245,7 +245,7 @@
 
 <script src="js/debug.js"></script>
 
-<!-- PROJ--> <script src="js/test7_severalOnrampsOfframpsConnects.js"></script> 
+<!-- PROJ--> <script src="js/doubleLoop.js"></script> 
 
 </body>
 </html>

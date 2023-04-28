@@ -151,15 +151,19 @@ table.infoTable td {
 
 /* (1) landscape: the title */
 
+
 #header{
   position: absolute;
-  top: 0.5vmin;
-  height: 5vmin;
-  left: calc( 1vw + 35vmin);
-  width: 40vmin; /* needed for reference of width: */
-  font-size: 4vmin;
+  top: 2vmin;
+  left: 24vmin;
+  font-size: 2.6vmin;
   font-weight:bold;
-  z-index: 0;  /* above simulation canvas in rare chances of overlapping */
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  background-color: rgba(255,255,255,0.7);
+  z-index: 1;
 }
 
 
@@ -376,7 +380,7 @@ right top of simCanvas */
   top:     -1vmin;
   height:  22vmin;
   left: 115vmin;
-  width: 40vmin;
+  width: 44vmin;
   z-index: 2;  /*top-always focussed! */
 }
 
@@ -389,7 +393,7 @@ right top of simCanvas */
 
 #sliders{ /* Also contains info text for non-BaWue simulations!*/
   position: absolute;
-  top: 16vmin;
+  top: 20vmin;
   height: 20vmin;
   left: 110vmin;
   width: 55vmin;
@@ -470,15 +474,19 @@ button,select{
 
 /* (1) portrait:  the title */
 
+
 #header{
   position: absolute;
-  top: 0.5vmin;
-  height: 5vmin;
-  left: calc( 1vw + 35vmin);
-  width: 40vmin; /* needed for reference of width: */
-  font-size: 4vmin;
+  top: 2vmin;
+  left: 22vmin;
+  font-size: 2.2vmin;
   font-weight:bold;
-  z-index: 0; 
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  background-color: rgba(255,255,255,0.7);
+  z-index: 1;
 }
 
 
@@ -667,7 +675,7 @@ button,select{
   top:     83vmin;
   height:  50vmin;
   left: 1vmin;
-  width: 40vmin;
+  width: 44vmin;
   z-index: 2;
 }
 
@@ -680,7 +688,7 @@ button,select{
 
 #sliders{ /* Also contains info text for non-BaWue simulations!*/
   position: absolute;
-  top: 99vmin;
+  top: 105vmin;
   left: 0vmin;
   width: 54vmin;
   background-color: rgba(0,40,255,0);
@@ -908,7 +916,7 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
   top:     -3vmin;
   height:  24vmin;
   left: 115vmin;
-  width: 55vmin;
+  width: 60vmin;
   z-index: 2;  /*top-always focussed! */
 }
 
@@ -917,7 +925,7 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 
 
 #sliders{ /* Also contains info text for non-BaWue simulations!*/
-  top: 20vmin;
+  top: 25vmin;
   height: 20vmin;
   left: 110vmin;
   width: 70vmin;
@@ -1018,7 +1026,7 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
   top:     79vmin;
   height:  50vmin;
   left: 53vmin;
-  width: 45vmin;
+  width: 50vmin;
   z-index: 2;
 }
 

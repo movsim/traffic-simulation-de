@@ -308,7 +308,7 @@ roadImg2=roadImgs2[nLanes_main-1];
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.50,0.80,3,2);
+var trafficObjs=new TrafficObjects(canvas,1,3,0.50,0.70,2,3);
 
 // !! Editor not yet finished
 // (then args xRelEditor,yRelEditor not relevant unless editor shown)
