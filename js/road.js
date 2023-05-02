@@ -2147,9 +2147,20 @@ road.prototype.doChangesInDirection=function(toRight){
                    [] (no conflict) or [conflict1,conflict2,...]
                    each conflict has the form described below
 @param maxspeed:   (optional) the maxspeed at transition (default none)
-@param targetPrio: (optional) if true, cautious, 
-                         otherwise aggressive entering regarding the target
-                         back vehicles (bsafe)
+@param targetPrio: (optional) if true, cautious and, if needed, stopping
+                    (target vehs not influenced apart from conflicts) 
+                    otherwise aggressive entering and target followers 
+                    influenced
+
+NOTE on prio: Not completely symmetric because own vehs have to decelerate
+before entering C2 regardless of priority and target followers not
+if they have priority. For complete symmetry, 
+ - change origin and target of connect
+ - if this leads to ending target, change road geometry to get 
+   continuing target (e.g. double loop prio inner->outer loop: make outer loop
+   continuous and inner loop "deviation")
+
+NOTE2 on prio: With conflicts, only targetPrio=true makes sense
 
 each conflict has the components
 .roadConflict: the other road causing the potential conflict
@@ -2585,8 +2596,10 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    }
 
 	    else{ // own has prio but target cannot see => respect also here
-	      decideGo=(accTargetFlw>=-IDMbTargetFlw);
-	      revertGo=C2 && (accTargetFlw<-bSafe);
+	      //decideGo=(accTargetFlw>=-IDMbTargetFlw);
+	      //revertGo=C2 && (accTargetFlw<-bSafe);
+	      decideGo=true; //!!!
+	      revertGo=false;
 	    }
 	  }
 
@@ -2651,7 +2664,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
 	  // taking care of conflicts
 
-	  // final go can only become positive, never negative
+	  // final go can only become true, never again false
 	  
 	  vehConnect.finalGo=(vehConnect.finalGo
 			      ||(C3 && (vehConnect.tookGoDecision)

@@ -36,6 +36,7 @@ setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
 
 fracTruck=0.1; // default 0.1 
 setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
+fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 
 
 /*######################################################
@@ -150,7 +151,6 @@ var trajIn=[trajIn_x,trajIn_y];
 var isRing=true;  // 0: false; 1: true
 var roadID=1;
 speedInit=20; // IC for speed
-fracTruckToleratedMismatch=0.02; // avoid sudden changes in open systems
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing);
 

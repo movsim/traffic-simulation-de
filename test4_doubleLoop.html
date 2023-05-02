@@ -41,6 +41,15 @@
      src="figs/buttonRestart_small.png" onclick="myRestartFunction()"></img>
 </div>
 
+<div id="priorityDiv"> <!-- setting overridden in js file -->
+  
+    <select id="prioritySelect"
+	    onchange="handleChangedPriority(this.selectedIndex)">
+        <option> Inner Ring has Priority</option>
+        <option> Outer Ring has Priority</option>
+    </select>
+</div>
+
 
 
 <!-- redirects to other scenarios, defines myRedirectX -->

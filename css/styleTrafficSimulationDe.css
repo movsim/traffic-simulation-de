@@ -282,14 +282,14 @@ which always gives correct size!!
 #priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute;
   top: 12vmin;
-  left: 75vmin;
+  left: 80vmin;
   z-index: 2; 
 }
 
 #ODDiv{      /* origin-destination (roundabout,intersection) */
   position: absolute;
   top: 17vmin;
-  left: 75vmin;
+  left: 80vmin;
   z-index: 2;
 }
 
@@ -567,14 +567,14 @@ button,select{
 #priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute; /* again needed!*/
   top: 12vmin;
-  left: 60vmin;
+  left: 65vmin;
   z-index: 2;         /* again needed!*/
 }
 
 #ODDiv{  /* origin-destination (roundabout,intersection) */
   position: absolute; /* again needed!*/
   top: 17vmin;
-  left: 60vmin;
+  left: 65vmin;
   z-index: 2;
 }
 
@@ -860,14 +860,14 @@ screen and (min-resolution: 97dpi) and (min-aspect-ratio: 6/5){
 #priorityDiv{  /* traffic rules (roundabout,intersection) */
   position: absolute;
   top: 15vmin;
-  left: 65vmin;
+  left: 70vmin;
   z-index: 2; 
 }
 
 #ODDiv{  /* origin-destination (roundabout,intersection) */
   position: absolute;
   top: 21vmin;
-  left: 65vmin;
+  left: 70vmin;
   z-index: 2;
 }
 
@@ -967,14 +967,14 @@ screen and (min-resolution: 97dpi) and (max-aspect-ratio: 6/5){
 #priorityDiv{/* roundabout */
   position: absolute;
   top: 15vmin;
-  left: 57vmin;
+  left: 60vmin;
   z-index: 2; 
 }
 
 #ODDiv{  
   position: absolute; /* again needed!*/
   top: 21vmin;
-  left: 57vmin;
+  left: 60vmin;
   z-index: 2;
 }
 

@@ -47,7 +47,7 @@ var driver_varcoeff=0.20;
 density=0.001; // defined in control_gui.js
 setSlider(slider_density, slider_densityVal, 1000*density, 0, "veh/km");
 
-qIn=1000./3600;
+qIn=1500./3600;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 fracOff=0.5; /// 0.25
@@ -55,6 +55,10 @@ setSlider(slider_fracOff, slider_fracOffVal, 100*fracOff, 0, "%");
 
 fracTruck=0.1; // no slider
 
+// priority settings
+var priorityIndex=0; // {0=inner ring has prio, 1=outer ring has prio}
+setCombobox("prioritySelect",priorityIndex);
+handleChangedPriority(priorityIndex); // sets respectRingPrio=innerRingPrio
 
 timewarp=4;         // time-lapse factor 
 commaDigits=1;
@@ -160,7 +164,7 @@ var truck_width=3.5;
 
 var nLanes=[1,1];
 
-var center_xRel=0.40;   // 0: left, 1: right
+var center_xRel=0.36;   // 0: left, 1: right
 var center_yRel=-0.5;  // -1: bottom; 0: top
 var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
 var center_yPhys=center_yRel*refSizePhys;
@@ -394,7 +398,7 @@ for(var ir=0; ir<network.length; ir++){
 //############################################
 
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
-var trafficObjs=new TrafficObjects(canvas,1,3,0.40,0.50,3,2);
+var trafficObjs=new TrafficObjects(canvas,2,3,0.40,0.50,3,2);
 
 
 
@@ -498,7 +502,7 @@ function updateSim(){
     network[1].connect(network[0], // road after roadLen-lenMerge just optical
 		       network[1].roadLen-lenMerge,
 		       0.75*network[0].roadLen-lenMerge, 0, [],
-		       0.8*IDM_v0, true);
+		       0.8*IDM_v0, respectRingPrio);
   }
 
   
@@ -516,9 +520,8 @@ function updateSim(){
 			    0.75*network[0].roadLen-network[1].roadLen,
 			    network[1].roadLen-lenMergeDiverge,
 			    network[1].roadLen,
-			    true, false
-			    ,true,true,false); // !!! prioOther true!
-			   // ); 
+			    true, false,
+			    true,respectRingPrio,!respectRingPrio);
   }
  
   // (3e) downstream BC
