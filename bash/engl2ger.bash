@@ -15,8 +15,10 @@ indexProject="onramp" # !!!  sets the current main simulation
 
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
-projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection intersectionDevelop golfCourse"
-#projects="ring"
+#test* projects do NOT have a translation
+projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
+#test1_straightRoad test2_bottleneck test3_moreComplexNetwork test4_doubleLoop test5_golfCourse"
+
 
 cd $startDir
 
@@ -66,11 +68,13 @@ for proj in $projects; do
 
   # the following change cmd needs $proj$, 
   # therefore here, not at the change block
+
   perl -i -p -e "s/${proj}\.js/${proj}_ger.js/g" $htmlfile_ger
   perl -i -p -e "s/${proj}Info\.js/${proj}Info_ger.js/g" $htmlfile_ger
 
   # do not need BaWue files here, since they are originally in German
-
+  # do not copy *Info*.js files since they are translated by hand!!
+  
   cp js/${proj}.js js/${proj}_ger.js
   jsfilesGer="$jsfilesGer js/${proj}_ger.js"
 done

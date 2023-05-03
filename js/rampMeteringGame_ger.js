@@ -791,7 +791,7 @@ function drawSim() {
     ctx.setTransform(1,0,0,1,0,0); 
     var textsize=0.02*Math.min(canvas.width,canvas.height); // 2vw;
     ctx.font=textsize+'px Arial';
-    var scaleStr=" scale="+Math.round(10*)/10;
+    var scaleStr=" scale="+scale.toFixed(1);
     var scaleStr_xlb=9*textsize;
     var scaleStr_ylb=timeStr_ylb;
     var scaleStr_width=5*textsize;

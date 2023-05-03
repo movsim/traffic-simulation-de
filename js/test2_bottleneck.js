@@ -45,7 +45,7 @@ setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 IDM_a=1.2
 setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, " m/s<sup>2</sup>");
 
-fracTruck=0.1;
+fracTruck=0.2;
 
 /*######################################################
  Global overall scenario settings and graphics objects

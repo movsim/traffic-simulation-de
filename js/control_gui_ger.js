@@ -556,7 +556,7 @@ if(document.getElementById("slider_qOn")!==null){
 // truck fraction slider
 
 var fracTruck=0.10; // 0.10
-var fracTruckToleratedMismatch=0.02; // 1=100% allowed=>chges only by sources
+var fracTruckToleratedMismatch=1; // 1=100% allowed=>chges only by sources
 
 var slider_fracTruck;
 var slider_fracTruckVal;

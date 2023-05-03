@@ -24,10 +24,6 @@ var crashinfo=new CrashInfo();
 // and define variables w/o sliders in this scenario
 //#############################################################
 
-// following flags override control_gui.js
-// controlled by a html select elements
-
-respectRingPrio=true; 
 
 
 // merging fine tuning
@@ -50,6 +46,10 @@ MOBIL_mandat_bThr=0;
 MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
+// priority settings
+var priorityIndex=0; // {0=ring has prio, 1=arms have prio}
+setCombobox("prioritySelect",priorityIndex);
+handleChangedPriority(priorityIndex); // sets respectRingPrio
 
 //OD settings 
 // all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
@@ -57,9 +57,9 @@ MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
 
-leftTurnBias=0;  // in [-1,1] // also set html choicebox accordingly!
-focusFrac=0; // in [0,1]
-setCombobox("ODSelect","3"); //{straight ahead, right, left, all directions} 
+var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
+setCombobox("ODSelect",ODSelectIndex);
+handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
 
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)

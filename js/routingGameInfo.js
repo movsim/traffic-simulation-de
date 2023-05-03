@@ -4,7 +4,7 @@
 // newline in source escaped with '\'
 
 
-var infoString="<h2> Playing Directions</h2>\
+var infoString="<h2> Routing Game</h2>\
 <ul>\
   <li> Press \"Play Routing Game\" to start the game</li>\
 <li> Avoid congestions by controlling the deviation usage with the slider</li>\

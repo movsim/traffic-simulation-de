@@ -6,7 +6,7 @@
 # ATTENTION: Selection of actual main theme simulatin in engl2ger.bash
 
 #############################################
-# (0) get dir names and translate some js files to German
+# (0) get dir names and translate some html and js files to German
 #############################################
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
@@ -17,7 +17,8 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection intersectionDevelop golfCourse"
+projects="ring onramp offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection"
+projectsTest="test1_straightRoad test2_bottleneck test3_moreComplexNetwork test4_doubleLoop test5_golfCourse"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
 cd $startDir
@@ -55,13 +56,28 @@ html_files="${html_files} index.html index_ger.html favicon.jpg"
 # add the BaWue files and the coffeemeter files
 html_files="${html_files} onramp_BaWue_ger.html roadworks_BaWue_ger.html coffeemeterGame.html" 
 
+# add the test files
+for proj in $projectsTest; do
+  htmlfile="${proj}.html"
+  html_files="${html_files} $htmlfile";
+done
+
+html_files="${html_files} $"
+
 js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js random.js road.js vehicle.js canvas_gui.js canvasresize.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js rampMeteringGameInfo.js rampMeteringGameInfo_ger.js routingGameInfo.js routingGameInfo_ger.js  seedrandom.min.js debug.js jquery-1.12.4.min.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";
 done
+
 # add the BaWue files
-js_files="${js_files} onramp_BaWue.js roadworks_BaWue.js" 
+js_files="${js_files} onramp_BaWue.js roadworks_BaWue.js"
+
+# add the test files
+for proj in $projectsTest; do
+  js_files="${js_files} ${proj}.js";
+done
+
 
 
 #############################################
