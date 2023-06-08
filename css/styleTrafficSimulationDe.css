@@ -341,15 +341,15 @@ which always gives correct size!!
 
 #link1Div{
   position: absolute;
-  top:   96%; /* bottom attribute error in Safari */ 
-  left:   38vmin;
+  top:   93.5%; /* bottom attribute error in Safari */ 
+  left:   39vmin;
   z-index: 2;
 } 
 
 #link2Div{
   position: absolute;
   top:   93.5%;
-  left:   48vmin;
+  left:   50vmin;
   z-index: 2;
 } 
 
@@ -637,7 +637,7 @@ button,select{
 #link1Div{
   position: absolute;
   top:   81vmin;
-  left:   65vmin;
+  left:   59vmin;
   width:  32vmin;
   z-index: 2;
 } 
@@ -645,7 +645,7 @@ button,select{
 #link2Div{
   position: absolute;
   top:   81vmin;
-  left:   73vmin;
+  left:   70vmin;
   width:  32vmin;
   z-index: 2;
 } 
