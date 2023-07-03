@@ -9,10 +9,10 @@ const userCanDropObjects=false;
 // game starts with empty roads
 
 function updateRoutingGame(time){ // game inflow
-    qIn=(time<50) ? 3000/3600 : 
-	(time<90) ? 600/3600 : 
-	(time<120) ? 3300/3600 :
-	(time<125) ? 900/3600 : 0;
+    qIn=(time<50) ? 2700/3600 : 
+	(time<90) ? 500/3600 : 
+	(time<120) ? 3000/3600 :
+	(time<125) ? 800/3600 : 0;
     slider_qIn.value=3600*qIn;
     slider_qInVal.innerHTML=Math.round(3600*qIn)+" Fz/h";
 }
@@ -66,7 +66,10 @@ function clearHighscores_routingGame(){
 var isGame=false;
 var qInInit=2200./3600;
 
-// override standard settings in control_gui.js
+/*#########################################################
+ Override standard settings
+#########################################################*/
+
 
 qIn=qInInit;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
@@ -76,8 +79,9 @@ setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 fracTruck=0.15;
 
-IDM_a=0.9; 
-
+IDM_a=1.1; 
+IDM_T=1.0;
+IDM_b=2;
 MOBIL_bBiasRight_car=0.0
 MOBIL_bBiasRight_truck=5.0
 MOBIL_bThr=0.0

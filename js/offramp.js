@@ -22,7 +22,7 @@ var crashinfo=new CrashInfo(); // need to include debug.js in html
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+var driver_varcoeff=0.05; //0.15 v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 
@@ -199,7 +199,7 @@ fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 speedInit=20; // IC for speed
 
-var duTactical=310; // anticipation distance for applying mandatory LC rules
+var duTactical=260; // anticipation distance for applying mandatory LC rules
 
 var mainroad=new road(1,mainroadLen,laneWidth, nLanes_main,traj,
 		      density, speedInit,fracTruck, isRing);

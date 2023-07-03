@@ -1,6 +1,28 @@
 
-const userCanDropObjects=false;
+/* Creating reproducible versions for debugging purposes:
 
+(1) include <script src="js/seedrandom.min.js"></script> in html file
+    (from https://github.com/davidbau/seedrandom, copied locally)
+
+(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
+    in all files containing Math.random commands 
+    => at present, only road.js
+
+!! only use inside functions/methods, e.g., in road constructor;
+  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
+
+console.log(Math.random());          // Always 0.0016341939679719736 with 42
+console.log(Math.random());          // Always 0.9364577392619949 with 42
+ Math.seedrandom(42);                // undo side effects of console commands 
+*/
+
+
+const userCanDropObjects=false;
+var scenarioString="RoutingGame";
+console.log("\n\nstart main: scenarioString=",scenarioString);
+
+document.getElementById("startStopDiv").style.visibility="hidden";
+//document.getElementById("startStopDiv").style.visibility="visible";
 
 /*#########################################################
  game callbacks (general callbacks for all games in control_gui.js)
@@ -9,30 +31,37 @@ const userCanDropObjects=false;
 // game starts with empty roads
 
 function updateRoutingGame(time){ // game inflow
-    qIn=(time<50) ? 3000/3600 : 
-	(time<90) ? 600/3600 : 
-	(time<120) ? 3300/3600 :
-	(time<125) ? 900/3600 : 0;
+    qIn=(time<50) ? 2700/3600 : 
+	(time<90) ? 500/3600 : 
+	(time<120) ? 3000/3600 :
+	(time<125) ? 800/3600 : 0;
     slider_qIn.value=3600*qIn;
     slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
 }
 
 
-var nick="Voldemort";
+//var nick="Voldemort";
+var nick="routingMaster";
+
 function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
+  Math.seedrandom(42);console.log("in Math.seedrandom(42) playRoutingGame");
   isGame=true;
-  time=0;
+  document.getElementById("startStopDiv").style.visibility="visible";
+  myRestartFunction();
+ /* time=0;
   itime=0;
   var nregular=mainroad.nRegularVehs();
   mainroad.removeRegularVehs();
   ramp.removeRegularVehs();
-  nick = prompt("Please enter your nick", "Voldemort");
+*/
+  nick = prompt("Please enter your nick", nick);
   var debug=false;
   if(debug){
     time=1000*Math.random(); // gets score in finish...
     finishRoutingGame("infotextRoutingGame");
   }
-
+  Math.seedrandom(42);
+  console.log("Math.random()=",Math.random());
 }
 
 
@@ -44,6 +73,7 @@ function finishRoutingGame(infotextID){
 				     "routingGame_Highscores");
     document.getElementById(infotextID).innerHTML=messageText;
     console.log("Game finished in ",time," seconds!");
+  document.getElementById("startStopDiv").style.visibility="hidden";
     myStartStopFunction(); // reset game
 }
 
@@ -66,7 +96,10 @@ function clearHighscores_routingGame(){
 var isGame=false;
 var qInInit=2200./3600;
 
-// override standard settings in control_gui.js
+/*#########################################################
+ Override standard settings
+#########################################################*/
+
 
 qIn=qInInit;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
@@ -76,8 +109,9 @@ setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
 
 fracTruck=0.15;
 
-IDM_a=0.9; 
-
+IDM_a=1.1; 
+IDM_T=1.0;
+IDM_b=2;
 MOBIL_bBiasRight_car=0.0
 MOBIL_bBiasRight_truck=5.0
 MOBIL_bThr=0.0
@@ -112,8 +146,6 @@ updateModels();
 ######################################################*
 */
 
-var scenarioString="Deviation";
-console.log("\n\nstart main: scenarioString=",scenarioString);
 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
@@ -799,7 +831,9 @@ function main_loop() {
     drawSim();
     userCanvasManip=false;
 }
- 
+
+// callback button "restart"
+
 function myGameRestartFunction(){
   document.getElementById("infotextRoutingGame").innerHTML=infoString;
   myRestartFunction();

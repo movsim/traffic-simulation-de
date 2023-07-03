@@ -18,9 +18,25 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 // remove localStorage items by hand (the " " are crucial!)
 // localStorage.removeItem("storageName");
 
+
+// #################################################################
+
 const userCanDropObjects=true;
 
+var scenarioString="RampMeteringGame"; // needed in road.changeLanes etc
+console.log("\n\nstart main: scenarioString=",scenarioString);
 
+document.getElementById("startStopDiv").style.visibility="hidden";
+//document.getElementById("startStopDiv").style.visibility="visible";
+ 
+
+/*#########################################################
+ Override standard settings
+#########################################################*/
+
+IDM_a=1.2;
+IDM_T=1.0;
+IDM_b=2;
 
 /*#########################################################
  game callbacks (general callbacks for all games in control_gui.js)
@@ -43,6 +59,23 @@ function updateRampMeteringGame(time){  // game main flow
   slider_qOnVal.innerHTML=Math.round(3600*qOn)+" veh/h";
 }
 
+
+//var nick="Voldemort";
+var nick="controlMaster";
+
+function playRampMeteringGame(infotextID){ // only called in html
+  Math.seedrandom(42);console.log("in Math.seedrandom(42) playRampMeteringGame");
+  isGame=true;
+  document.getElementById("startStopDiv").style.visibility="visible";
+  myRestartFunction();
+  nick = prompt("Please enter your nick", nick);
+  var debug=false;
+  if(debug){
+    time=1000*Math.random(); // gets score in finish...
+    finishRampMeteringGame("infotextRampMeteringGame");
+  }
+}
+
 function finishRampMeteringGame(infotextID){
   isGame=false;
   qIn=qInInit;
@@ -50,25 +83,13 @@ function finishRampMeteringGame(infotextID){
   setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, " veh/h");
   setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, " veh/h");
 
-    var roundedTime=parseFloat(time).toFixed(1);
-    var messageText=updateHighscores(nick,roundedTime,
+  var roundedTime=parseFloat(time).toFixed(1);
+  var messageText=updateHighscores(nick,roundedTime,
 				     "rampMeteringGame_Highscores");
-    document.getElementById(infotextID).innerHTML=messageText;
-    console.log("Game finished in ",time," seconds!");
-    myStartStopFunction(); // reset game
-}
-
-var nick="Voldemort";
-
-function playRampMeteringGame(infotextID){ // only called in html
-  isGame=true;
-  myRestartFunction();
-  nick = prompt("Please enter your nick", "Voldemort");
-  var debug=false;
-  if(debug){
-    time=1000*Math.random(); // gets score in finish...
-    finishRampMeteringGame("infotextRampMeteringGame");
-  }
+  document.getElementById(infotextID).innerHTML=messageText;
+  console.log("Game finished in ",time," seconds!");
+  document.getElementById("startStopDiv").style.visibility="hidden";
+  myStartStopFunction(); // reset game
 }
 
 function clearHighscores_rampMeteringGame(){
@@ -101,6 +122,8 @@ setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, " veh/h");
 
 var nLanes_main=2;
 var nLanes_rmp=1;
+
+fracTruck=0.2;
 
 /*
 fracTruck=0.4; 
@@ -141,9 +164,6 @@ setSlider(slider_timewarp, slider_timewarpVal, timewarp, 0, "times");
 ######################################################*
 */
 
-
-var scenarioString="OnRamp"; // needed in road.changeLanes etc
-console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
 var simDivWindow=document.getElementById("contents");
@@ -839,6 +859,8 @@ function main_loop() {
     drawSim();
     userCanvasManip=false;
 }
+
+// callback button "restart"
 
 function myGameRestartFunction(){
   document.getElementById("infotextRampMeteringGame").innerHTML=infoString;

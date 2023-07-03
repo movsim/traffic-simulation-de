@@ -16,10 +16,12 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
 */
 
 
-
+// ##########################################################################################
 
 //const userCanDistortRoads=false; //legacy
 const userCanDropObjects=true;
+var scenarioString="Test5"; // needed in road.changeLanes etc
+
 drawVehIDs=false; // override control_gui.js
 //drawRoadIDs=false; // override control_gui.js
 var showCoords=true;  // show logical coords of nearest road to mouse pointer

@@ -1,5 +1,7 @@
 
 const userCanDropObjects=true;
+var scenarioString="Test1"; // needed in road.changeLanes etc
+
 
 //#############################################################
 // general debug settings (set=false for public deployment)

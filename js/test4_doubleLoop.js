@@ -5,6 +5,8 @@
 //#############################################################
 
 const userCanDropObjects=true;
+var scenarioString="Test4"; // needed in road.changeLanes etc
+
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                       // definition => showLogicalCoords(.) in canvas_gui.js
                       // application: here at drawSim (7):  

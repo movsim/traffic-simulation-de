@@ -3,10 +3,7 @@
 //Math.seedrandom(42); 
 //console.log(Math.random());          // Always 0.0016341939679719736 with 42
 //console.log(Math.random());          //s Always 0.9364577392619949 with 42
-Math.seedrandom(44); // !! re-start reproducibly (undo console logs)
-
-
-
+Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
 
 
 //#############################################################
@@ -66,8 +63,9 @@ NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
+  //Math.seedrandom(42); console.log("in Math.seedrandom(42) road cstr");
 
-
+  
   //console.log("1. in road cstr: traj=",traj);
   this.roadID=roadID;
   this.roadLen=roadLen;
@@ -81,13 +79,18 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   // driver v0 and a coeff of variation ("agility")
 
-  this.driver_varcoeff=0.15; //!! default; can be overridden
+  this.driver_varcoeff=0.15; //!!! default; can be overridden
   
   // network related properties
 
   this.isRing=isRing;
   this.doGridding=(typeof doGridding === 'undefined') ? false : doGridding;
-  this.inVehBuffer=0.9; // number of waiting vehicles; if>=1, updateBCup called
+
+  this.isGame=((scenarioString==="RampMeteringGame")
+	       ||(scenarioString==="RoutingGame"));
+  
+  this.inVehBufferInit=0.0;
+  this.inVehBuffer=this.inVehBufferInit; // if>=1, updateBCup called
   this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 
   // set by this.initMergeDiverge(..)
@@ -224,20 +227,22 @@ road.prototype.setDriverVariation=function(driver_varcoeff){
 
 road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
 					    speedInit){
+  Math.seedrandom(42);
 
   var nvehPlus=Math.floor(this.nLanes*this.roadLen*densityPerLane);
   var nVehOld=this.veh.length;
   var vehPlus=[];
   var iveh=0;
+  var fracTruckRight=Math.min(this.nLanes*fracTruck,1);
+  var fracTruckRest=(this.nLanes*fracTruck>1)
+      ? ((this.nLanes*fracTruck-1)/(this.nLanes-1)) : 0;
+  console.log("road.initRegularVehicles: fracTruckRight=",fracTruckRight," fracTruckRest=",fracTruckRest," this.nLanes=",this.nLanes);
   for(var i=0; i<nvehPlus; i++){
 
         // position trucks mainly on the right lane nLanes-1
 
     var u=(nvehPlus-i-1)*this.roadLen/(nvehPlus); //!!(nvehPlus+1)
     var lane=i%this.nLanes; // left: 0; right: nLanes-1
-    var fracTruckRight=Math.min(this.nLanes*fracTruck,1);
-    var fracTruckRest=(this.nLanes*fracTruck>1)
-      ? ((this.nLanes*fracTruck-1)/(this.nLanes-1)) : 0;
     var fracTruck=(lane===this.nLanes-1) ? fracTruckRight : fracTruckRest;
     var vehType=(Math.random()<fracTruck) ? "truck" : "car";
     var vehLength=(vehType === "car") ? car_length:truck_length;
@@ -2046,15 +2051,14 @@ road.prototype.doChangesInDirection=function(toRight){
 
         //!! MT 2019-09: prevent trucks to change to the left by force
 
-	if(!(typeof scenarioString === 'undefined')){
-	  if((scenarioString=="OnRamp_BaWue")
-	     ||(scenarioString=="roadworks_BaWue")){
+	if((scenarioString=="OnRamp_BaWue")
+	   ||(scenarioString=="roadworks_BaWue")){
 	    if(changeSuccessful&&(this.veh[i].type==="truck")&&(!toRight)){
 	      console.log("road.doChangesInDirection(): preventing truck by force to change to the left, check why this happens:\n vehicle=",this.veh[i]);
 	      changeSuccessful=false;
 	    }
-	  }
 	}
+
 
  	
 	if(changeSuccessful){
@@ -3537,11 +3541,38 @@ road.prototype.updateBCdown=function(){
 //######################################################################
 
 
-this.randomValBCup=1;
+
 road.prototype.updateBCup=function(Qin,dt,route){
 
-  var emptyOverfullBuffer=true; //!!
-  var randomAmplitude=0.2; //this.randomValBCup between 1 +/-randomAmplitude
+  // get deterministic dynamics not only for testing but also for games
+  // after restart.
+  // for some reason, this does not work at control_gui.myRestartFunction
+
+
+  if((itime<=1)&&this.isGame){
+    console.log("road.updateBCup: itime=",itime," roadID=",this.roadID,
+		" resetting this.randomValBCup",
+		" scenarioString=",scenarioString);
+    Math.seedrandom(42);
+    this.randomValBCup=1;
+  }
+  
+  var r1=Math.random();
+  var r2=Math.random();
+
+  if(false){
+    console.log("in road.updateBCup: itime=",itime,
+		" this.roadID=",this.roadID,
+		" this.inVehBuffer=",this.inVehBuffer.toFixed(3),
+		" this.randomValBCup=",this.randomValBCup.toFixed(3),
+		" r1=",r1.toFixed(5)," r2=",r2.toFixed(5));
+  }
+
+
+  
+  // select false for games
+  var emptyOverfullBuffer=!this.isGame;
+  var randomAmplitude=0.2; //!!this.randomValBCup in 1 +/-randomAmplitude
 
 
   this.route=(typeof route === 'undefined') ? [] : route; // handle opt. args
@@ -3554,15 +3585,24 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.inVehBuffer+=Qin*dt;
   }
 
-  //!! no buffer >2; change for games!
+  // no buffer >2 apart for games (then  emptyOverfullBuffer=false)
+
   if((emptyOverfullBuffer)&&(this.inVehBuffer>2)){this.inVehBuffer--;}
 
 		    
   
   if(this.inVehBuffer>=this.randomValBCup){
-    this.randomValBCup=1+2*randomAmplitude*(Math.random()-0.5);
+    this.randomValBCup=1+randomAmplitude*(2*r1-1);
+
     // get new vehicle characteristics
-    var vehType=(Math.random()<fracTruck) ? "truck" : "car";
+
+    if(false){
+      console.log("  BCup: itime=",itime,
+		  " this.roadID=",this.roadID," r1=",r1," r2=",r2,
+		  "trying to insert vehicle: this.inVehBuffer=",
+		  this.inVehBuffer.toFixed(3));
+    }
+    var vehType=(r2<fracTruck) ? "truck" : "car";
     var vehLength=(vehType==="car") ? car_length:truck_length;
     var vehWidth=(vehType==="car") ? car_width:truck_width;
     var space=0; //available bumper-to-bumper space gap
@@ -3653,6 +3693,12 @@ road.prototype.updateBCup=function(Qin,dt,route){
       this.veh.push(vehNew);  // !!!changeArray
       this.updateEnvironment();
       this.inVehBuffer -=1;
+      if(false){
+	console.log("  BCup: itime=",itime," roadID=",this.roadID,
+		    " successfully inserted ",vehType,
+		    " this.inVehBuffer=",
+		    this.inVehBuffer);
+      }
 		   
     }
   }
