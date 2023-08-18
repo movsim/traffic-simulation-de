@@ -80,6 +80,7 @@ function myStartStopFunction(){
 //#################################################################
 
 function myRestartFunction(){ 
+  Math.seedrandom(42); console.log("in Math.seedrandom(42) myRestartFunction"); 
   time=0;
   itime=0;
   var i=0;
@@ -87,16 +88,21 @@ function myRestartFunction(){
   for(var i=0; i<network.length; i++){
 
     var road=network[i];
+
+
     // remove all regular vehicles (leave obstacles and other special objects)
     // filter gives new array of filtered objects & leaves old unchanged
-    // NOTICE: works with objects by reference, although locally created ("var")
+    // NOTICE: works with objects by reference,
+    // although locally created ("var")
 
-    var newVehicles = road.veh.filter(selectNotRegularVeh);
+    var notRegularVehs = road.veh.filter(selectNotRegularVeh);
 
     // add regular vehicles according to the given init density per lane
 
-    road.veh=newVehicles;
+    road.veh=notRegularVehs; // assignment removes all regular vehicles
     road.initRegularVehicles(density,fracTruck,speedInit);
+    this.inVehBuffer=this.inVehBufferInit;
+    // this.randomValBCup=1; // DOS; apply now at road.updateBCup
   }
 
   // reset all detectors (each detector knows which road it is at)
@@ -115,6 +121,14 @@ function myRestartFunction(){
     myRun=setInterval(main_loop, 1000/fps);
   }
 
+  if(true){
+    console.log("end myRestartFunction():");
+    for(var ir=0; ir<network.length; ir++){
+      network[ir].inVehBuffer=network[ir].inVehBufferInit;
+      console.log("ir=",ir," network[ir].inVehBuffer=",network[ir].inVehBuffer);
+    }
+  }
+  
 }
 
 
