@@ -1337,8 +1337,9 @@ road.prototype.initConnect=function(targetRoads, uSource,
       offsetLane: offsetLane[ir],
       LCbias:LCbias[ir]
     };
-    //console.log("\nin road.initConnect: this.connectInfo["+ir+"]=",
-//		this.connectInfo[ir]);
+    console.log("\nin road.initConnect: roadID="+this.roadID
+		+", this.connectInfo["+ir+"]=",
+		this.connectInfo[ir]);
   }
 }
 
@@ -3227,9 +3228,20 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
   var success=( (targetVehicles.length===0)&&(originVehicles.length>0)
 		&& originVehicles[0].isRegularVeh()
 		&& (originVehicles[0].u>=uBegin) // otherwise only LT coupl
-		&& (loc_ignoreRoute||originVehicles[0].divergeAhead));
-  if(log){console.log(" road.mergeDiverge: 2a:  success="+success);}
+		&& (loc_ignoreRoute
+		    ||originVehicles[0].route.includes(otherRoad.roadID))
+		&& originVehicles[0].divergeAhead);
+
   if(success){iMerge=0; uTarget=originVehicles[0].u+offset;}
+  if(success||((originVehicles.length>0)
+	       && originVehicles[0].isRegularVeh()
+	       &&(originVehicles[0].id==540)
+	      )){
+    console.log("\nmergeDiverge (2a): testing origin veh id="
+		+originVehicles[0].id +" success="+success);
+  }
+
+  
 
     // (2b) otherwise select the first suitable candidate of originVehicles
 
@@ -3259,12 +3271,13 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 			    originVehicles[i].divergeAhead);
       }
 
-      if(originVehicles[i].isRegularVeh()
-	 &&(loc_ignoreRoute||originVehicles[i].divergeAhead) ){
 
-        //inChangeRegion can be false for LTC since then paddingLTC>0
-	
-	var inChangeRegion=(originVehicles[i].u>uBegin);
+      if(originVehicles[i].isRegularVeh()
+	 && (originVehicles[0].u>=uBegin) // otherwise only LT coupl
+	 &&(loc_ignoreRoute
+	    ||originVehicles[0].route.includes(otherRoad.roadID)
+	    ||originVehicles[i].divergeAhead) ){
+
 
 	uTarget=originVehicles[i].u+offset;
 
@@ -3324,38 +3337,38 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
  
 
-              // MOBIL decisions
-
+              // MOBIL and other discrete criteria for LC decisions
+      
 	var prio_OK=(!loc_prioOther)||loc_prioOwn
 	    ||(!LCModel.respectPriority(accLag,accLagNew));
 
+	var routeOK=
 	MOBILOK=LCModel.realizeLaneChange(
 		  vrel,acc,accNew,accLagNew,toRight,false);
 
-	success=prio_OK && inChangeRegion && MOBILOK
+	success=prio_OK && MOBILOK
 		  && (originVehicles[i].isRegularVeh())
 		  && (sNew>0) && (sLagNew>0);
 	  
-	if(log&&(this.roadID===10)){
-		  console.log("in road.mergeDiverge: roadID="+this.roadID
-			      +" LCModel.bSafeMax="+LCModel.bSafeMax);
-	}
 	if(success){iMerge=i;}
 
               // test: should only list reg vehicles with mergeAhead=true; 
               // check its number if suspicious happens with this var !!
 
-	if(success&&log){
+	//if(success&&log){
+	if(success||(originVehicles[i].id==540)){
+	//if(success){
 	      //if(true){
-		console.log("testing origin veh "+i +" type="
-			    +originVehicles[i].type+" uTarget="+uTarget);
-		console.log("divergeAhead="+originVehicles[i].divergeAhead);
-	        console.log("  sNew="+sNew+" sLagNew="+sLagNew);
-	        console.log("  speed="+speed +" speedLagNew="+speedLagNew);
-	        console.log("  acc="+acc+" accNew="+accNew+" accLagNew="+accLagNew);
-	        console.log("  duLeader="+duLeader+"  duFollower="+duFollower
-			    +" sLagNew="+sLagNew
-			    +" MOBILOK="+MOBILOK+" success="+success);
+	  console.log("\nmergeDiverge (2b): testing origin veh id="
+		      +originVehicles[i].id+" uTarget="+uTarget
+		      +" divergeAhead="+originVehicles[i].divergeAhead);
+	  //console.log("  sNew="+sNew+" sLagNew="+sLagNew);
+	  //console.log("  speed="+speed +" speedLagNew="+speedLagNew);
+	  //console.log("  acc="+acc
+	//	      +" accNew="+accNew+" accLagNew="+accLagNew);
+	  console.log("  duLeader="+duLeader+"  duFollower="+duFollower
+		      +" sLagNew="+sLagNew
+		      +" MOBILOK="+MOBILOK+" success="+success);
 	}
 	
       } // !obstacle
@@ -3443,25 +3456,35 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
       }
 
     }
-  }
+  } // isMerge && loc_prioOwn
 
-    //(4) if success, do the actual merging!
+  //(4) if success, do the actual merging!
 
   if(success){// do the actual merging 
+  //if(success&&routeOK){// DAS IST ES. Warum nicht gefiltert??!!!!
 
         //originVehicles[iMerge]=veh[iMerge+this.iTargetFirst] 
 
 	var iOrig=iMerge+this.iTargetFirst;
-	if(false){
-	//if(true){
-	    console.log("Actual merging: merging origin vehicle "+iOrig
-			+" of type "+this.veh[iOrig].type
-			+" from origin position "+this.veh[iOrig].u
-			+" and origin lane"+originLane
-			+" to target position "+uTarget
-			+" and target lane"+targetLane); 
-	    console.log(" this.veh[iOrig].divergeAhead)="
-			+this.veh[iOrig].divergeAhead);
+	//if(false){
+	if(true){
+	  console.log(
+	    "\n=========================================\n",
+	    "mergeDiverge (4) Actual merging vehicle id "+this.veh[iOrig].id
+		      //	+" of type "+this.veh[iOrig].type
+	      +" from road "+this.roadID
+	      +" to road ",+otherRoad.roadID
+	//	+" from origin position "+this.veh[iOrig].u
+	      //+" and origin lane"+originLane
+	      //+" to target position "+uTarget
+	    //+" and target lane"+targetLane
+	  );
+	  console.log(
+	    " this.veh[iOrig].divergeAhead)="
+	      +this.veh[iOrig].divergeAhead
+	      +" routeOK="+
+	      (this.veh[iOrig].route.includes(otherRoad.roadID))
+	  );
 
 	}
 
@@ -3580,7 +3603,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
    //console.log("in road.updateBCup: inVehBuffer="+this.inVehBuffer);
 
   var smin=15; // only inflow if largest gap is at least smin
-  var success=0; // false initially
+  var success=false; // false initially
   if(!this.isRing){
       this.inVehBuffer+=Qin*dt;
   }
@@ -3895,6 +3918,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
   //##########################################################
   // Tactical acceleration/LC for connections with lane closings
   // dependent on the route
+  //!!!! (MT 2023-09-26) WHY vehicles merge too late even if target lane free
+  // explanation must be here!
 
 
   // reset tactical LC bans

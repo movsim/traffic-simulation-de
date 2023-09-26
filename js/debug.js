@@ -13,6 +13,7 @@ function debugVeh(id,network){
         console.log("time=",time.toFixed(2),
 		    //"itime="+itime,
 		    "vehId="+veh.id,
+		    "route="+veh.route,
 		    "roadId="+network[ir].roadID,
 		    "type="+veh.type,
 		   // "route="+veh.route,

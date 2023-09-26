@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Test 1: straight connected roads</title> 
+    <title>Weaving implemented with connectors</title> 
 </head>
 
 
@@ -25,6 +25,7 @@
 <!-- ############################################## -->
 
 <div id="container">
+
 
 
 <!-- ############################################## -->
@@ -58,9 +59,10 @@
     Test 4: double-loop: merging with connect</a><br>
   <a href="./test5_golfCourse.html">
     Test 5: golf course</a><br>
-      <a href="./weaving.html">
-    weaving</a><br>
-
+  <a href="./weaving.html">
+    weaving with ramps</a><br>
+  <a href="./weaving_connect.html">
+    weaving with connects</a><br>
   <a href="./index.html">
     Back to main simulations</a><br>
 </div> 
@@ -93,9 +95,8 @@
 <!-- ############################################## -->
 
 <div id="header"> 
-Test 1: simple straight road
+Weaving implemented with connects
 </div> 
-
 
 
 
@@ -107,6 +108,7 @@ Test 1: simple straight road
   &copy; Martin Treiber</a></div>-->
 
 <div id="impressum">
+
   <table class="infoTable"> <TR>
     <td> <a href="impressum.html"> &copy; Martin Treiber</a></td>
     <TD> <a href="https://github.com/movsim/traffic-simulation-de">
@@ -127,10 +129,25 @@ Test 1: simple straight road
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Inflow</td>
+  <td>Main Inflow</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td class="important">Offramp Use</td>
+  <td> <input id="slider_fracOff" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracOffVal"></div> </td>
+</tr>
+
+
+<tr>
+  <td class="important">Onramp Flow</td>
+  <td> <input id="slider_qOn" type="range" 
+              min="0" max="2000" step="10"></td>
+  <td> <div id="slider_qOnVal"></div> </td>
 </tr>
 
 
@@ -236,7 +253,9 @@ Test 1: simple straight road
 <script src="js/road.js"></script>
 <script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/test1_straightRoad.js"></script> 
+<script src="js/debug.js"></script>
+
+<!-- PROJ--> <script src="js/weaving_connect.js"></script> 
 
 </body>
 </html>

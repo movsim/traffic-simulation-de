@@ -5,7 +5,7 @@
 //#############################################################
 
 const userCanDropObjects=true;
-var scenarioString="Test3"; // needed in road.changeLanes etc
+var scenarioString="Weaving"; // needed in road.changeLanes etc
 
 var showCoords=true;  // show logical coords of nearest road to mouse pointer
                       // definition => showLogicalCoords(.) in canvas_gui.js
@@ -46,19 +46,23 @@ var driver_varcoeff=0.15;
 // (partly override standard param settings in control_gui.js)
 //#############################################################
 
+fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
+speedInit=20;
+
 density=0.0;         // nonzero value only sensible for ring or simple sims
 fracTruck=0.1;
+fracOff=0.32; 
 
-qIn=2000./3600;      // main flow [veh/h] controlled by GUI
-var qOn=500./3600;    // inflow to link 9 (onramp)
-var q2=1000./3600;  // inflow to link 11 (second mainroad)
+qIn=2000./3600;      // main flow [veh/s] def and controlled by GUI
+qOn=300./3600;    // ramp flow def and controlled by GUI
 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
-setSlider(slider_qOn, slider_qInVal, 3600*qOn, commaDigits, "veh/h");
-setSlider(slider_q2, slider_qInVal, 3600*q2, commaDigits, "veh/h");
+setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
+setSlider(slider_fracOff, slider_fracOffVal, 100*fracOff, 0, "%");
 
-timewarp=4;         // time-lapse factor 
+
+timewarp=2;         // time-lapse factor 
 setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
 
 IDM_a=1.2
@@ -91,7 +95,7 @@ Notes:
   always works!
 ######################################################*/
 
-var refSizePhys=420;              // reference size in m
+var refSizePhys=250;              // height screen in m
 
 var simDivWindow=document.getElementById("contents");
 var canvas = document.getElementById("canvas"); 
@@ -153,156 +157,85 @@ var truck_width=4;
 
 
 // road axis geometry and number of lanes
+// xPhys=0: left, xPhys=refSizePhys*aspectRatio: right
+// yPhys=0: top, yPhys=-refSizePhys: bottom
 
-var center_xRel=0.5;   // 0: left, 1: right
-var center_yRel=-0.65;  // -1: bottom; 0: top
-var center_xPhys=center_xRel*refSizePhys*aspectRatio; //[m]
-var center_yPhys=center_yRel*refSizePhys;
 
-var radius=0.1*refSizePhys;
-var radiusBig=0.2*refSizePhys;
-var lenStraight=0.50*refSizePhys*aspectRatio-1.5*radius;
+var xmin_main=0.01*refSizePhys*aspectRatio;   
+var xmax_main=0.99*refSizePhys*aspectRatio;   
+var xon=0.2*refSizePhys*aspectRatio;   
+var xoff=0.8*refSizePhys*aspectRatio;
+var len_weave=xoff-xon;  // mainroad horizontally straight
+var y_main=-0.5*refSizePhys;
+var radius=0.25*refSizePhys;
 
-var lenOnramp=1.00*lenStraight;
-var lenOfframp=0.70*lenStraight;
+// road[0]: mainroad, before weaving section
+// road[1]: mainroad, weaving section
+// road[2]: mainroad, after weaving section
+// road[3]: onramp before merge/weaving
+// road[4]: offramp after merge/weaving
 
-var roadLen=[lenStraight,lenStraight,Math.PI*radius,
-	     lenStraight,lenStraight,Math.PI*radius,
-	     1.5*lenStraight, 0.5*lenStraight, 0.5*lenStraight,
-	     lenOnramp, lenOfframp, 0.5*lenStraight];
 
-var nLanes=[3,3,3,5,3,4,6,3,3,1,1,2];
+var len_road0=xon-xmin_main;
+var len_road1=len_weave;
+var len_road2=xmax_main-xoff;
+var len_road3=len_road0;
+var len_road4=len_road2;
+
+
+var roadLen=[len_road0,len_road1,len_road2,len_road3,len_road4];
+
+var nLanes=[2,3,2,1,1];
 
 
 
 // def trajectories 
 // !! cannot define diretly function trajNet_x[0](u){ .. } etc
 
-
-// The seven sections of the first main road
-
 function traj0_x(u){ // physical coordinates
-  return center_xPhys+u-lenStraight;
+  return xmin_main+u;
 }
-
 function traj0_y(u){ 
-  return center_yPhys-2*radius;
+  return y_main;
 }
 
-function traj1_x(u){ 
-  return center_xPhys+u;
+function traj1_x(u){ // physical coordinates
+  return xon+u;
 }
-
 function traj1_y(u){ 
-  return center_yPhys-2*radius+laneWidth; // +laneWidth because offsetLane=+1
+  return y_main-0.5*laneWidth*(nLanes[1]-nLanes[0]);
 }
 
-function traj2_x(u){ 
-  return traj1_x(roadLen[1])+radius*Math.sin(u/radius);
+function traj2_x(u){ // physical coordinates
+  return xoff+u;
 }
 function traj2_y(u){ 
-  return traj1_y(roadLen[1])+radius*(1-Math.cos(u/radius));
+  return y_main;
 }
 
 function traj3_x(u){ 
-  return traj1_x(roadLen[1]-u);
-}
-function traj3_y(u){ 
-  return traj1_y(roadLen[1])+2*radius;
+  return xon+radius*Math.sin((u-roadLen[3])/radius);
 }
 
+function traj3_y(u){
+  var yMerge=y_main-0.5*laneWidth*(nLanes[0]+nLanes[3]);
+  return yMerge-radius*(1-Math.cos((u-roadLen[3])/radius));
+}
+  
 function traj4_x(u){ 
-  return traj0_x(roadLen[0]-u);
-}
-function traj4_y(u){ 
-  return traj3_y(roadLen[3]);
+  return xoff+radius*Math.sin(u/radius);
 }
 
-function traj5_x(u){ 
-  return traj4_x(roadLen[4])-radius*Math.sin(u/radius);
+function traj4_y(u){
+  var yDiverge=y_main-0.5*laneWidth*(nLanes[2]+nLanes[4]);
+  return yDiverge-radius*(1-Math.cos(u/radius));
 }
-function traj5_y(u){ 
-  return traj4_y(roadLen[4])+0.5*laneWidth+radius*(1-Math.cos(u/radius));
-}
+  
 
-function traj6_x(u){ 
-  return traj5_x(roadLen[5])+u;
-}
-function traj6_y(u){ 
-  return traj5_y(roadLen[5])+0.5*laneWidth*(nLanes[6]-nLanes[5]);
-}
-
-// final diverging down
-
-function traj7_x(u){ 
-  return traj6_x(roadLen[6])+radiusBig*Math.sin(u/radiusBig);
-}
-function traj7_y(u){ 
-  return traj6_y(roadLen[6])-0.25*laneWidth*nLanes[6]
-    -radiusBig*(1-Math.cos(u/radiusBig));
-}
-
-// final diverging up
-
-function traj8_x(u){ 
-  return traj7_x(u);
-}
-function traj8_y(u){ 
-  return traj6_y(roadLen[6])+0.25*laneWidth*nLanes[6]
-    +radiusBig*(1-Math.cos(u/radiusBig));
-}
-
-// 1-lane onramp to road 6 from above
-// and 1-lane offramp from road 6 to below
-
-var lenMergeDiverge=0.2*roadLen[6];
-var u6_beginMerge=0.4*roadLen[6];   // begin merging at target coord
-var u6_beginDiverge=0.5*roadLen[6]; // begin diverging at source road
-var u9_beginMerge=roadLen[9]-lenMergeDiverge; 
-var x9_beginMerge=traj6_x(u6_beginMerge);
-var y9_beginMerge=traj6_y(u6_beginMerge)+0.5*(nLanes[6]+nLanes[9])*laneWidth;
-var x10_beginDiverge=traj6_x(u6_beginDiverge);
-var y10_beginDiverge=traj6_y(u6_beginDiverge)
-    -0.5*(nLanes[6]+nLanes[10])*laneWidth;
-
-function traj9_x(u){
-  return (u>u9_beginMerge)
-    ? x9_beginMerge+u-u9_beginMerge
-    : x9_beginMerge+radiusBig*Math.sin((u-u9_beginMerge)/radiusBig);
-}
-function traj9_y(u){
-  return (u>u9_beginMerge)
-    ? y9_beginMerge
-    : y9_beginMerge+radiusBig*(1-Math.cos((u-u9_beginMerge)/radiusBig));
-}
-
-function traj10_x(u){
-  return (u<lenMergeDiverge)
-    ? x10_beginDiverge+u
-    : x10_beginDiverge+lenMergeDiverge
-    +radiusBig*Math.sin((u-lenMergeDiverge)/radiusBig);
-}
-function traj10_y(u){
-  return (u<lenMergeDiverge)
-    ? y10_beginDiverge
-    : y10_beginDiverge-radiusBig*(1-Math.cos((u-lenMergeDiverge)/radiusBig));
-}
-
-// second mainroad
-
-function traj11_x(u){ 
-  return traj6_x(0)+u-roadLen[11];
-}
-function traj11_y(u){ 
-  return traj6_y(10)+0.5*laneWidth*(nLanes[6]-nLanes[11]);
-}
-
-
+ 
 var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
-	     [traj3_x,traj3_y], [traj4_x,traj4_y], [traj5_x,traj5_y],
-	     [traj6_x,traj6_y], [traj7_x,traj7_y], [traj8_x,traj8_y],
-	     [traj9_x,traj9_y], [traj10_x,traj10_y], [traj11_x,traj11_y]
-	    ]; 
+	     [traj3_x,traj3_y], [traj4_x,traj4_y]];
+
 
 
 
@@ -310,35 +243,15 @@ var trajNet=[[traj0_x,traj0_y], [traj1_x,traj1_y], [traj2_x,traj2_y],
 // Specification of logical road network and constructing the roads
 //##################################################################
 
-// 7 mainroad links ir=0..6, 2 diverge links at the end ir=7,8
-// onramp from above ir=9, offramp to below ir=10, second mainroad ir=11
-
-// connections from road 0 to road 7 laneindex(ir-1)->laneindex(ir)
-var offsetLane=[0,1,0,1,-1,0,2,-3]; // laneindex(ir+1)-laneindex(ir)
-fracTruckToleratedMismatch=1.0; // 1=100% allowed=>changes only by sources
-speedInit=20;
-
-var duTactical=200; // anticipation distance for offramps
 
 // road network (network declared in canvas_gui.js)
 
 var isRing=false;
 
 for(var ir=0; ir<nLanes.length; ir++){
-  network[ir]=new road(ir,roadLen[ir],laneWidth,nLanes[ir],
-		       trajNet[ir], density, speedInit,fracTruck, isRing);
+  network[ir]=new road(ir,roadLen[ir], laneWidth, nLanes[ir],
+		       trajNet[ir], density, speedInit, fracTruck, isRing);
 }
-
-// set tactical information for the ramps
-// to implement tactical behaviour and/or drawing tapers
-// (this.drawTaperRamp)
-// road.initMergeDiverge([targetRoads],[isMerge],
-//                       [mergeDivergeLen], [uLast], [toRight]);
-
-network[6].duTactical=duTactical;
-network[6].initMergeDiverge([network[10]], [false],[lenMergeDiverge],
-			    [u6_beginDiverge+lenMergeDiverge], [true]);
-
 
 // set tactical lane changes and decelerations for the connectors (nodes)
 // where tactical behaviour and/or drawing tapers (this.drawTaperRampConnect)
@@ -351,29 +264,33 @@ network[6].initMergeDiverge([network[10]], [false],[lenMergeDiverge],
 // for lanes to be closed, LCbias is set automatically if LCbiasIndex=0
 // not all connectors need tactical info, e.g. not needed for network[11]
 
-network[0].initConnect([network[1]],[network[0].roadLen],[offsetLane[1]],[0]);
-network[2].initConnect([network[3]],[network[2].roadLen],[offsetLane[3]],[0]);
-network[3].initConnect([network[4]],[network[3].roadLen],[offsetLane[4]],[0]);
-network[4].initConnect([network[5]],[network[4].roadLen],[offsetLane[5]],[0]);
-network[6].initConnect([network[7],network[8]],
-		       [network[6].roadLen, network[6].roadLen],
-		       [offsetLane[7],0], [0,0]);
+var duTactical=200; // anticipation distance for offramps
+
+// preemptive LC to the right for route 014
 
 
+network[0].duTactical=duTactical;
+network[0].initConnect([network[4]],
+		       [network[0].roadLen+network[1].roadLen],
+		       [nLanes[4]-nLanes[0]],[1]); // offset=0 but general bias to right
+
+
+// LC bias for the weaving (the offset info sets the bias automatically
+// if LCbiasIndex=0
+
+network[1].duTactical=duTactical;
+network[1].initConnect([network[2],network[4]],
+		       [network[1].roadLen,network[1].roadLen],
+		       [0,nLanes[4]-nLanes[1]],[0,1]);
 
 // routes
 
-var route0_0=[0,1,2,3,4,5,6,7];  // mainroad, diverge down at the end
-var route0_1=[0,1,2,3,4,5,6,8];  // mainroad, diverge up at the end
-var route0_2=[0,1,2,3,4,5,6,10]; // mainroad, then offramp 10
-var route9_0=[9,6,8];            // onramp, up at the end
-var route9_1=[9,6,7];            // onramp, down at the end
-var route11_0=[11,6,8];          // second mainroad, up at the end
-var route11_1=[11,6,7];          // second mainroad, down at the end
-var routes_source0=[route0_0,route0_1,route0_2];
-var routes_source9=[route9_0,route9_1];
-var routes_source11=[route11_0,route11_1];
-var routesFrac_source0=[0.4,0.4,0.3]; // must be of same length
+var route0_0=[0,1,2];  // mainroad straight ahead
+var route0_1=[0,1,4];  // mainroad, diverge to road 2
+var route3=[3,1,2];
+var routes_source0=[route0_0,route0_1];
+var routesFrac_source0=[1-fracOff,fracOff]; // must be of same length,
+//!! must be updated at updateSim
 
 function getRoute(routes, routesFrac){
   var rnd=Math.random();
@@ -562,6 +479,8 @@ function updateSim(){
   // longModelCar etc defined in control_gui.js
   // also update user-dragged movable speed limits
 
+  routesFrac_source0=[1-fracOff,fracOff]; // response to slider change fracOff
+  
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateTruckFrac(fracTruck, fracTruckToleratedMismatch);
     network[ir].updateModelsOfAllVehicles(longModelCar,longModelTruck,
@@ -595,57 +514,33 @@ function updateSim(){
   
 
   // (3b) upstream/inflow BCup (getRoute:  routes according to OD matrix)
-  
+
   var route0=getRoute(routes_source0, routesFrac_source0);
-  var route9=getRoute(routes_source9, [0.9,0.1]);  // [fracUp,fracDown]
-  var route11=getRoute(routes_source11, [0.5,0.5]);  // [fracUp,fracDown]
+  // var route3=[3,1,2]; defined at the beginning outside of updateSim
   network[0].updateBCup(qIn,dt,route0); // qIn=qTot, route is optional arg
-  network[9].updateBCup(qOn,dt,route9); 
-  network[11].updateBCup(q2,dt,route11);
+  network[3].updateBCup(qOn,dt,route3); 
 
   
+
   // (3c) connecting links ends
   // road.connect(target, uSource, uTarget, offsetLane, conflicts,
   //              opt_vmax, opt_targetPrio)
 
-  // mainroad 1 linear
-  for(var ir=0; ir<6; ir++){
-    network[ir].connect(network[ir+1],network[ir].roadLen,0,
-			offsetLane[ir+1],[]);
-  }
-  // mainroad 1 fork
-  network[6].connect(network[7],network[6].roadLen,0,offsetLane[7],[]);
-  network[6].connect(network[8],network[6].roadLen,0,0,[]); // offsetLane=0
+  network[0].connect(network[1],network[0].roadLen,0,0,[]);
+  network[1].connect(network[2],network[1].roadLen,0,0,[]);
+  network[1].connect(network[4],network[1].roadLen,0,nLanes[4]-nLanes[1],[]);
+  network[3].connect(network[1],network[3].roadLen,0,nLanes[1]-nLanes[3],[]);
 
-  // connect mainroad 2 -> mainroad 1
-  network[11].connect(network[6],network[11].roadLen,0,0,[]);
-  
 
-  
-  // (3d) merges and diverges
-  // road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight,
-  //                   opt_ignoreRoute, opt_prioOther, opt_prioOwn)
-  
-  // onramp (for multilane-onramp set tactical lane changes via
-  // source.setLCModelsInRange(.))
-  
-  network[9].mergeDiverge(
-    network[6], u6_beginMerge-u9_beginMerge,
-    network[9].roadLen-lenMergeDiverge, network[9].roadLen, true, true);
+  // (3d) merges and diverges (none here)
 
-  // offramp (tactical LCs are set in road.updateModelsOfAllVehicles
 
-  network[6].mergeDiverge(
-    network[10], 0-u6_beginDiverge,
-    u6_beginDiverge,u6_beginDiverge+lenMergeDiverge, false, true);
-
-  
   // (3e) downstream BC
   
-  network[6].updateBCdown(); // remove erring vehicles
-  network[7].updateBCdown(); 
-  network[8].updateBCdown(); 
-  network[10].updateBCdown(); 
+  network[1].updateBCdown(); // remove erring vehicles
+  network[2].updateBCdown(); 
+  network[3].updateBCdown(); // remove erring vehicles
+  network[4].updateBCdown(); 
 
   
   // (3f) actual motion (always at the end)
@@ -665,10 +560,9 @@ function updateSim(){
   
   // updateSim (5): test code/debug output
 
-  if(false){
+  if(true){
   //if((time>35)&&(time<38.0)){
-    debugVeh(204,network);
-    debugVeh(205,network);
+    debugVeh(540,network);
   }
 
   
@@ -680,7 +574,7 @@ function updateSim(){
  
   // drop speed limits here
   
-  if(true){
+  if(false){
 
     // select two speedlimits from the trafficObjects
     
@@ -762,13 +656,11 @@ function drawSim() {
   // purely optical: road.drawTaper(roadImg,  laneShift, uStart, vStart)
   // purely optical: road.drawTaperConnect(roadImg, targetNetworkIndex)
 
-  network[9].drawTaperRamp(roadImg1[9], -1, false);
-  network[10].drawTaperRamp(roadImg1[10], 1, true);
-
-  network[0].drawTaperConnect(roadImg1[10], 1);
-  network[2].drawTaperConnect(roadImg1[10], 3);
-  network[3].drawTaperConnect(roadImg1[10], 4);
-  network[4].drawTaperConnect(roadImg1[10], 5);
+  // not needed here because of continuous on-off lane
+  // instead, it gives optical artifacts
+  
+  //network[0].drawTaperRamp(roadImg1[2], -1, true);
+  //network[1].drawTaperRamp(roadImg1[0], 1, true);
 
   
   // road.draw(img1,img2,changedGeometry,

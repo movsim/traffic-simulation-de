@@ -475,8 +475,8 @@ function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
   if(typeof slider!=='undefined'){
     slider.value=value;
     sliderHTMLval.innerHTML=formattedValue+" "+str_units; // +" " DOS=>str_units
-    console.log("setSlider: value=",value
-		," innerHTML=",sliderHTMLval.innerHTML);
+    console.log("setSlider: slider.value=",slider.value
+		," sliderHTMLval.innerHTML=",sliderHTMLval.innerHTML);
   }
 }
 
@@ -501,7 +501,7 @@ if(document.getElementById("slider_timewarp")!==null){
 // scale slider
 
 var scale=2.3;  // pixel/m
-var slider_slider_scaleVal;
+var slider,slider_scaleVal;
 if(document.getElementById("slider_scale")!==null) {
     slider_scale= document.getElementById("slider_scale");
     slider_scaleVal = document.getElementById("slider_scaleVal");
@@ -551,7 +551,7 @@ if(document.getElementById("slider_q2")!==null){
 
 // ramp flow slider
 
-var qOn=900/3600.; //total onramp flow of onramp scenario
+var qOn=800/3600.; //total onramp flow of onramp scenario
 var slider_qOn,slider_qOnVal;
 if(document.getElementById("slider_qOn")!==null){
     slider_qOn= document.getElementById("slider_qOn");
