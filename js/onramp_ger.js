@@ -544,8 +544,14 @@ function updateSim(){
   for(var ir=0; ir<network.length; ir++){network[ir].calcAccelerations();} 
 
   // (3b) transitions between roads: templates:
-  //      road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)  
-  //      road.connect(target, uSource, uTarget, offsetLane, conflicts)
+  // sourceRoad.mergeDiverge(newRoad,offset,uStart,uEnd,
+  //                         isMerge,vehMoveToRight,
+  //                         opt_ignoreRoute, opt_prioOther, opt_prioOwn)
+  // if vehicle has no route, it diverges whenever it is in the appropriate
+  // lane => control diverges by giving all vehicles a route!
+
+
+  // sourceRoad.connect(target, uSource, uTarget, offsetLane, conflicts)
   
   mainroad.updateBCup(qIn,dt); ramp.updateBCup(qOn,dt);
   ramp.mergeDiverge(mainroad,mainRampOffset,
@@ -559,29 +565,7 @@ function updateSim(){
   for(var ir=0; ir<network.length; ir++){network[ir].updateSpeedPositions();} 
 
 
-  /*
-  mainroad.updateLastLCtimes(dt);
-  mainroad.calcAccelerations(); 
-  mainroad.changeLanes();       //!!! ideally do MOBIL with determ accel
-  mainroad.updateSpeedPositions();
-  mainroad.updateBCdown();
-  mainroad.updateBCup(qIn,dt); // argument=total inflow
-
-
-  ramp.updateLastLCtimes(dt);
-  ramp.calcAccelerations();  
-  ramp.changeLanes();  
-  ramp.updateSpeedPositions();
-  //ramp.updateBCdown();
-  ramp.updateBCup(qOn,dt); // argument=total inflow
-
-  //template: road.mergeDiverge(newRoad,offset,uStart,uEnd,isMerge,toRight)
-
-  ramp.mergeDiverge(mainroad,mainRampOffset,
-			ramp.roadLen-mergeLen,ramp.roadLen,true,false);
-  */
-  
-
+ 
   // updateSim (4): update detector readings
 
   for(var iDet=0; iDet<nDet; iDet++){
