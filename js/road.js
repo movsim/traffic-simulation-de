@@ -1277,9 +1277,12 @@ road.prototype.sortVehicles=function(){
 
 /*#####################################################
 get info of location and kind of ramps inside a road
-to be used for tactical lane changing and drawing tapers
+to be used for tactical acceleration and lane changing and drawing tapers
 !!! see also updateModelsOfAllVehicles and adapt it
-(Use this.setLCModelsInRange(.))
+acceleration: set this.veh[i].longModel.alpha_v0 
+LC: set this.veh[i].LCModel to some tactical predefined model
+!!! check interaction with this.setLCModelsInRange(.))
+
 @param targetRoads:    array of (references to) target links
 @param isMerge:        boolean array of same length
 @param uLast:          double array of last position to merge/diverge
@@ -3774,8 +3777,13 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
 
   * Here, the appropriate models  will be deep-copied to the vehicles
 
+  * tactical accelerations (decelerations) for diverging near the offramp
+    sets this.veh[i].longModel.alpha_v0 to increasingly low vals near the 
+    last diverge possibility (not to zero -> vehicles can miss the diverge)
+
   * tactical lane changes for onramps (only relevant for multilane)
     and offramps (always relevant). 
+    set this.veh[i].LCModel to some tactical predefined model
     !! Unconditional LCbias for the appropriate routing, may be less than
     optimal for multilane diverges. If so, use laneInfo=[] as in the
     tactical connect preparation
@@ -3886,6 +3894,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
  
 	  this.veh[i].LCModel=(toRight) ? this.LCModelTacticalRight
 	          : this.LCModelTacticalLeft; //LCModelTactical new cstr
+
+	  //!! Tactical deceleration if near mandatory diverge
 	  if(!isMerge){
 	    this.veh[i].divergeAhead=true; //only if true LC performed
 	    this.veh[i].longModel.alpha_v0
