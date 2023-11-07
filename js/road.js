@@ -3113,7 +3113,8 @@ this sets
 
  * changes veh.LCModel to appropriate mandatory one if veh.divergeAhead
 
- * sets this.veh[i].longModel.alpha_v0 if veh.divergeAhead
+ * sets this.veh[i].longModel.alpha_v0 if veh.divergeAhead 
+   (MT 2023-11) !!alpha_v0 just activated!
 
  * This is true for each lane => multi-lane diverges should be OK
 
@@ -3786,6 +3787,7 @@ road.prototype.getTargetNeighbourhood=function(umin,umax,targetLane){
   * tactical accelerations (decelerations) for diverging near the offramp
     sets this.veh[i].longModel.alpha_v0 to increasingly low vals near the 
     last diverge possibility (not to zero -> vehicles can miss the diverge)
+    (MT 2023-11) !!alpha_v0 just activated!
 
   * tactical lane changes for onramps (only relevant for multilane)
     and offramps (always relevant). 
@@ -3907,7 +3909,7 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	  if(!isMerge){
 	    this.veh[i].divergeAhead=true; //only if true LC performed
 	    this.veh[i].longModel.alpha_v0
-	      =Math.max(0.1, (uLast-this.veh[i].u)/this.duTactical);
+	      =Math.max(0.5, (uLast-this.veh[i].u)/this.duTactical);
 	  }
 
 	  if(false){

@@ -83,7 +83,7 @@ IDM.prototype.copy=function(longModel){
   this.a=longModel.a;
   this.b=longModel.b;
 
-  this.alpha_v0=1; // multiplicator for temporary reduction
+  this.alpha_v0=longModel.alpha_v0; // multiplicator for temporary reduction
 
   this.speedlimit=longModel.speedlimit; 
   this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
@@ -119,7 +119,8 @@ IDM.prototype.calcAccDet=function(s,v,vl,al){
   // this.driverfactor from master vehicle;
   // speedlimit overrides driver variability
   
-  var v0eff=this.v0*this.driverfactor;
+  //var v0eff=this.v0*this.driverfactor;
+  var v0eff=this.v0*this.driverfactor*this.alpha_v0; //(MT 2023-11)
   v0eff=Math.min(v0eff, this.speedlimit, this.speedmax);
   var aeff=a*this.driverfactor;
 
@@ -246,7 +247,7 @@ ACC.prototype.copy=function(longModel){
   this.b=longModel.b;
   this.cool=(!(typeof longModel.cool === 'undefined')) ? longModel.cool : 0.8;
 
-  this.alpha_v0=1; // multiplicator for temporary reduction
+  this.alpha_v0=longModel.alpha_v0; // multiplicator for temporary reduction
 
   // possible restrictions (value 1000 => initially no restriction)
   
@@ -292,7 +293,8 @@ ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
   // this.driverfactor from master vehicle;
   // speedlimit overrides driver variability
   
-  var v0eff=this.v0*this.driverfactor;
+  //var v0eff=this.v0*this.driverfactor;
+  var v0eff=this.v0*this.driverfactor*this.alpha_v0; //(MT 2023-11)
   v0eff=Math.min(v0eff, this.speedlimit, this.speedmax);
   var aeff=this.a*this.driverfactor;
   
@@ -328,7 +330,7 @@ ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
 
         // log and return
 
-	//if(this.alpha_v0<0.6){ // alpha not yet used
+	//if(this.alpha_v0<0.6){ // !! alpha not yet used
 
   //if(time<1.3){
   //if(s<2){
