@@ -1279,7 +1279,8 @@ road.prototype.sortVehicles=function(){
 get info of location and kind of ramps inside a road
 to be used for tactical acceleration and lane changing and drawing tapers
 !!! see also updateModelsOfAllVehicles and adapt it
-acceleration: set this.veh[i].longModel.alpha_v0 
+Tactical deceleration before diverges: 
+updateModelsOfAllVehicles sets this.veh[i].longModel.alpha_v0 
 LC: set this.veh[i].LCModel to some tactical predefined model
 !!! check interaction with this.setLCModelsInRange(.))
 
@@ -2401,7 +2402,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 	    vehConnect.LCModel.bBiasRight=bBiasRight;    // !! influence
 	  }
       
-	  vehConnect.acc=Math.min(accStop,accOld); // !! influence 
+	  vehConnect.acc=Math.min(accStop,accOld); // !! influence
 	}
       }
       
@@ -3103,12 +3104,17 @@ specifically, the arrays originVehicles (only veh with veh.divergeAhead=true)
 and targetVehicles interact
 
 The rest is handled in the
-strategic/tactical lane-change behaviour of the drivers set as
+strategic/tactical acceleration lane-change behaviour of the drivers set as
 part of updateModelsOfAllVehicles() called in each timestep:
 this sets 
+
  * veh.divergeAhead if the route of vehicles contains next off-ramp 
    in distance < duTactical
+
  * changes veh.LCModel to appropriate mandatory one if veh.divergeAhead
+
+ * sets this.veh[i].longModel.alpha_v0 if veh.divergeAhead
+
  * This is true for each lane => multi-lane diverges should be OK
 
 If ignoreRoute=false, a diverge can only happen for vehicles with 
@@ -3896,6 +3902,8 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 	          : this.LCModelTacticalLeft; //LCModelTactical new cstr
 
 	  //!! Tactical deceleration if near mandatory diverge
+	  // (in road.connect, tactical deceleration
+	  // is set directly by setting vehConnect.acc)
 	  if(!isMerge){
 	    this.veh[i].divergeAhead=true; //only if true LC performed
 	    this.veh[i].longModel.alpha_v0
