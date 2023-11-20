@@ -1048,7 +1048,7 @@ function updateModelsUphill(){
 //#################################################################
 
 var downloadActive=false; // initialisation
-var dt_export=1;          // every dt_export seconds stored in exportString
+var dt_export=0.5;          // every dt_export seconds stored in exportString
 
 function downloadCallback(){
   if(downloadActive){
@@ -1079,7 +1079,7 @@ function downloadCallback(){
 }
 
 
-function performDownload(){
+function performDownload(){// callback of download finish button
   var msg="";
   for(var i=0; i<network.length; i++){
     var filename="road"+network[i].roadID+"_time"+time.toFixed(1)+".txt";

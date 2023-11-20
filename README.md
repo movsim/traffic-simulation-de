@@ -239,6 +239,37 @@ The drawing is essentially based on images:
 
 
 
+## Download trajectory and virtual detector data
+
+Besides just running the simulation interactively (should be self-explaining), you can also download the simulated trajectories and virtual detector readings
+
+### Using the download functionality
+
+Once your favourite simulation is running, you can start recording by clicking on the blue "Start download" button to the left of the language flags. One you have stored enough data, click the same button which now reads "Finish download" and, after allowing downloading (depending on the OS, some message pops up), you can find your downloaded files in your standard Downloads folder. Depending on the number of road segments of the simulation, you have one or more trajectory data named 
+
+`road<n>_time<starttime>.txt`
+
+and virtual detector data files named 
+
+`Detector<name>_road<n>_x<pos>_time<starttime>.txt`
+
+### Changing the sampling rates
+
+The trajectory time interval is set by the variable `dt_export`; in gui.js (default value: 0.5 s). However, this does not give the realized timestep if the output time step is not a multiple of the simulation time interval dt_sim. Then, you will always get a varying multiple of dt_sim.
+
+The simulation time interval, in turn, is dynamically set to realize fps=30, so we have dt_sim=timelapseFactor/fps. For the default time lapse of 6 (in most scenarios), we thus have a simulation time interval of 0.2 s.
+
+To change the trajectory sampling time intervals, you need to do the following: 
+
+* Set dt_export to your desired value dt_desired in control_gui.js
+
+* In the simulation, use the sliders to set the time-lapse factor to a value below fps*dt_desired=30/s*dt_desired
+
+* Use the normal blue download button
+
+To change the stationary detector sampling time interval, change the constructor call in the corresponding simulation:
+
+`...=new stationaryDetector(road,position,samplingInterval);`
 
 
 ## More detailled description for road.js
