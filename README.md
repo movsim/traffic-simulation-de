@@ -261,13 +261,13 @@ The simulation time interval, in turn, is dynamically set to realize fps=30, so 
 
 To change the trajectory sampling time intervals, you need to do the following: 
 
-* Set dt_export to your desired value dt_desired in control_gui.js
+* Set `dt_export` to your desired value dt_desired in `control_gui.js`
 
-* In the simulation, use the sliders to set the time-lapse factor to a value below fps*dt_desired=30/s*dt_desired
+* In the simulation, use the sliders to set the time-lapse factor to a value below fps times dt_desired = 30/s times dt_desired
 
 * Use the normal blue download button
 
-To change the stationary detector sampling time interval, change the constructor call in the corresponding simulation:
+To change the stationary detector sampling interval, change the constructor call in the corresponding simulation:
 
 `...=new stationaryDetector(road,position,samplingInterval);`
 
