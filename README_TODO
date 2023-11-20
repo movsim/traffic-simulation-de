@@ -1,3 +1,11 @@
+(2023-11)
+(github issue)
+Adding new models is a good idea! I implemented your model in models.js and you can test it by setting testNewModel=true in control_gui.js. Since your CACC model presently is just the IDM, I set v0=3 m/s in the truck version to see any effects.
+Of course you are not done just by implementing the new model. You also need the gui and the simulation tell to use it. To do this, just look at all code pieces where testNewModel is used.
+
+In fact, this is the first step of a user-controlled possibility to change models. For this, a multi-valued version of testNewModel could be made accessible to the user, e.g., by a choicebox (select) html element
+
+
 (2023-04)
 add some example implementations to REAME.md, e.g., how to put a new vehicle/obstacle on a road (github Issue #22)
 
