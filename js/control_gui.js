@@ -716,6 +716,10 @@ if(document.getElementById("slider_fracLeft")!==null){
 // Slider for long Model parameters
 //############################################################
 
+var testNewModel=false;
+//!!! define new sliders in html and implement them here, if needed
+
+
 // var defs such as var IDM_v0=30: initial default; slider values are 
 // distributed in updateModels() and (as deep copies) 
 // in road.updateModelsOfAllVehicles
@@ -992,13 +996,19 @@ var factor_T_truck=1.1;
 // these are now distributed by deep copy over the vehicles of the roads
 
 function updateModels(){
-    var v0=Math.min(IDM_v0, speedL);
-    var v0_truck=Math.min(IDM_v0, speedL_truck);
-    var T_truck=factor_T_truck*IDM_T;
-    var a_truck=factor_a_truck*IDM_a;
-    longModelCar=new ACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b);
-    longModelCar.speedlimit=speedL;
-    longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
+  var v0=Math.min(IDM_v0, speedL);
+  var v0_truck=Math.min(IDM_v0, speedL_truck);
+  var T_truck=factor_T_truck*IDM_T;
+  var a_truck=factor_a_truck*IDM_a;
+  longModelCar=new ACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+  longModelTruck=new ACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b);
+  if(testNewModel){
+    longModelCar=new CACC(v0,IDM_T,IDM_s0,IDM_a,IDM_b,1,0.1);
+    //longModelTruck=new CACC(v0_truck,T_truck,IDM_s0,a_truck,IDM_b,1,0.1);
+    longModelTruck=new CACC(3,T_truck,IDM_s0,a_truck,IDM_b,1,0.1);
+    console.log("longModelTruck=",longModelTruck);
+  }
+  longModelCar.speedlimit=speedL;
   longModelTruck.speedlimit=Math.min(speedL, speedL_truck);
   LCModelCar=new MOBIL(MOBIL_bSafe, MOBIL_bSafeMax, MOBIL_p,
                         MOBIL_bThr, MOBIL_bBiasRight_car);
@@ -1031,6 +1041,9 @@ function updateModelsUphill(){
 
   longModelCarUphill=longModelCar;
   longModelTruckUphill=new ACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b);
+  if(testNewModel){
+    longModelTruckUphill=new CACC(IDM_v0Up,T_truck,IDM_s0,a_truck,IDM_b,1,0.1);
+  }
   LCModelCarUphill=LCModelCar;
   LCModelTruckUphill=(banIsActive) ? LCModelMandatory : LCModelTruck;
   if(false){

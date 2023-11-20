@@ -1,3 +1,47 @@
+
+/**
+Note on implementing new models 
+(example for longitudinal models; for lane-changing models in analogy)
+
+(1) Define the constructor and implement all methods here
+
+ - constructor such as function IDM(v0,T,s0,a,b)
+   (can have other number and/or names of params as args)
+ - .copy method (deep copy, needed when updating the model params)
+ - .calcAcc(s,v,vl,al)  (fixed interface)
+ - .calcAccGiveWay(sNew, v, vPrio) (fixed interface) 
+   (is not yet used, so can be omitted at the moment).
+
+(2) Define/update the initial model parameters such as IDM_v0 
+and the template models longModelCar, longModelTruck, longModelTruckUphill
+in control_gui.js. 
+If new parameters should be user-controlled, new sliders can also be 
+implemented here, and defined in the corresponding .html files. 
+(Sliders no longer needed can simply be commented out in the html files)
+
+
+(3) Step 2 is the default for all scenarios. 
+In scenarios requiring different initial values, this can be changed 
+in the corresponding scenario file (such as ring.js) by changing the 
+init values and setting the slider accordingly, ew.g., IDM_a=0.9;
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
+If the new model does not have different parameters, this step is not needed.
+
+(4) transfer slider interactions to the template models by redefining all "new ACC" instances in control_gui.js
+
+(5) Bring the new model into action and distribute the updated 
+template models to all the vehicles 
+by redefining road.prototype.updateModelsOfAllVehicles(..). 
+This is the central model update. 
+Search for all instances of "new ACC" and change accordingly. 
+(All instances of "new IDM" in any source file only refer to obstacles 
+or needed initial definitions and can be left as is.)
+
+*/
+
+
+
 //#################################
 // longitudinal models
 //#################################
@@ -122,7 +166,7 @@ IDM.prototype.calcAccDet=function(s,v,vl,al){
   //var v0eff=this.v0*this.driverfactor;
   var v0eff=this.v0*this.driverfactor*this.alpha_v0; //(MT 2023-11)
   v0eff=Math.min(v0eff, this.speedlimit, this.speedmax);
-  var aeff=a*this.driverfactor;
+  var aeff=this.a*this.driverfactor;
 
         // actual acceleration model
 
@@ -190,7 +234,10 @@ function myTanh(x){
     return (x>50) ? 1 : (x<-50) ? -1 : (Math.exp(2*x)-1)/(Math.exp(2*x)+1);
 }
 
-// generally ACC is used; check for "new ACC" and "new IDM" in road.js
+//###################################################################
+// generally ACC is used; for implementing new models, see the instructions
+// at the beginning
+//###################################################################
 
 function ACC(v0,T,s0,a,b){
 
@@ -352,6 +399,8 @@ ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
 }//ACC.prototype.calcAcc
 
 
+
+
 /**
 ACC "give way" function for passive merges (the merging vehicle has priority) 
 It returns the "longitudinal-transversal coupling" 
@@ -396,9 +445,96 @@ ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
     //return -4;
 }
 
-//#################################
-// lane-changing models
-//#################################
+
+//###################################################################
+// test new model "CACC"; for implementing new models, see the instructions
+// at the beginning of this file
+//###################################################################
+
+function CACC(v0, T, s0, a, b, delta, alpha) {
+  this.QnoiseAccel = QnoiseAccel; // m^2/s^3
+  this.driverfactor = 1; // if no transfer of driver individuality from master veh
+  this.v0 = v0;
+  this.T = T;
+  this.s0 = s0;
+  this.a = a;
+  this.b = b;
+  this.delta = delta;
+  this.alpha = alpha;
+  this.alpha_v0 = 1; // multiplicator for temporary reduction
+
+  // possible restrictions (value 1000 => initially no restriction)
+  this.speedlimit = 1000; // if effective speed limits, speedlimit<v0
+  this.speedmax = 1000; // if engine restricts speed, speedmax<speedlimit, v0
+  this.bmax = 18; // (2022) was=16
+}
+
+
+/**
+CACC acceleration function
+
+@param s: actual gap [m]
+@param v: actual speed [m/s]
+@param vl: leading speed [m/s]
+@param al: leading acceleration [m/s^2] (only for common interface; ignored)
+@return: acceleration [m/s^2]
+*/
+
+CACC.prototype.calcAcc = function (s, v, vl, al) {
+  var accRnd = s < this.s0 ? 0
+      : Math.sqrt(this.QnoiseAccel / dt) * (Math.random() - 0.5);
+  return accRnd + this.calcAccDet(s, v, vl, al);
+};
+
+
+CACC.prototype.calcAccDet = function (s, v, vl, al) {
+  var v0eff = this.v0 * this.driverfactor * this.alpha_v0; // (MT 2023-11)
+  v0eff = Math.min(v0eff, this.speedlimit, this.speedmax);
+  var aeff = this.a * this.driverfactor;
+
+  var accFree = v < v0eff
+      ? aeff * (1 - Math.pow(v / v0eff, 4))
+      : aeff * (1 - v / v0eff);
+  
+  var sstar = this.s0
+      + Math.max(0, v * this.T
+		 + 0.5 * v * (v - vl) / Math.sqrt(aeff * this.b));
+  
+  var accInt = -aeff * Math.pow(sstar / Math.max(s, this.s0), 2);
+
+  return v0eff < 0.00001 ? 0 : Math.max(-this.bmax, accFree + accInt);
+};
+
+// Example Usage:
+// var caccModel = new CACC(30, 1.5, 2, 2, 1, 1, 0.1);
+// var acceleration = caccModel.calcAcc(s, v, vl, al);
+
+CACC.prototype.copy=function(longModel){
+  this.QnoiseAccel=longModel.QnoiseAccel;
+
+  this.v0=longModel.v0; // driverfactor not copied; from master vehicle
+  this.T=longModel.T;
+  this.s0=longModel.s0;
+  this.a=longModel.a;
+  this.b=longModel.b;
+  this.delta=longModel.delta;
+  this.alpha=longModel.alpha;
+  
+  this.alpha_v0=longModel.alpha_v0; // multiplicator for temporary reduction
+
+  // possible restrictions (value 1000 => initially no restriction)
+  
+  this.speedlimit=longModel.speedlimit; 
+  this.speedmax=longModel.speedmax; // if engine restricts speed, speedmax<speedlimit, v0
+  this.bmax=longModel.bmax;
+}
+
+
+
+//#############################################################
+// lane-changing models; for implementing new models, see the instructions
+// at the beginning of this file
+//#############################################################
 
 /**
 generalized lane-changing model MOBIL:

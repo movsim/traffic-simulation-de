@@ -3704,8 +3704,12 @@ road.prototype.updateBCup=function(Qin,dt,route){
 				space/longModelNew.T);
       var vehNew=new vehicle(vehLength,vehWidth,uNew,lane,speedNew,vehType,
 			    this.driver_varcoeff); //updateBCup
- 
+
       vehNew.longModel=new ACC(); vehNew.longModel.copy(longModelNew);
+
+      if(testNewModel){
+	vehNew.longModel=new CACC(); vehNew.longModel.copy(longModelNew);
+      }
       vehNew.LCModel=new MOBIL(); vehNew.LCModel.copy(LCModelNew);
 
       
@@ -3811,16 +3815,28 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 						  LCModelCar,LCModelTruck,
 						  LCModelMandatory){
 
-    this.longModelTacticalCar=new ACC(longModelCar.v0,longModelCar.T,
+  
+  this.longModelTacticalCar=new ACC(longModelCar.v0,longModelCar.T,
 				      longModelCar.s0,longModelCar.a,
 				      longModelCar.b);
-    this.longModelTacticalTruck=new ACC(longModelTruck.v0,longModelTruck.T,
+  this.longModelTacticalTruck=new ACC(longModelTruck.v0,longModelTruck.T,
 				      longModelTruck.s0,longModelTruck.a,
 				      longModelTruck.b);
 
+  if(testNewModel){
+    this.longModelTacticalCar=new CACC(longModelCar.v0,longModelCar.T,
+				      longModelCar.s0,longModelCar.a,
+				       longModelCar.b, 1, 0.1);
+    this.longModelTacticalTruck=new CACC(longModelTruck.v0,longModelTruck.T,
+				      longModelTruck.s0,longModelTruck.a,
+					 longModelTruck.b, 1, 0.1);
+  }
+    
+
+  
   // reference issues nasty!!! (??LCModel.copy works??)
   
-    var LCModelMandatoryLoc 
+  var LCModelMandatoryLoc 
 	=new MOBIL(LCModelMandatory.bSafe, LCModelMandatory.bSafeMax,
 		   LCModelMandatory.p,
 		   LCModelMandatory.bThr, LCModelMandatory.bBiasRight);
@@ -4885,8 +4901,8 @@ road.prototype.dropObject=function(trafficObj){
 				u, lane, 0, 
 				"obstacle"); //=trafficObj.type
 
-    //(dec17) need longModel for LC as lagVeh!! 
-    roadVehicle.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b);
+    //(dec17) need longModel for LC as lagVeh (standing virtual veh)!!
+    roadVehicle.longModel=new IDM(0,1,2,0,1);
 
       //!! id ctrls veh image: 50=black obstacle,
       // 51=constructionVeh1.png etc. Attribute veh.imgNumber defined only
@@ -5019,7 +5035,7 @@ road.prototype.changeTrafficLight=function(id,value){
       for(var il=0; il<this.nLanes; il++){
         var virtVeh=new vehicle(1,this.laneWidth,
 			        pickedTL.u, il, 0, "obstacle");
-        virtVeh.longModel=new ACC(0,IDM_T,IDM_s0,0,IDM_b); // needed for MOBIL
+        virtVeh.longModel=new IDM(0,1,2,0,1); // needed for MOBIL
         virtVeh.id=id;
         this.veh.push(virtVeh); // !!!changeArray
       }
