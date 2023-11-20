@@ -1,7 +1,7 @@
 # traffic-simulation.de
 Source code for the interactive Javascript simulation at  [traffic-simulation.de](https://traffic-simulation.de)
 
-The simulation should be self-explaining and is also explained in the instruction boxes in most simulations.
+The simulations should be self-explaining and is also explained in the instruction boxes in most scenarios.
 
 Besides simulating online, you can also use this simulator to generate vehicle trajectory files and virtual detector data files by using the blue download button (details further below).
 
