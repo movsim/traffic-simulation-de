@@ -93,6 +93,20 @@ a collection of pseudo-classes for the longitudinal models (presently, the IDM a
 
 * `speedlimit`s. These override all user-set desired speeds and also the driverfactor but not the acceleration noise
 
+### How to implement new models
+
+This is now described at the beginning of models.js. Basically, the steps are
+
+* Define the constructor and implement all methods that are also present in the old models  (e.g., `ACC`) in `models.js`
+
+* set the model templates to the new model; if needed, also introduce new gui-sliders in `control_gui.js` and the .html files
+
+* redefine the slider interactions and model update in `control_gui.js` and `road.js`
+
+To help in implementing, I defined the global flag `testNewModel` in `control_gui.js`. If set to true, a new skeleton "CACC" model will be used which is essentially the IDM. To check if this really works, I set the desired speed for the truck template to 3 m/s (you will see slow trucks if this works as intended). So you need just change all locations where `testNewModel` is used and you are done for all simulations.
+
+
+
 
 ### TrafficObjects.js
 
