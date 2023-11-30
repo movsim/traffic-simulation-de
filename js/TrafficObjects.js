@@ -602,7 +602,7 @@ calculate x,y by roads's trajectory and u and apply this.dropObject
 
 // needs global physical coordinates xUser yUser
 TrafficObjects.prototype.dropObject=function(obj, network, 
-				    xUser, yUser, distCritPix, ){
+				    xUser, yUser, distCritPix){
 
   if(false){
     console.log("itime=",itime

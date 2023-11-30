@@ -1,4 +1,4 @@
-// types: "car", "truck", "obstacle" (including red traffic lights)
+// types: "car", "truck", "others", "obstacle" (including red traffic lights)
 // id's defined mainly in vehicle.js and ObstacleTLDepot.js
 // id<200:              special vehicles/road objects
 // id=1:                ego vehicle
@@ -25,7 +25,7 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.dvdt=0;     // vehicle angle to road axis (for drawing purposes)
   this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
   this.speed=speed;
-  this.type=type;
+  this.type=type; //{"car", "truck", "others", "obstacle"
 
   ivehCount++;
   this.id=199+ivehCount; // ids 0-199 special purpose

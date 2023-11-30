@@ -1,3 +1,9 @@
+//#############################################################
+// constants
+//#############################################################
+
+const REFSIZE=300;
+const REFSIZE_SMARTPHONE=200;
 
 
 //#############################################################
@@ -82,7 +88,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 200 : 300;  // constant
+var refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE; 
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
 
@@ -111,7 +117,11 @@ var center_yPhys=center_yRel*refSizePhys;
 var roadRadius=roadRadiusRel*refSizePhys;
 var mainroadLen=roadRadius*2*Math.PI;
 
+// !! slightdouble-coding necessary unless big changes, 
+// I have checked this...
+
 function updateDimensions(){ // if viewport or sizePhys changed
+  refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE; 
     center_xPhys=center_xRel*refSizePhys; //[m]
     center_yPhys=center_yRel*refSizePhys;
     roadRadius=roadRadiusRel*refSizePhys;

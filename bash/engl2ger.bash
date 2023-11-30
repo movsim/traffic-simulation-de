@@ -16,7 +16,7 @@ indexProject="onramp" # !!!  sets the current main simulation
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
 #test* projects do NOT have a translation
-projects="ring onramp offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
+projects="ring onramp onramp_scooters offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
 #test1_straightRoad test2_bottleneck test3_moreComplexNetwork test4_doubleLoop test5_golfCourse"
 
 
@@ -144,8 +144,9 @@ for file in $htmlfilesGer; do
 
 
 
-  # change further text in html
+  # change further text in German html
 
+  perl -i -p -e 's/Play Ramp-Metering Game/Gehe zu Zufluss-dosierungs-Spiel/g' $file
   perl -i -p -e 's/Traffic Rules/Verkehrsregeln/g' $file
   perl -i -p -e 's/Horizontal Priority/Haupt\/Nebenstra&szlig;e/g' $file
   perl -i -p -e 's/Right Priority/Rechts vor Links/g' $file
@@ -168,6 +169,8 @@ for file in $htmlfilesGer; do
   
   perl -i -p -e 's/Truck Fraction/LKW-Anteil/g' $file
   perl -i -p -e 's/Truck Perc/LKW-Anteil/g' $file
+  perl -i -p -e 's/Scooter Fraction/Scooter-Anteil/g' $file
+  perl -i -p -e 's/Scooter Perc/Scooter-Anteil/g' $file
   perl -i -p -e 's/Politeness/H&ouml;flichkeitsfaktor/g' $file
   perl -i -p -e 's/LC Threshold/Wechselschwelle/g' $file
   perl -i -p -e 's/Right Bias Cars/Rechtsfahren PKW/g' $file
@@ -258,7 +261,6 @@ for file in "$jsfilesGer"; do
   perl -i -p -e 's/\"timewarp=/\"Zeitraffer=/g' $file
   perl -i -p -e 's/\"density=/\"Dichte=/g' $file
   perl -i -p -e 's/\"scale=/\"Skala=/g' $file
-  perl -i -p -e 's/\"truckFrac=/\"LKW-Anteil=/g' $file
 done
 
 

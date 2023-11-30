@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Microsimulation of Traffic Flow: Onramp</title> 
+    <title>Microsimulation of Traffic Flow: Onramp with Scooters</title> 
 </head>
 
 
@@ -63,7 +63,7 @@
 </div>
 
 <div id="gameDiv">
-  <button onclick='myRedirectRampMeteringGame()'>Gehe zu Zufluss-dosierungs-Spiel</button>
+  <button onclick='myRedirectRampMeteringGame()'>Play Ramp-Metering Game</button>
 </div>
 
 
@@ -71,7 +71,7 @@
 <!-- redirects to other scenarios, defines myRedirectX -->
 <!-- ############################################## -->
 
-<script src="js/redirect_ger.js" type="text/javascript"></script>
+<script src="js/redirect.js" type="text/javascript"></script>
 
 <div id="scenarios">
 <center>
@@ -170,30 +170,38 @@
 <center>
 
 <!-- ######################################################## -->
-<!--<img src="figs/Verkehrsfluss.png" width="40%"></img>-->
-<h3>Verkehrsfl&uuml;sse und Allgemeines</h3>
+<!--<img src="figs/Traffic_Flow_and_General.png" width="65%"></img>-->
+<h3>Traffic Flow and General</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td class="important">Hauptzufluss</td>
+  <td class="important">Inflow</td>
   <td> <input id="slider_qIn" type="range" 
               min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
 </tr>
 
 <tr>
-  <td class="important">Rampenzufluss</td>
+  <td>Onramp Flow</td>
   <td> <input id="slider_qOn" type="range" 
               min="0" max="2000" step="10"></td>
   <td> <div id="slider_qOnVal"></div> </td>
 </tr>
 
-  <td>LKW-Anteil</td>
+<tr>
+  <td>Truck Perc</td>
   <td> <input id="slider_fracTruck" type="range" 
-              min="0" max="50" step="1"></td>
+              min="0" max="100" step="1"></td>
   <td> <div id="slider_fracTruckVal"></div> </td>
+</tr>
+
+<tr>
+  <td class="important">Scooter Perc</td>
+  <td> <input id="slider_fracScooter" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracScooterVal"></div> </td>
 </tr>
 
 <tr>
@@ -206,28 +214,28 @@
 
 
 <!-- ######################################################## -->
-<!--<img src="figs/Fahrstil-Parameter.png" width="55%"></img>-->
-<h3>Fahrzeugfolge-Verhalten</h3>
+<!--<img src="figs/Car-Following_Behavior.png" width="60%"></img>-->
+<h3>Car-Following Behavior</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Wunschgeschw. v</sub>0</td>
+  <td>Max Speed v</sub>0</td>
   <td> <input id="slider_IDM_v0" type="range" 
               min="20" max="160" step="1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
 
 <tr>
-  <td>Zeitl&uuml;cke T</td>
+  <td>Time Gap T</td>
   <td> <input id="slider_IDM_T" type="range" 
               min="0.6" max="3" step="0.1"></td>
   <td> <div id="slider_IDM_TVal"></div> </td>
 </tr>
 
 <tr>
-  <td class="important">Max Beschl a</td>
+  <td>Max Accel a</td>
   <td> <input id="slider_IDM_a" type="range" 
               min="0.3" max="4" step="0.1"></td>
   <td> <div id="slider_IDM_aVal"></div> </td>
@@ -236,35 +244,35 @@
 
 
 <!-- ######################################################## -->
-<!--<img src="figs/Spurwechsel-Parameter.png" width="65%"></img>-->
-<h3>Spurwechsel-Verhalten</h3>
+<!--<img src="figs/Lane-Changing_Behavior.png" width="60%"></img>-->
+<h3>Lane-Changing Behavior</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>H&ouml;flichkeitsfaktor</td>
+  <td>Politeness</td>
   <td> <input id="slider_MOBIL_p" type="range" 
               min="-0.2" max="1" step="0.1"></td>
   <td> <div id="slider_MOBIL_pVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Wechselschwelle</td>
+  <td>LC Threshold</td>
   <td> <input id="slider_MOBIL_bThr" type="range" 
               min="-0.1" max="1" step="0.1"></td>
   <td> <div id="slider_MOBIL_bThrVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Rechtsfahren PKW</td>
+  <td>Right Bias Cars</td>
   <td> <input id="slider_MOBIL_bBiasRight_car" type="range" 
               min="-1" max="2" step="0.1"></td>
   <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
 </tr>
 
 <tr>
-  <td>Rechtsfahren LKW</td>
+  <td>Right Bias Trucks</td>
   <td> <input id="slider_MOBIL_bBiasRight_truck" type="range" 
               min="-1" max="2" step="0.1"></td>
   <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
@@ -304,11 +312,11 @@
 <!-- ############################################## -->
 
 <div id="infoFlags">
-<a href = "onramp.html">
+<a href = "onramp_scooters.html">
  <img src="figs/flagUSA.png" width="45%" ></img>
 </a>
 
-<a href = "onramp_ger.html">
+<a href = "onramp_scooters_ger.html">
  <img src="figs/flagGerman.png" width="45%" ></img>
 </a>
 </div>
@@ -339,10 +347,10 @@
 
 <script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
 
-<script src="js/timeView_ger.js" type="text/javascript"></script>
+<script src="js/timeView.js" type="text/javascript"></script>
 <script src="js/media.js" type="text/javascript"></script>
 
-<script src="js/control_gui_ger.js"></script> 
+<script src="js/control_gui.js"></script> 
 <script src="js/canvas_gui.js"></script> 
 <script src="js/TrafficObjects.js"></script> 
 <script src="js/TrafficLightControlEditor.js"></script> 
@@ -354,9 +362,9 @@
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
 <script src="js/debug.js"></script>
-<script src="js/stationaryDetector_ger.js"></script> 
+<script src="js/stationaryDetector.js"></script> 
 
-<!-- PROJ--> <script src="js/onramp_ger.js"></script> 
+<!-- PROJ--> <script src="js/onramp_scooters.js"></script> 
 
 </body>
 </html>

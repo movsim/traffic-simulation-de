@@ -15,12 +15,13 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
  Math.seedrandom(42);                // undo side effects of console commands 
 */
  
+
 //#############################################################
 // constants
 //#############################################################
 
-const REFSIZE=250;
-const REFSIZE_SMARTPHONE=150;
+const REFSIZE=120;
+const REFSIZE_SMARTPHONE=100;
 
 //#############################################################
 // general ui settings
@@ -58,12 +59,43 @@ var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
+// traffic lights with fixed automatic phase changes
+
+var u_TL0rel=0.4; //multiples of mainroadLen;
+var u_TL1rel=0.65;
+
+var cycleTL=40; // 50 seconds
+var greenTL0=20; 
+var greenTL1=20;
+var phaseShiftTL1_TL0=-12;
+var dt_lastSwitch0=0;  // state variable
+var dt_lastSwitch1=phaseShiftTL1_TL0;  // state variable
 
 
-qIn=4600./3600; 
+
+// slider-controlled vars definined in control_gui.js
+
+fracScooter=0.1;
+setSlider(slider_fracScooter, slider_fracScooterVal, 100*fracScooter, 0, "%");
+
+fracTruck=0.05;
+setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
+
+qIn=2400./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
 
+timewarp=4;
+setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, " times");
+
+IDM_v0=15;
+setSlider(slider_IDM_v0, slider_IDM_v0Val, 3.6*IDM_v0, 0, "km/h");
+
+IDM_a=2.0;
+setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
+
+factor_a_truck=0.7;
+factor_T_truck=1.4;
 
 density=0.01; 
 
@@ -136,6 +168,9 @@ var isSmartphone=mqSmartphone();
 
 var refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE;
 
+// basic scaling; used at init and in updateDimensions
+//var refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE; 
+
 var critAspectRatio=120./95.; // from css file width/height of #contents
                               // the higher, the longer sim window
                          // must be the same as in css:
@@ -159,6 +194,7 @@ var center_xRel=0.43;
 var center_yRel=-0.54;
 var arcRadiusRel=0.35;
 var rampLenRel=0.85;
+var mergLenRel=0.10;
 
 
 // !!slight double-coding with updateDimensions unavoidable since
@@ -173,20 +209,26 @@ var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
 var mainroadLen=arcLen+2*straightLen;
 var rampLen=rampLenRel*refSizePhys; 
-var mergeLen=0.4*rampLen;
+var mergeLen=mergLenRel*rampLen;
 var mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 //var taperLen=0.2*rampLen; //!!!
 var rampRadius=4*arcRadius;
+var u_TL0=mainroadLen*u_TL0rel;
+var u_TL1=mainroadLen*u_TL1rel;
 
 // !! slightdouble-coding necessary unless big changes, 
 // I have checked this...
 
 function updateDimensions(){ // if viewport or sizePhys changed
-  console.log("in updateDimensions");
+  //console.log("in updateDimensions");
   refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE; 
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
+  center_xPhys=center_xRel*refSizePhys; //[m]
+  center_yPhys=center_yRel*refSizePhys;
+
+ 
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
 
@@ -195,13 +237,15 @@ function updateDimensions(){ // if viewport or sizePhys changed
   straightLen=refSizePhys*critAspectRatio-center_xPhys;
   mainroadLen=arcLen+2*straightLen;
   rampLen=rampLenRel*refSizePhys; 
-  mergeLen=0.4*rampLen;
+  mergeLen=mergLenRel*rampLen;
   mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
 //  taperLen=0.2*rampLen; //!!!
   rampRadius=4*arcRadius;
+  u_TL0=mainroadLen*u_TL0rel;
+  u_TL1=mainroadLen*u_TL1rel;
 
  
-  if(true){
+  if(false){
     console.log("updateDimensions: mainroadLen=",mainroadLen,
 		" isSmartphone=",isSmartphone);
   }
@@ -241,19 +285,7 @@ function updateRampGeometry(){
 @return: lateral offset in [0,laneWidth]
 */
 
-/*
-function taperDiverge(u,taperLen,laneWidth){
-  var res=
-    (u<0.5*taperLen) ? laneWidth*(1-2*Math.pow(u/taperLen,2)) :
-    (u<taperLen) ? 2*laneWidth*Math.pow((taperLen-u)/taperLen,2) : 0;
-  return res;
-}
 
-function taperMerge(u,taperLen,laneWidth,rampLen){
-  return taperDiverge(rampLen-u,taperLen,laneWidth);
-}
-
-*/
 
 // def trajectories
 
@@ -310,14 +342,14 @@ trajNet[1]=trajRamp;
 //###################################################
 
 
-var laneWidth=7; // remains constant => road becomes more compact for smaller
-// var laneWidthRamp=5; // main lanewidth used
+var laneWidth=3.5; // also used for on/offramps
 
-
-var car_length=7; // car length in m
-var car_width=5; // car width in m
-var truck_length=15; // trucks
-var truck_width=7; 
+var car_length=5.0; // scooter
+var car_width=2.2; // for visualisation, make it a bit wider than in reality 
+var truck_length=12.5; // trucks->cars
+var truck_width=3.0; 
+var scooter_length=2.5; // kind of tricycles, Christoph Walz 2023-12-01
+var scooter_width=1.5; 
 
 
 
@@ -342,7 +374,7 @@ var ramp=new road(roadIDramp,rampLen,laneWidth,nLanes_rmp,
 		    trajRamp,
 		  0*density, speedInit, fracTruck, isRing);
 
-ramp.taperLen=30; // override constructor
+ramp.taperLen=15; // override constructor
 
 // road network (network declared in canvas_gui.js)
 
@@ -361,7 +393,7 @@ for(var ir=0; ir<network.length; ir++){
 // add standing virtual vehicle at the end of ramp (1 lane)
 // prepending=unshift (strange name)
 // vehicle(length, width, u, lane, speed, type, //!!! omit later on
-var virtualStandingVeh=new vehicle(2, laneWidth, ramp.roadLen-1, 0, 0, "obstacle");
+var virtualStandingVeh=new vehicle(0.2, laneWidth, ramp.roadLen-0.1, 0, 0, "obstacle");
 
 ramp.veh.unshift(virtualStandingVeh);
 
@@ -463,6 +495,8 @@ rampImg=roadImgs1[nLanes_rmp-1];
 // TrafficObjects(canvas,nTL,nLimit,xRelDepot,yRelDepot,nRow,nCol)
 //var trafficObjs=new TrafficObjects(canvas,1,3,0.60,0.50,3,2);
 var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
+var TL=trafficObjs.trafficObj.slice(0,2);  // last index not included
+console.log("at def: TL[1]=",TL[1]);
 
 // also needed to just switch the traffic lights
 // (then args xRelEditor,yRelEditor not relevant)
@@ -481,39 +515,64 @@ var fps=30; // frames per second (unchanged during runtime)
 var dt=timewarp/fps;
 
 
+function nextTLphase(i){
+  if(TL[i].value=="green"){
+    trafficObjs.setTrafficLight(TL[i], "red");
+  }
+  else{
+    trafficObjs.setTrafficLight(TL[i], "green");
+  }
+}
+
+
+
 //#################################################################
 function updateSim(){
 //#################################################################
 
-  // (1) update times and, if canvas change, 
+ 
+  // (0) update times and, if canvas change, 
   // scale and, if smartphone<->no-smartphone change, physical geometry
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
+  isSmartphone=mqSmartphone();
 
-  if ((canvas.width!=simDivWindow.clientWidth)
-      ||(canvas.height != simDivWindow.clientHeight)){
-    hasChanged=true;
-    canvas.width  = simDivWindow.clientWidth;
-    canvas.height  = simDivWindow.clientHeight;
+  // (0.a) update traffic lights with fixed signal changes
+  // for some F... reason no init def before
+  // updateSim possible (then again undefined)
 
-    if(isSmartphone!=mqSmartphone()){
-      isSmartphone=mqSmartphone();
-    }
-
-    updateDimensions(); // updates refsizePhys, -Pix,  geometry
+  if(itime==1){
+      trafficObjs.dropObject(TL[0],network,
+			     network[0].traj[0](u_TL0),
+			     network[0].traj[1](u_TL0),
+			     20);
+      trafficObjs.dropObject(TL[1],network,
+			     network[0].traj[0](u_TL1),
+			     network[0].traj[1](u_TL1),
+			     20);
+  }
  
-    trafficObjs.calcDepotPositions(canvas);
-    if(true){
-      console.log("updateSim: haschanged=true: new canvas dimension: ",
-		  canvas.width," X ",canvas.height);
-      console.log("window.innerWidth=",window.innerWidth,
-		  " window.innerHeight=",window.innerHeight);
-    }
+
+  //console.log("trafficObjs.trafficObj[1]=",trafficObjs.trafficObj[1]);
+  
+  dt_lastSwitch0+=dt;
+  dt_lastSwitch1+=dt;
+
+
+  if((TL[0].value=="green")&&(dt_lastSwitch0>greenTL0)
+       ||(TL[0].value=="red")&&(dt_lastSwitch0>cycleTL-greenTL0)){
+    nextTLphase(0);
+    dt_lastSwitch0=0;
   }
 
-  // updAteSim: Test code at last point (5)
+  if((TL[1].value=="green")&&(dt_lastSwitch1>greenTL1)
+       ||(TL[1].value=="red")&&(dt_lastSwitch1>cycleTL-greenTL1)){
+    nextTLphase(1);
+    dt_lastSwitch1=0;
+  }
 
+  
 
   
   // (2) transfer effects from slider interaction and mandatory regions
@@ -636,44 +695,7 @@ function updateSim(){
   
   // 
 
-  if(false){
 
-  // template for dropping traffic lights: onramp.js
-  // template for dropping speedL: test7_severalOnrampsOfframpsConnects.js
-    
-    // drop red traffic light
-
-    //!! in different road operations (setSpeedlimit) order of
-    // trafficObjs.trafficObj array changed in increasing u
-    // can only select unique trafficObj at initialization or, as here,
-    // when filtering for attributes
-
-    // dropping of speed limits in test7*.js
-
-    var TL;
-    for(var iobj=0; iobj<trafficObjs.trafficObj.length; iobj++){
-      if(trafficObjs.trafficObj[iobj].id==100){// first TL
-	TL=trafficObjs.trafficObj[iobj];
-      }
-    }
-
-    if(itime==1){
-      var udrop=0.25*network[0].roadLen;
-      trafficObjs.setTrafficLight(TL,"red");
-      trafficObjs.dropObject(TL,network,
-			     network[0].traj[0](udrop),
-			     network[0].traj[1](udrop),
-			     20,);
-    }
-
-    // switch TL to green
-
-    if(itime==100){
-      console.log("set first TL to green");
-      trafficObjs.setTrafficLight(TL,"green");
-    }
-  }
-    
    //if(time>1.2){clearInterval(myRun);}
 
 
@@ -691,11 +713,37 @@ function drawSim() {
   var movingObserver=false;
   var uObs=0*time;
 
-  // (1) adapt text size
+  // (1) adapt text size and simulation size
  
   var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02;
   var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
+  updateDimensions();
+  if ((canvas.width!=simDivWindow.clientWidth)
+      ||(canvas.height != simDivWindow.clientHeight)){
+    hasChanged=true;
+    canvas.width  = simDivWindow.clientWidth;
+    canvas.height  = simDivWindow.clientHeight;
+
+    /*
+    if(isSmartphone!=mqSmartphone()){
+      isSmartphone=mqSmartphone();
+    }
+    */
+
+    
+   // updateDimensions(); // updates refsizePhys, -Pix,  geometry
+ 
+    trafficObjs.calcDepotPositions(canvas);
+    if(true){
+      console.log("updateSim: haschanged=true: new canvas dimension: ",
+		  canvas.width," X ",canvas.height);
+      console.log("window.innerWidth=",window.innerWidth,
+		  " window.innerHeight=",window.innerHeight);
+    }
+  }
+
+  // updAteSim: Test code at last point (5)
 
 
   // (2) reset transform matrix and draw background

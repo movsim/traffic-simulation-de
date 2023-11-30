@@ -100,7 +100,7 @@ function myRestartFunction(){
     // add regular vehicles according to the given init density per lane
 
     road.veh=notRegularVehs; // assignment removes all regular vehicles
-    road.initRegularVehicles(density,fracTruck,speedInit);
+    road.initRegularVehicles(density,fracTruck,fracScooter,speedInit);
     this.inVehBuffer=this.inVehBufferInit;
     // this.randomValBCup=1; // DOS; apply now at road.updateBCup
   }
@@ -586,6 +586,25 @@ if(document.getElementById("slider_fracTruck")!==null){
     }
 }
 
+// scooter/third veh type fraction slider
+
+var fracScooter=0.00; // 
+var fracScooterToleratedMismatch=1; // 1=100% allowed=>chges only by sources
+
+var slider_fracScooter;
+var slider_fracScooterVal;
+if(document.getElementById("slider_fracScooter")!==null){
+    slider_fracScooter = document.getElementById("slider_fracScooter");
+    slider_fracScooterVal = document.getElementById("slider_fracScooterVal");
+    slider_fracScooter.value=100*fracScooter;
+    slider_fracScooterVal.innerHTML=100*fracScooter+" %";
+
+    slider_fracScooter.oninput = function() {
+        slider_fracScooterVal.innerHTML = this.value+" %";
+        fracScooter=parseFloat(this.value/100.);
+    }
+}
+
 
 // density slider
 
@@ -817,6 +836,7 @@ if(document.getElementById("slider_IDM_b")!==null){
 
 var speedL=1000/3.6; 
 var speedL_truck=80/3.6; // default truck speedlimit (no slider)
+var speedL_scooter=80/3.6; // default truck speedlimit (no slider)
 
 var slider_speedL, slider_speedLVal;
 if(document.getElementById("slider_speedL")!==null){

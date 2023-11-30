@@ -445,8 +445,8 @@ function drawSim() {
     // responsive design if canvas has been resized 
     // isSmartphone defined in updateSim
  
-    var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
-    var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
+  var relTextsize_vmin=(isSmartphone) ? 0.03 : 0.02; //xxx
+  var textsize=relTextsize_vmin*Math.min(canvas.width,canvas.height);
 
   if(false){
     console.log(" new total inner window dimension: ",
@@ -479,10 +479,6 @@ function drawSim() {
     }
 
 
-    // (1) update heading of all vehicles rel. to road axis
-    // (for some reason, strange rotations at beginning)
-
-    
   // (2) reset transform matrix and draw background
   // (only needed if changes, plus "reminders" for lazy browsers)
 

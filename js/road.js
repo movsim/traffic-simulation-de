@@ -155,7 +155,8 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
     // lane or v is transversal coordinate
 
   this.veh=[];
-  this.initRegularVehicles(densInitPerLane,fracTruck,speedInit);
+
+  this.initRegularVehicles(densInitPerLane,fracTruck,fracScooter,speedInit);
 
     // formally define ego vehicle for external reference
     // if applicable, it will be attributed to one element of this.veh, 
@@ -205,6 +206,37 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
 
 //######################################################################
+// get vehicle type based on population structure
+// fracTruck, fracOthers
+//######################################################################
+
+road.prototype.getAttributes=function(fracTruck, fracOthers){
+  var others_frac=(typeof fracOthers==='undefined') ? 0 : fracOthers;
+  var others_length=(typeof scooter_length==='undefined') ? 2.5 : scooter_length;
+  var others_width=(typeof scooter_width==='undefined') ? 1.2 : scooter_width;
+  var r=Math.random();
+  var vehType=(r<fracTruck) ? "truck"
+      : (r<fracTruck+others_frac) ? "others" : "car";
+  var lengthOut=(vehType === "car") ? car_length
+    :(vehType === "truck") ? truck_length:others_length;
+  var widthOut=(vehType === "car") ? car_width
+    :(vehType === "truck") ? truck_width:others_width;
+  var attributes={type:vehType,
+		  len: lengthOut,
+		  width: widthOut
+		 };
+  if(false){
+    console.log("road.getAttributes: r=",r," fracTruck=",fracTruck,
+		" fracTruck+others_frac=",fracTruck+others_frac);
+  }
+  return attributes 
+}
+
+
+
+
+
+//######################################################################
 // reset driver agility variation from default;
 // need also to draw new realisations for all the regular vehicles
 //######################################################################
@@ -226,8 +258,11 @@ road.prototype.setDriverVariation=function(driver_varcoeff){
 //######################################################################
 
 road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
+					    fracScooter,
 					    speedInit){
   Math.seedrandom(42);
+
+  var fracOthers=(typeof fracScooter === 'undefined') ? 0 : fracScooter;
 
   var nvehPlus=Math.floor(this.nLanes*this.roadLen*densityPerLane);
   var nVehOld=this.veh.length;
@@ -243,10 +278,16 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
 
     var u=(nvehPlus-i-1)*this.roadLen/(nvehPlus); //!!(nvehPlus+1)
     var lane=i%this.nLanes; // left: 0; right: nLanes-1
+
     var fracTruck=(lane===this.nLanes-1) ? fracTruckRight : fracTruckRest;
-    var vehType=(Math.random()<fracTruck) ? "truck" : "car";
-    var vehLength=(vehType === "car") ? car_length:truck_length;
-    var vehWidth=(vehType === "car") ? car_width:truck_width;
+
+    // initRegularVehicles: vehTypes
+    // vehAttr={type: vehType, len: length, width: width}
+    var vehAttr=this.getAttributes(fracTruck, fracOthers);
+    console.log("vehAttr=",vehAttr);
+    var vehType=vehAttr.type;
+    var vehLength=vehAttr.len;
+    var vehWidth=vehAttr.width;
 
     var leaderInfo=this.findLeaderAtLane(u,lane);     // accesses this.veh
     var followerInfo=this.findFollowerAtLane(u,lane); // accesses this.veh
@@ -274,7 +315,7 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
   }
 
   this.updateEnvironment(); // includes sorting
-
+  this.writeVehicles();
 }//initRegularVehicles
 
 
@@ -1039,11 +1080,13 @@ road.prototype.initializeMicro=function(types,lengths,widths,
 
     if(this.veh.length>0){this.veh.splice(0,this.veh.length);}
 
-    // add the new vehicles to the array
+    // initializeMicro: add the new vehicles to the array
 
     for(var i=0; i<types.length; i++){
 
-        // !! later on directly (if types internally = integer)
+      // initializeMicro: vehTypes:
+      // (no immediate intro of scooter/others needed)
+        // !! later directly (if types internally = integer)
 	var type=(types[i]===0) ? "car" :
 	    (types[i]===1) ? "truck" : "obstacle";
 	var lane=Math.round(lanesReal[i]);
@@ -1165,7 +1208,10 @@ road.prototype.updateTruckFrac=function(fracTruck, mismatchTolerated){
 //######################################################################
 
 road.prototype.updateDensity=function(density){
-    var nDesired= Math.floor(this.nLanes*this.roadLen*density);
+
+  var fracOthers=(typeof fracScooter === 'undefined') ? 0 : fracScooter;
+
+  var nDesired= Math.floor(this.nLanes*this.roadLen*density);
     var nActual=0;
     var nTotOld=this.veh.length;
     for (var i=0; i<this.veh.length; i++){
@@ -1189,15 +1235,20 @@ road.prototype.updateDensity=function(density){
 	var success=false;
 	var emptyLanes=false;
 
-        // initialize attributes of new vehicle 
+        // updateDensity: vehTypes initialize attributes of new vehicle 
         // (later overwritten in most cases)
 
 	var laneNew=0;
-	var uNew=0.5*this.roadLen
-	var vehType=(Math.random()<fracTruck) ? "truck" : "car";
-	var vehLength=(vehType==="car") ? car_length:truck_length;
-	var vehWidth=(vehType==="car") ? car_width:truck_width;
-	var speedNew=0; // always overwritten
+        var uNew=0.5*this.roadLen
+        var speedNew=0; // always overwritten
+
+      // updateDensity: vehTypes
+      // vehAttr={type: vehType, len: length, width: width}
+      var vehAttr=this.getAttributes(fracTruck, fracOthers);
+      var vehType=vehAttr.type;
+      var vehLength=vehAttr.len;
+      var vehWidth=vehAttr.width;
+
 
         // test if there are lanes w/o vehicles which will not be caught 
         // by main search for largest gap
@@ -1362,8 +1413,9 @@ road.prototype.setCFModelsInRange=function(umin,umax,
     var u=this.veh[i].u;
     if((u>umin)&&(u<umax)){
 
-      // always deep copy
+      // always deep copy //!!! for now, scooter models = car models
       if(this.veh[i].type==="car"){this.veh[i].longModel.copy(longModelCar);}
+      if(this.veh[i].type==="others"){this.veh[i].longModel.copy(longModelCar);}
       if(this.veh[i].type==="truck"){
 	this.veh[i].longModel.copy(longModelTruck);}
 
@@ -1400,6 +1452,7 @@ road.prototype.setLCModelsInRange=function(umin,umax,
     var u=this.veh[i].u;
     if(routeOK&&(u>umin)&&(u<umax)){
       if(this.veh[i].type==="car"){this.veh[i].LCModel.copy(LCModelCar);}
+      if(this.veh[i].type==="others"){this.veh[i].LCModel.copy(LCModelCar);}
       if(this.veh[i].type==="truck"){this.veh[i].LCModel.copy(LCModelTruck);}
      // console.log("road"+this.roadID+".setLCModelsInRange:"
 //		  +" nextID=",nextID," LCModelCar=",LCModelCar);
@@ -3577,6 +3630,8 @@ road.prototype.updateBCdown=function(){
 
 road.prototype.updateBCup=function(Qin,dt,route){
 
+  var fracOthers=(typeof fracScooter === 'undefined') ? 0 : fracScooter;
+
   // get deterministic dynamics not only for testing but also for games
   // after restart.
   // for some reason, this does not work at control_gui.myRestartFunction
@@ -3627,17 +3682,20 @@ road.prototype.updateBCup=function(Qin,dt,route){
   if(this.inVehBuffer>=this.randomValBCup){
     this.randomValBCup=1+randomAmplitude*(2*r1-1);
 
-    // get new vehicle characteristics
-
     if(false){
       console.log("  BCup: itime=",itime,
 		  " this.roadID=",this.roadID," r1=",r1," r2=",r2,
 		  "trying to insert vehicle: this.inVehBuffer=",
 		  this.inVehBuffer.toFixed(3));
     }
-    var vehType=(r2<fracTruck) ? "truck" : "car";
-    var vehLength=(vehType==="car") ? car_length:truck_length;
-    var vehWidth=(vehType==="car") ? car_width:truck_width;
+
+    // updateBCup: vehTypes: get new vehicle characteristics
+    // vehAttr={type: vehType, len: length, width: width}
+    var vehAttr=this.getAttributes(fracTruck, fracOthers);
+    var vehType=vehAttr.type;
+    var vehLength=vehAttr.len;
+    var vehWidth=vehAttr.width;
+
     var space=0; //available bumper-to-bumper space gap
     var lane=this.nLanes-1; // start with right lane
     if(this.veh.length===0){success=true; space=this.roadLen;}
@@ -3671,7 +3729,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
     // version1 (new): set trucks forcedly on right lane(s),
     // otherwise block 
       
-    if((!success) &&((!this.setTrucksAlwaysRight)||(vehType=="car"))){
+    if((!success) &&((!this.setTrucksAlwaysRight)||(vehType!="truck"))){
       var spaceMax=0;
       for(var candLane=this.nLanes-1; candLane>=0; candLane--){
 	var iLead=this.veh.length-1;
@@ -3690,11 +3748,10 @@ road.prototype.updateBCup=function(Qin,dt,route){
     }
  
 
-    // actually insert new vehicle //IC
 
     if(success){
-      var longModelNew=(vehType==="car") ? longModelCar : longModelTruck;
-      var LCModelNew=(vehType==="car") ? LCModelCar : LCModelTruck;
+      var longModelNew=(vehType==="truck") ? longModelTruck : longModelCar;
+      var LCModelNew=(vehType==="truck") ? LCModelTruck : LCModelCar;
       var uNew=0;
 
       //!! MT 2019-09 hack since otherwise veh enter too fast 
@@ -3863,13 +3920,14 @@ road.prototype.updateModelsOfAllVehicles=function(longModelCar,longModelTruck,
 
   // normal acc and LC: 
   // distributed to the vehicles depending on car/truck here
+  // !!! new scooters have for now car models
 
   for(var i=0; i<this.veh.length; i++){
     if(this.veh[i].isRegularVeh()){
-      this.veh[i].longModel.copy((this.veh[i].type === "car")
-				   ? longModelCar : longModelTruck);
-      this.veh[i].LCModel.copy((this.veh[i].type === "car")
-				 ? LCModelCar : LCModelTruck);
+      this.veh[i].longModel.copy((this.veh[i].type === "truck")
+				   ? longModelTruck : longModelCar);
+      this.veh[i].LCModel.copy((this.veh[i].type === "truck")
+				 ? LCModelTruck : LCModelCar);
 
       this.veh[i].longModel.driverfactor=this.veh[i].driverfactor;
     
@@ -4432,7 +4490,7 @@ road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
   
   for (var iSegm=0; iSegm<nSegmTaper; iSegm++){
     var du=this.taperLen*(iSegm+0.5)/nSegmTaper;
-    var u=uStart+du;
+    var u=uStart+du-0.10*this.taperLen; //!! to make taper look shorter
 
     //if(this.roadID==10){console.log("u=",u," du=",du);}
     var dv=this.sShape_v(du,laneShift);
@@ -4690,7 +4748,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg,
 	      obstacleImg=obstacleImgs[obstacleImgIndex];
   }
 				
-  vehImg=(type==="car")
+  vehImg=((type==="car")||(type=="others"))
 	      ? carImg : (type==="truck")
 	      ? truckImg : obstacleImg;
   ctx.setTransform(cphiVeh, -sphiVeh, +sphiVeh, cphiVeh, 
@@ -4709,8 +4767,8 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg,
     //     (different size of box because of mirrors of veh images)
 
   if((type!="obstacle")&&(speedmax>1e-10)){ // no box if speedmin=speedmax=0
-        var effLenPix=(type==="car") ? 0.95*vehLenPix : 0.90*vehLenPix;
-        var effWPix=(type==="car") ? 0.55*vehWidthPix : 0.70*vehWidthPix;
+        var effLenPix=(type==="truck") ? 0.90*vehLenPix : 1.00*vehLenPix;
+        var effWPix=(type==="truck") ? 0.80*vehWidthPix : 0.60*vehWidthPix;
         var speed=this.veh[i].speed;
 	var isEgo=(this.veh[i].id===1);
         ctx.fillStyle=(this.veh[i].colorStyle==0)
@@ -4833,26 +4891,6 @@ road.prototype.updateSpeedlimits=function(trafficObjects){
       }
 
       
-      /*
-      var iveh=0;
-      while((iveh<this.veh.length)&&(this.veh[iveh].u>obj.u-duAntic)){
-	var targetVeh=this.veh[iveh];
-	if(targetVeh.isRegularVeh()){
-	  targetVeh.longModel.speedlimit=(targetVeh.type==="truck")
-	    ? Math.min(speedL,speedL_truck) : speedL;
-	}
-	if(false){
-	  console.log("iveh="+iveh," u="+formd(targetVeh.u),
-		      " obj.u="+formd(obj.u),
-		      " isRegVeh="+targetVeh.isRegularVeh(),
-		      " speedlimit_kmh="+
-		      formd0(3.6*targetVeh.longModel.speedlimit));
-	}
-
-	iveh++;
-      }
-      */
-
       
       //if(iveh==this.veh.length){return;} // otherwise risk of range excess
 

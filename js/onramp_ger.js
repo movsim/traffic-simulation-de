@@ -15,6 +15,12 @@ console.log(Math.random());          // Always 0.9364577392619949 with 42
  Math.seedrandom(42);                // undo side effects of console commands 
 */
  
+//#############################################################
+// constants
+//#############################################################
+
+const REFSIZE=250;
+const REFSIZE_SMARTPHONE=150;
 
 //#############################################################
 // general ui settings
@@ -128,7 +134,7 @@ console.log("after addTouchListeners()");
 
 var isSmartphone=mqSmartphone();
 
-var refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in updateDimensions
+var refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE;
 
 var critAspectRatio=120./95.; // from css file width/height of #contents
                               // the higher, the longer sim window
@@ -177,12 +183,22 @@ var rampRadius=4*arcRadius;
 
 function updateDimensions(){ // if viewport or sizePhys changed
   console.log("in updateDimensions");
-  refSizePhys=(isSmartphone) ? 150 : 250; // also adapt in definition above
+  refSizePhys=(isSmartphone) ? REFSIZE_SMARTPHONE : REFSIZE; 
   refSizePix=Math.min(canvas.height,canvas.width/critAspectRatio);
   scale=refSizePix/refSizePhys;
   
   center_xPhys=center_xRel*refSizePhys; //[m]
   center_yPhys=center_yRel*refSizePhys;
+
+  arcRadius=arcRadiusRel*refSizePhys;
+  arcLen=arcRadius*Math.PI;
+  straightLen=refSizePhys*critAspectRatio-center_xPhys;
+  mainroadLen=arcLen+2*straightLen;
+  rampLen=rampLenRel*refSizePhys; 
+  mergeLen=0.4*rampLen;
+  mainRampOffset=mainroadLen-straightLen+mergeLen-rampLen;
+//  taperLen=0.2*rampLen; //!!!
+  rampRadius=4*arcRadius;
 
  
   if(true){

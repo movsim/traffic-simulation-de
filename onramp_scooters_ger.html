@@ -13,7 +13,7 @@
     </script>
 
     
-    <title>Microsimulation of Traffic Flow: Golf Course</title> 
+    <title>Microsimulation of Traffic Flow: Onramp with Scooters</title> 
 </head>
 
 
@@ -50,9 +50,21 @@
 </div>
 
 <div id="infoDiv"><img width="100%" 
-		       src="figs/infoBlue.png" onclick="showInfoString()"></img>
+     src="figs/infoBlue.png" onclick="showInfo()"></img>
 </div>
 
+
+<div id="lanePlusDiv"><img width="100%" 
+     src="figs/autobahn_plus.png" onclick="addOneLane()"></img>
+</div>
+
+<div id="laneMinusDiv"><img width="100%" 
+     src="figs/autobahn_minus.png" onclick="subtractOneLane()"></img>
+</div>
+
+<div id="gameDiv">
+  <button onclick='myRedirectRampMeteringGame()'>Gehe zu Zufluss-dosierungs-Spiel</button>
+</div>
 
 
 <!-- ############################################## -->
@@ -81,8 +93,9 @@
 <img width="19%" src="figs/iconIntersection_small.jpg" 
                  onclick="myRedirectIntersection()"></img>
 <img width="20%" src="figs/iconRampmeterFig_small.jpg" 
-                 onclick="myRedirectOnrampBaWue()"></img>
+     onclick="myRedirectOnrampBaWue()"></img>
 <a href="test2_bottleneck.html">Tests</a>
+
 </center>
 
 </div> 
@@ -99,9 +112,9 @@
   <canvas id="canvas" 
           onmouseenter="handleMouseEnter(event)"
           onmousemove="handleMouseMove(event)"
-          onmousedown="handleMouseDown_golfCourse(event)"
+          onmousedown="handleMouseDown(event)"
           onmouseup="handleMouseUp(event)" 
-          onclick="handleClick_golfCourse(event)"
+          onclick="handleClick(event)"
           onmouseout="cancelActivities(event)"
           style="border:1px solid #d3d3d3;">
 
@@ -158,22 +171,43 @@
 
 <!-- ######################################################## -->
 <!--<img src="figs/Verkehrsfluss.png" width="40%"></img>-->
-<h3>Traffic Control</h3>
+<h3>Verkehrsfl&uuml;sse und Allgemeines</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Traffic</td>
+  <td class="important">Hauptzufluss</td>
   <td> <input id="slider_qIn" type="range" 
-              min="0" max="20" step="1"></td>
+              min="0" max="5400" step="10"></td>
   <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Rampenzufluss</td>
+  <td> <input id="slider_qOn" type="range" 
+              min="0" max="2000" step="10"></td>
+  <td> <div id="slider_qOnVal"></div> </td>
+</tr>
+
+<tr>
+  <td>LKW-Anteil</td>
+  <td> <input id="slider_fracTruck" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracTruckVal"></div> </td>
+</tr>
+
+<tr>
+  <td class="important">Scooter-Anteil</td>
+  <td> <input id="slider_fracScooter" type="range" 
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracScooterVal"></div> </td>
 </tr>
 
 <tr>
   <td>Timelapse</td>
   <td> <input id="slider_timewarp" type="range" 
-              min="30" max="300" step="1"></td>
+              min="0.2" max="20" step="0.1"></td>
   <td> <div id="slider_timewarpVal"></div> </td>
 </tr>
 </table>
@@ -181,37 +215,69 @@
 
 <!-- ######################################################## -->
 <!--<img src="figs/Fahrstil-Parameter.png" width="55%"></img>-->
-<h3>Behavior Control</h3>
+<h3>Fahrzeugfolge-Verhalten</h3>
 <!-- ######################################################## -->
 
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Wunschgeschw. v</sub>0</td>  <!-- km/h-->
+  <td>Wunschgeschw. v</sub>0</td>
   <td> <input id="slider_IDM_v0" type="range" 
-              min="1" max="4" step="0.1"></td>
+              min="20" max="160" step="1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
 
 <tr>
-  <td>Speed Variance</td>
-  <td> <input id="slider_speedVar" type="range" 
-              min="0" max="2" step="0.1"></td>
-  <td> <div id="slider_speedVarVal"></div> </td>
-</tr>
-
-<!--
-<tr>
   <td>Zeitl&uuml;cke T</td>
   <td> <input id="slider_IDM_T" type="range" 
-              min="30" max="120" step="5"></td>
+              min="0.6" max="3" step="0.1"></td>
   <td> <div id="slider_IDM_TVal"></div> </td>
 </tr>
--->
 
+<tr>
+  <td>Max Beschl a</td>
+  <td> <input id="slider_IDM_a" type="range" 
+              min="0.3" max="4" step="0.1"></td>
+  <td> <div id="slider_IDM_aVal"></div> </td>
+</tr>
 </table>
 
 
+<!-- ######################################################## -->
+<!--<img src="figs/Spurwechsel-Parameter.png" width="65%"></img>-->
+<h3>Spurwechsel-Verhalten</h3>
+<!-- ######################################################## -->
+
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
+<tr>
+  <td>H&ouml;flichkeitsfaktor</td>
+  <td> <input id="slider_MOBIL_p" type="range" 
+              min="-0.2" max="1" step="0.1"></td>
+  <td> <div id="slider_MOBIL_pVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Wechselschwelle</td>
+  <td> <input id="slider_MOBIL_bThr" type="range" 
+              min="-0.1" max="1" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bThrVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Rechtsfahren PKW</td>
+  <td> <input id="slider_MOBIL_bBiasRight_car" type="range" 
+              min="-1" max="2" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
+</tr>
+
+<tr>
+  <td>Rechtsfahren LKW</td>
+  <td> <input id="slider_MOBIL_bBiasRight_truck" type="range" 
+              min="-1" max="2" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
+</tr>
+</table>
 
 <!-- ############################################## -->
 <!-- info-text inside sliders-div (filled by showInfo())
@@ -245,22 +311,29 @@
 <!-- language switching
 <!-- ############################################## -->
 
-<!--
 <div id="infoFlags">
-<a href = "golfCourse.html">
+<a href = "onramp_scooters.html">
  <img src="figs/flagUSA.png" width="45%" ></img>
 </a>
 
-<a href = "golfCourse_ger.html">
+<a href = "onramp_scooters_ger.html">
  <img src="figs/flagGerman.png" width="45%" ></img>
 </a>
 </div>
--->
+
 
 
 <!-- ############################################## -->
-<!-- no colorbox
+<!-- colorbox
 <!-- ############################################## -->
+
+
+<div id="colorBox"> 
+<center>
+<img src="figs/colormap_grass.png" width="100%"></img>
+</center>
+</div>
+
 
 
 
@@ -273,7 +346,6 @@
 <!-- ########################################################## -->
 
 <script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
-<script src="js/random.js"></script> <!-- own stochastic vars/processes-->
 
 <script src="js/timeView_ger.js" type="text/javascript"></script>
 <script src="js/media.js" type="text/javascript"></script>
@@ -289,9 +361,10 @@
 
 <script src="js/paths.js"></script>
 <script src="js/road.js"></script>
+<script src="js/debug.js"></script>
 <script src="js/stationaryDetector_ger.js"></script> 
 
-<!-- PROJ--> <script src="js/golfCourse_ger.js"></script> 
+<!-- PROJ--> <script src="js/onramp_scooters_ger.js"></script> 
 
 </body>
 </html>
