@@ -71,7 +71,7 @@ function myStartStopFunction(){
 	document.getElementById("startStop").src="figs/buttonGo_small.png";
 	isStopped=true;
     }
-}
+} 
 
 //################################################################
 // Restart/reset the same simulation 
@@ -83,11 +83,10 @@ function myRestartFunction(){
   Math.seedrandom(42); console.log("in Math.seedrandom(42) myRestartFunction"); 
   time=0;
   itime=0;
-  var i=0;
 
-  for(var i=0; i<network.length; i++){
+  for(var ir=0; ir<network.length; ir++){
 
-    var road=network[i];
+    var road=network[ir];
 
 
     // remove all regular vehicles (leave obstacles and other special objects)

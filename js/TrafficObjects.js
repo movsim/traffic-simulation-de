@@ -795,7 +795,45 @@ TrafficObjects.prototype.setTrafficLight=function(obj, value){
 
   
 }
+
+
+//#############################################################
+// programmatic setting of a speed limit
+//#############################################################
+
+/** 
+@param obj:    a TrafficObjects object of type "speedLimit" 
+@param value:  the new value in km/h 10-120 in 10 km/h steps; 0=free
+@return:       changed state, if active, also changed road influence
+*/
+
+TrafficObjects.prototype.setSpeedLimit=function(objIndex, value){
+  var obj=this.trafficObj[objIndex];
+  if(!(obj.type==='speedLimit')){
+    console.log("TrafficObjects.setTrafficLight: error:",
+		" object not of type trafficLight");
+    return;
+  }
+  var imageIndex=Math.round(value/10);
+  if((imageIndex<0) || (imageIndex>=13)){
+    console.log("TrafficObjects.setSpeedLimit:",
+		" only limits 0=free, ... 120=120 km/h available");
+    return;
+  }
+
+  obj.value=value;
+  obj.image.src = "figs/speedLimit_"+(imageIndex)+"0.svg";
   
+
+  if(true){
+    console.log("setSpeedLimit:  id=",obj.id,
+		"value=",obj.value);
+  }
+
+  
+}
+  
+
 
 //#############################################################
 // user-driven change of the state of traffic light

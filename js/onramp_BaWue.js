@@ -389,7 +389,7 @@ ramp.veh.unshift(virtualStandingVeh);
 
 // introduce stationary detectors
 
-var nDet=3;
+
 var detectors=[];
 detectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,10);
 detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
@@ -583,7 +583,7 @@ function updateSim(){
     // (4) update detector readings
 
 
-    for(var iDet=0; iDet<nDet; iDet++){
+    for(var iDet=0; iDet<detectors.length; iDet++){
 	detectors[iDet].update(time,dt);
     }
  
@@ -724,7 +724,7 @@ function drawSim() {
     // (6) show simulation time and detector displays
 
   displayTime(time,textsize);
-  for(var iDet=0; iDet<nDet; iDet++){
+  for(var iDet=0; iDet<detectors.length; iDet++){
     detectors[iDet].display(textsize);
   }
 
