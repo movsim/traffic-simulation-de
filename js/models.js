@@ -171,7 +171,11 @@ IDM.prototype.calcAccDet=function(s,v,vl,al){
         // actual acceleration model
 
   var accFree=(v<v0eff) ? aeff*(1-Math.pow(v/v0eff,4))
-	: aeff*(1-v/v0eff);
+      : aeff*(1-v/v0eff);
+
+  // Gipps formula
+  // var accFree=2.5*aeff*(1-v/v0eff)*sqrt{0.025+v/v0eff);
+
   var sstar=this.s0
 	+Math.max(0.,v*this.T+0.5*v*(v-vl)/Math.sqrt(aeff*this.b));
   var accInt=-aeff*Math.pow(sstar/Math.max(s,this.s0),2); //!!! also for s<0?
@@ -354,6 +358,9 @@ ACC.prototype.calcAccDet=function(s,v,vl,al){ // this works as well
   // !!! strong response wanted for baWue application (dec19)
   var accFree=aeff*(1-Math.pow(v/v0eff,4));
 
+  // Gipps formula
+  // var accFree=2.5*aeff*(1-v/v0eff)*sqrt{0.025+v/v0eff);
+
   var sstar=this.s0
     +Math.max(0, v*this.T+0.5*v*(v-vl)/Math.sqrt(aeff*this.b));
   var accInt=-aeff*Math.pow(sstar/Math.max(s,this.s0),2);
@@ -495,6 +502,10 @@ CACC.prototype.calcAccDet = function (s, v, vl, al) {
   var accFree = v < v0eff
       ? aeff * (1 - Math.pow(v / v0eff, 4))
       : aeff * (1 - v / v0eff);
+
+  // Gipps formula
+  // var accFree=2.5*aeff*(1-v/v0eff)*sqrt{0.025+v/v0eff);
+  
   
   var sstar = this.s0
       + Math.max(0, v * this.T
