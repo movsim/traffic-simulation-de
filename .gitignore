@@ -1,5 +1,6 @@
 # user-defined ignores (avoid committing large files)
 
+GPLv3_ProgramHeader
 *.swp
 # *.zip
 

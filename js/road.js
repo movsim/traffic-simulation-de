@@ -2134,7 +2134,7 @@ road.prototype.doChangesInDirection=function(toRight){
 	   this.veh[i].lane=newLane;
 	   this.veh[i].acc=accNew;
 	   this.veh[iLagNew].acc=accLagNew;
-
+ 
  
            // update the local envionment implies 12 updates, 
            // better simply to update all ...
