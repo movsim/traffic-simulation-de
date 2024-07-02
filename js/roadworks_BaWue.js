@@ -11,8 +11,6 @@ nLanesMax=4;
 var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
 
-factor_v0_truck=1;
-
 //#############################################################
 // adapt standard IDM and MOBIL model parameters from control_gui.js
 // since no sliders for that.

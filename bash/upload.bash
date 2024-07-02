@@ -62,8 +62,6 @@ for proj in $projectsTest; do
   html_files="${html_files} $htmlfile";
 done
 
-html_files="${html_files} $"
-
 js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js random.js road.js vehicle.js canvas_gui.js canvasresize.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js rampMeteringGameInfo.js rampMeteringGameInfo_ger.js routingGameInfo.js routingGameInfo_ger.js  seedrandom.min.js debug.js jquery-1.12.4.min.js"
 
 for proj in $projects; do
@@ -136,7 +134,6 @@ chmod o+x `find $targetForUpload -type d`
 chmod o+r `find $targetForUpload -type f`
 
 
-echo "upload via filezilla from $targetForUpload"
 echo "hint: When uploading to top-level traffic-simulation.de"
 echo " just rename $targetForUpload to "
 echo " $HOME/public_html/professional/trafficSimulationDe_html5"

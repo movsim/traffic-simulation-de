@@ -1005,8 +1005,7 @@ var MOBIL_mandat_bias=42;
 
 // define truck longModel as f(car longModel) v0 limited by speed limit
 
-var factor_v0_truck=0.95; // restricted by speedL_truck
-var factor_a_truck=0.8;
+var factor_a_truck=0.8; // v0_truck controlled/restricted by speedL_truck
 var factor_T_truck=1.1;
 
 

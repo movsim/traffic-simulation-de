@@ -1,3 +1,26 @@
+/* ######################################################################
+Source code for the interactive Javascript simulation at traffic-simulation.de
+
+    Copyright (C) 2024  Martin Treiber
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License Version 3
+    as published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Martin Treiber
+   
+    mail@martin-treiber.de
+#######################################################################*/
+
+
 /* Creating reproducible versions for debugging purposes:
 
 (1) include <script src="js/seedrandom.min.js"></script> in html file
@@ -469,6 +492,7 @@ var trafficObjs=new TrafficObjects(canvas,2,2,0.40,0.50,3,2);
 //var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.5,0.5);
 var trafficLightControl=new TrafficLightControlEditor(trafficObjs,0.33,0.68);
 
+trafficObjs.setSpeedLimit(2,30); // trafficObj[2].value=x km/h, 0=free
 
 
 //############################################
@@ -545,8 +569,7 @@ function updateSim(){
 
 
   
-  // updateSim (3): do central simulation update of vehicles
-  // updateSim (3): do central simulation update of vehicles
+   // updateSim (3): do central simulation update of vehicles
   // one action at a time for all network elements for parallel update
   // first accelerations,
   // then networking (updateBCup, connect/mergeDiverge, updateBCdown),
@@ -575,10 +598,17 @@ function updateSim(){
   mainroad.updateBCdown();
 
   // (3c) actual motion (always at the end)
+  // new vehicles introduced after acceleration calc (e.g. from .BCup)
+  // have per default veh.acc=0 by veh constructor
+  // !!! Still: Why not calc the acc directly before updateSpeedPositions?
+  // Because by road.connect, the acceleration is overwritten and
+  // must not be overwritten again when calculating accs here
   
   mainroad.updateLastLCtimes(dt);
   mainroad.changeLanes();
-  for(var ir=0; ir<network.length; ir++){network[ir].updateSpeedPositions();} 
+  for(var ir=0; ir<network.length; ir++){
+    network[ir].updateSpeedPositions();
+  } 
 
 
  

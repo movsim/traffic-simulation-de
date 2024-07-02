@@ -71,7 +71,7 @@ function myStartStopFunction(){
 	document.getElementById("startStop").src="figs/buttonGo_small.png";
 	isStopped=true;
     }
-}
+} 
 
 //################################################################
 // Restart/reset the same simulation 
@@ -83,11 +83,10 @@ function myRestartFunction(){
   Math.seedrandom(42); console.log("in Math.seedrandom(42) myRestartFunction"); 
   time=0;
   itime=0;
-  var i=0;
 
-  for(var i=0; i<network.length; i++){
+  for(var ir=0; ir<network.length; ir++){
 
-    var road=network[i];
+    var road=network[ir];
 
 
     // remove all regular vehicles (leave obstacles and other special objects)
@@ -1006,8 +1005,7 @@ var MOBIL_mandat_bias=42;
 
 // define truck longModel as f(car longModel) v0 limited by speed limit
 
-var factor_v0_truck=0.95; // restricted by speedL_truck
-var factor_a_truck=0.8;
+var factor_a_truck=0.8; // v0_truck controlled/restricted by speedL_truck
 var factor_T_truck=1.1;
 
 

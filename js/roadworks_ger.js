@@ -1,3 +1,25 @@
+/* ######################################################################
+Source code for the interactive Javascript simulation at traffic-simulation.de
+
+    Copyright (C) 2024  Martin Treiber
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License Version 3
+    as published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Martin Treiber
+   
+    mail@martin-treiber.de
+#######################################################################*/
+
 
 const userCanDropObjects=true;
 //drawVehIDs=false; // override control_gui.js
@@ -5,17 +27,20 @@ const userCanDropObjects=true;
 
 const refSizeSmartphone=180;
 const refSizeRegular=250;
-const qInRegular=1850/3600; //1850
+const qInRegular=1800/3600; //1850
 const qInSmartphone=1910/3600;
+fracTruck=0.25;
 
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
+var driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
-factor_v0_truck=1;
 
+factor_T_truck=1.0;  // originally defined in control_gui.js
+factor_a_truck=1.0;  // originally defined in control_gui.js
+                     // v0_truck solely defined by (truck) speed limits
 
 /*######################################################
  Global overall scenario settings and graphics objects
@@ -97,7 +122,6 @@ setSlider(slider_IDM_a, slider_IDM_aVal, IDM_a, 1, "m/s<sup>2</sup>");
 
 
 
-fracTruck=0.25;
 setSlider(slider_fracTruck, slider_fracTruckVal, 100*fracTruck, 0, "%");
 
 // speedlimit has two gui controls: slider and trafficObject

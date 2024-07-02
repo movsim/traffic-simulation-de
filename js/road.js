@@ -3667,7 +3667,9 @@ road.prototype.updateBCup=function(Qin,dt,route){
 
    //console.log("in road.updateBCup: inVehBuffer="+this.inVehBuffer);
 
-  var smin=15; // only inflow if largest gap is at least smin
+  var v0_truck=Math.min(IDM_v0, speedL_truck);
+  var T_truck=factor_T_truck*IDM_T;
+  var smin=0.7*v0_truck*T_truck; // only inflow if largest gap at least smin
   var success=false; // false initially
   if(!this.isRing){
       this.inVehBuffer+=Qin*dt;
@@ -3700,7 +3702,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
     var lane=this.nLanes-1; // start with right lane
     if(this.veh.length===0){success=true; space=this.roadLen;}
 
-    // if new veh is a truck, try to insert it at the rightmost lane
+    // if new veh is a truck, try to insert it at the rightmost lane "lane"
     // for some strange reason bug if "while(iLead>=0)": 
     // first truck stands if it is the first to enter right
       

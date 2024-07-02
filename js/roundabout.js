@@ -36,10 +36,8 @@ var duMergeRel=0.40; // merge begins mergeBeginRel*rRing before arm ends
 fracTruck=0.2; // overrides control_gui 0.15 (w/o providing slider)
 
 IDM_b=1;
-factor_a_truck=1; 
-factor_v0_truck=0.9; // truck v0 always slower than car v0 by this factor
-                     // (incorporated/updated in sim
-                     // by control_gui-updateModels along factor_a_truck etc) 
+factor_a_truck=1; // factor_T_truck from default in control_gui.js
+                  // v0_truck defined by speedlimits for trucks
 
 MOBIL_mandat_bSafe=4; // >b, <physical limit
 MOBIL_mandat_bThr=0;  
