@@ -55,7 +55,64 @@ function addTouchListeners() {
     canvas.addEventListener("touchmove", handleTouchMove, false);
     canvas.addEventListener("touchend", handleTouchEnd, false);
     canvas.addEventListener("touchcancel", cancelActivities, false);
+
     //console.log("addTouchListeners(): initialized some touch listeners");
+}
+
+//#####################################################
+// Zoom Test
+//#####################################################
+// canvas.addEventListener("wheel", handleZoom, false);
+
+let scl       = 1;
+let scaleFactor = 100;;
+let scrollX     = 0;
+let scrollY     = 0;
+
+let xNew = 0;
+let yNew = 0;
+// panzoom(canvas)
+function handleZoom(e){
+    getMouseCoordinates(e); // => xUser, yUser, ...
+    // ctx.translate(50,50)
+    // xNew = 
+
+    e.preventDefault();
+    let previousScale= scl;
+    
+    // calculate scale direction 6 new scale value
+    let direction = e.deltaY > 0 ? 1 : -1;  
+    scl += scaleFactor * direction;
+    if(e.deltaY > 0){ 
+      scale *= 1.1;
+      // refSizePhys *= 1.1;
+      // center_xRel += 0.1
+      
+    }
+    else{
+      scale /= -1.1;
+      // refSizePhys /= 1.1
+    }
+    console.log(refSizePhys);
+    // refSizePhys += scl;
+    console.log(refSizePhys);
+    // calculate the new scroll values
+    // scrollX += ( e.offsetX / previousScale )  - (e.offsetX  / scl);
+    // scrollY += ( e.offsetY / previousScale ) - ( e.offsetY / scl);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.translate(0,0)
+    ctx.clientX += 100
+    console.log("woah:", ctx.clientX);
+    
+    ctx.save()
+    
+    // ctx.scale(scale, scale)
+    ctx.restore()
+    updateDimensions();
+    // apply new scale in a non acumulative way
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // ctx.scale(scl, scl);
 }
 
 

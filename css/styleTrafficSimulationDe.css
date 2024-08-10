@@ -257,6 +257,22 @@ which always gives correct size!!
   z-index: 2;
 }
 
+#resetPanZoom{      /* toggle display veh IDs normal landscape */
+  position: absolute;
+  top: 22vmin;
+  left: 2vmin;
+  font-size:1.8vmin;
+  z-index: 2;
+}
+
+#EnablePanZoom{      /* toggle display veh IDs normal landscape */
+  position: absolute;
+  top: 27vmin;
+  left: 2vmin;
+  font-size:1.8vmin;
+  z-index: 2;
+}
+
 /* (2a) landscape: add/subtract one lane */
 
 #lanePlusDiv{
