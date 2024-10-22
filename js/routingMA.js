@@ -63,6 +63,10 @@ function updateFracOff(time){
   slider_fracOffVal.innerHTML=Math.round(100*fracOff)+" %";
 }
 
+var time_exportStart=10; // recording period for data export starts
+var time_exportEnd=50; // end recording period; data exported to Downloads/
+var exportStarted=false;
+var exportEnded=false;
 
 //#############################################################
 // adapt standard param settings from control_gui.js
@@ -594,6 +598,14 @@ function updateSim(){
 
   updateInflow(time);
   updateFracOff(time);
+  if((time>time_exportStart)&&(!exportStarted)){
+    downloadCallback();
+    exportStarted=true;
+  }
+  if((time>time_exportEnd)&&(exportStarted)&&(!exportEnded)){
+    downloadCallback();
+    exportEnded=true;
+  }
 
 
     // (2) transfer effects from slider interaction and mandatory regions
