@@ -776,23 +776,32 @@ function drawSim() {
   drawSpeedlBox();
 
 
-    // (6) draw simulated time
+    // drawSim (6) draw simulated time
 
     displayTime(time,textsize);
 
 
-     // (7) draw the speed colormap
+  // (6b) draw the speed colormap
+  //!! Now always false; drawn statically by html file!
 
-    if(drawColormap){ 
-	displayColormap(0.22*refSizePix,
-			0.43*refSizePix,
-			0.1*refSizePix, 0.2*refSizePix,
-			vmin_col,vmax_col,0,100/3.6);
-    }
+  if(drawColormap){
+      displayColormap(0.22*refSizePix,
+                   0.43*refSizePix,
+                   0.1*refSizePix, 0.2*refSizePix,
+		   vmin_col,vmax_col,0,100/3.6);
+  }
 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+   // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+
+  // drawSim (8): reset/revert variables for the next step
+
+   // revert to neutral transformation at the end!
+  ctx.setTransform(1,0,0,1,0,0);
 }// drawSim
  
 
