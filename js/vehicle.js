@@ -26,6 +26,7 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.laneOld=lane;  // for logging and drawing vontinuous lat coords v
   this.speed=speed;
   this.type=type; //{"car", "truck", "others", "obstacle"
+  this.acc=0;
 
   ivehCount++;
   this.id=199+ivehCount; // ids 0-199 special purpose
@@ -43,7 +44,6 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.dt_afterLC=10; // dynamical variable incremented and reset at LC
   this.dt_lastPassiveLC=10; // dyn var
   this.dt_gridlock=0; // only used/incremented in connect if vehicle is stuck 
-  this.acc=0;
   this.LCbanLeft=false;  // MT 2023-04: tactical: no changes to left allowed
   this.LCbanRight=false;  // MT 2023-04: tactical: no changes to left allowed
 

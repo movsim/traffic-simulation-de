@@ -16,7 +16,7 @@ indexProject="onramp" # !!!  sets the current main simulation
 wd=$PWD
 startDir=$HOME/versionedProjects/traffic-simulation-de
 #test* projects do NOT have a translation
-projects="ring onramp onramp_scooters offramp roadworks uphill routing routingGame rampMeteringGame roundabout intersection"
+projects="ring onramp onramp_scooters offramp roadworks uphill routing routingGame rampMeteringGame roundabout roundaboutS71 intersection"
 #test1_straightRoad test2_bottleneck test3_moreComplexNetwork test4_doubleLoop test5_golfCourse"
 
 

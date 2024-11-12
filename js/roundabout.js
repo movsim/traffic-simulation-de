@@ -608,11 +608,11 @@ function updateSim(){
   // mainFrac, focusFrac  and leftTurnBias
   // (focusFrac counterintuitive for |leftTurnBias|>=2/3)
   
-  // main routes: routeEC (=[1,8,6], inflow E-arm, straight ahead) 
-  //              routeWC (=[5,8,2], inflow W-arm, opposite direction)
-  // road label 1=inflow E-arm
-  // road label 2=outflow E-arm
-  // road label 3=inflow S-arm etc
+  // main routes: routeEC (=[0,8,5], inflow E-arm, straight ahead->W) 
+  //              routeWC (=[4,8,1], inflow W-arm, opposite direction->E)
+  // road label 0=inflow E-arm
+  // road label 1=outflow E-arm
+  // road label 2=inflow S-arm etc
 
     var q0=0.5*mainFrac*qIn;
     var q4=q0;

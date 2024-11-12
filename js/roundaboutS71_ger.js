@@ -55,18 +55,18 @@ handleChangedPriority(priorityIndex); // sets respectRingPrio
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
 
-var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
-setCombobox("ODSelect",ODSelectIndex);
-handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
+//var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
+//setCombobox("ODSelect",ODSelectIndex);
+//handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac (control_gui)
 
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
 
-qIn=2600./3600;
+qIn=1334./3600;  // S71, mail christian.haendel 2024-11-12
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," Fz/h");
 
-mainFrac=0.6;
-setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
+//mainFrac=0.6; deactivated for special purpose with fixed ODs apart totflow
+//setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
 timewarp=3.2;
 setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
@@ -602,7 +602,7 @@ function updateSim(){
   // (inflow, outflow, merging and connecting)
 
   
-  // (4a) inflow BC
+  // (4a) OD: inflow BC specialized for S71
 
   // route fractions depend on 
   // mainFrac, focusFrac  and leftTurnBias
@@ -614,25 +614,43 @@ function updateSim(){
   // road label 1=outflow E-arm
   // road label 2=inflow S-arm etc
 
-    var q0=0.5*mainFrac*qIn;
-    var q4=q0;
-    var q2=0.5*(1-mainFrac)*qIn;
-    var q6=q2;
+  // allow for a common multiplicator of total flow
 
-    var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
-    var lFrac=(1-cFrac)/2.*(1+leftTurnBias);
-    var rFrac=(1-cFrac)/2.*(1-leftTurnBias); // cFrac+lFrac+rFrac=1
-    var clFrac=cFrac+lFrac;
+  var qInRef=1334.; //S71
 
-    var ran=Math.random();
+  var q03=88*qIn/qInRef;
+  var q05=299*qIn/qInRef;
+  var q07=12*qIn/qInRef;
 
-    var routeEIn=(ran<cFrac) ? routeEC : (ran<clFrac) ? routeEL : routeER;
-    var routeSIn=(ran<cFrac) ? routeSC : (ran<clFrac) ? routeSL : routeSR;
-    var routeWIn=(ran<cFrac) ? routeWC : (ran<clFrac) ? routeWL : routeWR;
-    var routeNIn=(ran<cFrac) ? routeNC : (ran<clFrac) ? routeNL : routeNR;
+  var q25=28*qIn/qInRef;
+  var q27=0*qIn/qInRef;
+  var q21=7*qIn/qInRef;
 
+  var q47=49*qIn/qInRef;
+  var q41=494*qIn/qInRef;
+  var q43=352*qIn/qInRef;
 
-    arm[0].updateBCup(q0,dt,routeEIn); // reference to network[1]
+  var q61=1*qIn/qInRef;
+  var q63=0*qIn/qInRef;
+  var q65=4*qIn/qInRef;
+
+  
+  var q0=(q03+q05+q07);
+  var q2=(q25+q27+q21);
+  var q4=(q47+q41+q43);
+  var q6=(q61+q63+q65);
+
+  var ran=Math.random();
+
+  var routeEIn=(ran<q03/q0) ? routeER :(ran<(q03+q05)/q0) ? routeEC : routeEL;
+  var routeNIn=(ran<q25/q2) ? routeNR :(ran<(q25+q27)/q2) ? routeNC : routeNL;
+  var routeWIn=(ran<q47/q4) ? routeWR :(ran<(q47+q41)/q4) ? routeWC : routeWL;
+  var routeSIn=(ran<q61/q6) ? routeSR :(ran<(q61+q63)/q6) ? routeSC : routeSL;
+
+  // end S71
+  
+					 
+    arm[0].updateBCup(q0,dt,routeEIn); // reference to network[0]
     arm[2].updateBCup(q2,dt,routeNIn);
     arm[4].updateBCup(q4,dt,routeWIn);
     arm[6].updateBCup(q6,dt,routeSIn);
@@ -809,6 +827,17 @@ function drawSim() {
     //displayMediaProperties(canvas,Math.max(10,textsize));
 
   // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
+
+  // drawSim (8): S71: draw custom text
+
+  displayText("1: B2",textsize,0.1,0.51);
+  displayText("2: Pereser H",textsize,0.5,0.1);
+  displayText("3: Neukieritzsch",textsize,0.9,0.51);
+  displayText("4: Gruenes GE",textsize,0.5,0.9);
 
   if(showCoords&&mouseInside){
     showLogicalCoords(xPixUser,yPixUser);

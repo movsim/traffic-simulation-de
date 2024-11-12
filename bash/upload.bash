@@ -17,7 +17,9 @@ $startDir/bash/engl2ger.bash
 # (1) select projects and prepare targetdir
 #############################################
 
-projects="ring onramp onramp_scooters offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection"
+# projects engl/ger, projectsTest only engl
+
+projects="ring onramp onramp_scooters offramp roadworks uphill routing routingGame roundabout rampMeteringGame intersection roundaboutS71"
 projectsTest="test1_straightRoad test2_bottleneck test3_moreComplexNetwork test4_doubleLoop test5_golfCourse weaving weaving_connect"
 targetDir="$startDir/../trafficSimulationLocalVersion_`date +20%y_%m_%d`"
 
@@ -62,7 +64,7 @@ for proj in $projectsTest; do
   html_files="${html_files} $htmlfile";
 done
 
-js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js random.js road.js vehicle.js canvas_gui.js canvasresize.js TrafficObjects.js media.js timeView.js timeView_ger.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js rampMeteringGameInfo.js rampMeteringGameInfo_ger.js routingGameInfo.js routingGameInfo_ger.js  seedrandom.min.js debug.js jquery-1.12.4.min.js"
+js_files="redirect.js redirect_ger.js control_gui.js control_gui_ger.js colormanip.js models.js paths.js random.js road.js vehicle.js canvas_gui.js canvasresize.js TrafficObjects.js media.js timeView.js timeView_ger.js displayText.js stationaryDetector.js stationaryDetector_ger.js TrafficLightControlEditor.js rampMeteringGameInfo.js rampMeteringGameInfo_ger.js routingGameInfo.js routingGameInfo_ger.js  seedrandom.min.js debug.js jquery-1.12.4.min.js"
 
 for proj in $projects; do
   js_files="${js_files} ${proj}.js ${proj}_ger.js";

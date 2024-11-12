@@ -20,16 +20,25 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
+//#############################################################
+// general ui settings
+//#############################################################
 
 const userCanDropObjects=true;
-//drawVehIDs=false; // override control_gui.js
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
+                      // application: here at drawSim (7):  
+
+//#############################################################
+// general debug settings (set=false for public deployment)
+//#############################################################
+
+drawRoadIDs=true; // override control_gui.js; call later
+                  // network[ir].drawRoadID();
+drawVehIDs=false;  // override control_gui.js;
+                   // need to call later road.drawVehIDs=drawVehIDs
 
 
-const refSizeSmartphone=180;
-const refSizeRegular=250;
-const qInRegular=1800/3600; //1850
-const qInSmartphone=1910/3600;
-fracTruck=0.25;
 
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
@@ -80,6 +89,8 @@ console.log("after addTouchListeners()");
 // (critAspectRatio should be consistent with 
 // width/height in css.#contents)
 //##################################################################
+const refSizeSmartphone=180;
+const refSizeRegular=250;
 
 var isSmartphone=mqSmartphone();
 
@@ -96,6 +107,10 @@ var scale=refSizePix/refSizePhys;
 //#############################################################
 // adapt/override standard param settings (most from from control_gui.js)
 //#############################################################
+
+const qInRegular=1800/3600; //1850
+const qInSmartphone=1910/3600;
+fracTruck=0.25;
 
 // small in this scenario to not destroy synchronize effect
 
@@ -604,7 +619,8 @@ function drawSim() {
     }
 
 
-    // (7) draw the speed colormap
+    // (6b) draw the speed colormap
+  //!! Now always false; drawn statically by html file!
 
     if(drawColormap){ 
 	displayColormap(0.22*refSizePix,
@@ -613,7 +629,12 @@ function drawSim() {
 			vmin_col,vmax_col,0,100/3.6);
     }
 
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
 
+  
+  // drawSim (8): reset/revert variables for the next step
   // may be set to true in next step if changed canvas 
   // or old sign should be wiped away 
   hasChanged=false;
