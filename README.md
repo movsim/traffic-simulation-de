@@ -34,12 +34,7 @@ If the simulation does not run, sometimes the cause is old code in cached javasc
 
 ## Offline Usage
 
-Just download all the html files and the js/, figs/, css/, and info/
-directories and load, e.g., _index.html_ in your favourite browser. For
-convenience and also to have access to the German version not
-contained in the repository, you can
-also download the zip file _offlineVersion.zip_ containing all
-the ressources
+Just download the whole project (go to the _Code_ button on the github project page, wait for the dropdown menu of _Code_ to open and chose _Download ZIP_) and load, e.g., _index.html_ in your favourite browser. 
 
 
 
