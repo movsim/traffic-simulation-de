@@ -34,7 +34,7 @@ If the simulation does not run, sometimes the cause is old code in cached javasc
 
 ## Offline Usage
 
-Just download the whole project (go to the _Code_ button on the github project page, wait for the dropdown menu of _Code_ to open and chose _Download ZIP_) and load, e.g., _index.html_ in your favourite browser. 
+Just download the whole project (go to the _Code_ button on the github project page, wait for the dropdown menu of _Code_ to open and chose _Download ZIP_). After unpacking, load, e.g., _index.html_ as a local file in your favourite browser. 
 
 
 
