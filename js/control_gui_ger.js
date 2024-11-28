@@ -8,6 +8,16 @@
 // general helper function 
 // (control_gui.js is one of the first js to be called)
 
+// general global settings such as useRandomSeed
+// (control_gui.js is always loaded)
+
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+
+var seedRandom=true;
+
 function formd(x){return parseFloat(x).toFixed(2);}
 function formd0(x){return parseFloat(x).toFixed(0);}
 
@@ -79,8 +89,10 @@ function myStartStopFunction(){
 // all settings and GUI-moved objects unchanged
 //#################################################################
 
-function myRestartFunction(){ 
-  Math.seedrandom(42); console.log("in Math.seedrandom(42) myRestartFunction"); 
+function myRestartFunction(){
+  if(seedRandom){Math.seedrandom(42);
+    console.log("in Math.seedrandom(42) myRestartFunction");
+  }
   time=0;
   itime=0;
 
@@ -462,7 +474,7 @@ function toggleTruckOvertakingBan(){
 
 //#############################################
 // sliders
-// names "slider_timewarp" etc defined in html file 
+// names "slider_timewarp", etc defined in html file 
 // and formatted in sliders.css
 //#############################################
 
@@ -480,7 +492,7 @@ function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
 }
 
 
-// timewarp slider
+// timewarp/timelapse  slider
 
 var timewarp=6;
 var slider_timewarp,slider_timewarpVal;

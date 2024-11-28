@@ -1,20 +1,12 @@
-/* Creating reproducible versions for debugging purposes:
 
-(1) include <script src="js/seedrandom.min.js"></script> in html file
-    (from https://github.com/davidbau/seedrandom, copied locally)
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
 
-(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
-    in all files containing Math.random commands 
-    => at present, only road.js
 
-!! only use inside functions/methods, e.g., in road constructor;
-  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
-
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
- Math.seedrandom(42);                // undo side effects of console commands 
-*/
- 
 
 //#############################################################
 // constants

@@ -20,26 +20,16 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
-/* Creating reproducible versions for debugging purposes:
 
-(1) include <script src="js/seedrandom.min.js"></script> in html file
-    (from https://github.com/davidbau/seedrandom, copied locally)
 
-(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
-    in all files containing Math.random commands 
-    => at present, only road.js
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
 
-!! only use inside functions/methods, e.g., in road constructor;
-  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
-
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
- Math.seedrandom(42);                // undo side effects of console commands 
-*/
-
-// remove localStorage items by hand (the " " are crucial!)
-// localStorage.removeItem("storageName");
-
+seedRandom=false;  // defined in control_gui.js; if true deterministic
 
 //#############################################################
 // general ui settings
@@ -62,13 +52,21 @@ var debug=false;
 
 
 /*#########################################################
- functions to be defined by your Python.code (here is an example)
-#########################################################*/
+ MA: functions to be defined by your Python.code (here is an example)
+#########################################################
 
-// inflow and ramp flow functions
-// (also shift the sliders overriding manual settings)
-// inflow qIn, rmap flow qOn is global variable defined in control_gui.js
-// since normally handled there
+inflow and ramp flow functions.
+They are called in every time step and also shifts the sliders 
+overriding manual settings.
+inflow qIn, rmap flow qOn is global variable defined in control_gui.js
+since normally handled there
+
+Implement the functions such that jams occur without ramp metering 
+(you could use the already given default)
+and then optimize setRampMeteringLight to minimize congestions
+
+*/
+
 
 distTL2merge=80; // optimize traffic light (TL) position before first merge
 
@@ -100,6 +98,15 @@ Your aim is to propose a programmatic ramp-metering function which
 finish the simulation (with fixed demand according to qIn(t) and qOn(t)
 fastest
 
+
+All properties of the vehicles listed in vehicles.js are available to you
+such as 
+mainroadvehicles[i].u (long. position of mainroad vehicle i)
+mainroadvehicles[i].lane (lane index of mainroad vehicle i)
+mainroadvehicles[i].speed (speed of mainroad vehicle i)
+mainroadvehicles[i].type (type of mainroad vehicle i)
+
+
 You can also experiment with the provided speed limits 
 */
 
@@ -108,7 +115,7 @@ function setRampMeteringLight(mainroadvehicles,time){
   var nSlow=0;
   var nCongested=0;
   for(var i=0; i<mainroadvehicles.length; i++){
-    if(mainroadvehicles[i].isRegularVeh()){
+    if(mainroadvehicles[i].isRegularVeh()){ // no obstacle, traffic light
       var speed=mainroadvehicles[i].speed;
       if(speed<5){nCongested++;}
       else if(speed<15){nSlow++;}
@@ -138,6 +145,11 @@ IDM_b=2;
 
 
  
+// check if simulation finished (all vehicles have left the network)
+
+var simFinished=false;
+var timeFinished=0;
+
 
 
 
@@ -146,6 +158,9 @@ IDM_b=2;
 //#############################################################
 
 var isGame=false;
+
+timewarp=10;
+setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, "times");
 
 var qInInit=2700./3600;
 qIn=qInInit;
@@ -687,7 +702,7 @@ function updateSim(){
     for(var iDet=0; iDet<detectors.length; iDet++){
 	detectors[iDet].update(time,dt);
     }
-*/
+  */
 
   //  (5) without this zoomback cmd, everything works but depot vehicles
   // just stay where they have been dropped outside of a road
@@ -696,10 +711,29 @@ function updateSim(){
     trafficObjs.zoomBack();
  }
 
+  // (6) check if all regular vehicles have left the simulation and, if so,
+  // do appropriate actions (displayText in drawSim!!)
 
-// (6) debug output
+  if(!simFinished){
+    var nregular=0;
+    for(var ir=0; ir<network.length; ir++){
+      for(var i=0; i<network[ir].veh.length; i++){
+        if(network[ir].veh[i].isRegularVeh()){
+	  nregular++;
+	}
+      }
+    }
+    if((time>10)&&(nregular==0)){
+      simFinished=true;
+      timeFinished=time;
+    }
+  }
 
-    //if((itime>=125)&&(itime<=128)){
+
+  
+  // (7) debug output
+
+  //if((itime>=125)&&(itime<=128)){
   if(false){
     console.log("\n\nitime=",itime,": end of updateSim loop");
 
@@ -878,14 +912,23 @@ function drawSim() {
   if(showCoords&&mouseInside){
     showLogicalCoords(xPixUser,yPixUser);
   }
-  
+
+  // drawSim (7a) display results if simFinished
+
+  if(simFinished){
+    displayText("Sim finished, time="+timeFinished.toFixed(2),
+		textsize, 0.4, 0.55);
+    simFinished=false;
+    myStartStopFunction();
+  }
+      
+   
+  // drawSim (8): reset/revert variables for the next step
+
   // may be set to true in next step if changed canvas 
   // (updateDimensions) or if old sign should be wiped away 
 
   hasChanged=false;
-
-  // revert to neutral transformation at the end!
-
   ctx.setTransform(1,0,0,1,0,0);
 
 

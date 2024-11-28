@@ -20,6 +20,14 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
+
+seedRandom=false;  // defined in control_gui.js; if true deterministic
 
 //#############################################################
 // general ui settings
@@ -37,14 +45,20 @@ drawVehIDs=false; // override control_gui.js
 drawRoadIDs=true; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
+useRandomSeed=false;  // if false, true pseudorandom, otherwise reproducible
 
 /*#########################################################
- functions to be defined by your Python.code (here is an example)
-#########################################################*/
+ MA: functions to be defined by your Python.code (here is an example)
+#########################################################
 
-// inflow function (also shifts the sliders overriding manual settings)
-// inflow qIn is global variable defined in control_gui.js
-// since normally handled there
+inflow function (called in every timestep; it also shifts the sliders
+overriding manual settings)
+inflow qIn is global variable defined in control_gui.js
+since normally handled there
+
+chose an appropriate function giving rise to jams without use of the 
+deviation and then optimize updateInflow to minimize congestions
+*/
 
 function updateInflow(time){ 
   qIn=(time<20) ? 2700/3600 : 
@@ -56,20 +70,92 @@ function updateInflow(time){
   console.log("slider_qInVal.innerHTML=",slider_qInVal.innerHTML);
 }
 
-function updateFracOff(time){ 
-  fracOff=(time<30) ? 0.1 : 
-    (time<120) ? 0.1+0.2*(time-30)/90 : 0.3;
+/* #########################################################
+This is your function to optimize.
+It is called in every time step (overriding the corresponding slider)
+and affects only the entering vehicles: 
+The already visible vehicles already have a predefined and immutable route. 
+
+here, I pre-defined a simple time related protocol. However, you should
+also experiment with using the information of the vehicles 
+on the mainroad and deviation. 
+Your aim is to propose a programmatic deviation recommendation which 
+finishes the simulation (with fixed demand according to qIn(t)) 
+fastest, in any case faster than my predefined time-only protocol
+
+All properties of the vehicles listed in vehicles.js are available to you
+such as 
+deviationvehicles[i].u (long. position of deviation vehicle i)
+mainroadvehicles[i].lane (lane index of mainroad vehicle i)
+mainroadvehicles[i].speed (speed of mainroad vehicle i)
+mainroadvehicles[i].type (type of mainroad vehicle i)
+
+You can also experiment with the provided speed limits 
+######################################################### */
+
+
+function updateFracOff(mainroadvehicles,deviationvehicles,time){
+  var nveh_dev_congested=0;
+  var nveh_dev=0;
+  for(var i=0; i<deviationvehicles.length; i++){
+    if(deviationvehicles[i].isRegularVeh()){ // no obstacle, traffic light
+      nveh_dev++;
+      var speed=deviationvehicles[i].speed;
+      if(speed<5){
+	nveh_dev_congested++;
+      }
+    }
+  }
+ 
+  fracOff=(time<30) ? 0.3 : 0.2; // example of a time-only protocol
+  if(nveh_dev>10){  // do something if many vehicles on the deviation
+    fracOff-=0.1  
+  }
+  if(nveh_dev_congested>2){ // do something more if there is congestion
+    fracOff-=0.1
+  }
+
+  // also attempt implementing responses to mainroad congestions
+  // in a similar way
+
+  var nveh_main_congested=0;
+  var nveh=0;
+  var umin=150; // longitudinal position at the diverge
+  var umax=500; // longitudinal position after the merge
+  
+  for(var i=0; i<mainroadvehicles.length; i++){
+    if( (mainroadvehicles[i].isRegularVeh()) // no obstacle, traffic light
+	&& (mainroadvehicles[i].u>=umin)
+	&& (mainroadvehicles[i].u<=umax)){
+      ; // do somwthing
+    }
+  }
+
+  // overrides sliders (no changes needed from your side)
+  
   slider_fracOff.value=100*fracOff;
   slider_fracOffVal.innerHTML=Math.round(100*fracOff)+" %";
 }
 
-var time_exportStart=10; // recording period for data export starts
-var time_exportEnd=50; // end recording period; data exported to Downloads/
+
+// recording period; data exported to Downloads/
+// set time_exportEnd<time_exportStart if no record wanted
+
+var time_exportStart=10; 
+var time_exportEnd=5; 
 var exportStarted=false;
 var exportEnded=false;
 
+// check if simulation finished (all vehicles have left the network)
+
+var simFinished=false;
+var timeFinished=0;
+
+
+
+
 //#############################################################
-// adapt standard param settings from control_gui.js
+// adapt/override standard param settings from control_gui.js
 //#############################################################
 
 // manually delete highscores from disk; comment out if online!
@@ -78,7 +164,8 @@ var exportEnded=false;
 
 // further routing game controls in control_gui.js
 
-
+timewarp=10;
+setSlider(slider_timewarp, slider_timewarpVal, timewarp, 1, "times");
 
 qIn=2200./3600;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, 0, "veh/h");
@@ -597,8 +684,8 @@ function updateSim(){
   isSmartphone=mqSmartphone();
 
   updateInflow(time);
-  updateFracOff(time);
-  if((time>time_exportStart)&&(!exportStarted)){
+  updateFracOff(network[0].veh, network[1].veh, time);
+  if((time>time_exportStart)&&(time<time_exportEnd)&&(!exportStarted)){
     downloadCallback();
     exportStarted=true;
   }
@@ -655,7 +742,7 @@ function updateSim(){
 
 
 
-    // do central simulation update of vehicles
+    // (3) do central simulation update of vehicles
 
     mainroad.updateLastLCtimes(dt);
     mainroad.calcAccelerations();  
@@ -686,24 +773,44 @@ function updateSim(){
  
 
 
-    //logging
+  /*  // (4) update detector readings
 
-    //ramp.writeVehiclesSimple();
+  for(var iDet=0; iDet<detectors.length; iDet++)
+	detectors[iDet].update(time,dt);
+  }
+  */
 
-    if(false){
-        console.log("\nafter updateSim: itime="+itime+" ramp.nveh="+ramp.veh.length);
-	for(var i=0; i<ramp.veh.length; i++){
-	    console.log("i="+i+" ramp.veh[i].u="+ramp.veh[i].u
-			+" ramp.veh[i].v="+ramp.veh[i].v
-			+" ramp.veh[i].lane="+ramp.veh[i].lane
-			+" ramp.veh[i].laneOld="+ramp.veh[i].laneOld);
-	}
- 	console.log("\n");
-    }
+  //  (5) without this zoomback cmd, everything works but depot vehicles
+  // just stay where they have been dropped outside of a road
+  
 
   if(userCanDropObjects&&(!isSmartphone)&&(!trafficObjPicked)){
     trafficObjs.zoomBack();
   }
+
+
+  
+
+  // (6) check if all regular vehicles have left the simulation and, if so,
+  // do appropriate actions (displayText in drawSim!!)
+
+  if(!simFinished){
+    var nregular=0;
+    for(var ir=0; ir<network.length; ir++){
+      for(var i=0; i<network[ir].veh.length; i++){
+        if(network[ir].veh[i].isRegularVeh()){
+	  nregular++;
+	}
+      }
+    }
+    if((time>10)&&(nregular==0)){
+      simFinished=true;
+      timeFinished=time;
+    }
+  }
+
+       
+  
 
 }//updateSim
 
@@ -802,21 +909,45 @@ function drawSim() {
 
     // (6) draw simulated time
 
-    displayTime(time,textsize);
+  displayTime(time,textsize);
 
 
-     // (7) draw the speed colormap
+  // (6b) draw the speed colormap
+  //!! Now always false; drawn statically by html file!
 
-    if(drawColormap){ 
+  if(drawColormap){
 	displayColormap(0.22*refSizePix,
 			0.43*refSizePix,
 			0.1*refSizePix, 0.2*refSizePix,
 			vmin_col,vmax_col,0,100/3.6);
-    }
+  }
+
+  // drawSim (7): show logical coordinates if activated
+
+  if(showCoords&&mouseInside){
+    showLogicalCoords(xPixUser,yPixUser);
+  }
 
 
-    // revert to neutral transformation at the end!
-    ctx.setTransform(1,0,0,1,0,0); 
+  // drawSim (7a) display results if simFinished
+
+  if(simFinished){
+    displayText("Sim finished, time="+timeFinished.toFixed(2),
+		textsize, 0.4, 0.55);
+    simFinished=false;
+    myStartStopFunction();
+  }
+      
+   
+  // drawSim (8): reset/revert variables for the next step
+
+  
+  // may be set to true in next step if changed canvas 
+  // (updateDimensions) or if old signs should be wiped away 
+
+  hasChanged=false;
+  ctx.setTransform(1,0,0,1,0,0);
+  
 }// drawSim
  
 

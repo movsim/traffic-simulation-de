@@ -20,28 +20,22 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
-/* Creating reproducible versions for debugging purposes:
 
-(1) include <script src="js/seedrandom.min.js"></script> in html file
-    (from https://github.com/davidbau/seedrandom, copied locally)
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
 
-(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
-    in all files containing Math.random commands 
-    => at present, only road.js
-
-!! only use inside functions/methods, e.g., in road constructor;
-  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
-
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
- Math.seedrandom(42);                // undo side effects of console commands 
-*/
 
 // remove localStorage items by hand (the " " are crucial!)
 // localStorage.removeItem("storageName");
 
 
 // #################################################################
+
+seedRandom=true; // defined in control_gui.js
 
 const userCanDropObjects=true;
 
@@ -86,7 +80,9 @@ function updateRampMeteringGame(time){  // game main flow
 var nick="controlMaster";
 
 function playRampMeteringGame(infotextID){ // only called in html
-  Math.seedrandom(42);console.log("in Math.seedrandom(42) playRampMeteringGame");
+  if(seedRandom){Math.seedrandom(42);
+		 console.log("in Math.seedrandom(42) playRampMeteringGame");
+  }
   isGame=true;
   document.getElementById("startStopDiv").style.visibility="visible";
   myRestartFunction();

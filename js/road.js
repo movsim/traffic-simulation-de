@@ -1,9 +1,11 @@
 
 
-//Math.seedrandom(42); 
-//console.log(Math.random());          // Always 0.0016341939679719736 with 42
-//console.log(Math.random());          //s Always 0.9364577392619949 with 42
-Math.seedrandom(42); // !! re-start reproducibly (undo console logs)
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
 
 
 //#############################################################
@@ -63,8 +65,9 @@ NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
-  //Math.seedrandom(42); console.log("in Math.seedrandom(42) road cstr");
-
+  if(seedRandom){Math.seedrandom(42);
+		 console.log("in Math.seedrandom(42) road cstr");
+  }
   
   //console.log("1. in road cstr: traj=",traj);
   this.roadID=roadID;
@@ -260,7 +263,10 @@ road.prototype.setDriverVariation=function(driver_varcoeff){
 road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
 					    fracScooter,
 					    speedInit){
-  Math.seedrandom(42);
+  if(seedRandom){Math.seedrandom(42);
+		 console.log("in Math.seedrandom(42) road cstr");
+  }
+
 
   var fracOthers=(typeof fracScooter === 'undefined') ? 0 : fracScooter;
 
@@ -3637,12 +3643,12 @@ road.prototype.updateBCup=function(Qin,dt,route){
   // for some reason, this does not work at control_gui.myRestartFunction
 
 
-  if((itime<=1)&&this.isGame){
+  if((itime<=1)&&(this.isGame||seedRandom)){Math.seedrandom(42);
     console.log("road.updateBCup: itime=",itime," roadID=",this.roadID,
 		" resetting this.randomValBCup",
 		" scenarioString=",scenarioString);
-    Math.seedrandom(42);
-    this.randomValBCup=1;
+    
+					    this.randomValBCup=1;
   }
   
   var r1=Math.random();

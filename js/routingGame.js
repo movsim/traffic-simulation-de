@@ -20,25 +20,17 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
-
-/* Creating reproducible versions for debugging purposes:
-
-(1) include <script src="js/seedrandom.min.js"></script> in html file
-    (from https://github.com/davidbau/seedrandom, copied locally)
-
-(2) apply Math.seedrandom(42) or Math.seedrandom("hello") or similar
-    in all files containing Math.random commands 
-    => at present, only road.js
-
-!! only use inside functions/methods, e.g., in road constructor;
-  otherwise, DOS in some browsers at first, but not subsequent, calls (stop-start)
-
-console.log(Math.random());          // Always 0.0016341939679719736 with 42
-console.log(Math.random());          // Always 0.9364577392619949 with 42
- Math.seedrandom(42);                // undo side effects of console commands 
-*/
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set seedRandom=true; in control_gui.js
+//####################################################################
 
 
+
+
+var seedRandom=true; // defined in control_gui.js
 const userCanDropObjects=false;
 var scenarioString="RoutingGame";
 console.log("\n\nstart main: scenarioString=",scenarioString);
@@ -66,7 +58,9 @@ function updateRoutingGame(time){ // game inflow
 var nick="routingMaster";
 
 function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
-  Math.seedrandom(42);console.log("in Math.seedrandom(42) playRoutingGame");
+  if(seedRandom){Math.seedrandom(42);
+		 console.log("in Math.seedrandom(42) playRoutingGame");
+  }
   isGame=true;
   document.getElementById("startStopDiv").style.visibility="visible";
   myRestartFunction();
@@ -82,8 +76,6 @@ function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
     time=1000*Math.random(); // gets score in finish...
     finishRoutingGame("infotextRoutingGame");
   }
-  Math.seedrandom(42);
-  console.log("Math.random()=",Math.random());
 }
 
 
