@@ -87,6 +87,8 @@ function updateRampflow(time){  // ramp flow profile
   slider_qOnVal.innerHTML=Math.round(3600*qOn)+" veh/h";
 }
 
+
+
 /* This is your function to optimize;
  here, I set the ramp-metering traffic light to red 
 if there are at least 2 nearly stopped mainroad vehicles, 
@@ -109,7 +111,6 @@ mainroadvehicles[i].type (type of mainroad vehicle i)
 
 You can also experiment with the provided speed limits 
 */
-
 
 function setRampMeteringLight(mainroadvehicles,time){
   var nSlow=0;

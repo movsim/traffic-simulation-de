@@ -70,6 +70,9 @@ function updateInflow(time){
   console.log("slider_qInVal.innerHTML=",slider_qInVal.innerHTML);
 }
 
+
+
+
 /* #########################################################
 This is your function to optimize.
 It is called in every time step (overriding the corresponding slider)
@@ -92,7 +95,6 @@ mainroadvehicles[i].type (type of mainroad vehicle i)
 
 You can also experiment with the provided speed limits 
 ######################################################### */
-
 
 function updateFracOff(mainroadvehicles,deviationvehicles,time){
   var nveh_dev_congested=0;
