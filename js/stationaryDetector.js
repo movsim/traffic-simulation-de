@@ -135,10 +135,9 @@ stationaryDetector.prototype.display=function(textsize){
     var cphi=Math.cos(phi);
     var sphi=Math.sin(phi);
     
-    //var toRight_axis=-1.1*this.road.nLanes*this.road.laneWidth;
     var roadWidth=this.road.nLanes*this.road.laneWidth;
-    //var toRight_axis=-(1.1+0.8*Math.abs(sphi))*roadWidth;
-    var toRight_axis=-0.5*roadWidth-(2.2+1.8*Math.abs(sphi))*laneWidth;
+    //var toRight_axis=-0.5*roadWidth-(2.2+1.8*Math.abs(sphi))*laneWidth;
+    var toRight_axis=-0.5*roadWidth-(2.4+2.0*Math.abs(sphi))*laneWidth;//book
     var xPixCenter=this.road.get_xPix(this.u, toRight_axis);
     var yPixCenter=this.road.get_yPix(this.u, toRight_axis);
     var boxWidth=8.2*textsize;
