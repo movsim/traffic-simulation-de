@@ -13,7 +13,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 //#############################################################
 
 drawVehIDs=false; // override control_gui.js
-drawRoadIDs=false; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
 
