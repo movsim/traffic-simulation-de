@@ -24,7 +24,9 @@ var crashinfo=new CrashInfo();
 
 // if automaticBreakdownTest, then total flow starts at small value,
 // increases program-driven and simulation ends if breakdown is detected
-// if it is false, the total flow is user-controlled by slider as usual
+// if it is false, the total flow is user-controlled by the slider as usual
+// ODs can be determined in a restricted way by GUI
+// (if (!useExplicitODs) below) or all 16 ODs explicitly
 
 var automaticBreakdownTest=true;
 
@@ -77,7 +79,7 @@ var useExplicitODs=true;
 // qEE: relative flow from the East arm round turn
 // qSE: relative flow from the South arm to the East arm (right turn)
 // etc
-// will only be used if useExplicitODs!
+// will only be used if(useExplicitODs)
 
 qEN=0.00; qEW=0.00; qES=0.00; qEE=0.50;
 qSE=0.00; qSN=0.00; qSW=0.50; qSS=0.00;
@@ -99,8 +101,6 @@ var qref=qE+qS+qW+qN;  // =1 if input properly specified
 
 console.log("qE=",qE," qN=",qN);
 
-var congestionDetected=false;
-  
 function finishSimulation(){
   myStartStopFunction(); // reset simulation (look for it to set conditions)
 }
@@ -120,30 +120,35 @@ MOBIL_mandat_bias=2; // normal: bias=0.1, rFirst: bias=42
 MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 
 // priority settings
+
 var priorityIndex=0; // {0=ring has prio, 1=arms have prio}
 setCombobox("prioritySelect",priorityIndex);
-handleChangedPriority(priorityIndex); // sets respectRingPrio
+handleChangedPriority(priorityIndex); // callback priority (not really needed)
 
-//OD settings 
+// OD settings
+
+// callback handleChangedOD only active if (!explicitODs)
+
 // all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
 // only left: leftTurnBias=focusFrac=1 
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
+// index={0=straight ahead, right, left, all directions}
+// defaultSelectedIndex in control_gui.js
 
-var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
-setCombobox("ODSelect",ODSelectIndex);
-handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
+setCombobox("ODSelect",defaultSelectedIndex);
+handleChangedOD(defaultSelectedIndex,useExplicitODs); // (not really needed)
 
-// define non-standard slider initialisations
+// define MA and other non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
 
 qIn=(automaticBreakdownTest) ? 500./3600 : 2600./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
-mainFrac=0.6;
+mainFrac=(useExplicitODs) ? (qE+qW)/qref : 0.6;
 setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
 
-timewarp=3.2;
+timewarp=5;
 setSlider(slider_timewarp,slider_timewarpVal,timewarp,1," times");
 
 IDM_v0=50./3.6;
@@ -315,7 +320,7 @@ var center_xRel=0.63; // ring center relative to canvas
                       // (>0.5 is centered because refSizePhys smaller edge)
 var center_yRel=-0.55;
 var rRingRel=0.15; // ring radius w/resp to refSizePhys
-var lArmRel=0.6;   // minimum arm length approx 0.3;
+var lArmRel=0.55;   // minimum arm length approx 0.55;
                    // longer arms only make straight sec longer
 
 // geom specification ring
@@ -618,18 +623,17 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  // (1) update time and MA actions
+  // (1) update time and MA actions on inflow
+  // (Ma actions for useExplicitOD in Section (4a))
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
 
   if(automaticBreakdownTest){
     updateInflow(time);
-    congestionDetected=detectCongestion(network);
-  }
-
-  if(congestionDetected||(time>2400)){
-    finishSimulation();
+    if(detectCongestion(network)||(time>2400)){
+      finishSimulation();
+    }
   }
 
 
@@ -694,10 +698,6 @@ function updateSim(){
   
   // (4a) inflow BC
 
-  // route fractions depend on 
-  // mainFrac, focusFrac  and leftTurnBias
-  // (focusFrac counterintuitive for |leftTurnBias|>=2/3)
-  
   // main routes: routeEC (=[0,8,5], inflow E-arm, straight ahead->W) 
   //              routeWC (=[4,8,1], inflow W-arm, opposite direction->E)
   // road label 0=inflow E-arm
@@ -713,6 +713,16 @@ function updateSim(){
   var routeNIn=routeNC;
   
   if(useExplicitODs){ // use the relative ODs defined in the MA section
+
+    // override any user actions on the mainFrac slider for clarity
+
+    if(useExplicitODs){
+      mainFrac= (qE+qW)/qref;
+      setSlider(slider_mainFrac,slider_mainFracVal,100*mainFrac,0," %");
+    }
+
+    // multiply relative ODs with qIn to get absolute ODs
+    
     var q0=qE/qref*qIn;  // road index 0: Inflowing East arm
     var q2=qN/qref*qIn;  // road index 2: Inflowing North arm
     var q4=qW/qref*qIn;  // road index 4: Inflowing West arm

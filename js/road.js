@@ -91,8 +91,9 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   this.isGame=((scenarioString==="RampMeteringGame")
 	       ||(scenarioString==="RoutingGame"));
-  
-  this.inVehBufferInit=0.0;
+
+  //MT 2025-02: For inVehBufferInit=0, it takes long for the first inserts
+  this.inVehBufferInit=0.8; 
   this.inVehBuffer=this.inVehBufferInit; // if>=1, updateBCup called
   this.iTargetFirst=0; // set by getTargetNeighbourhood: first veh in defined region
 

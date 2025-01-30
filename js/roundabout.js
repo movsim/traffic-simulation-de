@@ -47,17 +47,18 @@ MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 // priority settings
 var priorityIndex=0; // {0=ring has prio, 1=arms have prio}
 setCombobox("prioritySelect",priorityIndex);
-handleChangedPriority(priorityIndex); // sets respectRingPrio
+handleChangedPriority(priorityIndex); // callback setting respectRingPrio
 
 //OD settings 
 // all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
 // only left: leftTurnBias=focusFrac=1 
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
+// index={0=straight ahead, right, left, all directions}
+// defaultSelectedIndex in control_gui.js
 
-var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
-setCombobox("ODSelect",ODSelectIndex);
-handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
+setCombobox("ODSelect",defaultSelectedIndex);
+handleChangedOD(defaultSelectedIndex); // callback setting leftTurnBias, focusFrac
 
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)

@@ -213,13 +213,25 @@ function handleChangedPriority(index){
 
 // roundabout and intersections: change OD options
 // options={straight,right,left,all}
+// overridden in MA versions if all 16 ODs are explicitly set
 
-function handleChangedOD(index){
+var defaultSelectedIndex=3;
+function handleChangedOD(index,useExplicitODs){
+  var explicitODs=(typeof useExplicitODs === 'undefined')
+      ? false : useExplicitODs;
+  console.log("in handleChangedOD: explicitODs=",explicitODs);
+  if(!explicitODs){
     leftTurnBias=(index==1) ? -1 : (index==2) ? 1 : 0;
     focusFrac=(index<3) ? 1 : 0;
     console.log("in handleChangedOD: index=",index,
 		" leftTurnBias=",leftTurnBias,
 		" focusFrac=",focusFrac);
+  }
+  else{
+    document.getElementById("ODSelect").selectedIndex=defaultSelectedIndex;
+    console.log("in handleChangedOD: overriden by explicit ODs;",
+		" nothing done");
+  }
 }
 
 
@@ -486,8 +498,8 @@ function setSlider(slider, sliderHTMLval, value, commaDigits, str_units){
   if(typeof slider!=='undefined'){
     slider.value=value;
     sliderHTMLval.innerHTML=formattedValue+" "+str_units; // +" " DOS=>str_units
-    console.log("setSlider: slider.value=",slider.value
-		," sliderHTMLval.innerHTML=",sliderHTMLval.innerHTML);
+    //console.log("setSlider: slider.value=",slider.value
+//		," sliderHTMLval.innerHTML=",sliderHTMLval.innerHTML);
   }
 }
 

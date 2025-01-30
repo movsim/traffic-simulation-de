@@ -53,10 +53,13 @@
      src="figs/infoBlue.png" onclick="showInfo()"></img>
 </div>
 
-<!-- NEW -->
+<!-- NEW NOT YET FULLY IMPLEMENTED -->
+<!--
 <div id="editTLdiv"><button id="editTLbutton" 
 onclick="showHideTLeditPanel()">
 Open traffic-light control panel </button> </div>
+-->
+
 
 <!-- ############################################## -->
 <!-- choice boxes -->
@@ -73,7 +76,7 @@ Open traffic-light control panel </button> </div>
 
 <div id="ODDiv">
     <select id="ODSelect"
-	    onchange="handleChangedOD(this.selectedIndex)">
+	    onchange="handleChangedOD(this.selectedIndex,useExplicitODs)">
         <option> Only Straight Ahead &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  </option>
         <option> Only to the Right</option>
         <option> Only to the Left</option>

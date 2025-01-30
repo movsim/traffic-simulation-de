@@ -48,7 +48,7 @@ var crashinfo=new CrashInfo();
 useRandomSeed=false;  // if false, true pseudorandom, otherwise reproducible
 
 /*#########################################################
- MA: functions to be defined by your Python.code (here is an example)
+ MA: functions to be defined here or by your Python.code (here is an example)
 #########################################################
 
 inflow function (called in every timestep; it also shifts the sliders
@@ -74,7 +74,7 @@ function updateInflow(time){
 
 
 /* #########################################################
-This is your function to optimize.
+MA: This is your function to optimize.
 It is called in every time step (overriding the corresponding slider)
 and affects only the entering vehicles: 
 The already visible vehicles already have a predefined and immutable route. 
