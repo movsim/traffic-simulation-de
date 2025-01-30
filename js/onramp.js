@@ -500,12 +500,14 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  // (1) update times and, if canvas change, 
-  // scale and, if smartphone<->no-smartphone change, physical geometry
+  // (1) update times (and possible MA-student changes)
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
 
+  
+  // (1b) update global geometry, and traffic objects
+  
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true;

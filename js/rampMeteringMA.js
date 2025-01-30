@@ -89,7 +89,7 @@ function updateRampflow(time){  // ramp flow profile
 
 
 
-/* This is your function to optimize;
+/* MA: This is your function to optimize;
  here, I set the ramp-metering traffic light to red 
 if there are at least 2 nearly stopped mainroad vehicles, 
 and to a 3 s red - 7 s green cycle 
@@ -243,7 +243,7 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-var isSmartphone=mqSmartphone();
+var isSmartphone=mqSmartphone(); // also change "isSmartphone=" in updateSim!!
 
 var refSizePhys=320; // also adapt in updateDimensions
 
@@ -601,7 +601,7 @@ function updateSim(){
 //#################################################################
 
 
-  // (1a) update times and user-defined programmatic control input
+  // (1) update time and MA actions
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
@@ -618,8 +618,7 @@ function updateSim(){
   }
 
 
-  // (1b) if canvas change, 
-  // scale and, if smartphone<->no-smartphone change, physical geometry
+  // (1b) update global geometry, and traffic objects
   
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){

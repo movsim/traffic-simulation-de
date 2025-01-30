@@ -311,11 +311,15 @@ var dt=timewarp/fps;
 function updateSim(){
 //############################################
 
-  // (1) update times
+  // (1) update times 
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  isSmartphone=mqSmartphone();
+
+  // (1b) update global geometry, and traffic objects
+  // (in most other scenarios geometry changes follow)
+  
+  isSmartphone=mqSmartphone(); 
 
   // test code at point (5)
 

@@ -13,22 +13,97 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 //#############################################################
 
 drawVehIDs=false; // override control_gui.js
-drawRoadIDs=false; // override control_gui.js
+drawRoadIDs=true; // override control_gui.js
 var debug=false;
 var crashinfo=new CrashInfo();
 
 
 //#############################################################
-// adapt standard slider settings from control_gui.js
-// (sliders with default inits need not to be reassigned here)
-// and define variables w/o sliders in this scenario
+// MA: Here is the section to do own changes
 //#############################################################
 
+// if automaticBreakdownTest, then total flow starts at small value,
+// increases program-driven and simulation ends if breakdown is detected
+// if it is false, the total flow is user-controlled by slider as usual
+
+var automaticBreakdownTest=true;
+
+// program-driven inflow profile if automaticBreakdownTest is true
+// change if needed. Called in updateSim if automaticBreakdownTest
+
+function updateInflow(time){ 
+  qIn=(600.+10*time)/3600.
+  slider_qIn.value=3600*qIn;
+  slider_qInVal.innerHTML=Math.round(3600*qIn)+" veh/h";
+}
+
+// jam detection function looping over all roads of the network.
+// Notice that two or three stopped vehicles do not
+// imply that there is already congested traffic
+// Called in updateSim if automaticBreakdownTest
+
+function detectCongestion(network){
+  var nCongested=0; // counter
+  var nCongestedCrit=7; // minimum congested vehicle for oversaturation
+  var speedCrit=2; // [m/s] congested means speed <= speedCrit
+  
+  for(var ir=0; ir<network.length; ir++){
+    var vehicles=network[ir].veh;
+    for(var i=0; i<vehicles.length; i++){
+      if(vehicles[i].isRegularVeh()){ // no obstacle, traffic light
+	if(vehicles[i].speed<speedCrit){
+	  nCongested++;
+	}
+      }
+    }
+  }
+  return (nCongested>=nCongestedCrit);
+}
 
 
-// merging fine tuning
+// useExplicitODs activates the complete programmatic control
+// of the relative OD flows if the GUI control is not sufficient.
+// Overrides the GUI controls. Can be used with or without
+// automaticBreakdownTest
 
-var duMergeRel=0.40; // merge begins mergeBeginRel*rRing before arm ends
+var useExplicitODs=true;
+
+
+// the relative OD flows. No need to check if all flows add to 1
+// because it is normalized before starting the simulation
+// qEN: relative flow from the East arm to the North arm (right turn)
+// qEW: relative flow from the East arm to the West arm (straight on)
+// qES: relative flow from the East arm to the South arm (left turn)
+// qEE: relative flow from the East arm round turn
+// qSE: relative flow from the South arm to the East arm (right turn)
+// etc
+// will only be used if useExplicitODs!
+
+qEN=0.00; qEW=0.00; qES=0.00; qEE=0.50;
+qSE=0.00; qSN=0.00; qSW=0.50; qSS=0.00;
+qWS=0.00; qWE=0.50; qWN=0.00; qWW=0.00;
+qNW=0.50; qNS=0.50; qNE=0.00; qNN=0.00;
+
+
+
+//#############################################################
+// end MA: end of section to do own changes
+//#############################################################
+
+var qE=qEN+qEW+qES+qEE;
+var qS=qSE+qSN+qSW+qSS;
+var qW=qWS+qWE+qWN+qWW;
+var qN=qNW+qNS+qNE+qNN;
+
+var qref=qE+qS+qW+qN;  // =1 if input properly specified
+
+console.log("qE=",qE," qN=",qN);
+
+var congestionDetected=false;
+  
+function finishSimulation(){
+  myStartStopFunction(); // reset simulation (look for it to set conditions)
+}
 
 
 // non-slider vehicle and traffic properties
@@ -62,7 +137,7 @@ handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
 
-qIn=2600./3600;
+qIn=(automaticBreakdownTest) ? 500./3600 : 2600./3600;
 setSlider(slider_qIn,slider_qInVal,3600*qIn,0," veh/h");
 
 mainFrac=0.6;
@@ -76,6 +151,10 @@ setSlider(slider_IDM_v0,slider_IDM_v0Val,3.6*IDM_v0,0," km/h");
 
 IDM_a=1.5; 
 setSlider(slider_IDM_a,slider_IDM_aVal,IDM_a,1," m/s<sup>2</sup>");
+
+// merging fine tuning
+
+var duMergeRel=0.40; // merge begins mergeBeginRel*rRing before arm ends
 
 
 
@@ -106,6 +185,7 @@ var ctx = canvas.getContext("2d"); // graphics context
 canvas.width  = simDivWindow.clientWidth; 
 canvas.height  = simDivWindow.clientHeight;
 var aspectRatio=canvas.width/canvas.height;
+isSmartphone=mqSmartphone(); // defined in media.js
 
 
 console.log("before addTouchListeners()");
@@ -118,8 +198,7 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-
-var isSmartphone=mqSmartphone(); //!! also change  in updateSim!!
+var isSmartphone=mqSmartphone();// also change  in updateSim!!
 
 var refSizePhys=(isSmartphone) ? 90 : 110;  // const; all objects scale with refSizePix
 
@@ -472,12 +551,15 @@ var routeEU=[0,8,1];  // inflow E-arm, U-tern
 var routeNR=[2,8,5];  // inflow N-arm, right turn
 var routeNC=[2,8,7];  // inflow N-arm, straight ahead
 var routeNL=[2,8,1];  // inflow N-arm, left turn
+var routeNU=[2,8,3];  // inflow N-arm, U-tern
 var routeWR=[4,8,7];  // inflow W-arm, right turn
 var routeWC=[4,8,1];  // inflow W-arm, straight ahead
 var routeWL=[4,8,3];  // inflow W-arm, left turn
+var routeWU=[4,8,5];  // inflow W-arm, U-tern
 var routeSR=[6,8,1];  // inflow S-arm, right turn
 var routeSC=[6,8,3];  // inflow S-arm, straight ahead
 var routeSL=[6,8,5];  // inflow S-arm, left turn
+var routeSU=[6,8,7];  // inflow S-arm, U-tern
 
 // add the special trajectories depending on the roadID of the route link
 // neighboring to the ring (roadID=8)
@@ -536,17 +618,26 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-    // (1) update time, global geometry, and traffic objects
+  // (1) update time and MA actions
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  isSmartphone=mqSmartphone(); // defined outside loop
-  hasChanged=false;
+
+  if(automaticBreakdownTest){
+    updateInflow(time);
+    congestionDetected=detectCongestion(network);
+  }
+
+  if(congestionDetected||(time>2400)){
+    finishSimulation();
+  }
 
 
   
-  //!!! check why here and not in the other scenarios
+  // (1b) update global geometry, and traffic objects
 
+  isSmartphone=mqSmartphone(); // defined outside loop
+  hasChanged=false;
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true; // only pixel; physical changes in updateSim
@@ -613,9 +704,38 @@ function updateSim(){
   // road label 1=outflow E-arm
   // road label 2=inflow S-arm etc
 
+
+  // initialize routes to straight ahead
+  
+  var routeEIn=routeEC;
+  var routeSIn=routeSC;
+  var routeWIn=routeWC;
+  var routeNIn=routeNC;
+  
+  if(useExplicitODs){ // use the relative ODs defined in the MA section
+    var q0=qE/qref*qIn;  // road index 0: Inflowing East arm
+    var q2=qN/qref*qIn;  // road index 2: Inflowing North arm
+    var q4=qW/qref*qIn;  // road index 4: Inflowing West arm
+    var q6=qS/qref*qIn;  // road index 6: Inflowing South arm
+    
+    var r=Math.random();
+    routeEIn=(r<qEN/qE)? routeER : (r<(qEN+qEW)/qE) ? routeEC
+      : (r<1-qEE/qE) ? routeEL : routeEU;
+    routeSIn=(r<qSE/qS)? routeSR : (r<(qSE+qSN)/qS) ? routeSC
+      : (r<1-qSS/qS) ? routeSL : routeSU;
+    routeWIn=(r<qWS/qW)? routeWR : (r<(qWS+qWE)/qW) ? routeWC
+      : (r<1-qWW/qW) ? routeWL : routeWU;
+    routeNIn=(r<qNW/qN)? routeNR : (r<(qNW+qNS)/qN) ? routeNC
+      : (r<1-qNN/qN) ? routeNL : routeNU;
+    //console.log("r=",r," qWS/qW=",qWS/qW,
+//		" (qWS+qWE)/qW=",(qWS+qWE)/qW);
+    //console.log(" routeWIn=",routeWIn," routeNIn=",routeNIn);
+  }
+
+  else{   //do not use explicit ODs but GUI to control ODs
     var q0=0.5*mainFrac*qIn;     // road index 0: Inflowing East arm
     var q2=0.5*(1-mainFrac)*qIn; // road index 2: Inflowing North arm
-    var q4=q0;                   // road index 4: Inflowing West arm     
+    var q4=q0;                   // road index 4: Inflowing West arm
     var q6=q2;                   // road index 6: Inflowing South arm
 
     var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
@@ -623,19 +743,22 @@ function updateSim(){
     var rFrac=(1-cFrac)/2.*(1-leftTurnBias); // cFrac+lFrac+rFrac=1
     var clFrac=cFrac+lFrac;
 
-    var ran=Math.random();
+    var r=Math.random();
 
-    var routeEIn=(ran<cFrac) ? routeEC : (ran<clFrac) ? routeEL : routeER;
-    var routeSIn=(ran<cFrac) ? routeSC : (ran<clFrac) ? routeSL : routeSR;
-    var routeWIn=(ran<cFrac) ? routeWC : (ran<clFrac) ? routeWL : routeWR;
-    var routeNIn=(ran<cFrac) ? routeNC : (ran<clFrac) ? routeNL : routeNR;
+    routeEIn=(r<cFrac) ? routeEC : (r<clFrac) ? routeEL : routeER;
+    routeSIn=(r<cFrac) ? routeSC : (r<clFrac) ? routeSL : routeSR;
+    routeWIn=(r<cFrac) ? routeWC : (r<clFrac) ? routeWL : routeWR;
+    routeNIn=(r<cFrac) ? routeNC : (r<clFrac) ? routeNL : routeNR;
+  }
 
-
-    arm[0].updateBCup(q0,dt,routeEIn); // reference to network[1]
-    arm[2].updateBCup(q2,dt,routeNIn);
-    arm[4].updateBCup(q4,dt,routeWIn);
-    arm[6].updateBCup(q6,dt,routeSIn);
-
+  // inflow update for both cases
+				       
+  arm[0].updateBCup(q0,dt,routeEIn); // reference to network[1]
+  arm[2].updateBCup(q2,dt,routeNIn);
+  arm[4].updateBCup(q4,dt,routeWIn);
+  arm[6].updateBCup(q6,dt,routeSIn);
+  
+  
 
   for(var ir=0; ir<network.length; ir++){
     network[ir].updateBCdown();
@@ -730,8 +853,9 @@ function updateSim(){
   }
   
   if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
-  
-}//updateSim
+
+}
+//updateSim
 
 
 
