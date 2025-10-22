@@ -25,7 +25,7 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
  
@@ -53,7 +53,7 @@ drawRoadIDs=true; // override control_gui.js; call later
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
                                // use it in updateSim (5)
 
@@ -74,9 +74,13 @@ var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
 
 
 
-qIn=4600./3600; 
+qIn=4500./3600; 
 commaDigits=0;
 setSlider(slider_qIn, slider_qInVal, 3600*qIn, commaDigits, "veh/h");
+
+qOn=1200./3600; 
+commaDigits=0;
+setSlider(slider_qOn, slider_qOnVal, 3600*qOn, commaDigits, "veh/h");
 
 
 density=0.01; 
@@ -500,12 +504,14 @@ var dt=timewarp/fps;
 function updateSim(){
 //#################################################################
 
-  // (1) update times and, if canvas change, 
-  // scale and, if smartphone<->no-smartphone change, physical geometry
+  // (1) update times (and possible MA-student changes)
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
 
+  
+  // (1b) update global geometry, and traffic objects
+  
   if ((canvas.width!=simDivWindow.clientWidth)
       ||(canvas.height != simDivWindow.clientHeight)){
     hasChanged=true;
@@ -612,7 +618,7 @@ function updateSim(){
 
   // updateSim (5): debug/test code
 
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
 
   //if(time<38.5){
   if(false){

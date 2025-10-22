@@ -14,7 +14,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false; // override control_gui.js
 drawRoadIDs=true; // override control_gui.js
-var debug=false;
+var debugCrash=false;
 var crashinfo=new CrashInfo();
 
 
@@ -748,7 +748,7 @@ function updateSim(){
     debugVeh(212,network);
   }
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
   
 }//updateSim
 

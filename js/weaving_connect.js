@@ -44,7 +44,7 @@ drawVehIDs=true;  // override control_gui.js;
 
 var crashinfo=new CrashInfo(); // need to include debug.js in html
                                // use it in updateSim (5)
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 
 
 //#############################################################
@@ -588,7 +588,7 @@ function updateSim(){
   }
 
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
 
   
   // template for dropping traffic lights: onramp.js

@@ -14,12 +14,20 @@
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 
-var seedRandom=true;
+var useRandomSeed=true;
 
 function formd(x){return parseFloat(x).toFixed(2);}
 function formd0(x){return parseFloat(x).toFixed(0);}
+
+//################################################################
+// Solve strange error messages "xPixUser not defined"
+//#################################################################
+
+var xPixUser=0;
+var yPixUser=0;
+
 
 //################################################################
 // Toggles for the display of road and vehicle IDs (triggered by "onclick")
@@ -90,7 +98,7 @@ function myStartStopFunction(){
 //#################################################################
 
 function myRestartFunction(){
-  if(seedRandom){Math.seedrandom(42);
+  if(useRandomSeed){Math.seedrandom(42);
     console.log("in Math.seedrandom(42) myRestartFunction");
   }
   time=0;

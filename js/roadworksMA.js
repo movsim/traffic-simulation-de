@@ -43,9 +43,9 @@ drawVehIDs=false;  // override control_gui.js;
 // MA: special functions for master theses
 //#############################################################
 
-// seedRandom defined in control_gui.js; set it =false for random output
+// useRandomSeed defined in control_gui.js; set it =false for random output
 
-seedRandom=false; 
+useRandomSeed=false; 
 
 
 // test if at least one regular vehicle in the array veh[]

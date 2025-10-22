@@ -20,22 +20,17 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
     mail@martin-treiber.de
 #######################################################################*/
 
+
+
 //####################################################################
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; (defined in control_gui.js)
 //####################################################################
 
-seedRandom=false;  // defined in control_gui.js; if true deterministic
+useRandomSeed=false;  // defined in control_gui.js; if true deterministic
 
-//#############################################################
-// general ui settings
-//#############################################################
-
-const userCanDropObjects=true;
-var showCoords=true;  // show logical coords of nearest road to mouse pointer
-                      // definition => showLogicalCoords(.) in canvas_gui.js
 
 //#############################################################
 // general debug settings (set=false for public deployment)
@@ -43,15 +38,18 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false; // override control_gui.js
 drawRoadIDs=true; // override control_gui.js
-var debug=false;
-var crashinfo=new CrashInfo();
-useRandomSeed=false;  // if false, true pseudorandom, otherwise reproducible
+var debugCrash=false;
+var crashinfo=new CrashInfo(); // need to include debug.js in html
+ // call if(debugCrash){crashinfo.checkForCrashes(network)};
+// somewhere in updateSim
 
-/*#########################################################
- MA: functions to be defined here or by your Python.code (here is an example)
-#########################################################
 
-inflow function (called in every timestep; it also shifts the sliders
+
+//#########################################################
+// MA: Here is the section to do own changes
+//#########################################################
+
+/*inflow function (called in every timestep; it also shifts the sliders
 overriding manual settings)
 inflow qIn is global variable defined in control_gui.js
 since normally handled there
@@ -60,7 +58,7 @@ chose an appropriate function giving rise to jams without use of the
 deviation and then optimize updateInflow to minimize congestions
 */
 
-function updateInflow(time){ 
+function updateInflow(time){ // (must be called in updateSim)
   qIn=(time<20) ? 2700/3600 : 
 	(time<90) ? 500/3600 : 
 	(time<120) ? 3000/3600 :
@@ -140,6 +138,10 @@ function updateFracOff(mainroadvehicles,deviationvehicles,time){
 }
 
 
+// Some variables to control your sim results
+// (checked in updateSim and drawSim )
+
+
 // recording period; data exported to Downloads/
 // set time_exportEnd<time_exportStart if no record wanted
 
@@ -153,7 +155,17 @@ var exportEnded=false;
 var simFinished=false;
 var timeFinished=0;
 
+// end MA
 
+
+
+//#############################################################
+// general ui settings
+//#############################################################
+
+const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
 
 
 //#############################################################
@@ -685,8 +697,11 @@ function updateSim(){
   itime++;
   isSmartphone=mqSmartphone();
 
+  // (1a) apply external control functions
+
   updateInflow(time);
   updateFracOff(network[0].veh, network[1].veh, time);
+  
   if((time>time_exportStart)&&(time<time_exportEnd)&&(!exportStarted)){
     downloadCallback();
     exportStarted=true;
@@ -793,7 +808,7 @@ function updateSim(){
 
   
 
-  // (6) check if all regular vehicles have left the simulation and, if so,
+  // (6a) check if all regular vehicles have left the simulation and, if so,
   // do appropriate actions (displayText in drawSim!!)
 
   if(!simFinished){
@@ -805,7 +820,7 @@ function updateSim(){
 	}
       }
     }
-    if((time>10)&&(nregular==0)){
+    if((time>10)&&(nregular==0)){ // time displayed and sim ended in drawSim
       simFinished=true;
       timeFinished=time;
     }

@@ -55,13 +55,15 @@ function update_v_dvdt_optical(vehicle){
 // @param curv: array of curvatures 1/r (positive if left turning)
 
 // @return: populates the six arrays up[], phip[], xp[], yp[], xc[], yc[]
+
+// only used for golf course
 // ###################################################################
 
 
 function traj_precalc(x0,y0,phi0,du,curv){
 
-  var debug=false;
-  if(debug){
+  var debug_traj_precalc=false;
+  if(debug_traj_precalc){
     console.log(
       "in traj_precalc: x0=",x0," y0=",y0," phi0=",phi0,
       "\n  du=",du,
@@ -101,7 +103,7 @@ function traj_precalc(x0,y0,phi0,du,curv){
       yp[i+1]=yc[i] - r*Math.cos(phip[i+1]);
     }
 
-    if(debug){
+    if(debug_traj_precalc){
       console.log("i=",i,
 		  " straightSegm=",straightSegm,
 		  " r=",r.toFixed(0),

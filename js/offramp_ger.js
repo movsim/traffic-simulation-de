@@ -35,7 +35,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false;  // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
 
 
@@ -53,7 +53,7 @@ var driver_varcoeff=0.05; //0.15 v0 and a coeff of variation (of "agility")
 // adapt/override standard param settings from control_gui.js
 //#############################################################
 
-fracOff=0.25; /// 0.25
+fracOff=0.40; 
 setSlider(slider_fracOff, slider_fracOffVal, 100*fracOff, 0, "%");
 
 
@@ -436,7 +436,7 @@ function updateSim(){
 
   // updateSim (5): debug output
 
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
   
   if(false){
     console.log("mainroadLen=",formd(mainroadLen),

@@ -108,7 +108,7 @@ var scale=refSizePix/refSizePhys;
 // adapt/override standard param settings (most from from control_gui.js)
 //#############################################################
 
-const qInRegular=1800/3600; //1850
+const qInRegular=1850/3600; //1850
 const qInSmartphone=1910/3600;
 fracTruck=0.25;
 

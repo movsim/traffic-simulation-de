@@ -14,7 +14,7 @@ drawRoadIDs=false; // override control_gui.js;
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
                                // use it in updateSim (4)
 

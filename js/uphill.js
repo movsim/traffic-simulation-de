@@ -1,3 +1,34 @@
+/* ######################################################################
+Source code for the interactive Javascript simulation at traffic-simulation.de
+
+    Copyright (C) 2024  Martin Treiber
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License Version 3
+    as published by the Free Software Foundation.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Martin Treiber
+   
+    mail@martin-treiber.de
+#######################################################################*/
+
+//####################################################################
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) set useRandomSeed=true; in control_gui.js
+//####################################################################
+
+useRandomSeed=false;  // defined in control_gui.js; if true deterministic
+
 //#############################################################
 // general ui settings
 //#############################################################
@@ -14,13 +45,15 @@ drawRoadIDs=false; // override control_gui.js;
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
-                               // use it in updateSim (4)
+// call if(debugCrash){crashinfo.checkForCrashes(network)};
+// somewhere in updateSim
 
 // test truck uphill overtaking ban;
 // action done by control_gui.js -> updateModelsUphill()
-// ban begins at rel pos uBeginBanRel
+// ban begins at rel pos uBeginBanRel (0=begin road, 1=begin uphill)
+// and ends at rel pos uBeginBanRel (0=end uphill, 1=end road)
 // comment out for production (start w/o ban)
 
 toggleTruckOvertakingBan();
@@ -151,12 +184,15 @@ var center_yPhys=center_yRel*refSizePhys;
 var arcRadius=arcRadiusRel*refSizePhys;
 var arcLen=arcRadius*Math.PI;
 var straightLen=refSizePhys*critAspectRatio-center_xPhys;
-var mainroadLen=arcLen+2*straightLen;
-var uBeginBanRel=0.; // !!  0: right at the beginning
-var uminLC=uBeginBanRel*straightLen+1; // !!!pass to mainroad.uminLC once def.
-var uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
-var uBeginUp=straightLen+0.3*arcLen;
+var roadLen=arcLen+2*straightLen;
+
+var uBeginBanRel=0.05; //   0: at road begin, 1: at begin uphill
+var uEndBanRel=0.5;   //   0: at end uphill, 1: at road end
+
+var uBeginUp=straightLen+0.3*arcLen; // !! also change in updateDimension
 var uEndUp=straightLen+1.3*arcLen;
+var uBeginBan=uBeginBanRel*uBeginUp; // truck overtaking ban if clicked active
+var uEndBan=uEndUp+uEndBanRel*(roadLen-uEndUp); // end truck overtaking ban 
 
 
 function updateDimensions(){ // if viewport or sizePhys changed
@@ -166,11 +202,12 @@ function updateDimensions(){ // if viewport or sizePhys changed
     arcRadius=arcRadiusRel*refSizePhys;
     arcLen=arcRadius*Math.PI;
     straightLen=refSizePhys*critAspectRatio-center_xPhys;
-    mainroadLen=arcLen+2*straightLen;
+    roadLen=arcLen+2*straightLen;
 
-    uBeginBan=uBeginBanRel*straightLen; // truck overtaking ban if clicked active
     uBeginUp=straightLen+0.3*arcLen;
     uEndUp=straightLen+1.3*arcLen;
+    uBeginBan=uBeginBanRel*uBeginUp; // truck overtaking ban if clicked active
+    uEndBan=uEndUp+uEndBanRel*(roadLen-uEndUp); // end truck overtaking ban 
 }
 
 
@@ -195,7 +232,7 @@ var laneWidth=7;
 function traj_x(u){ // physical coordinates
     var dxPhysFromCenter= // left side (median), phys coordinates
 	(u<straightLen) ? straightLen-u
-	: (u>straightLen+arcLen) ? u-mainroadLen+straightLen
+	: (u>straightLen+arcLen) ? u-roadLen+straightLen
 	: -arcRadius*Math.sin((u-straightLen)/arcRadius);
     //dxPhysFromCenter -=10; // !!! activate if testing inflow
     return center_xPhys+dxPhysFromCenter;
@@ -226,7 +263,7 @@ fracTruckToleratedMismatch=1.0; // 100% allowed=>changes only by sources
 
 speedInit=20; // m/s
 
-var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,
+var mainroad=new road(roadID,roadLen,laneWidth,nLanes_main,
 		      [traj_x,traj_y],
 		      density, speedInit,fracTruck, isRing);
 
@@ -237,7 +274,6 @@ for(var ir=0; ir<network.length; ir++){
   network[ir].drawVehIDs=drawVehIDs;
 }
 
-mainroad.uminLC=uminLC;
 
 
 //#########################################################
@@ -429,7 +465,7 @@ function updateSim(){
   }
   mainroad.setCFModelsInRange(uBeginUp,uEndUp,
 				 longModelCarUphill,longModelTruckUphill);
-  mainroad.setLCModelsInRange(uBeginBan,uEndUp,
+  mainroad.setLCModelsInRange(uBeginBan,uEndBan,
 				 LCModelCarUphill,LCModelTruckUphill);
 
   // (2a) update moveable speed limits

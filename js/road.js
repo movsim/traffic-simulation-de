@@ -4,7 +4,7 @@
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
 
@@ -65,7 +65,7 @@ NOTICE2 (MT-2019-09): veh models individual copies if deepCopying=true
 function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
-  if(seedRandom){Math.seedrandom(42);
+  if(useRandomSeed){Math.seedrandom(42);
 		 console.log("in Math.seedrandom(42) road cstr");
   }
   
@@ -264,7 +264,7 @@ road.prototype.setDriverVariation=function(driver_varcoeff){
 road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
 					    fracScooter,
 					    speedInit){
-  if(seedRandom){Math.seedrandom(42);
+  if(useRandomSeed){Math.seedrandom(42);
 		 console.log("in Math.seedrandom(42) road cstr");
   }
 
@@ -3644,7 +3644,7 @@ road.prototype.updateBCup=function(Qin,dt,route){
   // for some reason, this does not work at control_gui.myRestartFunction
 
 
-  if((itime<=1)&&(this.isGame||seedRandom)){Math.seedrandom(42);
+  if((itime<=1)&&(this.isGame||useRandomSeed)){Math.seedrandom(42);
     console.log("road.updateBCup: itime=",itime," roadID=",this.roadID,
 		" resetting this.randomValBCup",
 		" scenarioString=",scenarioString);
@@ -4418,14 +4418,14 @@ road.prototype.drawTaperRamp=function(roadImg1,  laneIncr, atRight){
 
 road.prototype.drawTaperConnect=function(roadImg1,  targetID){
 
-  //var debug=((itime==2)&&(this.roadID==2));
-  var debug=false;
+  //var debug_drawTaperConnect=((itime==2)&&(this.roadID==2));
+  var debug_drawTaperConnect=false;
   var ir=-1; // target road index
   for(var i=0; i<this.connectInfo.length; i++){
     if(this.connectInfo[i].targetID==targetID){ir=i;}
   }
 
-  if(debug){
+  if(debug_drawTaperConnect){
 	console.log("road.drawTaperConnect: roadID=",this.roadID,
 		    "targetID=",targetID," ir=",ir,
 		    "this.connectInfo[ir]=",this.connectInfo[0]);
@@ -4443,7 +4443,7 @@ road.prototype.drawTaperConnect=function(roadImg1,  targetID){
       var vStart=this.laneWidth*0.5*(this.nLanes-1);
       this.drawTaper(roadImg1,laneShift,uStart,vStart);
       
-      if(debug){
+      if(debug_drawTaperConnect){
 	console.log("road.drawTaperConnect: roadID=",this.roadID,
 		    "incrRight=",incrRight,
 		    "laneShift=",laneShift,
@@ -4458,7 +4458,7 @@ road.prototype.drawTaperConnect=function(roadImg1,  targetID){
       var uStart=(incrLeft>0) ? uSource-this.taperLen : uSource;
       var vStart=-this.laneWidth*0.5*(this.nLanes-1);
       this.drawTaper(roadImg1,laneShift,uStart,vStart);
-      if(debug){
+      if(debug_drawTaperConnect){
 	console.log("road.drawTaperConnect: roadID=",this.roadID,
 		    "incrLeft=",incrLeft,
 		    "laneShift=",laneShift,
@@ -4477,9 +4477,9 @@ road.prototype.drawTaperConnect=function(roadImg1,  targetID){
 
 road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
 
-  //var debug=((itime==1)&&(this.roadID==0));
-  var debug=false;
-  if(debug){console.log("road.drawTaper: laneShift=",laneShift,
+  //var debug_drawTaper=((itime==1)&&(this.roadID==0));
+  var debug_drawTaper=false;
+  if(debug_drawTaper){console.log("road.drawTaper: laneShift=",laneShift,
 			"uStart=",uStart,"vStart=",vStart);}
   var lSegm=this.roadLen/this.nSegm;
   var abs_shiftv=Math.abs(laneShift)*this.laneWidth;
@@ -4517,7 +4517,7 @@ road.prototype.drawTaper=function(roadImg1,  laneShift, uStart, vStart){
     ctx.drawImage(roadImg1, -0.5*lSegmPix, -0.5* wSegmPix,lSegmPix,wSegmPix);
 
  
-    if(debug){
+    if(debug_drawTaper){
     //if(false){
       console.log(
 	"road.drawTaper: roadID="+this.roadID," iSegm="+iSegm,

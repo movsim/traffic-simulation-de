@@ -14,7 +14,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false; // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
-var debug=false;
+var debugCrash=false;
 var crashinfo=new CrashInfo();
 
 
@@ -47,17 +47,18 @@ MOBIL_mandat_p=0;  // normal: p=0.2, rFirst: p=0;
 // priority settings
 var priorityIndex=0; // {0=ring has prio, 1=arms have prio}
 setCombobox("prioritySelect",priorityIndex);
-handleChangedPriority(priorityIndex); // sets respectRingPrio
+handleChangedPriority(priorityIndex); // callback setting respectRingPrio
 
 //OD settings 
 // all 9 ODs equal: leftTurnBias=focusFrac=0,mainFrac=1
 // only left: leftTurnBias=focusFrac=1 
 // only center: leftTurnBias=0, focusFrac=1
 // with |leftTurnBias|>2/3, focusFrac becomes counterintuitive
+// index={0=straight ahead, right, left, all directions}
+// defaultSelectedIndex in control_gui.js
 
-var ODSelectIndex=3; // {0=straight ahead, right, left, all directions}
-setCombobox("ODSelect",ODSelectIndex);
-handleChangedOD(ODSelectIndex); // sets leftTurnBias, focusFrac
+setCombobox("ODSelect",defaultSelectedIndex);
+handleChangedOD(defaultSelectedIndex); // callback setting leftTurnBias, focusFrac
 
 // define non-standard slider initialisations
 // (no s0,LC sliders for roundabout)
@@ -118,9 +119,8 @@ console.log("after addTouchListeners()");
 // width/height in css.#contents)
 //##################################################################
 
-//!! also change "isSmartphone=" in updateSim!!
 
-var isSmartphone=mqSmartphone();
+var isSmartphone=mqSmartphone(); //!! also change  in updateSim!!
 
 var refSizePhys=(isSmartphone) ? 90 : 110;  // const; all objects scale with refSizePix
 
@@ -541,7 +541,7 @@ function updateSim(){
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  isSmartphone=mqSmartphone(); // defined in media.js
+  isSmartphone=mqSmartphone(); // defined outside loop
   hasChanged=false;
 
 
@@ -614,10 +614,10 @@ function updateSim(){
   // road label 1=outflow E-arm
   // road label 2=inflow S-arm etc
 
-    var q0=0.5*mainFrac*qIn;
-    var q4=q0;
-    var q2=0.5*(1-mainFrac)*qIn;
-    var q6=q2;
+    var q0=0.5*mainFrac*qIn;     // road index 0: Inflowing East arm
+    var q2=0.5*(1-mainFrac)*qIn; // road index 2: Inflowing North arm
+    var q4=q0;                   // road index 4: Inflowing West arm     
+    var q6=q2;                   // road index 6: Inflowing South arm
 
     var cFrac=1/3. + 2./3*focusFrac - focusFrac*Math.abs(leftTurnBias);
     var lFrac=(1-cFrac)/2.*(1+leftTurnBias);
@@ -730,7 +730,7 @@ function updateSim(){
     debugVeh(212,network);
   }
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
   
 }//updateSim
 

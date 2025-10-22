@@ -2,7 +2,7 @@
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
 

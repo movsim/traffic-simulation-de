@@ -26,18 +26,11 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
-seedRandom=false;  // defined in control_gui.js; if true deterministic
+useRandomSeed=false;  // defined in control_gui.js; if true deterministic
 
-//#############################################################
-// general ui settings
-//#############################################################
-
-const userCanDropObjects=true;
-var showCoords=true;  // show logical coords of nearest road to mouse pointer
-                      // definition => showLogicalCoords(.) in canvas_gui.js
 
 //#############################################################
 // general debug settings (set=false for public deployment)
@@ -45,10 +38,6 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false; // override control_gui.js
 drawRoadIDs=true; // override control_gui.js
-var debug=false;
-
-
-
 
 
 /*#########################################################
@@ -134,6 +123,20 @@ function setRampMeteringLight(mainroadvehicles,time){
 function finishSimulation(){
   myStartStopFunction(); // reset simulation (look for it to set conditions)
 }
+
+// end MA
+
+
+
+
+
+//#############################################################
+// general ui settings
+//#############################################################
+
+const userCanDropObjects=true;
+var showCoords=true;  // show logical coords of nearest road to mouse pointer
+                      // definition => showLogicalCoords(.) in canvas_gui.js
 
 
 /*#########################################################

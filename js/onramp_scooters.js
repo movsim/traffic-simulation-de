@@ -3,7 +3,7 @@
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
 
@@ -32,7 +32,7 @@ drawRoadIDs=true; // override control_gui.js; call later
 drawVehIDs=false;  // override control_gui.js;
                    // need to call later road.drawVehIDs=drawVehIDs
 
-var debug=false;   // if true, then sim stops at crash (only for testing)
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
                                // use it in updateSim (5)
 
@@ -642,7 +642,7 @@ function updateSim(){
 
   // updateSim (5): debug/test code
 
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
 
   //if(time<38.5){
   if(false){

@@ -42,9 +42,11 @@ drawRoadIDs=true; // override control_gui.js;
 drawVehIDs=true;  // override control_gui.js;
                   // need to call later road.drawVehIDs=drawVehIDs
 
+var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
+// call if(debugCrash){crashinfo.checkForCrashes(network)};
+// somewhere in updateSim
                                // use it in updateSim (5)
-var debug=false;   // if true, then sim stops at crash (only for testing)
 
 
 //#############################################################
@@ -583,7 +585,7 @@ function updateSim(){
   }
 
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
 
   
   // template for dropping traffic lights: onramp.js

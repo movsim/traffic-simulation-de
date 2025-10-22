@@ -42,7 +42,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
 
 drawVehIDs=false; // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
-var debug=false;
+var debugCrash=false;
 var crashinfo=new CrashInfo();
 
 
@@ -311,11 +311,15 @@ var dt=timewarp/fps;
 function updateSim(){
 //############################################
 
-  // (1) update times
+  // (1) update times 
 
   time +=dt; // dt depends on timewarp slider (fps=const)
   itime++;
-  isSmartphone=mqSmartphone();
+
+  // (1b) update global geometry, and traffic objects
+  // (in most other scenarios geometry changes follow)
+  
+  isSmartphone=mqSmartphone(); 
 
   // test code at point (5)
 
@@ -366,7 +370,7 @@ function updateSim(){
     debugVeh(212,network);
   }
   
-  if(debug){crashinfo.checkForCrashes(network);} //!! deact for production
+  if(debugCrash){crashinfo.checkForCrashes(network);} //!! deact for production
   
   if(false){
     mainroad.writeTrucksLC();

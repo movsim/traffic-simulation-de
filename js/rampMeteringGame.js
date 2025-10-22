@@ -25,7 +25,7 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set seedRandom=true; in control_gui.js
+//(2) set useRandomSeed=true; in control_gui.js
 //####################################################################
 
 
@@ -35,7 +35,7 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 
 // #################################################################
 
-seedRandom=true; // defined in control_gui.js
+useRandomSeed=true; // defined in control_gui.js
 
 const userCanDropObjects=true;
 
@@ -80,15 +80,15 @@ function updateRampMeteringGame(time){  // game main flow
 var nick="controlMaster";
 
 function playRampMeteringGame(infotextID){ // only called in html
-  if(seedRandom){Math.seedrandom(42);
+  if(useRandomSeed){Math.seedrandom(42);
 		 console.log("in Math.seedrandom(42) playRampMeteringGame");
   }
   isGame=true;
   document.getElementById("startStopDiv").style.visibility="visible";
   myRestartFunction();
   nick = prompt("Please enter your nick", nick);
-  var debug=false;
-  if(debug){
+  var debugCrash=false;
+  if(debugCrash){
     time=1000*Math.random(); // gets score in finish...
     finishRampMeteringGame("infotextRampMeteringGame");
   }
