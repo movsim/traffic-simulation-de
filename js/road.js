@@ -66,7 +66,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 	      densInitPerLane,speedInit,fracTruck,isRing,doGridding){
 
   if(useRandomSeed){Math.seedrandom(42);
-		 console.log("in Math.seedrandom(42) road cstr");
+		 //console.log("in Math.seedrandom(42) road cstr");
   }
   
   //console.log("1. in road cstr: traj=",traj);
@@ -265,7 +265,7 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
 					    fracScooter,
 					    speedInit){
   if(useRandomSeed){Math.seedrandom(42);
-		 console.log("in Math.seedrandom(42) road cstr");
+		// console.log("in Math.seedrandom(42) road cstr");
   }
 
 
@@ -278,7 +278,7 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
   var fracTruckRight=Math.min(this.nLanes*fracTruck,1);
   var fracTruckRest=(this.nLanes*fracTruck>1)
       ? ((this.nLanes*fracTruck-1)/(this.nLanes-1)) : 0;
-  console.log("road.initRegularVehicles: fracTruckRight=",fracTruckRight," fracTruckRest=",fracTruckRest," this.nLanes=",this.nLanes);
+  //console.log("road.initRegularVehicles: fracTruckRight=",fracTruckRight," fracTruckRest=",fracTruckRest," this.nLanes=",this.nLanes);
   for(var i=0; i<nvehPlus; i++){
 
         // position trucks mainly on the right lane nLanes-1
@@ -291,7 +291,7 @@ road.prototype.initRegularVehicles=function(densityPerLane,fracTruck,
     // initRegularVehicles: vehTypes
     // vehAttr={type: vehType, len: length, width: width}
     var vehAttr=this.getAttributes(fracTruck, fracOthers);
-    console.log("vehAttr=",vehAttr);
+    //console.log("vehAttr=",vehAttr);
     var vehType=vehAttr.type;
     var vehLength=vehAttr.len;
     var vehWidth=vehAttr.width;
@@ -365,7 +365,7 @@ road.prototype.subtractOneLane=function(){
     this.nLanes--; 
 }
 
-
+ 
 
 
 
@@ -458,8 +458,9 @@ road.prototype.writeVehiclesSimpleToFile=function(filename) {
 road.prototype.updateExportString=function(){
 
   var rest=time/dt_export-Math.floor((time+0.0001)/dt_export);
-  
-  if(rest<dt-0.0001){
+  console.log("road.updateExportString: time=",time.toFixed(2)," time/dt_export=",(time/dt_export).toFixed(2)," rest=",rest.toFixed(2)," dt=",dt.toFixed(2));
+  if(rest<dt/dt_export-0.0001){
+    console.log("   adding!");
     for(var i=0; i<this.veh.length; i++){
       var heading=(this.veh[i].speed>1e-4)
 	  ? this.veh[i].dvdt/this.veh[i].speed : 0;
@@ -467,6 +468,7 @@ road.prototype.updateExportString=function(){
         + "\t"+this.veh[i].id
         + "\t"+this.veh[i].u.toFixed(2)
         + "\t"+this.veh[i].v.toFixed(2)
+        + "\t"+this.veh[i].lane.toFixed(0)
         + "\t"+this.veh[i].speed.toFixed(2)
         + "\t\t"+heading.toFixed(2)
         + "\t"+this.veh[i].acc.toFixed(2)
@@ -3426,9 +3428,10 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
               // check its number if suspicious happens with this var !!
 
 	//if(success&&log){
-	if(success||(originVehicles[i].id==540)){
+	//if(success||(originVehicles[i].id==540)){
 	//if(success){
-	      //if(true){
+	//if(true){
+	if(false){
 	  console.log("\nmergeDiverge (2b): testing origin veh id="
 		      +originVehicles[i].id+" uTarget="+uTarget
 		      +" divergeAhead="+originVehicles[i].divergeAhead);
@@ -3537,7 +3540,7 @@ road.prototype.mergeDiverge=function(otherRoad,offset,uBegin,uEnd,
 
 	var iOrig=iMerge+this.iTargetFirst;
 	//if(false){
-	if(true){
+	if(false){
 	  console.log(
 	    "\n=========================================\n",
 	    "mergeDiverge (4) Actual merging vehicle id "+this.veh[iOrig].id

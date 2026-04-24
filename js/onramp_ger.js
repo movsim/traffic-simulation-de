@@ -55,8 +55,8 @@ drawVehIDs=false;  // override control_gui.js;
 
 var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
-                               // use it in updateSim (5)
-
+// call if(debugCrash){crashinfo.checkForCrashes(network)};
+// somewhere in updateSim
 
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
@@ -130,7 +130,7 @@ var nLanes_rmp=1;
 // otherwise not needed
 
 var scenarioString="OnRamp"; 
-console.log("\n\nstart main: scenarioString=",scenarioString);
+//console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
 var simDivWindow=document.getElementById("contents");
@@ -140,9 +140,9 @@ canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 
 
-console.log("before addTouchListeners()");
+//console.log("before addTouchListeners()");
 addTouchListeners();
-console.log("after addTouchListeners()");
+//console.log("after addTouchListeners()");
 
 
 //##################################################################

@@ -37,6 +37,9 @@ drawVehIDs=false;  // override control_gui.js
 drawRoadIDs=false; // override control_gui.js
 var debugCrash=false;   // if true, then sim stops at crash (only for testing)
 var crashinfo=new CrashInfo(); // need to include debug.js in html
+// call if(debugCrash){crashinfo.checkForCrashes(network)};
+// somewhere in updateSim
+
 
 
 

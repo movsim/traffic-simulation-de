@@ -24,7 +24,7 @@
 // they are specially drawn and externally influenced from the main program
 
 
-console.log("reading canvas_gui.js");
+//console.log("reading canvas_gui.js");
 
 var xUser, yUser;       // physical coordinates 
 var xUserDown, yUserDown; // physical coordinates at mousedown/touchStart evt

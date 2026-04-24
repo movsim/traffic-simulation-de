@@ -1111,7 +1111,7 @@ function updateModelsUphill(){
 //#################################################################
 
 var downloadActive=false; // initialisation
-var dt_export=0.5;          // every dt_export seconds stored in exportString
+var dt_export=1;          // every dt_export seconds stored in exportString
 
 function downloadCallback(){
   if(downloadActive){
@@ -1123,7 +1123,7 @@ function downloadCallback(){
   else{ // title/header lines
     for(var i=0; i<network.length; i++){
       network[i].exportString
-        ="#time\tid\tx[m]\ty[m]\tspeed[m/s]\theading\tacc[m/s^2]";
+        ="#time\tid\tx[m]\ty[m]\t\lane\tspeed[m/s]\theading\tacc[m/s^2]";
     }
 
     if(typeof detectors!=="undefined"){

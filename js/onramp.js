@@ -130,7 +130,7 @@ var nLanes_rmp=1;
 // otherwise not needed
 
 var scenarioString="OnRamp"; 
-console.log("\n\nstart main: scenarioString=",scenarioString);
+//console.log("\n\nstart main: scenarioString=",scenarioString);
 
 
 var simDivWindow=document.getElementById("contents");
@@ -140,9 +140,9 @@ canvas.width  = simDivWindow.clientWidth;
 canvas.height  = simDivWindow.clientHeight;
 
 
-console.log("before addTouchListeners()");
+//console.log("before addTouchListeners()");
 addTouchListeners();
-console.log("after addTouchListeners()");
+//console.log("after addTouchListeners()");
 
 
 //##################################################################
