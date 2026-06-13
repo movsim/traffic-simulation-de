@@ -1383,7 +1383,7 @@ to be used for tactical lane changing and drawing tapers
 @param targetRoads:    array of (references to) target links
 @param uSource:        array of the source positions (LC must be done there)
 @param offsetLane:     laneIndex(target)-laneIndex(source) for same position
-@param LCbias:         -1=toLeft, 0=neutral, 1=true
+@param LCbias:         -1=toLeft, 0=neutral, 1=toRight
                        (-1/+1: always global bias;
                         neutral => bias on discontinuing lanes only)
 @return:   connectInfo=array of structs
@@ -2277,8 +2277,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
       ? false : targetPrio;
 
   
-  if(false){
-  //if(this.roadID==5){
+  //if(false){
+  if(this.roadID==0){
     console.log("\n\nbegin road.connect: t="+time.toFixed(2),
 	//	" first Veh=",((this.veh.length>0) ? this.veh[0].id : "none"),
 		" this.roadLen="+this.roadLen.toFixed(1),
@@ -2302,7 +2302,7 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
     //#########################################################
 
     //this.connectLog=false;
-    this.connectLog=(this.veh[iveh].id==455);
+    this.connectLog=(this.veh[iveh].id==103);
     //this.connectLog=((this.veh[iveh].id==278)&&(time>75));
     //this.connectLog=(targetID==8);
     //this.connectLog=((this.veh[iveh].id==219)||(this.veh[iveh].id==224));
@@ -2827,7 +2827,8 @@ road.prototype.connect=function(targetRoad, uSource, uTarget,
 
       
       if((u>uSource)&&(this.roadID!=targetRoad.roadID)){
-	if(this.connectLog){
+	//if(this.connectLog){
+	  if(true){
 	//if(vehConnect.id==210){
 	  console.log("  connect (7): All previous actions drove the vehicle",
 		      "over uSource => actual transfer");
@@ -4615,8 +4616,10 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
   // in roundabout)
 
 
-  if(false){console.log("road.drawVehicles: traj init:"+
-				 " this.traj[0]="+this.traj[0]);}
+  if(this.roadID==1){
+    //if(false){
+    console.log("road.drawVehicles: this.roadID=",this.roadID," this.veh.length=",this.veh.length);
+  }
 
     
   
@@ -4685,7 +4688,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
 road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, 
 				    speedmin,speedmax,traj,
 				    xOffset,yOffset,upright){
-
+  if(this.roadID==1){console.log("in road.drawVehicle: this.roadID=",this.roadID);}
   var drawID=(typeof(displayIDs)==='undefined') ? false : displayIDs; 
   var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
   var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
@@ -4742,7 +4745,12 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg,
     var sphiRoad=Math.sin(phiRoad);
     var cphiVeh=Math.cos(phiVeh);
     var sphiVeh=Math.sin(phiVeh);
-
+  //if((this.roadID==1)&&(this.veh[i].id==216)){
+  if((this.roadID==1)){
+    console.log("uCenterPhys=",uCenterPhys,
+		" vCenterPhys=",vCenterPhys,
+		" phiRoad=",phiRoad);
+  }
 
     // xOffset=0 (two terms cancel out) for normal fixed viewpoint 
     // (movingObserver=false)

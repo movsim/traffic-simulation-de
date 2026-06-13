@@ -347,13 +347,14 @@ network[6].initMergeDiverge([network[10]], [false],[lenMergeDiverge],
 // initConnect(targetRoads, uSources, offsetLanes, LCbiasIndices)
 
 // offsetLane = laneIndexTarget-laneIndexSource for through lanes
+// lane indices increase from left to right
 // LCbiasIndex in {-1=left,0=neutral,1=right}
 // for lanes to be closed, LCbias is set automatically if LCbiasIndex=0
 // not all connectors need tactical info, e.g. not needed for network[11]
 
 network[0].initConnect([network[1]],[network[0].roadLen],[offsetLane[1]],[0]);
+network[1].initConnect([],[],[],[]);
 network[2].initConnect([network[3]],[network[2].roadLen],[offsetLane[3]],[0]);
-network[3].initConnect([network[4]],[network[3].roadLen],[offsetLane[4]],[0]);
 network[4].initConnect([network[5]],[network[4].roadLen],[offsetLane[5]],[0]);
 network[6].initConnect([network[7],network[8]],
 		       [network[6].roadLen, network[6].roadLen],
@@ -485,7 +486,7 @@ for (var i=0; i<10; i++){
   obstacleImgNames[i] = obstacleImgs[i].src;
 }
 
-// init road images for 1 to 4 lanes
+// init general road images for 1 to 7 lanes
 
 roadImg1Lane = []; // template road image with lane separating line
 roadImg2Lane = []; // road without lane separating line
@@ -496,6 +497,8 @@ for (var i=0; i<7; i++){
     roadImg2Lane[i]=new Image();
     roadImg2Lane[i].src="figs/road"+(i+1)+"lanesCropWithout.png"
 }
+
+// actual road images for the network
 
 var roadImg1= []; // network road with lane separating line
 var roadImg2= []; // network road w/o lane separating line
@@ -595,6 +598,7 @@ function updateSim(){
   
 
   // (3b) upstream/inflow BCup (getRoute:  routes according to OD matrix)
+  // with connectors, routes are crucial!!
   
   var route0=getRoute(routes_source0, routesFrac_source0);
   var route9=getRoute(routes_source9, [0.9,0.1]);  // [fracUp,fracDown]
@@ -607,6 +611,9 @@ function updateSim(){
   // (3c) connecting links ends
   // road.connect(target, uSource, uTarget, offsetLane, conflicts,
   //              opt_vmax, opt_targetPrio)
+  // similar as road.initConnect but only one link at a time
+  // (no arrays as args), addtl link point of downstream road,
+  // and addtl conflicts (empty if none) and opt args
 
   // mainroad 1 linear
   for(var ir=0; ir<6; ir++){
