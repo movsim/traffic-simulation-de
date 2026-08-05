@@ -4960,7 +4960,7 @@ road.prototype.dropObject=function(trafficObj){
 				"obstacle"); //=trafficObj.type
 
     //(dec17) need longModel for LC as lagVeh (standing virtual veh)!!
-    roadVehicle.longModel=new IDM(0,1,2,0,1);
+    roadVehicle.longModel=new ACC(0,1,2,0,1);
 
       //!! id ctrls veh image: 50=black obstacle,
       // 51=constructionVeh1.png etc. Attribute veh.imgNumber defined only
@@ -5093,7 +5093,7 @@ road.prototype.changeTrafficLight=function(id,value){
       for(var il=0; il<this.nLanes; il++){
         var virtVeh=new vehicle(1,this.laneWidth,
 			        pickedTL.u, il, 0, "obstacle");
-        virtVeh.longModel=new IDM(0,1,2,0,1); // needed for MOBIL
+        virtVeh.longModel=new ACC(0,1,2,0,1); // needed for MOBIL
         virtVeh.id=id;
         this.veh.push(virtVeh); // !!!changeArray
       }

@@ -885,6 +885,8 @@ if(document.getElementById("slider_IDM_b")!==null){
     }
 }
 
+let ACC_cool=0.9  // no coolness slider yet
+
 
 // speedlimit slider
 // per default no speed limit (speedL used in updateModels())
@@ -956,7 +958,7 @@ if(document.getElementById("slider_IDM_v0Up")!==null){
 
 // MOBIL_bThr slider
 
-var MOBIL_bThr=0.4; 
+var MOBIL_bThr=0.2; 
 var slider_MOBIL_bThr,slider_MOBIL_bThrVal;
 if(document.getElementById("slider_MOBIL_bThr")!==null){
     slider_MOBIL_bThr = document.getElementById("slider_MOBIL_bThr");

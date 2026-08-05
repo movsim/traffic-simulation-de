@@ -35,7 +35,8 @@ template models to all the vehicles
 by redefining road.prototype.updateModelsOfAllVehicles(..). 
 This is the central model update. 
 Search for all instances of "new ACC" and change accordingly. 
-(All instances of "new IDM" in any source file only refer to obstacles 
+(All calls of "new IDM" or "new ACC" 
+in any source file only refer to obstacles 
 or needed initial definitions and can be left as is.)
 
 */
@@ -256,7 +257,7 @@ function ACC(v0,T,s0,a,b){
   this.a=a;
   this.b=b;
 
-  this.cool=0.90; // !!also apply to copy constructor
+  this.cool=ACC_cool; // !!also apply to copy constructor
 
   this.alpha_v0=1; // multiplicator for temporary reduction
     
@@ -295,7 +296,7 @@ ACC.prototype.copy=function(longModel){
   this.s0=longModel.s0;
   this.a=longModel.a;
   this.b=longModel.b;
-  this.cool=(!(typeof longModel.cool === 'undefined')) ? longModel.cool : 0.8;
+  this.cool=(!(typeof longModel.cool === 'undefined')) ? longModel.cool : ACC_cool;
 
   this.alpha_v0=longModel.alpha_v0; // multiplicator for temporary reduction
 

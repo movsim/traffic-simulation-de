@@ -80,7 +80,7 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
 
   // just start values used for virtual vehicles (need not to be updated
   // if new model implemented) !!
-  this.longModel=new IDM(20,1.3,2,1,2);//IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
+  this.longModel=new ACC(20,1.3,2,1,2);//IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
   this.LCModel=new MOBIL(4,20,0.1,0.2,0.3); //bSafe, bSafeMax, p, bThr, biasRight)
 
   this.driverfactor=(this.type==="obstacle") ? 1

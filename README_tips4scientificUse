@@ -1,0 +1,60 @@
+ Hints for scientific use
+
+First, download the repo at
+
+https://github.com/movsim/traffic-simulation-de
+
+to have the files locally accessible for any change you would like to do. Unlike the demonstration purpose, everything should run without gui interaction for efficiency and automatisation.
+
+I have following hints for a starter:
+
+Parameters:
+
+As I mentioned, the parameters in the simulator are set to create extremely string istable traffic flow such that users can see traffic waves quickly. While standard parameters as these in my book (e.g.cars, freeway traffic: v0=120/3.6 m/s, T=1.2s, s0=2.5m, delta=4, a=1.1m/s^2 and b=1.5m/s^2) are more realistic, you can also leave the very ustable parameterisation to get moe interesting trajectory sets for calibration. If you want to change the defaults, go to control_gui.js and change them there, e.g. IDM_a, MOBIL_bThr etc
+
+Model:
+
+The standard model is not the IDM but the ACC model (book Chap. 12.5). If you want to use the original IDM, you can change all creations of models (they are created and changed at hundreds of places) by globally replacing "new ACC" by "new IDM" in all files except from model.js. This is possible since both models have the same interface and use the same parameters (also the ACC model uses IDM_a etc).
+On the bash shell, you can do this with
+
+perl -i -p -e 's/new ACC/new IDM/g' `find . -maxdepth 1 -type f -name "*.js" ! -name "*model*"`
+
+and back with
+
+perl -i -p -e 's/new IDM/new ACC/g' `find . -maxdepth 1 -type f -name "*.js" ! -name "*model*"`
+
+Management of carious random elements:
+
+There are following categories of random elements in this simulator:
+
+// (1) acceleration noise in model.js: let QnoiseAccel=...;
+// (2) Inter-driver heterogeneity of veh classes (let driver_varcoeff=..)
+// (3) realize discrete fraction settings (car/truck diversion/main,...)
+// (4) essentially unique filenames (only debug) and possibly vehicle IDs
+
+You can force a reproducible behaviour (may be useful for some investigations by setting in control_gui.js
+
+let useRandomSeed=false; // global default setting (true=deterministic)
+
+The strength of the acceleration and inter-driver noise can be set in control_gui.js as well:
+
+let QnoiseAccel=0.1; //[m^2/s^3] standard 0.05 m^2/s^3
+let driver_varcoeff=0.15;  // variation of v0 and T within one vehicle type
+
+
+Creating trajectories and leader-follower pairs;
+
+The trajectories and  virtual stationary detector data can be either created interactively by pressing the green start/end download button at the bottom, or calling "downloadCallback()" programmatically time- or event-driven as demonstrated in the "*MA.js" files, e.g., uphillMA.js
+
+You get several files with self-describing names and titled columns in your download folder (after allowing the download one or two times).
+Again, you control the sampling time in control_gui.js, presently, the setting is
+
+
+let dt_traj=0.2;          // every dt_traj seconds stored in exportString
+let dt_SDD=20;            // aggregation time interval for stationary det.
+
+For creating leader-follower pairs out of the trajectory files, you can use the bash script extractLeaderFollower.sh which is now also in my git repo (first call it without parameters to see the syntax)
+
+Going from interactively to programmatically driven events
+
+Sometimes, you wand to change sliders (such as the inflow Qin) time- or event-driven, or position traffic lights on the network and set their state programmatically. How to do this is explained in the *.MA.js files (which I have prepared for master theses)
