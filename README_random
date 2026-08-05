@@ -1,0 +1,26 @@
+Setup in control_gui.js
+
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) override the following default setting 
+
+let useRandomSeed=false; // global default setting (true=deterministic)
+
+// Categories of random elements in this simulator:
+
+// (1) acceleration noise in model.js: let QnoiseAccel=...;
+// (2) Inter-driver heterogeneity of veh classes (let driver_varcoeff=..)
+// (3) realize discrete fraction settings (car/truck diversion/main,...)
+// (4) essentially unique filenames (only debug) and possibly vehicle IDs
+
+
+// random speed contributions dt*sqrt(QnoiseAccel/dt)*(r-0.5), r ~ U(0,1)
+
+let QnoiseAccel=0.1; //[m^2/s^3] standard 0.05 m^2/s^3
+
+// inter-driver variation
+
+let driver_varcoeff=0.15;  // variation of v0 and T within one vehicle type
+
+

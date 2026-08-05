@@ -1,0 +1,20 @@
+Setup in control_gui.js:
+
+//################################################################
+// Start/Finish Download button callback and performDownload
+// see also ~/versionedProjects/demo_js/writeFileDemo.html, .js
+// * after calling downloadCallback first,
+//   everything stored in road.exportString, stationaryDetector.exportString
+//   during the following simulation
+// * during the simulation, road.updateExportString() is called for all links
+// * after calling downloadCallback a second time,
+//   the strings are written to files
+//#################################################################
+let downloadActive=false; // initialisation
+let dt_traj=0.2;          // every dt_traj seconds stored in exportString
+let dt_SDD=20;            // aggregation time interval for stationary det.
+
+=> Simulate using the blue start/finish download button
+   -> traj file road<r>_tstart<seconds>_tend<seconds>.txt
+=> extractLeaderFollower.sh <followerID> <trajFile> > outfile
+
