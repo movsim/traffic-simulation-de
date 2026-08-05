@@ -46,16 +46,13 @@ or needed initial definitions and can be left as is.)
 // longitudinal models
 //#################################
 
-// white acceleration noise to avoid artifacts.
-// sqrt(QnoiseAccel/dt) = random accel noise in each step
+// info on noise:
 
-var QnoiseAccel=0.05; //[m^2/s^3]
+// (1) white acc noise to avoid artifacts => QnoiseAccel def in control_gui.js
+// (2) inter-driver variation => driver_varcoeff def in control_gui.js
+// driver_varcoeff => road.setDriverVariation(driver_varcoeff)
+//                 => ACC.driverfactor or IDM.driverfactor
 
-// note: correlated noise by inter-driver variation directly in model
-// ACC.driverfactor or IDM.driverfactor
-// inherited from this.veh[i].driverfactor in road.js
-// which is calculated from top-level driver_varcoeff
-// via road.setDriverVariation(driver_varcoeff)
 
 
 /**
@@ -87,6 +84,8 @@ deep copy: longModel2=new IDM(); longModel2.copy(longModel)
 function IDM(v0,T,s0,a,b){ 
 
   
+  // white acc noise to avoid artifacts (QnoiseAccel in control_gui.js)
+
   this.QnoiseAccel=QnoiseAccel; //m^2/s^3
 
   this.driverfactor=1; // if no transfer of driver individuality from master veh
@@ -119,6 +118,8 @@ usage: IDM2=new IDM(); IDM2.copy(IDM1);
 */
 
 IDM.prototype.copy=function(longModel){
+
+  // white acc noise to avoid artifacts (QnoiseAccel in control_gui.js)
   this.QnoiseAccel=longModel.QnoiseAccel;
   
   this.v0=longModel.v0;  // driverfactor not copied; from master vehicle
@@ -245,9 +246,7 @@ function myTanh(x){
 
 function ACC(v0,T,s0,a,b){
 
-  // white acceleration noise to avoid artifacts.
-  // sqrt(QnoiseAccel/dt) = random accel noise in each step
-  // for uncorrelated random effects
+  // white acc noise to avoid artifacts (QnoiseAccel in control_gui.js)
 
   this.QnoiseAccel=QnoiseAccel; //m^2/s^3
   this.driverfactor=1; // if no transfer of driver individuality from master veh
@@ -459,8 +458,11 @@ ACC.prototype.calcAccGiveWay=function(sYield, sPrio, v, vPrio, accOld){
 //###################################################################
 
 function CACC(v0, T, s0, a, b, delta, alpha) {
+
+  // white acc noise to avoid artifacts (QnoiseAccel in control_gui.js)
   this.QnoiseAccel = QnoiseAccel; // m^2/s^3
-  this.driverfactor = 1; // if no transfer of driver individuality from master veh
+
+  this.driverfactor = 1; // default no inter-driver heterogeneity
   this.v0 = v0;
   this.T = T;
   this.s0 = s0;

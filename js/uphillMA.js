@@ -24,10 +24,11 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
+//(2) override default of control_gui.js by setting useRandomSeed=true;
 //####################################################################
 
-useRandomSeed=false;  // defined in control_gui.js; if true deterministic
+useRandomSeed=true;  // override default in control_gui.js (true=determ)
+
 
 
 //#############################################################
@@ -168,7 +169,7 @@ toggleTruckOvertakingBan();
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 

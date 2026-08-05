@@ -26,7 +26,7 @@ var crashinfo=new CrashInfo(); // need to include debug.js in html
 //#############################################################
 
 QnoiseAccel=0;            //[m^2/s^3] override default setting at models.js
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 
@@ -224,8 +224,8 @@ road0.veh.unshift(virtualStandingVeh); //!!!!
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
-detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
+detectors[0]=new stationaryDetector(road0,0.30*road0Len,dt_SDD);
+detectors[1]=new stationaryDetector(road1,0.80*road1Len,dt_SDD);
 
 //</NETWORK>
 

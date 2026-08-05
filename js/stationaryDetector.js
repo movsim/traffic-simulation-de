@@ -12,6 +12,7 @@ microscopic output also gives the lane index of the passage event
 @param road:          the road segement at which the detector is positioned
 @param u:             the logical longitudinal coordinate [m] of the detector
 @param dtAggr:        aggregation time [s] of the macroscopic output
+                      (typically, top-level var dt_SDD passed)
 */
 
 function stationaryDetector(road,u,dtAggr){

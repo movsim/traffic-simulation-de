@@ -213,9 +213,9 @@ ramp.veh.unshift(virtualStandingVeh);
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,30);
-detectors[1]=new stationaryDetector(mainroad,0.58*mainroadLen,30);
-detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,30);
+detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.58*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,dt_SDD);
 
 
 //#########################################################

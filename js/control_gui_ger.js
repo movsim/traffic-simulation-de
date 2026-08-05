@@ -1,3 +1,35 @@
+
+//################################################################
+// Noise and random management
+//#################################################################
+
+
+
+// Creating reproducible versions for debugging purposes:
+//(1) include <script src="js/seedrandom.min.js"></script> in html file
+//    (from https://github.com/davidbau/seedrandom, copied locally)
+//(2) override the following default setting 
+
+let useRandomSeed=false; // global default setting (true=deterministic)
+
+// Categories of random elements in this simulator:
+
+// (1) acceleration noise in model.js: let QnoiseAccel=...;
+// (2) Inter-driver heterogeneity of veh classes (let driver_varcoeff=..)
+// (3) realize discrete fraction settings (car/truck diversion/main,...)
+// (4) essentially unique filenames (only debug) and possibly vehicle IDs
+
+
+// random speed contributions dt*sqrt(QnoiseAccel/dt)*(r-0.5), r ~ U(0,1)
+
+let QnoiseAccel=0.1; //[m^2/s^3] standard 0.05 m^2/s^3
+
+// inter-driver variation
+
+let driver_varcoeff=0.15;  // variation of v0 and T within one vehicle type
+
+
+
 //#############################################
 // common GUI callbacks for the general control (buttons and sliders);
 // actual start of sim thread in the main
@@ -8,18 +40,10 @@
 // general helper function 
 // (control_gui.js is one of the first js to be called)
 
-// general global settings such as useRandomSeed
-// (control_gui.js is always loaded)
-
-// Creating reproducible versions for debugging purposes:
-//(1) include <script src="js/seedrandom.min.js"></script> in html file
-//    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
-
-var useRandomSeed=true;
-
 function formd(x){return parseFloat(x).toFixed(2);}
 function formd0(x){return parseFloat(x).toFixed(0);}
+
+
 
 //################################################################
 // Solve strange error messages "xPixUser not defined"
@@ -1108,10 +1132,17 @@ function updateModelsUphill(){
 //################################################################
 // Start/Finish Download button callback and performDownload
 // see also ~/versionedProjects/demo_js/writeFileDemo_ger.html, .js
+// * after calling downloadCallback first,
+//   everything stored in road.exportString, stationaryDetector.exportString
+//   during the following simulation
+// * after calling downloadCallback a second time,
+//   the strings are written to files
 //#################################################################
 
-var downloadActive=false; // initialisation
-var dt_export=1;          // every dt_export seconds stored in exportString
+let downloadActive=false; // initialisation
+let dt_traj=0.2;          // every dt_traj seconds stored in exportString
+let dt_SDD=20;            // aggregation time interval for stationary det.
+let download_tstart=0;
 
 function downloadCallback(){
   if(downloadActive){
@@ -1121,6 +1152,7 @@ function downloadCallback(){
   }
   
   else{ // title/header lines
+    download_tstart=time.toFixed(0);
     for(var i=0; i<network.length; i++){
       network[i].exportString
         ="#time\tid\tx[m]\ty[m]\t\lane\tspeed[m/s]\theading\tacc[m/s^2]";
@@ -1145,7 +1177,8 @@ function downloadCallback(){
 function performDownload(){// callback of download finish button
   var msg="";
   for(var i=0; i<network.length; i++){
-    var filename="road"+network[i].roadID+"_time"+time.toFixed(1)+".txt";
+    var filename="road"+network[i].roadID
+      +"_tstart"+download_tstart+"_tend"+time.toFixed(0)+".txt";
     msg=msg+filename+" ";
     network[i].writeVehiclesSimpleToFile(filename);
   }
@@ -1153,7 +1186,8 @@ function performDownload(){// callback of download finish button
     for (var iDet=0; iDet<detectors.length; iDet++){
       var filename="Detector"+iDet
         +"_road"+detectors[iDet].road.roadID
-        +"_x"+detectors[iDet].u.toFixed(0)+"_time"+time.toFixed(0)+".txt";
+        +"_x"+detectors[iDet].u.toFixed(0)
+	+"_tstart"+download_tstart+"_tend"+time.toFixed(0)+".txt";
       msg=msg+filename+" ";
       detectors[iDet].writeToFile(filename);
     }

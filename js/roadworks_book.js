@@ -44,7 +44,7 @@ drawVehIDs=false;  // override control_gui.js;
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
 
 factor_T_truck=1.0;  // originally defined in control_gui.js
@@ -116,7 +116,7 @@ fracTruck=0.25;
 
 // small in this scenario to not destroy synchronize effect
 
-var driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 
@@ -282,8 +282,8 @@ mainroad.updateEnvironment();
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-detectors[1]=new stationaryDetector(mainroad,0.80*mainroadLen,30);
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.80*mainroadLen,dt_SDD);
 
 
 //#########################################################

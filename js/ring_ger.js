@@ -49,10 +49,10 @@ var crashinfo=new CrashInfo(); // need to include debug.js in html
 
 
 //#############################################################
-// stochasticity settings (acceleration noise spec at top of models.js)
+// stochasticity settings (acceleration noise spec in control_gui.js)
 //#############################################################
 
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
+// driver_varcoeff=0.15;  //override control_gui.js def 
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 
@@ -188,7 +188,7 @@ speedInit=20; // IC for speed
 var mainroad=new road(roadID,mainroadLen,laneWidth,nLanes_main,trajIn,
 		      density,speedInit,fracTruck,isRing);
 
-mainroad.setDriverVariation(driver_varcoeff); //!!!
+mainroad.setDriverVariation(driver_varcoeff); 
 
 network[0]=mainroad;  // network declared in canvas_gui.js
 network[0].drawVehIDs=drawVehIDs;
@@ -199,7 +199,7 @@ network[0].drawVehIDs=drawVehIDs;
 var detectors=[];
 for(var idet=0; idet<4; idet++){
   detectors[idet]=new stationaryDetector(mainroad,
-					  (0.125+idet*0.25)*mainroadLen,10);
+					  (0.125+idet*0.25)*mainroadLen,dt_SDD);
 }
 
 

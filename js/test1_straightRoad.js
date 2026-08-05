@@ -179,8 +179,8 @@ for(var ir=0; ir<network.length; ir++){
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-detectors[0]=new stationaryDetector(road0,0.30*road0Len,10);
-detectors[1]=new stationaryDetector(road1,0.80*road1Len,10);
+detectors[0]=new stationaryDetector(road0,0.30*road0Len,dt_SDD);
+detectors[1]=new stationaryDetector(road1,0.80*road1Len,dt_SDD);
 
 //</NETWORK>
 

@@ -25,7 +25,7 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
+//(2) override default of control_gui.js by setting useRandomSeed=true; 
 //####################################################################
 
  
@@ -62,10 +62,8 @@ var crashinfo=new CrashInfo(); // need to include debug.js in html
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-QnoiseAccel=0.05;         //[m^2/s^3] override default setting at models.js
-var driver_varcoeff=0.15; //v0 and a coeff of variation (of "agility")
-                          // need later override road setting by
-                          // calling road.setDriverVariation(.); 
+//QnoiseAccel=0.05;         // override default setting at control_gui.js
+//driver_varcoeff=0.15; // override default setting at control_gui.js
 
 
 //#############################################################
@@ -385,9 +383,9 @@ ramp.veh.unshift(virtualStandingVeh);
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,10);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,10);
+detectors[0]=new stationaryDetector(mainroad,0.10*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.90*mainroadLen,dt_SDD);
 
 //</NETWORK>
 

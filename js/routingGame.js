@@ -24,13 +24,12 @@ Source code for the interactive Javascript simulation at traffic-simulation.de
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
+//(2) override default of control_gui.js by setting useRandomSeed=true;
 //####################################################################
 
 
 
-
-var useRandomSeed=true; // defined in control_gui.js
+useRandomSeed=false; // override default in control_gui.js (true=determ)
 const userCanDropObjects=false;
 var scenarioString="RoutingGame";
 console.log("\n\nstart main: scenarioString=",scenarioString);
@@ -73,7 +72,7 @@ function playRoutingGame(infotextID){ // e.g.,  playRoutingGame("infotext");
   nick = prompt("Please enter your nick", nick);
   var debugCrash=false;
   if(debugCrash){
-    time=1000*Math.random(); // gets score in finish...
+    time=1000*Math.random(); // gets score in finishRoutingGame
     finishRoutingGame("infotextRoutingGame");
   }
 }

@@ -8,7 +8,7 @@ nLanesMax=4;
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.01; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
 
 //#############################################################
@@ -231,9 +231,9 @@ mainroad.updateEnvironment();
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,10);
-detectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,10);
-detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,10);
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.50*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,dt_SDD);
 
 
 //#########################################################

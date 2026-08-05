@@ -45,8 +45,7 @@ drawVehIDs=false;  // override control_gui.js;
 
 // useRandomSeed defined in control_gui.js; set it =false for random output
 
-useRandomSeed=false; 
-
+useRandomSeed=true; // override default in control_gui.js (true=determ)
 
 // test if at least one regular vehicle in the array veh[]
 // has a speed below some critical speed
@@ -70,7 +69,7 @@ function detectJam(veh){
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
 
-var driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
                           // need later call road.setDriverVariation(.); 
 
 factor_T_truck=1.0;  // originally defined in control_gui.js
@@ -140,7 +139,7 @@ fracTruck=0.25;
 
 // small in this scenario to not destroy synchronize effect
 
-var driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
+driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
                           // need later override road setting by
                           // calling road.setDriverVariation(.); 
 
@@ -305,9 +304,9 @@ mainroad.updateEnvironment();
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,dt_SDD);
 
 
 //#########################################################

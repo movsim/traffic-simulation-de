@@ -29,6 +29,7 @@ var showCoords=true;  // show logical coords of nearest road to mouse pointer
                       // definition => showLogicalCoords(.) in canvas_gui.js
                       // application: here at drawSim (7):  
 
+
 //#############################################################
 // general debug settings (set=false for public deployment)
 //#############################################################
@@ -43,9 +44,6 @@ drawVehIDs=false;  // override control_gui.js;
 //#############################################################
 // stochasticity settings (acceleration noise spec at top of models.js)
 //#############################################################
-
-var driver_varcoeff=0.004; //!!! v0 and a coeff of variation (of "agility")
-                          // need later call road.setDriverVariation(.); 
 
 factor_T_truck=1.0;  // originally defined in control_gui.js
 factor_a_truck=1.0;  // originally defined in control_gui.js
@@ -112,11 +110,12 @@ const qInRegular=1850/3600; //1850
 const qInSmartphone=1910/3600;
 fracTruck=0.25;
 
+
+// v0 and a coeff of variation
 // small in this scenario to not destroy synchronize effect
 
-var driver_varcoeff=0.0; //v0 and a coeff of variation (of "agility")
-                          // need later override road setting by
-                          // calling road.setDriverVariation(.); 
+driver_varcoeff=0.004; // override from control_gui.js
+                       // need later call road.setDriverVariation(.); 
 
 MOBIL_mandat_bSafe=18;
 MOBIL_mandat_bThr=0.5;   // >0
@@ -279,9 +278,9 @@ mainroad.updateEnvironment();
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,30);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,30);
-detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,30);
+detectors[0]=new stationaryDetector(mainroad,0.25*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.75*mainroadLen,dt_SDD);
 
 
 //#########################################################

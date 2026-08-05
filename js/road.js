@@ -1,12 +1,5 @@
 
 
-//####################################################################
-// Creating reproducible versions for debugging purposes:
-//(1) include <script src="js/seedrandom.min.js"></script> in html file
-//    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
-//####################################################################
-
 
 //#############################################################
 // road segment (link) incl physical vehicle dynamics
@@ -82,7 +75,7 @@ function road(roadID,roadLen,laneWidth,nLanes,trajIn,
 
   // driver v0 and a coeff of variation ("agility")
 
-  this.driver_varcoeff=0.15; //!!! default; can be overridden
+  this.driver_varcoeff=driver_varcoeff; // initialisation from top-level var
   
   // network related properties
 
@@ -242,7 +235,10 @@ road.prototype.getAttributes=function(fracTruck, fracOthers){
 
 //######################################################################
 // reset driver agility variation from default;
-// need also to draw new realisations for all the regular vehicles
+// only needed if default driver_varcoeff in control_gui.js
+// is overridden since vehicles are already
+// constructed with individual driverfactors
+// but cannot harm to do it twice at initialisation, is cheap a
 //######################################################################
 
 road.prototype.setDriverVariation=function(driver_varcoeff){
@@ -457,9 +453,9 @@ road.prototype.writeVehiclesSimpleToFile=function(filename) {
 
 road.prototype.updateExportString=function(){
 
-  var rest=time/dt_export-Math.floor((time+0.0001)/dt_export);
-  console.log("road.updateExportString: time=",time.toFixed(2)," time/dt_export=",(time/dt_export).toFixed(2)," rest=",rest.toFixed(2)," dt=",dt.toFixed(2));
-  if(rest<dt/dt_export-0.0001){
+  var rest=time/dt_traj-Math.floor((time+0.0001)/dt_traj);
+  console.log("road.updateExportString: time=",time.toFixed(2)," time/dt_traj=",(time/dt_traj).toFixed(2)," rest=",rest.toFixed(2)," dt=",dt.toFixed(2));
+  if(rest<dt/dt_traj-0.0001){
     console.log("   adding!");
     for(var i=0; i<this.veh.length; i++){
       var heading=(this.veh[i].speed>1e-4)
@@ -4616,8 +4612,8 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
   // in roundabout)
 
 
-  if(this.roadID==1){
-    //if(false){
+  //if(this.roadID==1){
+  if(false){
     console.log("road.drawVehicles: this.roadID=",this.roadID," this.veh.length=",this.veh.length);
   }
 
@@ -4688,7 +4684,7 @@ road.prototype.drawVehicles=function(carImg, truckImg, obstacleImg,
 road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg, 
 				    speedmin,speedmax,traj,
 				    xOffset,yOffset,upright){
-  if(this.roadID==1){console.log("in road.drawVehicle: this.roadID=",this.roadID);}
+  //if(this.roadID==1){console.log("in road.drawVehicle: this.roadID=",this.roadID);}
   var drawID=(typeof(displayIDs)==='undefined') ? false : displayIDs; 
   var phiVehRelMax=0.3;          // !! avoid vehicles turning too much
   var vehSizeShrinkFactor=0.85;  // to avoid overlapping in inner curves
@@ -4746,7 +4742,7 @@ road.prototype.drawVehicle=function(i,carImg, truckImg, obstacleImg,
     var cphiVeh=Math.cos(phiVeh);
     var sphiVeh=Math.sin(phiVeh);
   //if((this.roadID==1)&&(this.veh[i].id==216)){
-  if((this.roadID==1)){
+  if((false)){
     console.log("uCenterPhys=",uCenterPhys,
 		" vCenterPhys=",vCenterPhys,
 		" phiRoad=",phiRoad);

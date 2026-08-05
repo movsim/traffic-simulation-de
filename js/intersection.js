@@ -542,8 +542,8 @@ defineConflicts(nLanes_main,nLanes_sec,trafficRuleIndex);
 
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-//detectors[0]=new stationaryDetector(road0,0.20*road0Len,10);
-//detectors[1]=new stationaryDetector(road0,0.80*road0Len,10);
+//detectors[0]=new stationaryDetector(road0,0.20*road0Len,dt_SDD);
+//detectors[1]=new stationaryDetector(road0,0.80*road0Len,dt_SDD);
 
 
 

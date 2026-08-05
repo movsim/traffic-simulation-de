@@ -12,7 +12,8 @@
 // need to introduce here instead of model because models often overridden
 // during sim (v0 changes from outside, speed limits,...)
 
-// (driver_varcoeff optional parameter)
+// (driver_varcoeff optional parameter;
+//  default: global value from control_gui.js taken)
 
 var ivehCount=0;
 
@@ -82,8 +83,8 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
   this.longModel=new IDM(20,1.3,2,1,2);//IDM_v0,IDM_T,IDM_s0,IDM_a,IDM_b);
   this.LCModel=new MOBIL(4,20,0.1,0.2,0.3); //bSafe, bSafeMax, p, bThr, biasRight)
 
-  this.driver_varcoeff=(!(typeof driver_varcoeff === 'undefined')) ? driver_varcoeff : 0;
-  this.driverfactor=1+Math.sqrt(12)*this.driver_varcoeff*(Math.random()-0.5);
+  this.driverfactor=(this.type==="obstacle") ? 1
+    : 1+Math.sqrt(12)*driver_varcoeff*(Math.random()-0.5); 
   //console.log("vehicle cstr: id=",this.id," driverfactor=",this.driverfactor);
 }
 
@@ -92,8 +93,7 @@ function vehicle(length, width, u, lane, speed, type, driver_varcoeff){
 //######################################################################
 
 vehicle.prototype.setDriverVariation=function(driver_varcoeff){
-  this.driver_varcoeff=driver_varcoeff
-  this.driverfactor=1+Math.sqrt(12)*this.driver_varcoeff*(Math.random()-0.5);
+  this.driverfactor=1+Math.sqrt(12)*driver_varcoeff*(Math.random()-0.5);
   //console.log("vehicle.setDriverVariation: this.driverfactor=",this.driverfactor);
 }
 

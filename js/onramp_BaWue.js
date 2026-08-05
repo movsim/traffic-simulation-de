@@ -3,7 +3,7 @@
 // Creating reproducible versions for debugging purposes:
 //(1) include <script src="js/seedrandom.min.js"></script> in html file
 //    (from https://github.com/davidbau/seedrandom, copied locally)
-//(2) set useRandomSeed=true; in control_gui.js
+//(2) override default of control_gui.js by setting useRandomSeed=true;
 //####################################################################
 
 
@@ -383,9 +383,9 @@ ramp.veh.unshift(virtualStandingVeh);
 
 
 var detectors=[];
-detectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,10);
-detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,10);
-detectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,10);
+detectors[0]=new stationaryDetector(mainroad,0.05*mainroadLen,dt_SDD);
+detectors[1]=new stationaryDetector(mainroad,0.60*mainroadLen,dt_SDD);
+detectors[2]=new stationaryDetector(mainroad,0.95*mainroadLen,dt_SDD);
 
 
 //#########################################################

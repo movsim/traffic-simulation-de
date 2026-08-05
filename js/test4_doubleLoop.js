@@ -37,7 +37,7 @@ QnoiseAccel=0;
 // desired speed v0 and acceleration a ("agility")
 // need later override road setting by calling road.setDriverVariation(.); 
 
-var driver_varcoeff=0.20;
+driver_varcoeff=0.20;
 
 
 
@@ -306,7 +306,7 @@ network[0].initConnect([network[1]],[0.25*roadLen[0]],[0], [0]);
 network[1].initConnect([network[0]],[roadLen[1]-lenMerge],[0], [0]);
 
 var detectors=[]; // stationaryDetector(road,uRel,integrInterval_s)
-//detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,10);
+//detectors[0]=new stationaryDetector(network[0], 0.40*network[0].roadLen,dt_SDD);
 
 
 //</NETWORK>
