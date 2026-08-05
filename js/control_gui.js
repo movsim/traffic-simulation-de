@@ -1135,6 +1135,7 @@ function updateModelsUphill(){
 // * after calling downloadCallback first,
 //   everything stored in road.exportString, stationaryDetector.exportString
 //   during the following simulation
+// * during the simulation, road.updateExportString() is called for all links
 // * after calling downloadCallback a second time,
 //   the strings are written to files
 //#################################################################
@@ -1155,7 +1156,8 @@ function downloadCallback(){
     download_tstart=time.toFixed(0);
     for(var i=0; i<network.length; i++){
       network[i].exportString
-        ="#time\tid\tx[m]\ty[m]\t\lane\tspeed[m/s]\theading\tacc[m/s^2]";
+        ="#time\tid\tx[m]\ty[m]\t\lane\tv[m/s]\theading\tacc[SI]\tidLead\tgap[m]\tvl[m/s]";
+      console.log("network[i].exportString=",network[i].exportString);
     }
 
     if(typeof detectors!=="undefined"){
