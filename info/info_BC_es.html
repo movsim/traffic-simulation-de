@@ -1,0 +1,8 @@
+<h1>Condiciones de frontera</h1>
+<p>Las condiciones de frontera determinan cómo entran y salen los vehículos de la zona simulada. Esta guía resume los conceptos generales.</p>
+<h2>Carreteras abiertas</h2>
+<p>En el escenario de incorporación hay entradas independientes para la vía principal y la rampa. Los controles de flujo expresan la demanda en vehículos por hora. Si no hay espacio suficiente para insertar un vehículo, el flujo efectivo puede ser menor que el solicitado.</p>
+<p>Los vehículos que llegan al final de una carretera sin conexión posterior abandonan la simulación. Cuando no tienen un vehículo delante, aceleran de acuerdo con su modelo de conducción y los límites aplicables.</p>
+<h2>Circuitos cerrados</h2>
+<p>En una carretera circular se usan condiciones periódicas: los vehículos vuelven al inicio tras completar una vuelta. El vehículo que parece estar primero sigue al último a través del cierre del circuito. En ese caso se controla la densidad de vehículos en lugar de un flujo de entrada externo.</p>
+<p><a href="https://traffic-simulation.de/info/info_BC.html" target="_blank" rel="noopener">Documentación original sobre condiciones de frontera (inglés)</a>.</p>

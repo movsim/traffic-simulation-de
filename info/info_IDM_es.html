@@ -1,0 +1,17 @@
+<h1>El modelo de conductor inteligente y sus variantes</h1>
+<p>El IDM (<em>Intelligent-Driver Model</em>) describe la aceleración y el frenado al seguir a otro vehículo. Esta simulación utiliza una variante, el modelo ACC. Esta es una guía resumida en español de la explicación técnica original.</p>
+<h2>Entradas y parámetros</h2>
+<p>La aceleración depende de la velocidad propia <i>v</i>, la distancia libre al vehículo precedente <i>s</i> y la diferencia de velocidades Δv = v − v<sub>precedente</sub>. Una diferencia positiva significa que nos acercamos.</p>
+<ul>
+  <li><strong>v<sub>0</sub>, velocidad deseada:</strong> velocidad a la que se intenta circular en una vía libre.</li>
+  <li><strong>T, intervalo de seguridad:</strong> separación temporal deseada al seguir a otro vehículo.</li>
+  <li><strong>s<sub>0</sub>, distancia mínima:</strong> separación que se mantiene al detenerse.</li>
+  <li><strong>a, aceleración máxima:</strong> capacidad de acelerar en una vía libre.</li>
+  <li><strong>b, desaceleración cómoda:</strong> intensidad de frenado que se busca en condiciones normales.</li>
+</ul>
+<h2>Ecuaciones del IDM</h2>
+<p>dv/dt = a [1 − (v/v<sub>0</sub>)<sup>4</sup> − (s*/s)<sup>2</sup>]</p>
+<p>s* = s<sub>0</sub> + max(0, vT + vΔv / (2√(ab)))</p>
+<p>El primer término impulsa al vehículo hacia su velocidad deseada; el segundo lo frena al acercarse demasiado al vehículo precedente. La distancia deseada aumenta al aproximarse a un vehículo más lento.</p>
+<p>Los camiones y los autos pueden tener parámetros distintos. Los semáforos rojos se pueden representar mediante obstáculos virtuales detenidos; los límites de velocidad reducen la velocidad deseada. Las decisiones de cambio de carril se describen con MOBIL.</p>
+<p><a href="https://traffic-simulation.de/info/info_IDM.html" target="_blank" rel="noopener">Explicación completa, tablas y referencias (inglés)</a>.</p>

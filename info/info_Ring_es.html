@@ -1,0 +1,14 @@
+<h1>Circuito circular y congestiones fantasma</h1>
+<p>Este escenario representa un sistema cerrado de varios carriles. Los autos son pequeños y están coloreados según su velocidad; los camiones son más grandes y oscuros. Sus parámetros de conducción son distintos. En la configuración descrita por la ayuda original se permiten adelantamientos por ambos lados.</p>
+<p>El principal control es la densidad media de vehículos por kilómetro y carril. Al aumentarla se insertan vehículos donde hay espacio; al reducirla se retiran vehículos. Los intervalos siguientes son orientativos y varían con el número y la distribución de camiones:</p>
+<ul>
+<li>Menos de 8 veh/km/carril: tránsito generalmente libre.</li>
+<li>Entre 8 y 15: aparecen con más frecuencia filas detrás de los camiones.</li>
+<li>Entre 15 y 25: circulación densa, todavía sin congestión marcada.</li>
+<li>Entre 25 y 55: pequeñas perturbaciones pueden crecer hasta formar una o varias congestiones «fantasma», sin un obstáculo fijo.</li>
+<li>Por encima de 50: pueden alternarse zonas detenidas y zonas de circulación lenta.</li>
+</ul>
+<h2>Cómo crece una perturbación</h2>
+<p>Cuando un vehículo frena, el siguiente debe frenar para mantener la separación. Si esta disminuye demasiado, debe frenar aún más para recuperarla. La perturbación puede amplificarse hacia atrás. A la vez, la tendencia a recuperar una velocidad de equilibrio estabiliza el flujo; cuando este efecto domina, la perturbación desaparece.</p>
+<h2>Ondas de congestión</h2>
+<p>Las ondas de frenado y arranque se propagan en sentido contrario a la circulación. La documentación original describe velocidades de propagación cercanas a 15 km/h y flujos de salida parecidos para distintos frentes de congestión bajo condiciones externas equivalentes.</p>

@@ -1,0 +1,11 @@
+<h1>Simulación de una incorporación</h1>
+<p>Una incorporación actúa como un cuello de botella fijo: puede producir congestión en la vía principal <em>antes</em> de la entrada, mientras el tránsito permanece <em>fluido</em> después de ella.</p>
+<p>Con la configuración inicial, la zona de incorporación genera ondas de frenado y aceleración que se propagan en sentido contrario al tránsito. Otros cuellos de botella pueden producir el mismo efecto: arrastra un obstáculo a la carretera para observarlo.</p>
+<p>Prueba a variar los flujos de la vía principal y de la incorporación:</p>
+<ul>
+  <li>Con un flujo principal de 2000 veh/h, el tránsito puede mantenerse fluido hasta unos 20 minutos antes de congestionarse, según las condiciones de la simulación.</li>
+  <li>Con 1600 veh/h, puede no formarse una congestión nueva, pero una existente puede persistir. Esta <em>histéresis</em> explica el interés de prevenir la congestión mediante medidas de control.</li>
+  <li>Prueba 800 veh/h en la incorporación y 1600 veh/h en la vía principal: puede aparecer una congestión localizada en la entrada. Con flujos mayores, la región congestionada puede extenderse hacia atrás.</li>
+  <li>Modifica el factor de cortesía y el umbral de cambio de carril para explorar cómo cambia el comportamiento de los vehículos.</li>
+</ul>
+<p>Estos experimentos proceden de la ayuda original; sus resultados dependen de los demás parámetros y de las variaciones aleatorias.</p>
