@@ -4,7 +4,7 @@
 //#################################################################
 
 function myRedirectRing(){
-    window.location.href = "./ring.html";
+    window.location.href = "./ring_es.html";
 }
 
 function myRedirectOnramp(){
@@ -12,35 +12,35 @@ function myRedirectOnramp(){
 }
 
 function myRedirectOfframp(){
-    window.location.href = "./offramp.html";
+    window.location.href = "./offramp_es.html";
 }
 
 function myRedirectRoadworks(){
-    window.location.href = "./roadworks.html";
+    window.location.href = "./roadworks_es.html";
 }
 
 function myRedirectUphill(){
-    window.location.href = "./uphill.html";
+    window.location.href = "./uphill_es.html";
 }
 
 function myRedirectRouting(){
-    window.location.href = "./routing.html";
+    window.location.href = "./routing_es.html";
 }
 
 function myRedirectRoundabout(){
-    window.location.href = "./roundabout.html";
+    window.location.href = "./roundabout_es.html";
 }
 
 function myRedirectIntersection(){
-    window.location.href = "./intersection.html";
+    window.location.href = "./intersection_es.html";
 }
 
 function myRedirectRoutingGame(){
-    window.location.href = "./routingGame.html";
+    window.location.href = "./routingGame_es.html";
 }
 
 function myRedirectRampMeteringGame(){
-    window.location.href = "./rampMeteringGame.html";
+    window.location.href = "./rampMeteringGame_es.html";
 }
 
 function myRedirectGridlock(){
@@ -48,9 +48,9 @@ function myRedirectGridlock(){
 }
 
 function myRedirectOnrampBaWue(){
-    window.location.href = "./onramp_BaWue_ger.html"; // only German
+    window.location.href = "./onramp_BaWue_es.html"; // only German
 }
 
 function myRedirectRoadworksBaWue(){
-    window.location.href = "./roadworks_BaWue_ger.html"; // only German
+    window.location.href = "./roadworks_BaWue_es.html"; // only German
 }

@@ -9,6 +9,9 @@ html[lang="es"] #sliders td:first-child { width: 44%; }
 html[lang="es"] #sliders td:nth-child(2) { width: 36%; }
 html[lang="es"] #sliders input[type=range] { width: 95%; }
 html[lang="es"] #infotext { width: auto; box-sizing: border-box; }
+html[lang="es"] canvas { max-width: 100%; box-sizing: border-box; }
+html[lang="es"] .spanish-game [id^="sliders"] table { width: 100%; table-layout: fixed; }
+html[lang="es"] .spanish-game [id^="sliders"] input { width: 90%; }
 @media (min-aspect-ratio: 6/5) {
   html[lang="es"] #contents { width: 70vw; }
   html[lang="es"] #sliders, html[lang="es"] #scenarios { left: 71vw; width: 28vw; }
@@ -24,4 +27,24 @@ html[lang="es"] #infotext { width: auto; box-sizing: border-box; }
 @media (max-aspect-ratio: 6/5) {
   html[lang="es"] #scenarios { left: 1vw; top: 82vmin; width: 98vw; }
   html[lang="es"] #sliders { left: 1vw; top: 128vmin; width: 98vw; }
+  html[lang="es"] #infotext { position: relative; top: 0; left: 0; width: 100%; }
+  html[lang="es"] #editTLdiv { left: 2vw; top: 13vmin; width: 45vw; }
+  html[lang="es"] .spanish-game #contents { width: 100vw; height: 60vw; }
+  html[lang="es"] .spanish-game button,
+  html[lang="es"] .spanish-game td { font-size: 13px; }
+  html[lang="es"] .spanish-game #infoFlags { top: 61vmin; left: 72vw; width: 26vw; font-size: 12px; }
+  html[lang="es"] .spanish-game #gameRoutingDiv,
+  html[lang="es"] .spanish-game #gameRampMeteringDiv { left: 2vw; top: 76vmin; width: 46vw; height: auto; }
+  html[lang="es"] .spanish-game #playlinksRoutingGame,
+  html[lang="es"] .spanish-game #playlinksRampMeteringGame { left: 51vw; top: 76vmin; width: 47vw; height: auto; }
+  html[lang="es"] .spanish-game #sliderMainRoutingGame { left: 2vw; top: 102vmin; width: 96vw; }
+  html[lang="es"] .spanish-game #sliderMainRoutingGame td { font-size: 14px; }
+  html[lang="es"] .spanish-game #sliderMainRoutingGame input { width: 55vw; }
+  html[lang="es"] .spanish-game #impressum { top: 61vmin; left: 2vw; width: 65vw; font-size: 11px; }
+  html[lang="es"] .spanish-game #slidersRoutingGame,
+  html[lang="es"] .spanish-game #slidersRampMeteringGame { left: 2vw; top: 124vmin; width: 96vw; height: auto; }
+  html[lang="es"] .spanish-game #infotextRoutingGame,
+  html[lang="es"] .spanish-game #infotextRampMeteringGame { left: 2vw; top: 158vmin; width: 96vw; height: auto; box-sizing: border-box; font-size: 14px; padding: 12px; }
+  html[lang="es"] .spanish-game #infotextRoutingGame h2,
+  html[lang="es"] .spanish-game #infotextRampMeteringGame h2 { font-size: 18px; }
 }

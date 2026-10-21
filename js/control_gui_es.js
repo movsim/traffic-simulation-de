@@ -63,11 +63,11 @@ var drawVehIDs=false;
 function toggleRoadID(){
   if(drawRoadIDs){
     drawRoadIDs=false;
-    document.getElementById("buttonRoadID").innerHTML="Show road IDs";
+    document.getElementById("buttonRoadID").innerHTML="Mostrar identificadores de vías";
   }
   else{
     drawRoadIDs=true;
-    document.getElementById("buttonRoadID").innerHTML="Do not show road IDs";
+    document.getElementById("buttonRoadID").innerHTML="Ocultar identificadores de vías";
   }
 }
 
@@ -76,12 +76,12 @@ function toggleVehID(){
     drawVehIDs=false;
     for(var ir=0; ir<network.length; ir++){network[ir].drawVehIDs=drawVehIDs;}
 
-    document.getElementById("buttonVehID").innerHTML="Show vehicle IDs";
+    document.getElementById("buttonVehID").innerHTML="Mostrar identificadores de vehículos";
   }
   else{
     drawVehIDs=true;
     for(var ir=0; ir<network.length; ir++){network[ir].drawVehIDs=drawVehIDs;}
-    document.getElementById("buttonVehID").innerHTML="Do not show vehicle IDs";
+    document.getElementById("buttonVehID").innerHTML="Ocultar identificadores de vehículos";
   }
 }
 
@@ -201,12 +201,12 @@ function showHideTLeditPanel(){
       ctx.drawImage(background,0,0,canvas.width,canvas.height);
     }
     document.getElementById("editTLbutton").innerHTML
-      ="Open traffic-light control panel";
+      ="Abrir control de semáforos";
   }
   else{ // open panel
     trafficLightControl.isActive=true;
     document.getElementById("editTLbutton").innerHTML
-      ="Close traffic-light control panel";
+      ="Cerrar control de semáforos";
   }
 }
 
@@ -340,12 +340,12 @@ function updateHighscores(nickName,newScore,storageName){
     localStorage[storageName] = JSON.stringify(scores);
 
 
-    var str_highScores="<h1> Game Finished!</h1> Your time is "
-        +newScore+" Seconds"
-        +"<h2>Highscore list:</h2>"
+    var str_highScores="<h1> ¡Partida terminada!</h1> Tu tiempo es "
+        +newScore+" segundos"
+        +"<h2>Mejores tiempos:</h2>"
         +"<table border=\"0\" cellspacing=\"1\" cellvisibilityExt=\"3\">"
-        //+"<tr><th> name</th><th>score [s]</th><th>time</th></tr>";
-        +"<tr><th>rank</th><th> name</th><th>score [s]</th></tr>";
+        //+"<tr><th>nombre</th><th>tiempo [s]</th><th>time</th></tr>";
+        +"<tr><th>puesto</th><th>nombre</th><th>tiempo [s]</th></tr>";
 
     //for(var i=0; i<scores.length; i++){
     for(var i=0; i<Math.min(scores.length,10); i++){
@@ -502,12 +502,12 @@ function toggleTruckOvertakingBan(){
   if(banIsActive){
         banIsActive=false;
         document.getElementById('overtakingBan').innerHTML
-            ="Enforce Truck Overtaking Ban";
+            ="Prohibir adelantamientos de camiones";
   }
   else{
         banIsActive=true;
         document.getElementById('overtakingBan').innerHTML
-            ="Lift Truck Overtaking Ban";
+            ="Permitir adelantamientos de camiones";
   }
   updateModelsUphill();
 

@@ -13,8 +13,8 @@
     </script>
 
 
-    <title>Microsimulación de tránsito: incorporación</title>
-    <link href="css/spanish.css" rel="stylesheet">
+    <title>Microsimulación de tránsito: Incorporación a la autopista</title>
+<link href="css/spanish.css" rel="stylesheet">
 </head>
 
 
@@ -32,7 +32,7 @@
 <!-- header: title image loaded as background image via css -->
 <!-- ############################################## -->
 
-<div id="header">Incorporación a la autopista
+<div id="header">
 <!--  <img class="title" src="figs/title.png"  width="100%"></img> -->
 </div>
 
@@ -64,7 +64,7 @@
 </div>
 
 <div id="gameDiv">
-  <button onclick='myRedirectRampMeteringGame()'>Juego de control de acceso (inglés)</button>
+  <button onclick='myRedirectRampMeteringGame()'>Jugar al control de acceso</button>
 </div>
 
 
@@ -77,23 +77,23 @@
 <div id="scenarios">
 <center>
  <br>
-<img width="17%" alt="Circuito circular (inglés)" title="Circuito circular (inglés)" src="figs/iconRing_small.jpg"
+<img width="17%" alt="Circuito circular" title="Circuito circular" src="figs/iconRing_small.jpg"
                  onclick="myRedirectRing()"></img>
 <img width="19%" alt="Incorporación a la autopista" title="Incorporación a la autopista" src="figs/iconOnrampFig_small.jpg"
                  onclick="myRedirectOnramp()"></img>
-<img width="19%" alt="Salida de autopista (inglés)" title="Salida de autopista (inglés)" src="figs/iconOfframpFig_small.jpg"
+<img width="19%" alt="Salida de autopista" title="Salida de autopista" src="figs/iconOfframpFig_small.jpg"
                  onclick="myRedirectOfframp()"></img>
-<img width="19%" alt="Obras (inglés)" title="Obras (inglés)" src="figs/iconRoadworksFig_small.jpg"
+<img width="19%" alt="Obras" title="Obras" src="figs/iconRoadworksFig_small.jpg"
                  onclick="myRedirectRoadworks()"></img>
-<img width="19%" alt="Pendiente (inglés)" title="Pendiente (inglés)" src="figs/iconUphillFig_small.jpg"
+<img width="19%" alt="Pendiente" title="Pendiente" src="figs/iconUphillFig_small.jpg"
                  onclick="myRedirectUphill()"></img>
-<img width="20%" alt="Rutas alternativas (inglés)" title="Rutas alternativas (inglés)" src="figs/iconRoutingFig_small.jpg"
+<img width="20%" alt="Rutas alternativas" title="Rutas alternativas" src="figs/iconRoutingFig_small.jpg"
                  onclick="myRedirectRouting()"></img>
-<img width="22%" alt="Rotonda (inglés)" title="Rotonda (inglés)" src="figs/iconRoundabout_small.jpg"
+<img width="22%" alt="Rotonda" title="Rotonda" src="figs/iconRoundabout_small.jpg"
                  onclick="myRedirectRoundabout()"></img>
-<img width="19%" alt="Intersección (inglés)" title="Intersección (inglés)" src="figs/iconIntersection_small.jpg"
+<img width="19%" alt="Intersección" title="Intersección" src="figs/iconIntersection_small.jpg"
                  onclick="myRedirectIntersection()"></img>
-<img width="20%" alt="Control de acceso (alemán)" title="Control de acceso (alemán)" src="figs/iconRampmeterFig_small.jpg"
+<img width="20%" alt="Control de acceso" title="Control de acceso" src="figs/iconRampmeterFig_small.jpg"
      onclick="myRedirectOnrampBaWue()"></img>
 <a href="test2_bottleneck.html">Pruebas (inglés)</a>
 
@@ -214,8 +214,8 @@
 <table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
 
 <tr>
-  <td>Velocidad deseada v<sub>0</sub></td>
-  <td> <input aria-label="Velocidad deseada" id="slider_IDM_v0" type="range"
+  <td><label for="slider_IDM_v0">Velocidad deseada v<sub>0</sub></label></td>
+  <td> <input id="slider_IDM_v0" type="range"
               min="20" max="160" step="1"></td>
   <td> <div id="slider_IDM_v0Val"></div> </td>
 </tr>
@@ -349,7 +349,7 @@
 <script src="js/control_gui_es.js"></script>
 <script src="js/canvas_gui_es.js"></script>
 <script src="js/TrafficObjects.js"></script>
-<script src="js/TrafficLightControlEditor.js"></script>
+<script src="js/TrafficLightControlEditor_es.js"></script>
 <script src="js/colormanip.js"></script>
 
 <script src="js/models.js"></script>
