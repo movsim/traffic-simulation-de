@@ -1,0 +1,11 @@
+<h1>Cambios de carril: modelo MOBIL</h1>
+<p>MOBIL evalúa un cambio de carril a partir de las aceleraciones previstas por el modelo de seguimiento. Esta guía resume los conceptos de la documentación original.</p>
+<h2>Seguridad e incentivo</h2>
+<ul>
+  <li><strong>Seguridad:</strong> el vehículo que quedaría detrás en el nuevo carril no debe verse obligado a frenar por encima del límite admitido por el modelo.</li>
+  <li><strong>Incentivo:</strong> la ventaja para quien cambia debe superar las desventajas ponderadas para otros vehículos y un umbral mínimo.</li>
+</ul>
+<p>El <strong>factor de cortesía p</strong> determina cuánto se consideran los efectos sobre otros conductores. Con p = 0, solo se considera la ventaja propia, pero se sigue respetando el criterio de seguridad. Valores positivos dan más peso a los demás.</p>
+<p>El <strong>umbral de cambio</strong> evita maniobras por ventajas insignificantes. Además, el simulador aplica tiempos de espera entre cambios para reducir las oscilaciones entre carriles.</p>
+<p>La <strong>preferencia por la derecha</strong> favorece ese carril, con valores independientes para autos y camiones. Las incorporaciones, salidas y cierres de carril también pueden introducir preferencias hacia el carril necesario.</p>
+<p><a href="https://traffic-simulation.de/info/info_MOBIL.html" target="_blank" rel="noopener">Ecuaciones, variantes y referencias completas (inglés)</a>.</p>

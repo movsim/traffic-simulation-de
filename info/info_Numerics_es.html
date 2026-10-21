@@ -1,0 +1,8 @@
+<h1>Integración numérica</h1>
+<p>Los modelos de seguimiento describen el movimiento mediante ecuaciones diferenciales. Para simularlo, el programa actualiza las velocidades y posiciones en intervalos de tiempo finitos Δt.</p>
+<p>Esta guía resume el método balístico descrito en la documentación original. Durante cada paso se supone constante la aceleración a calculada al principio:</p>
+<p>v(t + Δt) = v(t) + a(t) Δt</p>
+<p>x(t + Δt) = x(t) + v(t) Δt + ½ a(t) (Δt)<sup>2</sup></p>
+<p>La actualización de velocidad corresponde al método de Euler; la de posición incorpora el término de aceleración. Los cambios de carril y los semáforos introducen discontinuidades, por lo que los métodos de orden superior no siempre ofrecen una ventaja práctica.</p>
+<p>La velocidad de simulación modifica el tiempo simulado que avanza por segundo real. Valores muy altos también aumentan el paso temporal y pueden afectar la precisión.</p>
+<p><a href="https://traffic-simulation.de/info/info_Numerics.html" target="_blank" rel="noopener">Explicación original (inglés)</a> y <a href="https://arxiv.org/abs/1403.4881" target="_blank" rel="noopener">estudio de comparación de métodos de integración</a>.</p>
