@@ -1,4 +1,0 @@
-if mic W26_startStopCity; then echo "sim successful"; else echo "sim failed"; exit -1; fi
-W26_startStopCity.plot
-
-

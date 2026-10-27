@@ -1,3 +1,0 @@
-if mic IDM_freewayRamp; then echo "sim successful"; else echo "sim failed"; exit -1; fi
-IDM_freewayRamp.plot
-

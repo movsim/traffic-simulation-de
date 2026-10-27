@@ -1,7 +1,0 @@
-if mic W26_following;
-then echo "sim successful"; else echo "sim failed"; exit -1; fi
-W26_following.plot
-
-
-
-
