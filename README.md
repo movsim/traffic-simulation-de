@@ -430,42 +430,6 @@ In most cases, crossing or turning at intersections does not only involve lookin
 All this is done by the method `road.determineConflicts(..)`
 quite tricky, see the code.
 
-## Demo projects
-
-The directory 
-```
-demoProjects
-```
-contains some example projects.
-
-* Since each projects has exactly one `.proj` file, you can find them with the bash command
-```
-for f in `find . -name "*.proj"`; do echo "`dirname $f`/`basename $f .proj`"; done
-```
-
-* You can run the simulation on this project just by calling mic:
-```
-mic <projectName>
-```
-
-* If you also want some graphics produced with gnuplot and/or xfig, you can also call
-
-```
-<projectName>.run
-```
-However, this can only be done inside the directory containing the project 
-
-
-
-* Inside the respective directories, there may also be other gnuplot script files, e.g. `analytics_W26.gnu` in  `demoProjects/W26/` plotting the boundaries of the different traffic regimes and the acceleration function of the Wiedemann-like W-26 model
-
-
-* Examples:
-
-+ `mic demoProjects/IDM/IDM_startStopCity` performs the simulation in the target directory `mic demoProjects/IDM/`
-
-+ `cd demoProjects/IDM/; IDM_startStopCity.run` calls mic and then some gnuplot and/or xfig scripts to produce pdfs or eps files
-
 
 ## References
 
