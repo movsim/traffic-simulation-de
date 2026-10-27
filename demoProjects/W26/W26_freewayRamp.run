@@ -1,0 +1,3 @@
+if mic W26_freewayRamp; then echo "sim successful"; else echo "sim failed"; exit -1; fi
+W26_freewayRamp.plot
+

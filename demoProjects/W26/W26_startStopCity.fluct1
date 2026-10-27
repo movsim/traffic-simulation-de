@@ -1,0 +1,15 @@
+%###########################################
+% Additional parameters for microsimulation with
+% external fluctuations
+% typical values: Q_acc=0.01..0.1 m^2/s^3, 
+%                 varcoeff_s<0.3, invttc_dv=0.2 m/s,
+%                 tau_s, tau_dv=20 s
+%###########################################
+0.01	Q_acc       = fluct. strength (m^2/s^3) of dv/dt=a_det+xi(t) 
+0.	varcoeff_s  = variation coeff (rel stdev) of error for gap estimate
+120	tau_s	    = relaxation time (s) of Wiener process for d(gap)/gap
+0.0	invttc_dv   = mean time-to-collision  error of dv estimate
+30	tau_dv	    = relaxation time (s) of Wiener process for dv error
+
+
+

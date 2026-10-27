@@ -1,0 +1,41 @@
+% 16 vehicles whose models and parameters are determined by type
+% type=0,1,2, ... = line in <projectName>.heterog file
+% modelNumber={IDM,VW,HDM}
+% set number=1,2,3
+% e.g. first data line of .heterog=0.3 1 2 
+% => modelNumber=1 and setNumber=1: "<projectName>.VW2"
+% e.g., modelNumber=1 and setNumber=3: "<projectName>.VW3"
+%
+%!!! if no vehicle in/out 
+% - choose choice_BCup=choice_BCdown=2
+% - set additional vehicle at x=1000000 (bug if normal veh runs into it!)
+% - xmax in .proj no meaning for choice_BCup=choice_BCdown=2
+% #####################################################################
+%x(m)	v(m/s)	type(0=first line of .heterogen file, 1=second line,...)
+10	0	0
+20	0	0
+30	0	0
+40	0	0
+50	0	0
+60	0	0
+70	0	0
+80	0	0
+90	0	0
+100	0	0
+110	0	0
+120	0	0
+130	0	0
+140	0	0
+150	0	0
+160	0	0
+170	0	0
+180	0	0
+190	0	0
+200	0	0
+210	0	0
+220	0	0
+230	0	0
+240	0	0
+250	0	0
+260	0	0   # lead (first) vehicle
+1000	0	1   # blocking obstacle

@@ -1,0 +1,13 @@
+% Type of control comes in 3 kinds (depending on the existence of files):
+% Cotrolled leading vehs come in 3 versions:
+% (1) Externally controlled velocity: project extension .vlead<n>
+% (1) Externally controlled acceleration: project extension .brake<n>
+% (3) Test car-following data of Mannstetten/Bosch .vleadBosch<n>
+%
+% !! acceleration fixed => lies in responsability of controller 
+% to avoid crashes!!!
+%
+%time (s)	Ext. velocity (m/s)
+%-----------------------------------------
+120		10
+%125		6

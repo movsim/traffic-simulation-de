@@ -1,0 +1,11 @@
+%#############################################################
+% Composition of the vehicle population (fraction)
+% and links to model parameter file names:
+% models={IDM,VW,2=HDM,3=OVM,4=FPE,5=W26,6=VDT,7=FVDM,9=CDDA,10=Gipps,11=KCA,12=PT,13=ASGM,14=ADAS,15=NH,16=CACC,17=PCF,18=LCM,19=BIDM,20=LACC,21=NDM,100=NewModel}
+% e.g., modelNumber=0 and setNumber=1: "<projectName>.IDM1"
+% e.g., modelNumber=1 and setNumber=3: "<projectName>.VW3"
+% e.g., modelNumber=2 and setNumber=1: "<projectName>.HDM1"
+%#############################################################
+% fraction    modelNumber    setNumber
+1.0	      5		     1   #0.9
+

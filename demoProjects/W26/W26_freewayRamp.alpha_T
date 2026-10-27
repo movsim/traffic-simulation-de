@@ -1,0 +1,7 @@
+%Flow-conserving inhomogeneities
+%  x(m)    alpha_T 
+%------------------
+0        0.8
+2000     1.
+17000	 1
+18000	 1

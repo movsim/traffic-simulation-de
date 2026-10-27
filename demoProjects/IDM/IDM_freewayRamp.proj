@@ -1,0 +1,36 @@
+%**************************************************************************
+% mic proj file (upgrade Sep 06)
+%***************************************************************************
+%
+%    Initial and boundary conditions
+%
+0 	 choice_BCup   = {0=Dirichlet,1=Neumann,2=zero,3=period,4=flowControl}
+0 	 choice_BCdown = {0=Dirichlet,1=Neumann,2=free,3=period,4=block}
+3 	 choice_init   = {0=micro, 1=KK, 2=rho from file, 3=rho Q from file}
+%
+%    Numerical parameters
+%
+7200 	 tmax           = Total simulation time (s)
+20000 	 xmax           = (Initial) Length of the simulated section (m)
+0.4 	 dt             = Discretization in t (s)
+%
+%    Output options
+%
+%
+%    Output options
+%
+1.0 	 dtout_FCD      = Discretization for FCD (in s) 
+60 	 dt_tseries     = Discretization for time series (x_macro,tt,fuel,det,comfort)
+100 	 dxout_3D       = output grid for 3d output (dat)
+40 	 dtout_3D       = Discretization for 3d output (dat and micdat)
+6 	 dnout_3D       = Trajectory for every dnout'th vehicle (micdat)
+%
+0 	 choice_output     = {0=macro3D(dat), 1=microTraj(micdat), 2=both, 3=none}
+1 	 travelTime_output = flag for travel time output {0=off,on}
+0 	 trajectory_los    = flag for trajectories for LOS {0=off,on}
+%
+%    randomness  and heterogeneity
+%
+0 	 random_seed   = {0=off,on}
+0.0 	 distr_v0_T    = {uniformly distributed, 0=without distr, 0.1=+/-10 perCent etc.}
+%

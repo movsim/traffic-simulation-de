@@ -430,8 +430,39 @@ In most cases, crossing or turning at intersections does not only involve lookin
 All this is done by the method `road.determineConflicts(..)`
 quite tricky, see the code.
 
+## Demo projects
 
-## References 
+The directory 
+```
+demoProjects
+```
+contains some example projects.
+
+* Since each projects has exactly one `.proj` file, you can find them with the bash command
+```
+for f in `find . -name "*.proj"`; do echo "`dirname $f`/`basename $f .proj`"; done
+```
+
+* You can run the simulation on this project just by calling mic:
+```
+mic <projectName>
+```
+
+* If you also want some graphics produced with gnuplot and/or xfig, you can also call
+
+```
+<projectName>.run
+```
+However, this can only be done inside the directory containing the project 
+
+* Example:
+
++ `mic demoProjects/IDM/IDM_startStopCity` performs the simulation in the target directory `mic demoProjects/IDM/`
+
++ `cd demoProjects/IDM/; IDM_startStopCity.run` calls mic and then some gnuplot and/or xfig scripts to produce pdfs or eps files
+
+
+## References
 
 [1] M. Treiber, A. Hennecke, and D. Helbing. _Congested traffic states in empirical observations and microscopic simulations._ Physical review E 62 1805-1824 (2000). [Link](http://journals.aps.org/pre/pdf/10.1103/PhysRevE.62.1805), [Preprint](http://arxiv.org/abs/cond-mat/0002177)
 

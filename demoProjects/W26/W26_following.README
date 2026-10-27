@@ -1,0 +1,4 @@
+(aug13)
+Achtung, Bug, wenn das VW bzw ACC Modell auf kontrollierte beschl angewandt wird! Abstand des naechsten ACC-Fz (und nur dieses!) viel zu gering; gegen null -> Zappeln, wenn cool to 1!
+
+=> Nehme cool=0 (IIDM) oder Standard-IDM als Quick-Fix!

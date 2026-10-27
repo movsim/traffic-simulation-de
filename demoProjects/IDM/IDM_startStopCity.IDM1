@@ -1,0 +1,14 @@
+%###########################################
+% Parameters  of the IDM (for new microsimulation!)
+%###########################################
+%  
+8	 lveh   = vehicle length (m)
+%
+15	 v0            = Desired velocity (m/s)
+1	 T             = savety time distance (s)
+2	 s0            = min. bumper-to-bumper distance (m)     
+0.0	 s1            = s1*sqrt(v/v0) term in sstar
+4	 delta         = Acceleration exponent
+1.5	 a             = acceleration (m/s^2)
+1.5	 b             = comfortable braking deceleration (m/s^2)
+9	 bmax          = max. deceleration (m/s^2) (blocking wheels)

@@ -1,0 +1,22 @@
+%###########################################
+% Additional Parameters of the Human Driver Model (HDM), version Oct06
+%###########################################
+%
+1 	 T_react
+0 	 T_react_span // uniformly distributed T_react (T_react+/-T_react_span)
+%
+500 	 smax     // maximum anticipation distance (500m)
+2 	 n_antimax // maximum number of anticipated vehicles in dense traff(5)
+%
+1 	 n_Tr_temp_anticipation //integer of T_react temporal anticipation (1)
+%
+0.6 	 alpha_a_resmin  // min accel. factor due to resignation (0.5)
+0.9 	 alpha_v0_resmin // min v0- factor due to resignation (1)
+1.6 	 alpha_T_resmax  // max increase factor of T due to resignation (1.5)
+600 	 tau_res         // time scale for adapt to traff environnement(120s)
+0 	 v1rel;          // v-threshold for traffic quality=0(in units v0)(0.)
+1 	 v2rel;          // v-threshold for traffic quality=1 (in units v0)(1.)
+%###############################################################
+%!! alpha_v0_resmin near 1 (otherwise very curved Qe_free(rho))
+%!! if too low densities in cong after some t decrease tau_res (to 120,60)
+%!! alpha_a_resmin=0.7, alpha_T_resmax=1.6 well!
