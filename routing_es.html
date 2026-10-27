@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+
+    <link href="css/styleSliders.css" rel="stylesheet" type="text/css" >
+    <link href="css/styleTrafficSimulationDe.css"
+          rel="stylesheet" type="text/css"></img>
+    <link rel="shortcut icon" type="image/jpg" href="./favicon.jpg">
+    <script type="text/javascript"
+            src="js/jquery-1.12.4.min.js">
+    </script>
+
+<title>Microsimulación de tránsito: Rutas alternativas</title>
+<link href="css/spanish.css" rel="stylesheet">
+</head>
+
+
+<body>
+
+<!-- ############################################## -->
+<!-- outer container                                -->
+<!-- ############################################## -->
+
+<div id="container">
+
+
+<!-- ############################################## -->
+<!-- header: title image loaded as background image via css -->
+<!-- ############################################## -->
+
+<div id="header">
+  <img class="title" src="figs/title.png"  width="100%"></img>
+</div>
+
+
+<!-- ############################################## -->
+<!-- Buttons                                        -->
+<!-- ############################################## -->
+
+
+<div id="startStopDiv"><img id="startStop" width="100%"
+     alt="Pausar" title="Pausar" src="figs/stop_es.svg" onclick="myStartStopFunction()"></img>
+</div>
+
+<div id="restartDiv"><img id="restart" width="100%"
+     alt="Reiniciar" title="Reiniciar" src="figs/restart_es.svg" onclick="myRestartFunction()"></img>
+</div>
+
+<div id="infoDiv"><img width="100%"
+     alt="Ayuda: mostrar el siguiente tema" title="Ayuda: mostrar el siguiente tema" src="figs/infoBlue.png" onclick="showInfo()"></img>
+</div>
+
+
+<div id="lanePlusDiv"><img width="100%"
+     alt="Añadir un carril" title="Añadir un carril" src="figs/autobahn_plus.png" onclick="addOneLane()"></img>
+</div>
+
+<div id="laneMinusDiv"><img width="100%"
+     alt="Quitar un carril" title="Quitar un carril" src="figs/autobahn_minus.png" onclick="subtractOneLane()"></img>
+</div>
+
+<div id="gameDiv">
+  <button onclick='myRedirectRoutingGame()'>Jugar al juego de rutas</button>
+</div>
+
+
+<!--<div id="debugDiv"> <button onclick="mainroad.writeNonregularVehicles()">Debug:
+  write mainroad vehicles</button>
+</div>
+-->
+
+
+<!-- redirects to other scenarios, defines myRedirectX -->
+<script src="js/redirect_es.js" type="text/javascript"></script>
+
+<div id="scenarios">
+<center>
+ <br>
+<img width="17%" alt="Circuito circular" title="Circuito circular" src="figs/iconRing_small.jpg"
+                 onclick="myRedirectRing()"></img>
+<img width="19%" alt="Incorporación a la autopista" title="Incorporación a la autopista" src="figs/iconOnrampFig_small.jpg"
+                 onclick="myRedirectOnramp()"></img>
+<img width="19%" alt="Salida de autopista" title="Salida de autopista" src="figs/iconOfframpFig_small.jpg"
+                 onclick="myRedirectOfframp()"></img>
+<img width="19%" alt="Obras" title="Obras" src="figs/iconRoadworksFig_small.jpg"
+                 onclick="myRedirectRoadworks()"></img>
+<img width="19%" alt="Pendiente" title="Pendiente" src="figs/iconUphillFig_small.jpg"
+                 onclick="myRedirectUphill()"></img>
+<img width="20%" alt="Rutas alternativas" title="Rutas alternativas" src="figs/iconRoutingFig_small.jpg"
+                 onclick="myRedirectRouting()"></img>
+<img width="22%" alt="Rotonda" title="Rotonda" src="figs/iconRoundabout_small.jpg"
+                 onclick="myRedirectRoundabout()"></img>
+<img width="19%" alt="Intersección" title="Intersección" src="figs/iconIntersection_small.jpg"
+                 onclick="myRedirectIntersection()"></img>
+<img width="20%" alt="Control de acceso" title="Control de acceso" src="figs/iconRampmeterFig_small.jpg"
+                 onclick="myRedirectOnrampBaWue()"></img>
+<a href="test2_bottleneck.html">Pruebas (inglés)</a>
+</center>
+
+</div>
+
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
+
+<div id="contents">
+  <canvas id="canvas"
+          onmouseenter="handleMouseEnter(event)"
+          onmousemove="handleMouseMove(event)"
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)"
+          onclick="handleClick(event)"
+          onmouseout="cancelActivities(event)"
+          style="border:1px solid #d3d3d3;">
+
+    Tu navegador no admite el elemento canvas de HTML5.
+  </canvas>
+</div>
+
+
+
+
+<!-- ################################################# -->
+<!-- Copyright/impressum                               -->
+<!-- ################################################# -->
+
+<div id="impressum">
+  <table class="infoTable"> <TR>
+    <td> <a href="impressum.html"> &copy; Martin Treiber</a></td>
+    <TD> <a href="https://github.com/movsim/traffic-simulation-de">
+          Código fuente en GitHub</a></TD>
+  </TR></table>
+</div>
+
+<!-- ############################################## -->
+<!-- General link list
+<!-- ############################################## -->
+
+<div id="link1Div">
+  <table class="infoTable">
+    <tr><td> <a href="https://www.movsim.org"> MovSim</a> </td></tr>
+  </table>
+</div>
+
+<div id="link2Div">
+  <table class="infoTable">
+    <tr><td><a href = "http://traffic-flow-dynamics.org">
+          Libro "Traffic Flow Dynamics" (inglés) </a></td></tr>
+    <tr><td> <a href = "https://www.verkehrsdynamik.de">
+          Libro "Verkehrsdynamik" (alemán)</a></td></tr>
+  </table>
+</div>
+
+
+
+
+<!-- ################################################# -->
+<!-- Sliders 1: The whole right-hand side
+<!-- ################################################# -->
+
+<div id="sliders">
+<center>
+
+
+<!-- ######################################################## -->
+<h3>Flujo de tránsito y ajustes generales</h3>
+<!-- ######################################################## -->
+
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
+
+<tr>
+  <td class="important"><label for="slider_fracOff">Uso de la ruta alternativa</label></td>
+  <td> <input id="slider_fracOff" type="range"
+              min="0" max="100" step="1"></td>
+  <td> <div id="slider_fracOffVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_qIn">Flujo de entrada</label></td>
+  <td> <input id="slider_qIn" type="range"
+              min="0" max="3600" step="10"></td>
+  <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_fracTruck">Porcentaje de camiones</label></td>
+  <td> <input id="slider_fracTruck" type="range"
+              min="0" max="50" step="1"></td>
+  <td> <div id="slider_fracTruckVal"></div> </td>
+</tr>
+
+
+<tr>
+  <td><label for="slider_timewarp">Velocidad de simulación</label></td>
+  <td> <input id="slider_timewarp" type="range"
+              min="0.2" max="20" step="0.1"></td>
+  <td> <div id="slider_timewarpVal"></div> </td>
+</tr>
+
+</table>
+
+
+
+<!-- ######################################################## -->
+<h3>Seguimiento de vehículos</h3>
+<!-- ######################################################## -->
+
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
+
+<tr>
+  <td><label for="slider_IDM_a">Aceleración máxima a</label></td>
+  <td> <input id="slider_IDM_a" type="range"
+              min="0.3" max="4" step="0.1"></td>
+  <td> <div id="slider_IDM_aVal"></div> </td>
+</tr>
+
+
+<tr>
+  <td><label for="slider_IDM_v0">Velocidad deseada v<sub>0</sub></label></td>
+  <td> <input id="slider_IDM_v0" type="range"
+              min="20" max="160" step="1"></td>
+  <td> <div id="slider_IDM_v0Val"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_IDM_T">Intervalo de seguridad T</label></td>
+  <td> <input id="slider_IDM_T" type="range"
+              min="0.6" max="3" step="0.1"></td>
+  <td> <div id="slider_IDM_TVal"></div> </td>
+</tr>
+
+
+
+</table>
+
+
+<!-- ######################################################## -->
+<!--<img src="figs/Lane-Changing_Behavior.png" width="60%"></img>-->
+<h3>Cambios de carril</h3>
+<!-- ######################################################## -->
+
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+
+<tr>
+  <td><label for="slider_MOBIL_p">Factor de cortesía</label></td>
+  <td> <input id="slider_MOBIL_p" type="range"
+              min="-0.2" max="1" step="0.1"></td>
+  <td> <div id="slider_MOBIL_pVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_MOBIL_bThr">Umbral de cambio</label></td>
+  <td> <input id="slider_MOBIL_bThr" type="range"
+              min="-0.1" max="1" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bThrVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_MOBIL_bBiasRight_car">Preferencia por la derecha (autos)</label></td>
+  <td> <input id="slider_MOBIL_bBiasRight_car" type="range"
+              min="-1" max="2" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bBiasRight_carVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_MOBIL_bBiasRight_truck">Preferencia por la derecha (camiones)</label></td>
+  <td> <input id="slider_MOBIL_bBiasRight_truck" type="range"
+              min="-1" max="2" step="0.1"></td>
+  <td> <div id="slider_MOBIL_bBiasRight_truckVal"></div> </td>
+</tr>
+</table>
+
+
+<!-- ############################################## -->
+<!-- info-text inside sliders-div (filled by showInfo())
+<!-- ############################################## -->
+
+<br>
+<div id="infotext">
+</div>
+
+
+</center>
+</div>   <!-- id="sliders">-->
+
+
+
+
+<!-- ############################################## -->
+<!-- Download
+<!-- ############################################## -->
+
+<div id="downloadDiv">
+  <img id="download" alt="Grabar datos" title="Grabar datos" src="figs/download_start_es.svg" width="100%"
+       onclick="downloadCallback()"></img>
+</div>
+
+
+
+
+<!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags" aria-label="Idioma">
+<a href="routing_es.html" lang="es" aria-current="page">Español</a>
+
+<a href = "routing.html">
+ <img alt="English" title="English" src="figs/flagUSA.png" width="45%" ></img>
+</a>
+
+<a href = "routing_ger.html">
+ <img alt="Deutsch" title="Deutsch" src="figs/flagGerman.png" width="45%" ></img>
+</a>
+</div>
+
+
+<!-- ############################################## -->
+<!-- colorbox
+<!-- ############################################## -->
+
+
+<div id="colorBox">
+<center>
+<img alt="Escala de colores de velocidad" title="Escala de colores de velocidad" src="figs/colormap_grass.png" width="100%"></img>
+</center>
+</div>
+
+
+
+</div> <!-- end outer container -->
+
+
+
+<!-- ########################################################## -->
+<!-- specific scripts; position below any simulation elements ! -->
+<!-- ########################################################## -->
+
+
+<script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
+
+
+<script src="js/control_gui_es.js"></script>
+<script src="js/timeView_es.js" type="text/javascript"></script>
+<script src="js/displayText.js" type="text/javascript"></script>
+<script src="js/media.js" type="text/javascript"></script>
+
+<script src="js/canvas_gui_es.js"></script>
+<script src="js/TrafficObjects.js"></script>
+<script src="js/TrafficLightControlEditor_es.js"></script>
+<script src="js/colormanip.js"></script>
+
+<script src="js/models.js"></script>
+<script src="js/vehicle.js"></script>
+<!--<script src="js/myMath.js"></script> -->
+
+<script src="js/paths.js"></script>
+<script src="js/road.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/stationaryDetector_es.js"></script>
+
+<!-- PROJ--> <script src="js/routing_es.js"></script>
+
+</body>
+</html>

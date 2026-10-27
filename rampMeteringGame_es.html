@@ -1,0 +1,231 @@
+
+<!DOCTYPE html public>
+<html lang="es">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+    <link href="css/styleSlidersGame.css" rel="stylesheet" type="text/css" >
+    <link href="css/styleGame.css" rel="stylesheet" type="text/css"></img>
+    <link rel="shortcut icon" type="image/jpg" href="./favicon.jpg">
+    <script type="text/javascript" src="js/jquery-1.12.4.min.js">
+    </script>
+
+
+    <title>Microsimulación de tránsito: Juego de control de acceso</title>
+<link href="css/spanish.css" rel="stylesheet">
+</head>
+
+
+<body class="spanish-game">
+
+
+<!-- ############################################## -->
+<!-- header: title image loaded as background image via css -->
+<!-- ############################################## -->
+
+<div id="header">
+<!--  <img class="title" src="figs/title.png"  width="100%"></img> -->
+</div>
+
+
+<!-- ############################################## -->
+<!-- Buttons                                        -->
+<!-- ############################################## -->
+
+
+<div id="startStopDiv"><img id="startStop" width="100%"
+     alt="Pausar" title="Pausar" src="figs/stop_es.svg" onclick="myStartStopFunction()"></img>
+</div>
+
+<!--<div id="restartDiv"><img id="restart" width="100%"
+     alt="Reiniciar" title="Reiniciar" src="figs/restart_es.svg" onclick="myGameRestartFunction()"></img>
+</div>
+-->
+
+<div id="gameRampMeteringDiv">
+  <button onclick='playRampMeteringGame("infotextGame")'>
+  Jugar al control de acceso</button>
+</div>
+
+<!-- optionally now in extra file clearHighscores.html during LNDW -->
+<!--
+<div id="clearHighscoresDiv">
+  <button onclick='clearHighscores_rampMeteringGame();'>
+  Clear Highscores</button>
+</div>
+-->
+
+<div id="playlinksRampMeteringGame">
+  <button onclick='window.location.href = "./routingGame.html";'>
+  <!--  =&rangle;&nbsp;Routing Game</button>-->
+  Ir al juego de rutas</button>
+<br><br>
+<img width="50%" src="favicon.jpg"
+                 onclick="myRedirectOnramp()"></img>
+
+</div>
+
+
+
+
+<!-- redirects to other scenarios, defines myRedirectX -->
+
+<script src="js/redirect_es.js" type="text/javascript"></script>
+
+
+<!-- ############################################## -->
+<!-- the actual simulation canvas -->
+<!-- ############################################## -->
+
+<!--  !!!  NO comments inside canvas spec, leads to DOS!!! -->
+<!-- no width, height spec in canvas; overridden anyway -->
+
+<div id="contents">
+  <canvas id="canvas"
+          onmouseenter="handleMouseEnter(event)"
+          onmousemove="handleMouseMove(event)"
+          onmousedown="handleMouseDown(event)"
+          onmouseup="handleMouseUp(event)"
+          onclick="handleClick(event)"
+          onmouseout="cancelActivities(event)"
+          style="border:1px solid #d3d3d3;">
+
+    Tu navegador no admite el elemento canvas de HTML5.
+  </canvas>
+</div>
+
+
+<!-- ############################################## -->
+<!-- Info text including display of results  (filled by showInfo())
+<!-- ############################################## -->
+
+  <div id="infotextRampMeteringGame"> </div>
+
+
+
+<!-- ################################################# -->
+<!-- Copyright/impressum                               -->
+<!-- ################################################# -->
+
+<!--<div id="impressum"> <a href="impressum.html">
+  &copy; Martin Treiber</a></div>-->
+
+<div id="impressum">
+  <table class="infoTable"> <TR>
+    <td> <a href="impressum.html"> &copy; Martin Treiber</a></td>
+  </TR></table>
+</div>
+
+<!-- ############################################## -->
+<!-- General link list
+<!-- ############################################## -->
+
+<div id="link1Div">
+  <table class="infoTable"> <TR>
+      <TD> <a href="onramp.html">
+          traffic-simulation.de</a></TD>
+      <TD> <a href="https://github.com/movsim/traffic-simulation-de">
+          Código fuente en GitHub</a></TD>
+   </TR></table>
+ </div>
+
+
+<!-- ################################################# -->
+<!-- No main sliders to control the game: only traffic lights/speed limits -->
+<!-- ################################################# -->
+
+<!-- ################################################# -->
+<!-- Info sliders (only timewarp active) -->
+<!-- ################################################# -->
+
+<div id="slidersRampMeteringGame">
+<center>
+<table id="mainTable" border="0" cellspacing="1" cellpadding="0" >
+<tr>
+  <td><label for="slider_qIn">Flujo principal (información)</label></td>
+  <td> <input id="slider_qIn" type="range"
+              min="0" max="3600" step="10"></td>
+  <td> <div id="slider_qInVal"></div> </td>
+</tr>
+
+
+<tr>
+  <td><label for="slider_qOn">Flujo de incorporación (información)</label></td>
+  <td> <input id="slider_qOn" type="range"
+              min="0" max="2000" step="10"></td>
+  <td> <div id="slider_qOnVal"></div> </td>
+</tr>
+
+<tr>
+  <td><label for="slider_timewarp">Velocidad de simulación</label></td>
+  <td> <input id="slider_timewarp" type="range"
+              min="0.2" max="20" step="0.1"></td>
+  <td> <div id="slider_timewarpVal"></div> </td>
+</tr>
+
+
+</table>
+
+
+
+<!-- ############################################## -->
+<!-- info-text inside sliders-div (filled by showInfo())
+<!-- ############################################## -->
+
+<br>
+<div id="infotext"></div>
+
+</center>
+</div>   <!-- id="sliders">-->
+
+
+
+<!-- ############################################## -->
+<!-- language switching
+<!-- ############################################## -->
+
+<div id="infoFlags" aria-label="Idioma">
+<a href="rampMeteringGame_es.html" lang="es" aria-current="page">Español</a>
+
+<a href = "rampMeteringGame.html">
+ <img alt="English" title="English" src="figs/flagUSA.png" width="45%" ></img>
+</a>
+
+<a href = "rampMeteringGame_ger.html">
+ <img alt="Deutsch" title="Deutsch" src="figs/flagGerman.png" width="45%" ></img>
+</a>
+</div>
+
+
+
+
+
+<!-- ########################################################## -->
+<!-- specific scripts; position below any simulation elements ! -->
+<!-- ########################################################## -->
+
+<script src="js/seedrandom.min.js"></script> <!-- random w seed debug -->
+
+<script src="js/timeView_es.js" type="text/javascript"></script>
+<script src="js/displayText.js" type="text/javascript"></script>
+<script src="js/media.js" type="text/javascript"></script>
+
+<script src="js/control_gui_es.js"></script>
+<script src="js/canvas_gui_es.js"></script>
+<script src="js/TrafficObjects.js"></script>
+<script src="js/TrafficLightControlEditor_es.js"></script>
+<script src="js/colormanip.js"></script>
+
+<script src="js/models.js"></script>
+<script src="js/vehicle.js"></script>
+
+<script src="js/paths.js"></script>
+<script src="js/road.js"></script>
+<script src="js/stationaryDetector_es.js"></script>
+<script src="js/rampMeteringGameInfo_es.js"></script>
+
+<!-- PROJ--> <script src="js/rampMeteringGame_es.js"></script>
+
+</body>
+</html>
