@@ -1,6 +1,5 @@
 /* Longer Spanish labels must wrap inside the existing responsive layout. */
 html[lang="es"] #sliders td:first-child { overflow-wrap: anywhere; }
-html[lang="es"] #infoFlags > a:first-child { display: block; }
 @media (min-aspect-ratio: 6/5) { html[lang="es"] #infoFlags { top: 90%; } }
 @media (max-aspect-ratio: 6/5) { html[lang="es"] #infoFlags { top: 72vmin; } }
 html[lang="es"] #infotext { text-align: left; }

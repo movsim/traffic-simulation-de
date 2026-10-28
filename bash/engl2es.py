@@ -13,7 +13,18 @@ def read(name):
     except UnicodeDecodeError:
         return data.decode('latin1')
 
+def flag_links(html):
+    """Use equally sized flag icons without changing language destinations."""
+    def replace(match):
+        block = match[0].replace(' style="display:block"', '')
+        block = re.sub(r'>(?:Español|Espa&#241;ol)</a>', '><img src="figs/flagSpain.svg" alt="Espa&#241;ol" title="Espa&#241;ol" width="27%"></a>', block)
+        block = block.replace('>Deutsch</a>', '><img src="figs/flagGerman.png" alt="Deutsch" title="Deutsch" width="27%"></a>')
+        return block.replace('width="45%"', 'width="27%"')
+    return re.sub(r'<div id="infoFlags"[^>]*>.*?</div>', replace, html, flags=re.S)
+
 def write(name, text):
+    if name.endswith(".html"):
+        text = flag_links(text)
     text = '\n'.join(line.rstrip() for line in text.splitlines()).rstrip() + '\n'
     text = re.sub(r'^[ \t]+', lambda m: m.group().expandtabs(8), text, flags=re.MULTILINE)
     (root / name).write_text(text, encoding='utf-8', newline='\n')
@@ -46,7 +57,7 @@ alt = {
 for scenario, title in SCENARIOS.items():
     source = scenario + ('_ger' if scenario.endswith('BaWue') else '') + '.html'
     html = read(source)
-    html = re.sub(r'<a href="\w+_es.html" lang="es" style="display:block">Espa&#241;ol</a>', '', html)
+    html = re.sub(r'<a href="\w+_es.html" lang="es"[^>]*>.*?</a>', '', html)
     html = re.sub(r'lang="(?:en|de)"', 'lang="es"', html)
     if 'lang="es"' not in html:
         html = html.replace('<html>', '<html lang="es">')
@@ -88,7 +99,8 @@ for scenario, title in SCENARIOS.items():
         target=(scenario+'_es.html').encode()
         if target not in data:
             data=data.replace(b'<div id="infoFlags">', b'<div id="infoFlags">\n<a href="'+target+b'" lang="es" style="display:block">Espa&#241;ol</a>')
-            (root/original).write_bytes(data)
+        data = flag_links(data.decode("latin1")).encode("latin1")
+        (root/original).write_bytes(data)
 
 for name in scripts:
     # Game instructions are human-translated HTML, embedded as a JS string.
@@ -127,7 +139,6 @@ for new,label in icons.values():
 
 write('css/spanish.css', '''/* Longer Spanish labels must wrap inside the existing responsive layout. */
 html[lang="es"] #sliders td:first-child { overflow-wrap: anywhere; }
-html[lang="es"] #infoFlags > a:first-child { display: block; }
 @media (min-aspect-ratio: 6/5) { html[lang="es"] #infoFlags { top: 90%; } }
 @media (max-aspect-ratio: 6/5) { html[lang="es"] #infoFlags { top: 72vmin; } }
 html[lang="es"] #infotext { text-align: left; }
