@@ -266,4 +266,7 @@ done
 
 perl -i -p -e 's/info_routingGame\.html/info_routingGame_ger.html/g' js/control_gui_ger.js js/routingGame_ger.js
 
+# Keep language flags and their destinations consistent after generation.
+python3 bash/language_flags.py
+
 cd $wd
