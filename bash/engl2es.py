@@ -187,3 +187,7 @@ html[lang="es"] .spanish-game [id^="sliders"] input { width: 90%; }
   html[lang="es"] .spanish-game #infotextRampMeteringGame h2 { font-size: 18px; }
 }
 ''')
+
+# Include legacy variants and return links after generating all translations.
+from language_flags import sync_repository
+sync_repository(root)

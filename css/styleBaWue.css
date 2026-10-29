@@ -512,3 +512,9 @@ td.important{
 
 
 
+
+/* Language navigation for the German and Spanish BaWue scenarios. */
+#infoFlags { position: absolute; top: 90%; left: 2vw; width: 16vmin; z-index: 4; }
+@media (max-aspect-ratio: 6/5) {
+  #infoFlags { top: 80vmin; left: 72vw; width: 26vw; }
+}
